@@ -60,6 +60,16 @@ h1, h2, h3, p { margin-top: 0; }
 .provenance { display: grid; }
 .provenance li { display: grid; gap: 0.2rem; border-left: 2px solid rgba(240, 184, 95, 0.55); padding-left: 0.65rem; color: #baa98c; font-size: 0.82rem; }
 .provenance strong { color: #f4ddae; }
+.changelog { display: grid; gap: 1rem; margin-top: 1rem; padding: 1.2rem; }
+.changelog-heading { display: flex; justify-content: space-between; gap: 1.5rem; align-items: end; }
+.changelog-heading h2 { margin-bottom: 0; font-size: clamp(1.5rem, 3vw, 2.3rem); }
+.changelog-heading > p { max-width: 520px; margin-bottom: 0; color: #d6c5a8; }
+.changelog-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin: 0; padding: 0; list-style: none; }
+.changelog-list > li { border: 1px solid rgba(240, 184, 95, 0.18); border-radius: 1.1rem; padding: 1rem; background: rgba(12, 9, 6, 0.32); }
+.changelog-entry-header { display: grid; gap: 0.25rem; margin-bottom: 0.5rem; }
+.changelog-entry-header h3 { margin: 0; color: #f8d99f; }
+.changelog-list p { color: #d6c5a8; }
+.changelog-list ul { display: grid; gap: 0.45rem; margin: 0; padding-left: 1.1rem; color: #baa98c; }
 .site-footer { display: flex; justify-content: space-between; gap: 1rem; align-items: start; margin-top: 1rem; padding: 1rem 1.2rem; color: #b7a58a; font-size: 0.84rem; }
 .site-footer p { margin-bottom: 0.25rem; }
 .site-footer p:last-child { margin-bottom: 0; }
@@ -67,5 +77,5 @@ h1, h2, h3, p { margin-top: 0; }
 .site-footer a:hover { text-decoration: underline; }
 .version-label { color: #d6c5a8; font-size: 0.75rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
 .footer-links { display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: flex-end; }
-@media (max-width: 900px) { .hero, .workspace { grid-template-columns: 1fr; } .controls { position: static; } }
+@media (max-width: 900px) { .hero, .workspace { grid-template-columns: 1fr; } .controls { position: static; } .changelog-heading { display: grid; } }
 @media (max-width: 520px) { .control-row.split, .score-list { grid-template-columns: 1fr; } .site-footer { flex-direction: column; } .footer-links { justify-content: flex-start; } }
