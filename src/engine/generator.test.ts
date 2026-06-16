@@ -16,6 +16,7 @@ describe('generateEnsemble', () => {
     const first = generateEnsemble(settings, registry);
     const second = generateEnsemble(settings, registry);
     expect(second.names.map((name) => name.name)).toEqual(first.names.map((name) => name.name));
+    expect(second.names.map((name) => name.scores.overallFit)).toEqual(first.names.map((name) => name.scores.overallFit));
   });
 
   it('changes generated names when the seed changes', () => {
@@ -27,14 +28,25 @@ describe('generateEnsemble', () => {
     expect(generateEnsemble({ ...settings, castSize: 50 }, createDefaultRegistry()).names).toHaveLength(24);
   });
 
-  it('returns provenance-bearing names and variants', () => {
+  it('returns provenance-bearing names, variants, and fit scores', () => {
     const ensemble = generateEnsemble(settings, createDefaultRegistry());
     expect(ensemble.names).toHaveLength(settings.castSize);
     for (const name of ensemble.names) {
       expect(name.provenance.length).toBeGreaterThan(0);
       expect(name.silhouette.provenance.length).toBeGreaterThan(0);
-      expect(name.scores.plausibility).toBeGreaterThan(0);
+      expect(name.scores.overallFit).toBeGreaterThan(0);
+      expect(name.scores.styleFit).toBeGreaterThan(0);
+      expect(name.scores.silhouetteFit).toBeGreaterThan(0);
+      expect(name.scores.ensembleFit).toBeGreaterThanOrEqual(0);
     }
+  });
+
+  it('tracks expanded ensemble diagnostics', () => {
+    const ensemble = generateEnsemble(settings, createDefaultRegistry());
+    expect(ensemble.diagnostics.repeatedInitials).toBeLessThan(settings.castSize);
+    expect(ensemble.diagnostics.repeatedEndings).toBeLessThan(settings.castSize);
+    expect(ensemble.diagnostics.repeatedCadences).toBeLessThan(settings.castSize);
+    expect(ensemble.diagnostics.repeatedRarityBands).toBeLessThan(settings.castSize);
   });
 
   it('uses classic MMO rarity bands', () => {
