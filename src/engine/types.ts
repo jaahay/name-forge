@@ -1,5 +1,5 @@
 export type ScoreKey = 'pronounceability' | 'memorability' | 'novelty' | 'culturalAnchoring' | 'orthographicNaturalness';
-export type RarityBand = 'common' | 'familiar' | 'uncommon' | 'rare';
+export type RarityBand = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 export type NameTexture = 'soft' | 'balanced' | 'hard' | 'liquid';
 export type VariantKind = 'curated' | 'generated';
 export type SourceKind = 'style-pack' | 'algorithm' | 'curated-list' | 'remote-pack';
