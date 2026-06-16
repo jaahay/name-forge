@@ -5,6 +5,9 @@ import type { GenerationSettings, NameTexture, RarityBand, ScoreKey } from './en
 
 const registry = createDefaultRegistry();
 const stylePacks = registry.listStylePacks();
+const authorSiteUrl = 'https://jameshay-site.pages.dev/';
+const sourceUrl = 'https://github.com/jaahay/name-forge';
+const errataUrl = `${sourceUrl}/issues/new`;
 
 type ControlKey =
   | 'novelty'
@@ -170,6 +173,17 @@ export default function App() {
           </div>
         </section>
       </section>
+
+      <footer className="site-footer panel">
+        <div>
+          <p>&copy; 2026 <a href={authorSiteUrl} target="_blank" rel="noreferrer">James Hay</a>. Name Forge.</p>
+          <p>Generated names are drafting material; verify cultural, legal, and project fit before publishing.</p>
+        </div>
+        <nav className="footer-links" aria-label="Project links">
+          <a href={sourceUrl} target="_blank" rel="noreferrer">Source</a>
+          <a href={errataUrl} target="_blank" rel="noreferrer">Errata</a>
+        </nav>
+      </footer>
     </main>
   );
 }
