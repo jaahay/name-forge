@@ -1,4 +1,4 @@
-export type ScoreKey = 'pronounceability' | 'memorability' | 'novelty' | 'culturalAnchoring' | 'orthographicNaturalness';
+export type ScoreKey = 'pronounceability' | 'memorability' | 'novelty' | 'culturalAnchoring' | 'orthographicNaturalness' | 'styleFit' | 'silhouetteFit' | 'ensembleFit';
 export type RarityBand = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 export type NameTexture = 'soft' | 'balanced' | 'hard' | 'liquid';
 export type VariantKind = 'curated' | 'generated';
@@ -8,10 +8,10 @@ export interface GenerationSettings { castSize: number; novelty: number; pronoun
 export interface WeightedValue<T = string> { value: T; weight: number; }
 export interface ProvenanceNote { sourceId: string; sourceKind: SourceKind; label: string; detail: string; }
 export interface NameSilhouette { id: string; syllableCount: number; stressPattern: string; rhythm: string; shape: string[]; rarityBand: RarityBand; texture: NameTexture; targetNovelty: number; targetLength: 'short' | 'medium' | 'long'; provenance: ProvenanceNote[]; }
-export interface NameScores { pronounceability: number; memorability: number; novelty: number; culturalAnchoring: number; orthographicNaturalness: number; plausibility: number; }
+export interface NameScores { pronounceability: number; memorability: number; novelty: number; culturalAnchoring: number; orthographicNaturalness: number; styleFit: number; silhouetteFit: number; ensembleFit: number; plausibility: number; }
 export interface NameVariant { value: string; kind: VariantKind; ruleId: string; provenance: ProvenanceNote; }
 export interface GeneratedName { id: string; name: string; silhouette: NameSilhouette; scores: NameScores; variants: NameVariant[]; provenance: ProvenanceNote[]; }
-export interface EnsembleDiagnostics { repeatedInitials: number; repeatedEndings: number; noveltySpread: number; summary: string; }
+export interface EnsembleDiagnostics { repeatedInitials: number; repeatedEndings: number; repeatedCadences: number; repeatedRarityBands: number; noveltySpread: number; summary: string; }
 export interface GeneratedEnsemble { settings: GenerationSettings; sourcePack: StylePackSummary; names: GeneratedName[]; diagnostics: EnsembleDiagnostics; }
 export interface SpellingVariantRule { id: string; label: string; from: string; to: string; maxApplications?: number; sourceKind: SourceKind; }
 export interface StylePackSummary { id: string; label: string; description: string; }
