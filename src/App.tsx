@@ -5,11 +5,11 @@ import type { GenerationSettings, NameTexture, RarityBand, ScoreKey } from './en
 
 const registry = createDefaultRegistry();
 const stylePacks = registry.listStylePacks();
-const appVersion = '0.1.0';
 const authorSiteUrl = 'https://jameshay.org/';
 const sourceUrl = 'https://github.com/jaahay/name-forge';
-const changelogUrl = '#changelog';
-const errataUrl = `${sourceUrl}/issues/new`;
+const commitHistoryUrl = `${sourceUrl}/commits/main/`;
+
+type AppView = 'generator' | 'changelog';
 
 type ControlKey =
   | 'novelty'
@@ -29,6 +29,8 @@ const scoreControls: Array<{
   { key: 'culturalAnchoring', label: 'Cultural anchoring', help: 'Higher values keep names closer to the selected style pack anchors.' },
   { key: 'orthographicWeirdness', label: 'Orthographic weirdness', help: 'Higher values permit stranger spellings while still scoring naturalness separately.' },
 ];
+
+const scoreAnchors = [0.25, 0.5, 0.75] as const;
 
 const scorePresentation: Array<{ key: ScoreKey; label: string }> = [
   { key: 'pronounceability', label: 'Pronounce' },
@@ -51,22 +53,29 @@ const rarityPresentation: Record<RarityBand, { label: string; className: string 
 
 const changelogEntries = [
   {
-    version: 'Unreleased',
-    title: 'Frontend identity polish',
-    summary: 'Makes project ownership, maintenance links, metadata, and release context visible directly in the app shell.',
+    title: 'Card styling and controls',
+    summary: 'Improves the result card surface and makes generation controls faster to tune.',
     changes: [
-      'Added crawler and sharing metadata with canonical author and app URLs.',
-      'Added a whimsical forge favicon with an anvil, sparks, glow, and N monogram.',
-      'Added footer links for source, changelog, errata, and a quiet version label.',
+      'Closed cards now stay compact when another card in the same row is expanded.',
+      'Name titles now inherit the rarity color used by each rarity pill.',
+      'Added numeric score fields, 25/50/75 anchors, and global plus per-control randomize actions.',
     ],
   },
   {
-    version: '0.1.0',
+    title: 'Site shell cleanup',
+    summary: 'Removes index-page clutter and keeps project navigation focused.',
+    changes: [
+      'Moved the changelog into a separate in-site tab instead of stacking it under the generator.',
+      'Removed the public version badge, errata link, and non-actionable generated-name disclaimer.',
+      'Updated public copy so Name Forge is not framed as only a fiction-genre tool.',
+    ],
+  },
+  {
     title: 'Initial generation shell',
-    summary: 'Introduced the first deterministic, cast-aware Name Forge interface for shaping fictional ensembles.',
+    summary: 'Introduced the first deterministic, cast-aware Name Forge interface for shaping name ensembles.',
     changes: [
       'Added controls for cast size, style preset, seed, novelty, pronounceability, memorability, cultural anchoring, and spelling weirdness.',
-      'Rendered generated names with fit scores, rarity, silhouette texture, variants, and provenance.',
+      'Rendered generated names with fit scores, rarity, silhouette texture, variants, and source trace data.',
       'Added collapsible result cards and texture-aware visual styling for generated names.',
     ],
   },
@@ -83,8 +92,28 @@ const initialSettings: GenerationSettings = {
   seed: 'name-forge-001',
 };
 
+function clampScore(value: number): number {
+  if (!Number.isFinite(value)) return 0;
+  return Math.min(1, Math.max(0, value));
+}
+
 function formatScore(value: number): string {
   return Math.round(value * 100).toString();
+}
+
+function scoreFromPercent(value: string): number {
+  return clampScore(Number(value) / 100);
+}
+
+function randomScore(): number {
+  return Math.round(Math.random() * 100) / 100;
+}
+
+function randomizeScoreSettings(settings: GenerationSettings): GenerationSettings {
+  return scoreControls.reduce<GenerationSettings>((nextSettings, control) => ({
+    ...nextSettings,
+    [control.key]: randomScore(),
+  }), settings);
 }
 
 function rarityClassName(rarity: RarityBand): string {
@@ -96,6 +125,7 @@ function textureClassName(texture: NameTexture): string {
 }
 
 export default function App() {
+  const [currentView, setCurrentView] = useState<AppView>('generator');
   const [settings, setSettings] = useState<GenerationSettings>(initialSettings);
   const [committedSettings, setCommittedSettings] = useState<GenerationSettings>(initialSettings);
   const ensemble = useMemo(() => generateEnsemble(committedSettings, registry), [committedSettings]);
@@ -115,124 +145,179 @@ export default function App() {
     setCommittedSettings((current) => ({ ...current, seed: nextSeed }));
   }
 
+  function randomizeSliders() {
+    const randomizedSettings = randomizeScoreSettings(settings);
+    setSettings(randomizedSettings);
+    setCommittedSettings(randomizedSettings);
+  }
+
+  function randomizeSlider(key: ControlKey) {
+    const nextValue = randomScore();
+    setSettings((current) => ({ ...current, [key]: nextValue }));
+    setCommittedSettings((current) => ({ ...current, [key]: nextValue }));
+  }
+
   return (
     <main className="app-shell">
-      <section className="hero panel">
-        <div>
-          <p className="eyebrow">Name Forge</p>
-          <h1>Fictional names that are random, usable, and cast-aware.</h1>
-          <p className="hero-copy">
-            Generate a balanced ensemble by shaping name silhouettes first, scoring overall fit,
-            suggesting spelling variants, and preserving provenance for every result.
-          </p>
-        </div>
-        <div className="hero-stats" aria-label="Generation summary">
-          <span>{ensemble.names.length} names</span>
-          <span>{ensemble.diagnostics.repeatedInitials} repeated initials</span>
-          <span>{ensemble.diagnostics.repeatedEndings} repeated endings</span>
-        </div>
-      </section>
+      <nav className="app-tabs" aria-label="Primary">
+        <button type="button" className={currentView === 'generator' ? 'tab-button active' : 'tab-button'} onClick={() => setCurrentView('generator')}>Generator</button>
+        <button type="button" className={currentView === 'changelog' ? 'tab-button active' : 'tab-button'} onClick={() => setCurrentView('changelog')}>Changelog</button>
+        <a className="tab-link" href={sourceUrl} target="_blank" rel="noreferrer">Source</a>
+      </nav>
 
-      <section className="workspace">
-        <form className="controls panel" onSubmit={regenerate}>
-          <div className="control-row split">
-            <label>
-              <span>Cast size</span>
-              <input type="number" min="1" max="24" value={settings.castSize} onChange={(event) => updateSetting('castSize', Number(event.target.value))} />
-            </label>
-            <label>
-              <span>Style preset</span>
-              <select value={settings.stylePackId} onChange={(event) => updateSetting('stylePackId', event.target.value)}>
-                {stylePacks.map((pack) => <option key={pack.id} value={pack.id}>{pack.label}</option>)}
-              </select>
-            </label>
-          </div>
+      {currentView === 'generator' ? (
+        <>
+          <section className="hero panel">
+            <div>
+              <p className="eyebrow">Name Forge</p>
+              <h1>Names that are random, usable, and cast-aware.</h1>
+              <p className="hero-copy">
+                Generate a balanced ensemble by shaping name silhouettes first, scoring overall fit,
+                suggesting spelling variants, and preserving source traces for every result.
+              </p>
+            </div>
+            <div className="hero-stats" aria-label="Generation summary">
+              <span>{ensemble.names.length} names</span>
+              <span>{ensemble.diagnostics.repeatedInitials} repeated initials</span>
+              <span>{ensemble.diagnostics.repeatedEndings} repeated endings</span>
+            </div>
+          </section>
 
-          {scoreControls.map((control) => (
-            <label className="slider" key={control.key} title={control.help}>
-              <span>{control.label}<strong>{formatScore(Number(settings[control.key]))}</strong></span>
-              <input type="range" min="0" max="1" step="0.01" value={Number(settings[control.key])} onChange={(event) => updateSetting(control.key, Number(event.target.value))} />
-              <small>{control.help}</small>
-            </label>
-          ))}
-
-          <label className="seed-control">
-            <span>Seed</span>
-            <input value={settings.seed} onChange={(event) => updateSetting('seed', event.target.value)} />
-          </label>
-
-          <div className="actions">
-            <button type="submit">Generate cast</button>
-            <button type="button" className="secondary" onClick={randomizeSeed}>Randomize seed</button>
-          </div>
-        </form>
-
-        <section className="output" aria-live="polite">
-          <div className="ensemble-note panel">
-            <h2>Ensemble balance</h2>
-            <p>{ensemble.diagnostics.summary}</p>
-          </div>
-
-          <div className="name-grid">
-            {ensemble.names.map((name) => {
-              const rarity = rarityPresentation[name.silhouette.rarityBand];
-
-              return (
-                <details className={`name-card panel ${textureClassName(name.silhouette.texture)}`} key={name.id}>
-                  <summary className="name-card-summary">
-                    <div className="name-card-header">
-                      <div><h2>{name.name}</h2><p>{name.silhouette.rhythm} rhythm</p></div>
-                      <span className="score-pill" aria-label={`Overall fit score ${formatScore(name.scores.overallFit)}`}>{formatScore(name.scores.overallFit)}</span>
-                    </div>
-                    <span className="collapse-cue">Details</span>
-                  </summary>
-                  <dl className="score-list" aria-label={`${name.name} score breakdown`}>
-                    {scorePresentation.map((score) => <div key={`${name.id}-${score.key}`}><dt>{score.label}</dt><dd>{formatScore(name.scores[score.key])}</dd></div>)}
-                  </dl>
-                  <div className="metadata"><span>{name.silhouette.syllableCount} syllables</span><span>{name.silhouette.texture} texture</span><span className={rarityClassName(name.silhouette.rarityBand)}>{rarity.label} rarity</span></div>
-                  <div><h3>Variants</h3><ul className="variants">{name.variants.map((variant) => <li key={`${name.id}-${variant.value}`}><span>{variant.value}</span><em>{variant.kind}</em></li>)}</ul></div>
-                  <div><h3>Provenance</h3><ul className="provenance">{name.provenance.map((item) => <li key={`${name.id}-${item.sourceId}-${item.label}`}><strong>{item.label}</strong><span>{item.detail}</span></li>)}</ul></div>
-                </details>
-              );
-            })}
-          </div>
-        </section>
-      </section>
-
-      <section className="changelog panel" id="changelog" aria-labelledby="changelog-title">
-        <div className="changelog-heading">
-          <div>
-            <p className="eyebrow">Changelog</p>
-            <h2 id="changelog-title">What changed in Name Forge</h2>
-          </div>
-          <p>Readable release notes for the visible app surface, focused on what changed and why it matters.</p>
-        </div>
-        <ol className="changelog-list">
-          {changelogEntries.map((entry) => (
-            <li key={entry.version}>
-              <div className="changelog-entry-header">
-                <span className="version-label">{entry.version}</span>
-                <h3>{entry.title}</h3>
+          <section className="workspace">
+            <form className="controls panel" onSubmit={regenerate}>
+              <div className="control-row split">
+                <label>
+                  <span>Cast size</span>
+                  <input type="number" min="1" max="24" value={settings.castSize} onChange={(event) => updateSetting('castSize', Number(event.target.value))} />
+                </label>
+                <label>
+                  <span>Style preset</span>
+                  <select value={settings.stylePackId} onChange={(event) => updateSetting('stylePackId', event.target.value)}>
+                    {stylePacks.map((pack) => <option key={pack.id} value={pack.id}>{pack.label}</option>)}
+                  </select>
+                </label>
               </div>
-              <p>{entry.summary}</p>
-              <ul>
-                {entry.changes.map((change) => <li key={change}>{change}</li>)}
-              </ul>
-            </li>
-          ))}
-        </ol>
-      </section>
+
+              {scoreControls.map((control) => {
+                const sliderId = `${control.key}-slider`;
+                const value = Number(settings[control.key]);
+
+                return (
+                  <label className="slider" key={control.key} title={control.help} htmlFor={sliderId}>
+                    <span className="slider-heading">
+                      <span>{control.label}</span>
+                      <span className="slider-tools">
+                        <input
+                          className="slider-value"
+                          type="number"
+                          min="0"
+                          max="100"
+                          step="1"
+                          value={formatScore(value)}
+                          aria-label={`${control.label} value`}
+                          onChange={(event) => updateSetting(control.key, scoreFromPercent(event.target.value))}
+                        />
+                        <button type="button" className="anchor-button" onClick={() => randomizeSlider(control.key)}>Randomize</button>
+                      </span>
+                    </span>
+                    <input
+                      id={sliderId}
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.01"
+                      value={value}
+                      list={`${sliderId}-anchors`}
+                      onChange={(event) => updateSetting(control.key, clampScore(Number(event.target.value)))}
+                    />
+                    <datalist id={`${sliderId}-anchors`}>
+                      {scoreAnchors.map((anchor) => <option key={anchor} value={anchor} />)}
+                    </datalist>
+                    <div className="slider-anchors" aria-label={`${control.label} anchor values`}>
+                      {scoreAnchors.map((anchor) => (
+                        <button type="button" className="anchor-button" key={anchor} onClick={() => updateSetting(control.key, anchor)}>{formatScore(anchor)}</button>
+                      ))}
+                    </div>
+                    <small>{control.help}</small>
+                  </label>
+                );
+              })}
+
+              <label className="seed-control">
+                <span>Seed</span>
+                <input value={settings.seed} onChange={(event) => updateSetting('seed', event.target.value)} />
+              </label>
+
+              <div className="actions">
+                <button type="submit">Generate cast</button>
+                <button type="button" className="secondary" onClick={randomizeSliders}>Randomize sliders</button>
+                <button type="button" className="secondary" onClick={randomizeSeed}>Randomize seed</button>
+              </div>
+            </form>
+
+            <section className="output" aria-live="polite">
+              <div className="ensemble-note panel">
+                <h2>Ensemble balance</h2>
+                <p>{ensemble.diagnostics.summary}</p>
+              </div>
+
+              <div className="name-grid">
+                {ensemble.names.map((name) => {
+                  const rarity = rarityPresentation[name.silhouette.rarityBand];
+
+                  return (
+                    <details className={`name-card panel ${textureClassName(name.silhouette.texture)}`} key={name.id}>
+                      <summary className="name-card-summary">
+                        <div className="name-card-header">
+                          <div><h2 className={rarity.className}>{name.name}</h2><p>{name.silhouette.rhythm} rhythm</p></div>
+                          <span className="score-pill" aria-label={`Overall fit score ${formatScore(name.scores.overallFit)}`}>{formatScore(name.scores.overallFit)}</span>
+                        </div>
+                        <span className="collapse-cue">Details</span>
+                      </summary>
+                      <dl className="score-list" aria-label={`${name.name} score breakdown`}>
+                        {scorePresentation.map((score) => <div key={`${name.id}-${score.key}`}><dt>{score.label}</dt><dd>{formatScore(name.scores[score.key])}</dd></div>)}
+                      </dl>
+                      <div className="metadata"><span>{name.silhouette.syllableCount} syllables</span><span>{name.silhouette.texture} texture</span><span className={rarityClassName(name.silhouette.rarityBand)}>{rarity.label} rarity</span></div>
+                      <div><h3>Variants</h3><ul className="variants">{name.variants.map((variant) => <li key={`${name.id}-${variant.value}`}><span>{variant.value}</span><em>{variant.kind}</em></li>)}</ul></div>
+                      <details className="source-trace">
+                        <summary>Source trace</summary>
+                        <ul className="provenance">{name.provenance.map((item) => <li key={`${name.id}-${item.sourceId}-${item.label}`}><strong>{item.label}</strong><span>{item.detail}</span></li>)}</ul>
+                      </details>
+                    </details>
+                  );
+                })}
+              </div>
+            </section>
+          </section>
+        </>
+      ) : (
+        <section className="changelog panel" aria-labelledby="changelog-title">
+          <div className="changelog-heading">
+            <div>
+              <p className="eyebrow">Changelog</p>
+              <h1 id="changelog-title">What changed in Name Forge</h1>
+            </div>
+            <p>Polished product-facing notes are summarized here. The complete push-by-push history remains available in GitHub.</p>
+          </div>
+          <ol className="changelog-list">
+            {changelogEntries.map((entry) => (
+              <li key={entry.title}>
+                <div className="changelog-entry-header">
+                  <h2>{entry.title}</h2>
+                </div>
+                <p>{entry.summary}</p>
+                <ul>
+                  {entry.changes.map((change) => <li key={change}>{change}</li>)}
+                </ul>
+              </li>
+            ))}
+          </ol>
+          <a className="history-link" href={commitHistoryUrl} target="_blank" rel="noreferrer">View full commit history</a>
+        </section>
+      )}
 
       <footer className="site-footer panel">
-        <div>
-          <p>&copy; 2026 <a href={authorSiteUrl} target="_blank" rel="noreferrer">James Hay</a>. Name Forge <span className="version-label" title="Name Forge version">v{appVersion}</span>.</p>
-          <p>Generated names are drafting material; verify cultural, legal, and project fit before publishing.</p>
-        </div>
-        <nav className="footer-links" aria-label="Project links">
-          <a href={sourceUrl} target="_blank" rel="noreferrer">Source</a>
-          <a href={changelogUrl}>Changelog</a>
-          <a href={errataUrl} target="_blank" rel="noreferrer">Errata</a>
-        </nav>
+        <p>&copy; 2026 <a href={authorSiteUrl} target="_blank" rel="noreferrer">James Hay</a>. Name Forge.</p>
       </footer>
     </main>
   );
