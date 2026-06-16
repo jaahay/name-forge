@@ -5,8 +5,10 @@ import type { GenerationSettings, NameTexture, RarityBand, ScoreKey } from './en
 
 const registry = createDefaultRegistry();
 const stylePacks = registry.listStylePacks();
-const authorSiteUrl = 'https://jameshay-site.pages.dev/';
+const appVersion = '0.1.0';
+const authorSiteUrl = 'https://jameshay.org/';
 const sourceUrl = 'https://github.com/jaahay/name-forge';
+const changelogUrl = `${sourceUrl}/blob/main/CHANGELOG.md`;
 const errataUrl = `${sourceUrl}/issues/new`;
 
 type ControlKey =
@@ -176,11 +178,12 @@ export default function App() {
 
       <footer className="site-footer panel">
         <div>
-          <p>&copy; 2026 <a href={authorSiteUrl} target="_blank" rel="noreferrer">James Hay</a>. Name Forge.</p>
+          <p>&copy; 2026 <a href={authorSiteUrl} target="_blank" rel="noreferrer">James Hay</a>. Name Forge <span className="version-label" title="Name Forge version">v{appVersion}</span>.</p>
           <p>Generated names are drafting material; verify cultural, legal, and project fit before publishing.</p>
         </div>
         <nav className="footer-links" aria-label="Project links">
           <a href={sourceUrl} target="_blank" rel="noreferrer">Source</a>
+          <a href={changelogUrl} target="_blank" rel="noreferrer">Changelog</a>
           <a href={errataUrl} target="_blank" rel="noreferrer">Errata</a>
         </nav>
       </footer>
