@@ -1,7 +1,7 @@
 import { FormEvent, useMemo, useState } from 'react';
 import { createDefaultRegistry } from './engine/registry';
 import { generateEnsemble } from './engine/ensemble';
-import type { GenerationSettings, RarityBand } from './engine/types';
+import type { GenerationSettings, RarityBand, ScoreKey } from './engine/types';
 
 const registry = createDefaultRegistry();
 const stylePacks = registry.listStylePacks();
@@ -23,6 +23,17 @@ const scoreControls: Array<{
   { key: 'memorability', label: 'Memorability', help: 'Higher values favor compact, distinctive names with clear rhythm.' },
   { key: 'culturalAnchoring', label: 'Cultural anchoring', help: 'Higher values keep names closer to the selected style pack anchors.' },
   { key: 'orthographicWeirdness', label: 'Orthographic weirdness', help: 'Higher values permit stranger spellings while still scoring naturalness separately.' },
+];
+
+const scorePresentation: Array<{ key: ScoreKey; label: string }> = [
+  { key: 'pronounceability', label: 'Pronounce' },
+  { key: 'memorability', label: 'Memorable' },
+  { key: 'novelty', label: 'Novel' },
+  { key: 'culturalAnchoring', label: 'Anchored' },
+  { key: 'orthographicNaturalness', label: 'Natural' },
+  { key: 'styleFit', label: 'Style fit' },
+  { key: 'silhouetteFit', label: 'Shape fit' },
+  { key: 'ensembleFit', label: 'Cast fit' },
 ];
 
 const rarityPresentation: Record<RarityBand, { label: string; className: string }> = {
@@ -135,22 +146,21 @@ export default function App() {
               const rarity = rarityPresentation[name.silhouette.rarityBand];
 
               return (
-                <article className="name-card panel" key={name.id}>
-                  <div className="name-card-header">
-                    <div><h2>{name.name}</h2><p>{name.silhouette.rhythm} rhythm</p></div>
-                    <span className="score-pill">{formatScore(name.scores.plausibility)}</span>
-                  </div>
-                  <dl className="score-list">
-                    <div><dt>Pronounce</dt><dd>{formatScore(name.scores.pronounceability)}</dd></div>
-                    <div><dt>Memorable</dt><dd>{formatScore(name.scores.memorability)}</dd></div>
-                    <div><dt>Novel</dt><dd>{formatScore(name.scores.novelty)}</dd></div>
-                    <div><dt>Anchored</dt><dd>{formatScore(name.scores.culturalAnchoring)}</dd></div>
-                    <div><dt>Natural</dt><dd>{formatScore(name.scores.orthographicNaturalness)}</dd></div>
+                <details className="name-card panel" key={name.id}>
+                  <summary className="name-card-summary">
+                    <div className="name-card-header">
+                      <div><h2>{name.name}</h2><p>{name.silhouette.rhythm} rhythm</p></div>
+                      <span className="score-pill" aria-label={`Overall plausibility score ${formatScore(name.scores.plausibility)}`}>{formatScore(name.scores.plausibility)}</span>
+                    </div>
+                    <span className="collapse-cue">Details</span>
+                  </summary>
+                  <dl className="score-list" aria-label={`${name.name} score breakdown`}>
+                    {scorePresentation.map((score) => <div key={`${name.id}-${score.key}`}><dt>{score.label}</dt><dd>{formatScore(name.scores[score.key])}</dd></div>)}
                   </dl>
                   <div className="metadata"><span>{name.silhouette.syllableCount} syllables</span><span>{name.silhouette.texture} texture</span><span className={rarityClassName(name.silhouette.rarityBand)}>{rarity.label} rarity</span></div>
                   <div><h3>Variants</h3><ul className="variants">{name.variants.map((variant) => <li key={`${name.id}-${variant.value}`}><span>{variant.value}</span><em>{variant.kind}</em></li>)}</ul></div>
                   <div><h3>Provenance</h3><ul className="provenance">{name.provenance.map((item) => <li key={`${name.id}-${item.sourceId}-${item.label}`}><strong>{item.label}</strong><span>{item.detail}</span></li>)}</ul></div>
-                </article>
+                </details>
               );
             })}
           </div>
