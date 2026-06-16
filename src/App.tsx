@@ -5,6 +5,11 @@ import type { GenerationSettings, NameTexture, RarityBand, ScoreKey } from './en
 
 const registry = createDefaultRegistry();
 const stylePacks = registry.listStylePacks();
+const appVersion = '0.1.0';
+const authorSiteUrl = 'https://jameshay.org/';
+const sourceUrl = 'https://github.com/jaahay/name-forge';
+const changelogUrl = '#changelog';
+const errataUrl = `${sourceUrl}/issues/new`;
 
 type ControlKey =
   | 'novelty'
@@ -43,6 +48,29 @@ const rarityPresentation: Record<RarityBand, { label: string; className: string 
   epic: { label: 'Epic', className: 'rarity-epic' },
   legendary: { label: 'Legendary', className: 'rarity-legendary' },
 };
+
+const changelogEntries = [
+  {
+    version: 'Unreleased',
+    title: 'Frontend identity polish',
+    summary: 'Makes project ownership, maintenance links, metadata, and release context visible directly in the app shell.',
+    changes: [
+      'Added crawler and sharing metadata with canonical author and app URLs.',
+      'Added a whimsical forge favicon with an anvil, sparks, glow, and N monogram.',
+      'Added footer links for source, changelog, errata, and a quiet version label.',
+    ],
+  },
+  {
+    version: '0.1.0',
+    title: 'Initial generation shell',
+    summary: 'Introduced the first deterministic, cast-aware Name Forge interface for shaping fictional ensembles.',
+    changes: [
+      'Added controls for cast size, style preset, seed, novelty, pronounceability, memorability, cultural anchoring, and spelling weirdness.',
+      'Rendered generated names with fit scores, rarity, silhouette texture, variants, and provenance.',
+      'Added collapsible result cards and texture-aware visual styling for generated names.',
+    ],
+  },
+];
 
 const initialSettings: GenerationSettings = {
   castSize: 8,
@@ -170,6 +198,42 @@ export default function App() {
           </div>
         </section>
       </section>
+
+      <section className="changelog panel" id="changelog" aria-labelledby="changelog-title">
+        <div className="changelog-heading">
+          <div>
+            <p className="eyebrow">Changelog</p>
+            <h2 id="changelog-title">What changed in Name Forge</h2>
+          </div>
+          <p>Readable release notes for the visible app surface, focused on what changed and why it matters.</p>
+        </div>
+        <ol className="changelog-list">
+          {changelogEntries.map((entry) => (
+            <li key={entry.version}>
+              <div className="changelog-entry-header">
+                <span className="version-label">{entry.version}</span>
+                <h3>{entry.title}</h3>
+              </div>
+              <p>{entry.summary}</p>
+              <ul>
+                {entry.changes.map((change) => <li key={change}>{change}</li>)}
+              </ul>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <footer className="site-footer panel">
+        <div>
+          <p>&copy; 2026 <a href={authorSiteUrl} target="_blank" rel="noreferrer">James Hay</a>. Name Forge <span className="version-label" title="Name Forge version">v{appVersion}</span>.</p>
+          <p>Generated names are drafting material; verify cultural, legal, and project fit before publishing.</p>
+        </div>
+        <nav className="footer-links" aria-label="Project links">
+          <a href={sourceUrl} target="_blank" rel="noreferrer">Source</a>
+          <a href={changelogUrl}>Changelog</a>
+          <a href={errataUrl} target="_blank" rel="noreferrer">Errata</a>
+        </nav>
+      </footer>
     </main>
   );
 }
