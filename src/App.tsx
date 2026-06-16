@@ -9,7 +9,7 @@ const authorSiteUrl = 'https://jameshay.org/';
 const sourceUrl = 'https://github.com/jaahay/name-forge';
 const commitHistoryUrl = `${sourceUrl}/commits/main/`;
 
-type AppView = 'generator' | 'changelog';
+type AppView = 'generator' | 'changelog' | 'about';
 
 type ControlKey =
   | 'novelty'
@@ -66,6 +66,7 @@ const changelogEntries = [
     summary: 'Removes index-page clutter and keeps project navigation focused.',
     changes: [
       'Moved the changelog into a separate in-site tab instead of stacking it under the generator.',
+      'Added a dedicated About tab for product context and result-reading guidance.',
       'Removed the public version badge, errata link, and non-actionable generated-name disclaimer.',
       'Updated public copy so Name Forge is not framed as only a fiction-genre tool.',
     ],
@@ -162,6 +163,7 @@ export default function App() {
       <nav className="app-tabs" aria-label="Primary">
         <button type="button" className={currentView === 'generator' ? 'tab-button active' : 'tab-button'} onClick={() => setCurrentView('generator')}>Generator</button>
         <button type="button" className={currentView === 'changelog' ? 'tab-button active' : 'tab-button'} onClick={() => setCurrentView('changelog')}>Changelog</button>
+        <button type="button" className={currentView === 'about' ? 'tab-button active' : 'tab-button'} onClick={() => setCurrentView('about')}>About</button>
         <a className="tab-link" href={sourceUrl} target="_blank" rel="noreferrer">Source</a>
       </nav>
 
@@ -290,7 +292,7 @@ export default function App() {
             </section>
           </section>
         </>
-      ) : (
+      ) : currentView === 'changelog' ? (
         <section className="changelog panel" aria-labelledby="changelog-title">
           <div className="changelog-heading">
             <div>
@@ -313,6 +315,31 @@ export default function App() {
             ))}
           </ol>
           <a className="history-link" href={commitHistoryUrl} target="_blank" rel="noreferrer">View full commit history</a>
+        </section>
+      ) : (
+        <section className="about panel" aria-labelledby="about-title">
+          <div className="about-heading">
+            <p className="eyebrow">About</p>
+            <h1 id="about-title">What Name Forge does</h1>
+            <p>
+              Name Forge is a cast-aware name generator. It creates a set of names together, then scores
+              each result for usability, fit, shape, and ensemble balance.
+            </p>
+          </div>
+          <div className="about-grid">
+            <article>
+              <h2>Controls shape the search</h2>
+              <p>Use style presets, seed, cast size, and score sliders to steer the generator without hand-writing every result.</p>
+            </article>
+            <article>
+              <h2>Cards explain the result</h2>
+              <p>Each card shows score breakdowns, rarity, rhythm, texture, spelling variants, and an optional source trace.</p>
+            </article>
+            <article>
+              <h2>Changelog is product-facing</h2>
+              <p>The in-site changelog summarizes meaningful product changes. GitHub remains the exact source for every push.</p>
+            </article>
+          </div>
         </section>
       )}
 
