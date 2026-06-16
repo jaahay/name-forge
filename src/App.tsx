@@ -1,7 +1,7 @@
 import { FormEvent, useMemo, useState } from 'react';
 import { createDefaultRegistry } from './engine/registry';
 import { generateEnsemble } from './engine/ensemble';
-import type { GenerationSettings } from './engine/types';
+import type { GenerationSettings, RarityBand } from './engine/types';
 
 const registry = createDefaultRegistry();
 const stylePacks = registry.listStylePacks();
@@ -25,6 +25,14 @@ const scoreControls: Array<{
   { key: 'orthographicWeirdness', label: 'Orthographic weirdness', help: 'Higher values permit stranger spellings while still scoring naturalness separately.' },
 ];
 
+const rarityPresentation: Record<RarityBand, { label: string; className: string }> = {
+  common: { label: 'Common', className: 'rarity-common' },
+  uncommon: { label: 'Uncommon', className: 'rarity-uncommon' },
+  rare: { label: 'Rare', className: 'rarity-rare' },
+  epic: { label: 'Epic', className: 'rarity-epic' },
+  legendary: { label: 'Legendary', className: 'rarity-legendary' },
+};
+
 const initialSettings: GenerationSettings = {
   castSize: 8,
   novelty: 0.48,
@@ -38,6 +46,10 @@ const initialSettings: GenerationSettings = {
 
 function formatScore(value: number): string {
   return Math.round(value * 100).toString();
+}
+
+function rarityClassName(rarity: RarityBand): string {
+  return `rarity-pill ${rarityPresentation[rarity].className}`;
 }
 
 export default function App() {
@@ -119,24 +131,28 @@ export default function App() {
           </div>
 
           <div className="name-grid">
-            {ensemble.names.map((name) => (
-              <article className="name-card panel" key={name.id}>
-                <div className="name-card-header">
-                  <div><h2>{name.name}</h2><p>{name.silhouette.rhythm} rhythm</p></div>
-                  <span className="score-pill">{formatScore(name.scores.plausibility)}</span>
-                </div>
-                <dl className="score-list">
-                  <div><dt>Pronounce</dt><dd>{formatScore(name.scores.pronounceability)}</dd></div>
-                  <div><dt>Memorable</dt><dd>{formatScore(name.scores.memorability)}</dd></div>
-                  <div><dt>Novel</dt><dd>{formatScore(name.scores.novelty)}</dd></div>
-                  <div><dt>Anchored</dt><dd>{formatScore(name.scores.culturalAnchoring)}</dd></div>
-                  <div><dt>Natural</dt><dd>{formatScore(name.scores.orthographicNaturalness)}</dd></div>
-                </dl>
-                <div className="metadata"><span>{name.silhouette.syllableCount} syllables</span><span>{name.silhouette.texture} texture</span><span>{name.silhouette.rarityBand} rarity</span></div>
-                <div><h3>Variants</h3><ul className="variants">{name.variants.map((variant) => <li key={`${name.id}-${variant.value}`}><span>{variant.value}</span><em>{variant.kind}</em></li>)}</ul></div>
-                <div><h3>Provenance</h3><ul className="provenance">{name.provenance.map((item) => <li key={`${name.id}-${item.sourceId}-${item.label}`}><strong>{item.label}</strong><span>{item.detail}</span></li>)}</ul></div>
-              </article>
-            ))}
+            {ensemble.names.map((name) => {
+              const rarity = rarityPresentation[name.silhouette.rarityBand];
+
+              return (
+                <article className="name-card panel" key={name.id}>
+                  <div className="name-card-header">
+                    <div><h2>{name.name}</h2><p>{name.silhouette.rhythm} rhythm</p></div>
+                    <span className="score-pill">{formatScore(name.scores.plausibility)}</span>
+                  </div>
+                  <dl className="score-list">
+                    <div><dt>Pronounce</dt><dd>{formatScore(name.scores.pronounceability)}</dd></div>
+                    <div><dt>Memorable</dt><dd>{formatScore(name.scores.memorability)}</dd></div>
+                    <div><dt>Novel</dt><dd>{formatScore(name.scores.novelty)}</dd></div>
+                    <div><dt>Anchored</dt><dd>{formatScore(name.scores.culturalAnchoring)}</dd></div>
+                    <div><dt>Natural</dt><dd>{formatScore(name.scores.orthographicNaturalness)}</dd></div>
+                  </dl>
+                  <div className="metadata"><span>{name.silhouette.syllableCount} syllables</span><span>{name.silhouette.texture} texture</span><span className={rarityClassName(name.silhouette.rarityBand)}>{rarity.label} rarity</span></div>
+                  <div><h3>Variants</h3><ul className="variants">{name.variants.map((variant) => <li key={`${name.id}-${variant.value}`}><span>{variant.value}</span><em>{variant.kind}</em></li>)}</ul></div>
+                  <div><h3>Provenance</h3><ul className="provenance">{name.provenance.map((item) => <li key={`${name.id}-${item.sourceId}-${item.label}`}><strong>{item.label}</strong><span>{item.detail}</span></li>)}</ul></div>
+                </article>
+              );
+            })}
           </div>
         </section>
       </section>
