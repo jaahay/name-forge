@@ -9,9 +9,11 @@ describe('App', () => {
     expect(html).toContain('Name Forge');
     expect(html).toContain('Generator');
     expect(html).toContain('Changelog');
+    expect(html).toContain('About');
     expect(html).toContain('Cast size');
     expect(html).toContain('Style preset');
     expect(html).toContain('Novelty value');
+    expect(html).toContain('Randomize Novelty');
     expect(html).toContain('Randomize sliders');
     expect(html).toContain('Randomize seed');
     expect(html).toContain('Generate cast');
