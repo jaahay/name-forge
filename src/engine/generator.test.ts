@@ -16,7 +16,7 @@ describe('generateEnsemble', () => {
     const first = generateEnsemble(settings, registry);
     const second = generateEnsemble(settings, registry);
     expect(second.names.map((name) => name.name)).toEqual(first.names.map((name) => name.name));
-    expect(second.names.map((name) => name.scores.plausibility)).toEqual(first.names.map((name) => name.scores.plausibility));
+    expect(second.names.map((name) => name.scores.overallFit)).toEqual(first.names.map((name) => name.scores.overallFit));
   });
 
   it('changes generated names when the seed changes', () => {
@@ -34,7 +34,7 @@ describe('generateEnsemble', () => {
     for (const name of ensemble.names) {
       expect(name.provenance.length).toBeGreaterThan(0);
       expect(name.silhouette.provenance.length).toBeGreaterThan(0);
-      expect(name.scores.plausibility).toBeGreaterThan(0);
+      expect(name.scores.overallFit).toBeGreaterThan(0);
       expect(name.scores.styleFit).toBeGreaterThan(0);
       expect(name.scores.silhouetteFit).toBeGreaterThan(0);
       expect(name.scores.ensembleFit).toBeGreaterThanOrEqual(0);
