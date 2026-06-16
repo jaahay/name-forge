@@ -3,7 +3,7 @@ import { renderToString } from 'react-dom/server';
 import App from './App';
 
 describe('App', () => {
-  it('renders the generation shell with the core controls and output regions', () => {
+  it('renders the generation shell with the core controls and collapsible output regions', () => {
     const html = renderToString(<App />);
 
     expect(html).toContain('Name Forge');
@@ -12,5 +12,9 @@ describe('App', () => {
     expect(html).toContain('Generate cast');
     expect(html).toContain('Ensemble balance');
     expect(html).toContain('name-forge-001');
+    expect(html).toContain('<details');
+    expect(html).toContain('Details');
+    expect(html).toContain('Style fit');
+    expect(html).toContain('Cast fit');
   });
 });
