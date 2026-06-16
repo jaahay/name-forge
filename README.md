@@ -21,13 +21,14 @@ Name Forge is a Vite + TypeScript + React MVP for generating plausible fictional
 ## Getting started
 
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 
 ## Validation
 
 ```bash
+npm ci
 npm run build
 npm test
 ```
@@ -37,6 +38,7 @@ npm test
 ```text
 src/
   App.tsx
+  App.test.tsx
   main.tsx
   styles.css
   data/
@@ -44,6 +46,7 @@ src/
   engine/
     ensemble.ts
     generator.ts
+    generator.test.ts
     random.ts
     registry.ts
     scoring.ts
