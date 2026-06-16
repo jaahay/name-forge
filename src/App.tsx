@@ -66,7 +66,7 @@ const changelogEntries = [
     summary: 'Removes index-page clutter and keeps project navigation focused.',
     changes: [
       'Moved the changelog into a separate in-site tab instead of stacking it under the generator.',
-      'Added a dedicated About tab for product context and result-reading guidance.',
+      'Added a dedicated About tab for product context and an author note.',
       'Removed the public version badge, errata link, and non-actionable generated-name disclaimer.',
       'Updated public copy so Name Forge is not framed as only a fiction-genre tool.',
     ],
@@ -299,7 +299,7 @@ export default function App() {
               <p className="eyebrow">Changelog</p>
               <h1 id="changelog-title">What changed in Name Forge</h1>
             </div>
-            <p>Polished product-facing notes are summarized here. The complete push-by-push history remains available in GitHub.</p>
+            <p>Recent changes, grouped by what they mean for the product.</p>
           </div>
           <ol className="changelog-list">
             {changelogEntries.map((entry) => (
@@ -336,8 +336,8 @@ export default function App() {
               <p>Each card shows score breakdowns, rarity, rhythm, texture, spelling variants, and an optional source trace.</p>
             </article>
             <article>
-              <h2>Changelog is product-facing</h2>
-              <p>The in-site changelog summarizes meaningful product changes. GitHub remains the exact source for every push.</p>
+              <h2>About the author</h2>
+              <p>Name Forge is made by <a href={authorSiteUrl} target="_blank" rel="noreferrer">James Hay</a>.</p>
             </article>
           </div>
         </section>
