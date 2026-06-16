@@ -27,13 +27,16 @@ h1, h2, h3, p { margin-top: 0; }
 .ensemble-note h2 { margin-bottom: 0.35rem; font-size: 1rem; }
 .ensemble-note p { margin-bottom: 0; color: #d6c5a8; }
 .name-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 1rem; }
-.name-card { display: grid; gap: 1rem; padding: 1rem; }
+.name-card { padding: 1rem; }
+.name-card[open] { display: grid; gap: 1rem; }
+.name-card-summary { display: grid; gap: 0.65rem; cursor: pointer; }
 .name-card-header { display: flex; justify-content: space-between; gap: 1rem; align-items: start; }
+.collapse-cue { color: #a8987e; font-size: 0.76rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
 .name-card h2 { margin-bottom: 0.15rem; font-family: Georgia, "Times New Roman", serif; font-size: 2rem; }
 .name-card h3 { margin-bottom: 0.45rem; color: #f0b85f; font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; }
 .name-card p { margin-bottom: 0; color: #af9f84; }
 .score-pill { display: grid; place-items: center; width: 3.3rem; height: 3.3rem; border-radius: 50%; color: #1a130b; background: #f0b85f; font-weight: 900; }
-.score-list { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.4rem; margin: 0; }
+.score-list { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem; margin: 0; }
 .score-list div { border-radius: 0.85rem; padding: 0.55rem; background: rgba(255, 255, 255, 0.06); }
 .score-list dt { color: #a8987e; font-size: 0.66rem; font-weight: 800; text-transform: uppercase; }
 .score-list dd { margin: 0; color: #f7f0e3; font-size: 1.05rem; font-weight: 900; }
