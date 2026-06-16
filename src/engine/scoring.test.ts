@@ -9,7 +9,7 @@ const settings: GenerationSettings = { castSize: 6, novelty: 0.5, pronounceabili
 const scoreKeys: ScoreKey[] = ['pronounceability', 'memorability', 'novelty', 'culturalAnchoring', 'orthographicNaturalness', 'styleFit', 'silhouetteFit', 'ensembleFit'];
 
 describe('scoreName', () => {
-  it('returns bounded decomposed score metadata before plausibility aggregation', () => {
+  it('returns bounded score metadata and overall fit', () => {
     const registry = createDefaultRegistry();
     const pack = registry.getStylePack(settings.stylePackId);
     const silhouette = createNameSilhouette(settings, pack, createSeededRandom(settings.seed), 0);
@@ -19,8 +19,8 @@ describe('scoreName', () => {
       expect(scores[key]).toBeGreaterThanOrEqual(0);
       expect(scores[key]).toBeLessThanOrEqual(1);
     }
-    expect(scores.plausibility).toBeGreaterThanOrEqual(0);
-    expect(scores.plausibility).toBeLessThanOrEqual(1);
+    expect(scores.overallFit).toBeGreaterThanOrEqual(0);
+    expect(scores.overallFit).toBeLessThanOrEqual(1);
     expect(scores.styleFit).toBeGreaterThan(0);
     expect(scores.silhouetteFit).toBeGreaterThan(0);
   });
