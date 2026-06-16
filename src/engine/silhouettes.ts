@@ -2,7 +2,7 @@ import type { GenerationSettings, NameSilhouette, RarityBand, StylePack } from '
 import type { SeededRandom } from './random';
 import { clamp, lerp } from './random';
 
-const rarityOrder: RarityBand[] = ['common', 'familiar', 'uncommon', 'rare'];
+const rarityOrder: RarityBand[] = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
 
 function selectRarity(settings: GenerationSettings, pack: StylePack, random: SeededRandom): RarityBand {
   const baseline = random.pickWeighted(pack.silhouetteBias.rarityBands);
