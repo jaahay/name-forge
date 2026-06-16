@@ -13,7 +13,7 @@ function targetLengthScore(name: string, silhouette: NameSilhouette): number { c
 function styleFitScore(name: string, pack: StylePack): number { const lower = name.toLowerCase(); const endingFit = pack.phonotactics.preferredEndings.some(({ value }) => lower.endsWith(value)) ? 0.26 : 0.08; const rareFit = pack.phonotactics.rareGraphemes.some((fragment) => lower.includes(fragment)) ? 0.14 : 0.06; return clamp(0.54 + endingFit + rareFit - (containsForbiddenFragment(name, pack) ? 0.3 : 0)); }
 function silhouetteFitScore(name: string, silhouette: NameSilhouette): number { const syllableFit = clamp(1 - Math.abs(countVowelGroups(name) - silhouette.syllableCount) * 0.18); const textureFit = silhouette.texture === 'hard' && /[kgtdbp]/i.test(name) ? 0.9 : silhouette.texture === 'liquid' && /[lrw]/i.test(name) ? 0.9 : 0.76; return clamp(targetLengthScore(name, silhouette) * 0.44 + syllableFit * 0.4 + textureFit * 0.16); }
 
-export function combinePlausibility(scores: Pick<NameScores, ScoreKey>): number { return clamp(scoreWeights.pronounceability * scores.pronounceability + scoreWeights.memorability * scores.memorability + scoreWeights.novelty * scores.novelty + scoreWeights.culturalAnchoring * scores.culturalAnchoring + scoreWeights.orthographicNaturalness * scores.orthographicNaturalness + scoreWeights.styleFit * scores.styleFit + scoreWeights.silhouetteFit * scores.silhouetteFit + scoreWeights.ensembleFit * scores.ensembleFit); }
+export function combineOverallFit(scores: Pick<NameScores, ScoreKey>): number { return clamp(scoreWeights.pronounceability * scores.pronounceability + scoreWeights.memorability * scores.memorability + scoreWeights.novelty * scores.novelty + scoreWeights.culturalAnchoring * scores.culturalAnchoring + scoreWeights.orthographicNaturalness * scores.orthographicNaturalness + scoreWeights.styleFit * scores.styleFit + scoreWeights.silhouetteFit * scores.silhouetteFit + scoreWeights.ensembleFit * scores.ensembleFit); }
 
 export function scoreName(name: string, silhouette: NameSilhouette, pack: StylePack, settings: GenerationSettings): NameScores {
   const lower = name.toLowerCase();
@@ -31,5 +31,5 @@ export function scoreName(name: string, silhouette: NameSilhouette, pack: StyleP
   const silhouetteFit = silhouetteFitScore(name, silhouette);
   const ensembleFit = 0.72;
   const baseScores = { pronounceability, memorability, novelty, culturalAnchoring, orthographicNaturalness, styleFit, silhouetteFit, ensembleFit };
-  return { ...baseScores, plausibility: combinePlausibility(baseScores) };
+  return { ...baseScores, overallFit: combineOverallFit(baseScores) };
 }
