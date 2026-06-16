@@ -13,6 +13,7 @@ describe('App', () => {
     expect(html).toContain('Ensemble balance');
     expect(html).toContain('name-forge-001');
     expect(html).toContain('<details');
+    expect(html).toContain('texture-');
     expect(html).toContain('Details');
     expect(html).toContain('Overall fit score');
     expect(html).toContain('Style fit');
