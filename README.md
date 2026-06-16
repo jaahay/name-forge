@@ -2,6 +2,11 @@
 
 Name Forge is a Vite + TypeScript + React MVP for generating plausible fictional character names with deterministic randomness, ensemble balancing, name silhouettes, spelling variants, scoring, and provenance.
 
+## Product docs
+
+- [`docs/product-requirements.md`](docs/product-requirements.md) contains the canonical product requirements converted from the original PRD.
+- [`docs/architecture.md`](docs/architecture.md) describes the engine boundaries, registry model, scoring layer, silhouette model, and ensemble design.
+
 ## MVP capabilities
 
 - Single-page React UI with controls for cast size, seed, style preset, novelty, pronounceability, memorability, cultural anchoring, and orthographic weirdness.
@@ -46,5 +51,3 @@ src/
     types.ts
     variants.ts
 ```
-
-See [`docs/architecture.md`](docs/architecture.md) for the engine boundaries and extension seams.
