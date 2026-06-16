@@ -1,7 +1,7 @@
 import { FormEvent, useMemo, useState } from 'react';
 import { createDefaultRegistry } from './engine/registry';
 import { generateEnsemble } from './engine/ensemble';
-import type { GenerationSettings, RarityBand, ScoreKey } from './engine/types';
+import type { GenerationSettings, NameTexture, RarityBand, ScoreKey } from './engine/types';
 
 const registry = createDefaultRegistry();
 const stylePacks = registry.listStylePacks();
@@ -61,6 +61,10 @@ function formatScore(value: number): string {
 
 function rarityClassName(rarity: RarityBand): string {
   return `rarity-pill ${rarityPresentation[rarity].className}`;
+}
+
+function textureClassName(texture: NameTexture): string {
+  return `texture-${texture}`;
 }
 
 export default function App() {
@@ -146,7 +150,7 @@ export default function App() {
               const rarity = rarityPresentation[name.silhouette.rarityBand];
 
               return (
-                <details className="name-card panel" key={name.id}>
+                <details className={`name-card panel ${textureClassName(name.silhouette.texture)}`} key={name.id}>
                   <summary className="name-card-summary">
                     <div className="name-card-header">
                       <div><h2>{name.name}</h2><p>{name.silhouette.rhythm} rhythm</p></div>
