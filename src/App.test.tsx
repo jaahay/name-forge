@@ -21,6 +21,7 @@ describe('App', () => {
     expect(html).toContain('Source');
     expect(html).toContain('Changelog');
     expect(html).toContain('Errata');
-    expect(html).toContain('v0.1.0');
+    expect(html).toContain('Name Forge version');
+    expect(html).toContain('0.1.0');
   });
 });
