@@ -1,4 +1,4 @@
-import type { GenerationSettings, NameSilhouette, RarityBand, StylePack } from './types';
+import type { GenerationSettings, NameSilhouette, NameTexture, RarityBand, StylePack, WeightedValue } from './types';
 import type { SeededRandom } from './random';
 import { clamp, lerp } from './random';
 
@@ -9,6 +9,24 @@ function selectRarity(settings: GenerationSettings, pack: StylePack, random: See
   const baselineIndex = rarityOrder.indexOf(baseline);
   const noveltyShift = Math.round(lerp(-1, 2, settings.novelty));
   return rarityOrder[Math.round(clamp(baselineIndex + noveltyShift, 0, rarityOrder.length - 1))];
+}
+
+function selectSyllableCount(settings: GenerationSettings, pack: StylePack, random: SeededRandom): number {
+  const memorability = clamp(settings.memorability);
+  const weightedCounts: Array<WeightedValue<number>> = pack.silhouetteBias.syllableCounts.map(({ value, weight }) => {
+    const memorabilityFit = value <= 2 ? lerp(0.72, 1.85, memorability) : value === 3 ? lerp(1.12, 0.92, memorability) : lerp(1.32, 0.46, memorability);
+    return { value, weight: weight * memorabilityFit };
+  });
+  return random.pickWeighted(weightedCounts);
+}
+
+function selectTexture(settings: GenerationSettings, pack: StylePack, random: SeededRandom): NameTexture {
+  const memorability = clamp(settings.memorability);
+  const weightedTextures: Array<WeightedValue<NameTexture>> = pack.silhouetteBias.textures.map(({ value, weight }) => {
+    const distinctivenessFit = value === 'hard' || value === 'liquid' ? lerp(0.88, 1.42, memorability) : value === 'balanced' ? lerp(1.1, 0.94, memorability) : lerp(1.04, 1.08, memorability);
+    return { value, weight: weight * distinctivenessFit };
+  });
+  return random.pickWeighted(weightedTextures);
 }
 
 function stressPatternFor(syllables: number, random: SeededRandom): string {
@@ -26,16 +44,18 @@ function rhythmFor(stressPattern: string): string {
 }
 
 export function createNameSilhouette(settings: GenerationSettings, pack: StylePack, random: SeededRandom, index: number): NameSilhouette {
-  const syllableCount = random.pickWeighted(pack.silhouetteBias.syllableCounts);
+  const syllableCount = selectSyllableCount(settings, pack, random);
   const stressPattern = stressPatternFor(syllableCount, random);
   const rarityBand = selectRarity(settings, pack, random);
-  const texture = random.pickWeighted(pack.silhouetteBias.textures);
+  const texture = selectTexture(settings, pack, random);
   const targetLength = syllableCount <= 2 ? 'short' : syllableCount === 3 ? 'medium' : 'long';
-  const openSyllableBias = settings.pronounceability > 0.68 ? 0.62 : 0.38;
+  const openSyllableBias = lerp(0.26, 0.78, settings.pronounceability);
+  const hardClosedBias = lerp(0.56, 0.24, settings.pronounceability);
+  const liquidSyllableBias = lerp(0.34, 0.58, settings.pronounceability);
   const shape = Array.from({ length: syllableCount }, (_, syllableIndex) => {
     if (syllableIndex === syllableCount - 1 && random.chance(openSyllableBias)) return 'CV';
-    if (texture === 'hard' && random.chance(0.46)) return 'CVC';
-    if (texture === 'liquid' && random.chance(0.52)) return 'LCV';
+    if (texture === 'hard' && random.chance(hardClosedBias)) return 'CVC';
+    if (texture === 'liquid' && random.chance(liquidSyllableBias)) return 'LCV';
     return random.chance(openSyllableBias) ? 'CV' : 'CVC';
   });
   return { id: `silhouette-${index + 1}`, syllableCount, stressPattern, rhythm: rhythmFor(stressPattern), shape, rarityBand, texture, targetNovelty: clamp(settings.novelty + random.next() * 0.18 - 0.09), targetLength, provenance: [pack.provenance, { sourceId: 'name-forge:silhouette-engine@0.1.0', sourceKind: 'algorithm', label: 'Name silhouette', detail: 'Generated before exact letters using syllable count, rhythm, rarity, texture, and target novelty.' }] };
