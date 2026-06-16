@@ -3,12 +3,19 @@ import { renderToString } from 'react-dom/server';
 import App from './App';
 
 describe('App', () => {
-  it('renders the generation shell with the core controls, output regions, changelog, and project footer', () => {
+  it('renders the generation shell with the core controls, output regions, and project chrome', () => {
     const html = renderToString(<App />);
 
     expect(html).toContain('Name Forge');
+    expect(html).toContain('Generator');
+    expect(html).toContain('Changelog');
+    expect(html).toContain('About');
     expect(html).toContain('Cast size');
     expect(html).toContain('Style preset');
+    expect(html).toContain('Novelty value');
+    expect(html).toContain('Randomize Novelty');
+    expect(html).toContain('Randomize sliders');
+    expect(html).toContain('Randomize seed');
     expect(html).toContain('Generate cast');
     expect(html).toContain('Ensemble balance');
     expect(html).toContain('name-forge-001');
@@ -18,14 +25,11 @@ describe('App', () => {
     expect(html).toContain('Overall fit score');
     expect(html).toContain('Style fit');
     expect(html).toContain('Cast fit');
-    expect(html).toContain('What changed in Name Forge');
-    expect(html).toContain('Frontend identity polish');
-    expect(html).toContain('Initial generation shell');
-    expect(html).toContain('href="#changelog"');
+    expect(html).toContain('Source trace');
     expect(html).toContain('Source');
-    expect(html).toContain('Changelog');
-    expect(html).toContain('Errata');
-    expect(html).toContain('Name Forge version');
-    expect(html).toContain('0.1.0');
+    expect(html).not.toContain('Errata');
+    expect(html).not.toContain('Unreleased');
+    expect(html).not.toContain('Name Forge version');
+    expect(html).not.toContain('Fictional names');
   });
 });
