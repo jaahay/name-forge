@@ -3,7 +3,7 @@ import { renderToString } from 'react-dom/server';
 import App from './App';
 
 describe('App', () => {
-  it('renders the generation shell with the core controls and collapsible output regions', () => {
+  it('renders the generation shell with the core controls, output regions, and project footer', () => {
     const html = renderToString(<App />);
 
     expect(html).toContain('Name Forge');
@@ -18,5 +18,7 @@ describe('App', () => {
     expect(html).toContain('Overall fit score');
     expect(html).toContain('Style fit');
     expect(html).toContain('Cast fit');
+    expect(html).toContain('Source');
+    expect(html).toContain('Errata');
   });
 });
