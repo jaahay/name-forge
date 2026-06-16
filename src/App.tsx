@@ -90,7 +90,7 @@ export default function App() {
           <p className="eyebrow">Name Forge</p>
           <h1>Fictional names that are random, usable, and cast-aware.</h1>
           <p className="hero-copy">
-            Generate a balanced ensemble by shaping name silhouettes first, scoring plausibility,
+            Generate a balanced ensemble by shaping name silhouettes first, scoring overall fit,
             suggesting spelling variants, and preserving provenance for every result.
           </p>
         </div>
@@ -150,7 +150,7 @@ export default function App() {
                   <summary className="name-card-summary">
                     <div className="name-card-header">
                       <div><h2>{name.name}</h2><p>{name.silhouette.rhythm} rhythm</p></div>
-                      <span className="score-pill" aria-label={`Overall plausibility score ${formatScore(name.scores.plausibility)}`}>{formatScore(name.scores.plausibility)}</span>
+                      <span className="score-pill" aria-label={`Overall fit score ${formatScore(name.scores.overallFit)}`}>{formatScore(name.scores.overallFit)}</span>
                     </div>
                     <span className="collapse-cue">Details</span>
                   </summary>
