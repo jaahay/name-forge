@@ -44,6 +44,13 @@ function applyOrthographicWeirdness(name: string, pack: StylePack, settings: Gen
   return titleCase(softenCollisions(mutated));
 }
 
+function enforceMinimumNameLength(name: string, pack: StylePack): string {
+  if (name.length >= 3) return name;
+  const lower = name.toLowerCase();
+  const padding = pack.phonotactics.preferredEndings.find(({ value }) => value.length >= 2 && !lower.endsWith(value))?.value ?? 'en';
+  return titleCase(softenCollisions(`${lower}${padding}`));
+}
+
 function generateSyllable(shape: string, silhouette: NameSilhouette, pack: StylePack, random: SeededRandom): string {
   const liquidBias = silhouette.texture === 'liquid' || shape.includes('L');
   return `${pickOnset(pack, random, liquidBias)}${pickNucleus(pack, random)}${pickCoda(pack, random, shape.endsWith('C'))}`;
@@ -51,9 +58,9 @@ function generateSyllable(shape: string, silhouette: NameSilhouette, pack: Style
 
 export function generateNameFromSilhouette(silhouette: NameSilhouette, pack: StylePack, settings: GenerationSettings, random: SeededRandom, index: number): GeneratedName {
   const fromCurated = random.chance(curatedChance(settings));
-  const generatedName = titleCase(applyOrthographicWeirdness(applyEnding(softenCollisions(silhouette.shape.map((shape) => generateSyllable(shape, silhouette, pack, random)).join('')), silhouette, pack, settings, random), pack, settings, random));
+  const generatedName = enforceMinimumNameLength(titleCase(applyOrthographicWeirdness(applyEnding(softenCollisions(silhouette.shape.map((shape) => generateSyllable(shape, silhouette, pack, random)).join('')), silhouette, pack, settings, random), pack, settings, random)), pack);
   const baseName = fromCurated ? random.pick(pack.curatedNames) : generatedName;
   const scores = scoreName(baseName, silhouette, pack, settings);
   const variants = generateVariants(baseName, pack, settings);
-  return { id: `name-${index + 1}-${baseName.toLowerCase()}`, name: baseName, silhouette, scores, variants, provenance: [...silhouette.provenance, { sourceId: fromCurated ? `${pack.id}:curatedNames` : 'name-forge:phonotactic-generator@0.1.0', sourceKind: fromCurated ? 'curated-list' : 'algorithm', label: fromCurated ? 'Curated seed' : 'Generated name', detail: fromCurated ? `Selected from curated examples in ${pack.label} using cultural anchoring pressure.` : 'Generated from style-pack phonotactics, selected silhouette, seeded randomness, anchoring pressure, and orthographic weirdness.' }, { sourceId: 'name-forge:scoring@0.1.0', sourceKind: 'algorithm', label: 'Overall fit scoring', detail: 'Scores combine pronounceability, memorability, novelty, cultural anchoring, orthographic naturalness, style fit, silhouette fit, cast fit, and active slider pressure.' }] };
+  return { id: `name-${index + 1}-${baseName.toLowerCase()}`, name: baseName, silhouette, scores, variants, provenance: [...silhouette.provenance, { sourceId: fromCurated ? `${pack.id}:curatedNames` : 'name-forge:phonotactic-generator@0.1.0', sourceKind: fromCurated ? 'curated-list' : 'algorithm', label: fromCurated ? 'Curated seed' : 'Generated name', detail: fromCurated ? `Selected from curated examples in ${pack.label} using cultural anchoring pressure.` : 'Generated from style-pack phonotactics, selected silhouette, seeded randomness, anchoring pressure, orthographic weirdness, and minimum viability guards.' }, { sourceId: 'name-forge:scoring@0.1.0', sourceKind: 'algorithm', label: 'Overall fit scoring', detail: 'Overall fit is a slider-weighted selection score over intrinsic component scores. The displayed number is not a school grade or percentile.' }] };
 }
