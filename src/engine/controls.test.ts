@@ -108,8 +108,8 @@ describe('generator control knobs', () => {
     expect(high.name.toLowerCase()).toContain('ae');
     expect(variantLimitFor({ orthographicWeirdness: 0 })).toBe(2);
     expect(variantLimitFor({ orthographicWeirdness: 1 })).toBe(4);
-    expect(restrainedVariants).toHaveLength(0);
-    expect(aggressiveVariants.length).toBeGreaterThanOrEqual(restrainedVariants.length);
+    expect(restrainedVariants).toHaveLength(2);
+    expect(aggressiveVariants.length).toBeGreaterThan(restrainedVariants.length);
   });
 
   it('applies each slider to overall-fit pressure used by candidate ranking', () => {
