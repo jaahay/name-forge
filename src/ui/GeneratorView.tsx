@@ -1,5 +1,5 @@
 import type { FormEvent } from 'react';
-import type { GeneratedEnsemble, GenerationSettings, StylePackSummary } from '../engine/types';
+import type { GeneratedEnsemble, GenerationSettings, NameFormatKind, StylePackSummary } from '../engine/types';
 import { scoreControls, type ControlKey } from './presentation';
 import { ScoreControl } from './ScoreControl';
 import { NameCard } from './NameCard';
@@ -14,6 +14,13 @@ interface GeneratorViewProps {
   onRandomizeSliders: () => void;
   onRandomizeSlider: (key: ControlKey) => void;
 }
+
+const formatOptions: Array<{ value: NameFormatKind; label: string }> = [
+  { value: 'mixed', label: 'Mixed cast formats' },
+  { value: 'given-only', label: 'Given name only' },
+  { value: 'given-family', label: 'Given + family' },
+  { value: 'initials-family', label: 'Initials + family' },
+];
 
 export function GeneratorView({
   stylePacks,
@@ -57,6 +64,13 @@ export function GeneratorView({
               </select>
             </label>
           </div>
+
+          <label>
+            <span>Name format</span>
+            <select value={settings.nameFormat ?? 'given-only'} onChange={(event) => onUpdateSetting('nameFormat', event.target.value as NameFormatKind)}>
+              {formatOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+            </select>
+          </label>
 
           {scoreControls.map((control) => (
             <ScoreControl
