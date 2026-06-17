@@ -31,7 +31,7 @@ export function AboutView({ authorSiteUrl }: AboutViewProps) {
         </article>
         <article>
           <h2>Cards explain the result</h2>
-          <p>Collapsed cards show the name, rhythm, syllable count, and rarity. Details show diagnostic scores, variants, and source trace.</p>
+          <p>Collapsed cards show the name, rhythm, syllable count, and rarity. Details show diagnostic scores and spelling variants.</p>
         </article>
         <article>
           <h2>About the author</h2>
