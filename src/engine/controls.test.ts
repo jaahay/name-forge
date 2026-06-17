@@ -29,6 +29,18 @@ function fixedWeightedRandom(weightedChoices: WeightedChoice[]): SeededRandom {
   return random;
 }
 
+function curatedGateRandom(): SeededRandom {
+  const random: SeededRandom = {
+    next: () => 0.5,
+    int: (minInclusive) => minInclusive,
+    chance: (probability) => probability > 0.01,
+    pick: (items) => items[0],
+    pickWeighted: (items) => items[0].value,
+    fork: () => random,
+  };
+  return random;
+}
+
 function highestWeightRandom(): SeededRandom {
   const random: SeededRandom = {
     next: () => 0.5,
@@ -85,11 +97,11 @@ describe('generator control knobs', () => {
     expect(high.rarityBand).toBe('rare');
   });
 
-  it('uses cultural anchoring as smooth curated-source pressure', () => {
+  it('keeps direct curated examples rare while preserving high-anchoring access to them', () => {
     const pack = createDefaultRegistry().getStylePack(settings.stylePackId);
     const silhouette = testSilhouette();
-    const low = generateNameFromSilhouette(silhouette, pack, { ...settings, culturalAnchoring: 0, orthographicWeirdness: 0 }, fixedWeightedRandom([]), 0);
-    const high = generateNameFromSilhouette(silhouette, pack, { ...settings, culturalAnchoring: 1, orthographicWeirdness: 0 }, fixedWeightedRandom([]), 0);
+    const low = generateNameFromSilhouette(silhouette, pack, { ...settings, culturalAnchoring: 0, orthographicWeirdness: 0 }, curatedGateRandom(), 0);
+    const high = generateNameFromSilhouette(silhouette, pack, { ...settings, culturalAnchoring: 1, orthographicWeirdness: 0 }, curatedGateRandom(), 0);
 
     expect(low.name).not.toBe('Aveline');
     expect(high.name).toBe('Aveline');
