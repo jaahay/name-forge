@@ -10,6 +10,15 @@ export function formatScore(value: number): string {
   return Math.round(value * 100).toString();
 }
 
+export function scoreBand(value: number): string {
+  const score = clampScore(value);
+  if (score >= 0.86) return 'Excellent fit';
+  if (score >= 0.76) return 'Strong fit';
+  if (score >= 0.66) return 'Usable fit';
+  if (score >= 0.56) return 'Experimental fit';
+  return 'Weak fit';
+}
+
 export function scoreFromPercent(value: string): number {
   return clampScore(Number(value) / 100);
 }

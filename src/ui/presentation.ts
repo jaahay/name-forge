@@ -21,7 +21,7 @@ export const scoreControls: Array<{
   { key: 'orthographicWeirdness', label: 'Orthographic weirdness', help: 'Higher values permit stranger spellings while still scoring naturalness separately.' },
 ];
 
-export const scoreAnchors = [0.25, 0.5, 0.75] as const;
+export const scoreAnchors = [0, 0.25, 0.5, 0.75, 1] as const;
 
 export const scorePresentation: Array<{ key: ScoreKey; label: string }> = [
   { key: 'pronounceability', label: 'Pronounce' },
@@ -49,7 +49,7 @@ export const changelogEntries = [
     changes: [
       'Closed cards now stay compact when another card in the same row is expanded.',
       'Name titles now inherit the rarity color used by each rarity pill.',
-      'Added numeric score fields, 25/50/75 anchors, and global plus per-control randomize actions.',
+      'Added numeric score fields, 0/25/50/75/100 anchors, and global plus per-control randomize actions.',
     ],
   },
   {
