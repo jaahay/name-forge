@@ -26,7 +26,10 @@ h1, h2, h3, p { margin-top: 0; }
 .slider-tools { display: flex; gap: 0.4rem; align-items: center; justify-content: flex-end; }
 .slider-value { width: 4.7rem; padding: 0.38rem 0.5rem; text-align: right; }
 .slider small { color: #a8987e; font-size: 0.76rem; font-weight: 500; }
-.slider-anchors { display: flex; gap: 0.35rem; flex-wrap: wrap; }
+.slider-anchors { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); column-gap: 0; align-items: start; }
+.slider-anchors .anchor-button { justify-self: center; min-width: 2.7rem; padding: 0.35rem 0.45rem; }
+.slider-anchors .anchor-button:first-child { justify-self: start; }
+.slider-anchors .anchor-button:last-child { justify-self: end; }
 .anchor-button { border: 1px solid rgba(240, 184, 95, 0.22); padding: 0.35rem 0.55rem; color: #f8d99f; background: rgba(240, 184, 95, 0.08); box-shadow: none; font-size: 0.72rem; }
 .anchor-button:hover { border-color: rgba(240, 184, 95, 0.5); color: #1a130b; background: #f0b85f; }
 .actions { display: flex; gap: 0.7rem; flex-wrap: wrap; }
