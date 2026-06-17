@@ -14,7 +14,7 @@ function pickNucleus(pack: StylePack, random: SeededRandom): string { const sour
 function pickCoda(pack: StylePack, random: SeededRandom, needsCoda: boolean): string { if (!needsCoda) return ''; const source = pack.phonotactics.codas.length > 0 ? pack.phonotactics.codas : fallbackCodas.map((value) => ({ value, weight: 1 })); return random.pickWeighted(source); }
 function softenCollisions(value: string): string { return value.replace(/([bcdfghjklmnpqrstvwxz])\1{2,}/gi, '$1$1').replace(/([aeiouy])\1{2,}/gi, '$1').replace(/thth/gi, 'th').replace(/rrr/gi, 'rr'); }
 
-function curatedChance(settings: GenerationSettings): number { return lerp(0.02, 0.56, settings.culturalAnchoring); }
+function curatedChance(settings: GenerationSettings): number { return lerp(0, 0.025, settings.culturalAnchoring); }
 function anchoredEndingChance(settings: GenerationSettings): number { return lerp(0.28, 0.88, settings.culturalAnchoring); }
 
 function applyEnding(name: string, silhouette: NameSilhouette, pack: StylePack, settings: GenerationSettings, random: SeededRandom): string {
