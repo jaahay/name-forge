@@ -17,7 +17,7 @@ h1, h2, h3, p { margin-top: 0; }
 .hero h1 { max-width: 880px; margin-bottom: 1rem; font-size: clamp(2.3rem, 5vw, 5rem); line-height: 0.95; }
 .hero-copy { max-width: 760px; margin-bottom: 0; color: #d8c9ad; font-size: 1.08rem; }
 .hero-stats { display: grid; gap: 0.75rem; min-width: 220px; }
-.hero-stats span, .metadata span { border: 1px solid rgba(240, 184, 95, 0.26); border-radius: 999px; padding: 0.55rem 0.8rem; color: #f8d99f; background: rgba(240, 184, 95, 0.08); font-size: 0.86rem; font-weight: 700; }
+.hero-stats span, .metadata span, .name-card-meta span { border: 1px solid rgba(240, 184, 95, 0.26); border-radius: 999px; padding: 0.55rem 0.8rem; color: #f8d99f; background: rgba(240, 184, 95, 0.08); font-size: 0.86rem; font-weight: 700; }
 .workspace { display: grid; grid-template-columns: minmax(300px, 380px) minmax(0, 1fr); gap: 1rem; margin-top: 1rem; align-items: start; }
 .controls { position: sticky; top: 1rem; display: grid; gap: 1.1rem; padding: 1.2rem; }
 .control-row.split { display: grid; grid-template-columns: 0.6fr 1fr; gap: 0.85rem; }
@@ -57,22 +57,20 @@ h1, h2, h3, p { margin-top: 0; }
 .name-card h2 { margin-bottom: 0.15rem; font-family: Georgia, "Times New Roman", serif; font-size: 2rem; }
 .name-card h3 { margin-bottom: 0.45rem; color: #f0b85f; font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; }
 .name-card p { margin-bottom: 0; color: #af9f84; }
-.score-summary { display: grid; justify-items: center; gap: 0.3rem; min-width: 4.5rem; }
-.score-pill { display: grid; place-items: center; width: 3.3rem; height: 3.3rem; border-radius: 50%; color: #1a130b; background: #f0b85f; font-weight: 900; }
-.score-band { color: #f8d99f; font-size: 0.68rem; font-weight: 900; letter-spacing: 0.08em; text-align: center; text-transform: uppercase; }
+.name-card-meta { display: flex; gap: 0.45rem; flex-wrap: wrap; justify-content: flex-end; }
 .score-note { border-left: 2px solid rgba(240, 184, 95, 0.38); padding-left: 0.65rem; font-size: 0.8rem; }
 .score-list { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem; margin: 0; }
 .score-list div { border-radius: 0.85rem; padding: 0.55rem; background: rgba(255, 255, 255, 0.06); }
 .score-list dt { color: #a8987e; font-size: 0.66rem; font-weight: 800; text-transform: uppercase; }
 .score-list dd { margin: 0; color: #f7f0e3; font-size: 1.05rem; font-weight: 900; }
 .metadata, .variants, .provenance { display: flex; gap: 0.45rem; flex-wrap: wrap; margin: 0; padding: 0; list-style: none; }
-.name-card h2.rarity-common, .metadata .rarity-common { border-color: rgba(255, 255, 255, 0.42); color: #ffffff; background: rgba(255, 255, 255, 0.08); }
-.name-card h2.rarity-uncommon, .metadata .rarity-uncommon { border-color: rgba(30, 255, 0, 0.46); color: #1eff00; background: rgba(30, 255, 0, 0.08); }
-.name-card h2.rarity-rare, .metadata .rarity-rare { border-color: rgba(0, 112, 221, 0.54); color: #4aa8ff; background: rgba(0, 112, 221, 0.1); }
-.name-card h2.rarity-epic, .metadata .rarity-epic { border-color: rgba(163, 53, 238, 0.56); color: #c37aff; background: rgba(163, 53, 238, 0.12); }
-.name-card h2.rarity-legendary, .metadata .rarity-legendary { border-color: rgba(255, 128, 0, 0.58); color: #ff9c2b; background: rgba(255, 128, 0, 0.12); }
+.name-card h2.rarity-common, .metadata .rarity-common, .name-card-meta .rarity-common { border-color: rgba(255, 255, 255, 0.42); color: #ffffff; background: rgba(255, 255, 255, 0.08); }
+.name-card h2.rarity-uncommon, .metadata .rarity-uncommon, .name-card-meta .rarity-uncommon { border-color: rgba(30, 255, 0, 0.46); color: #1eff00; background: rgba(30, 255, 0, 0.08); }
+.name-card h2.rarity-rare, .metadata .rarity-rare, .name-card-meta .rarity-rare { border-color: rgba(0, 112, 221, 0.54); color: #4aa8ff; background: rgba(0, 112, 221, 0.1); }
+.name-card h2.rarity-epic, .metadata .rarity-epic, .name-card-meta .rarity-epic { border-color: rgba(163, 53, 238, 0.56); color: #c37aff; background: rgba(163, 53, 238, 0.12); }
+.name-card h2.rarity-legendary, .metadata .rarity-legendary, .name-card-meta .rarity-legendary { border-color: rgba(255, 128, 0, 0.58); color: #ff9c2b; background: rgba(255, 128, 0, 0.12); }
 .name-card h2[class*='rarity-'] { background: transparent; text-shadow: 0 0 18px currentColor; }
-.metadata .rarity-pill { font-weight: 900; text-shadow: 0 0 14px currentColor; }
+.metadata .rarity-pill, .name-card-meta .rarity-pill { font-weight: 900; text-shadow: 0 0 14px currentColor; }
 .variants li { display: inline-flex; gap: 0.4rem; align-items: center; border-radius: 999px; padding: 0.45rem 0.7rem; background: rgba(255, 255, 255, 0.07); }
 .variants em { color: #b7a58a; font-size: 0.72rem; }
 .source-trace { display: grid; gap: 0.55rem; }
