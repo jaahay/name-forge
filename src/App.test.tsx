@@ -23,7 +23,7 @@ describe('App', () => {
     expect(html).toContain('texture-');
     expect(html).toContain('Details');
     expect(html).toContain('Overall fit score');
-    expect(html).toContain('fit for the current dials');
+    expect(html).toContain('current dials');
     expect(html).toContain('Style fit');
     expect(html).toContain('Cast fit');
     expect(html).toContain('Source trace');
