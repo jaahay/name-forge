@@ -42,9 +42,9 @@ export function AboutView({ authorSiteUrl }: AboutViewProps) {
       <section className="about-section" aria-labelledby="dial-title">
         <h2 id="dial-title">What the dials mean</h2>
         <p>
-          The dials are creative pressure controls. They change how candidates are generated and how candidates
-          are ranked. The score components still describe the name itself; the overall fit score says how well
-          that selected candidate matches your current dial settings.
+          The dials are creative pressure controls. They change what kinds of names Name Forge tries and which
+          finished names it prefers. The score components still describe the name itself; the overall fit score
+          says how well that selected name matches your current dial settings.
         </p>
         <ul className="dial-list">
           <li>
@@ -75,9 +75,9 @@ export function AboutView({ authorSiteUrl }: AboutViewProps) {
       <section className="about-section" aria-labelledby="score-title">
         <h2 id="score-title">Why scores often land in the 80s</h2>
         <p>
-          The card score is <strong>Overall fit</strong>, not a school grade and not a percentile. Name Forge creates
-          several candidates for each slot, scores them, then shows the best candidate for that slot. Because the weak
-          candidates are filtered out, visible names often cluster around strong-fit numbers such as the 70s and 80s.
+          The card score is <strong>Overall fit</strong>, not a school grade and not a percentile. For each spot in the
+          cast, Name Forge tries several possible names, scores them, and shows the strongest fit. Because lower-scoring
+          options are left out, visible names often cluster around strong-fit numbers such as the 70s and 80s.
         </p>
         <p>
           Use the number as a quick ranking signal, then read the band and score breakdown. An 83 means "strong fit for
