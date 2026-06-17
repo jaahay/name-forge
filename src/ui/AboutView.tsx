@@ -31,7 +31,7 @@ export function AboutView({ authorSiteUrl }: AboutViewProps) {
         </article>
         <article>
           <h2>Cards explain the result</h2>
-          <p>Each card shows a fit band, score breakdowns, rarity, rhythm, texture, spelling variants, and source trace.</p>
+          <p>Collapsed cards show the name, rhythm, syllable count, and rarity. Details show diagnostic scores, variants, and source trace.</p>
         </article>
         <article>
           <h2>About the author</h2>
@@ -43,8 +43,8 @@ export function AboutView({ authorSiteUrl }: AboutViewProps) {
         <h2 id="dial-title">What the dials mean</h2>
         <p>
           The dials are creative pressure controls. They change what kinds of names Name Forge tries and which
-          finished names it prefers. The score components still describe the name itself; the overall fit score
-          says how well that selected name matches your current dial settings.
+          finished names it prefers. The score components still describe the name itself; the hidden overall fit
+          score helps choose names that match your current dial settings.
         </p>
         <ul className="dial-list">
           <li>
@@ -73,15 +73,14 @@ export function AboutView({ authorSiteUrl }: AboutViewProps) {
       </section>
 
       <section className="about-section" aria-labelledby="score-title">
-        <h2 id="score-title">Why scores often land in the 80s</h2>
+        <h2 id="score-title">What the diagnostic scores are for</h2>
         <p>
-          The card score is <strong>Overall fit</strong>, not a school grade and not a percentile. For each spot in the
-          cast, Name Forge tries several possible names, scores them, and shows the strongest fit. Because lower-scoring
-          options are left out, visible names often cluster around strong-fit numbers such as the 70s and 80s.
+          The numbers inside Details are diagnostics, not grades and not percentiles. They explain why the generator
+          picked a name and help compare close alternatives when you are tuning the dials.
         </p>
         <p>
-          Use the number as a quick ranking signal, then read the band and score breakdown. An 83 means "strong fit for
-          the current dials," not "83 percent objectively good."
+          Since Name Forge already leaves out lower-scoring options, the visible numbers often cluster together.
+          That is why the collapsed card focuses on concrete traits instead of a headline score.
         </p>
       </section>
     </section>
