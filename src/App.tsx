@@ -24,6 +24,9 @@ const initialSettings: GenerationSettings = {
   stylePackId: stylePacks[0]?.id ?? 'british-literary-fantasy',
   seed: 'name-forge-001',
   nameFormat: 'mixed',
+  rarityDistribution: 'style-pack',
+  rolePreset: 'none',
+  slotRoles: [],
 };
 
 export default function App() {
