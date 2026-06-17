@@ -1,4 +1,5 @@
 import type { FormEvent } from 'react';
+import { serializeCastAsJson, serializeCastAsMarkdown } from '../engine/export';
 import type { GeneratedEnsemble, GenerationSettings, NameFormatKind, StylePackSummary } from '../engine/types';
 import { scoreControls, type ControlKey } from './presentation';
 import { ScoreControl } from './ScoreControl';
@@ -24,6 +25,14 @@ const formatOptions: Array<{ value: NameFormatKind; label: string }> = [
   { value: 'epithet-place', label: 'Epithet/place-style' },
 ];
 
+function exportHref(mimeType: string, value: string): string {
+  return `data:${mimeType};charset=utf-8,${encodeURIComponent(value)}`;
+}
+
+function copyExport(value: string) {
+  void navigator.clipboard?.writeText(value);
+}
+
 export function GeneratorView({
   stylePacks,
   settings,
@@ -34,6 +43,9 @@ export function GeneratorView({
   onRandomizeSliders,
   onRandomizeSlider,
 }: GeneratorViewProps) {
+  const jsonExport = serializeCastAsJson(ensemble);
+  const markdownExport = serializeCastAsMarkdown(ensemble);
+
   return (
     <>
       <section className="hero panel">
@@ -101,6 +113,26 @@ export function GeneratorView({
             <h2>Ensemble balance</h2>
             <p>{ensemble.diagnostics.summary}</p>
           </div>
+
+          <section className="export-panel panel" aria-labelledby="export-heading">
+            <div className="export-heading">
+              <div>
+                <p className="eyebrow">Export</p>
+                <h2 id="export-heading">Export generated cast</h2>
+                <p>Download or copy the current deterministic cast as JSON or Markdown.</p>
+              </div>
+              <div className="export-actions" aria-label="Cast export actions">
+                <a className="export-link" download="name-forge-cast.json" href={exportHref('application/json', jsonExport)}>Download JSON</a>
+                <a className="export-link" download="name-forge-cast.md" href={exportHref('text/markdown', markdownExport)}>Download Markdown</a>
+                <button type="button" className="secondary" onClick={() => copyExport(jsonExport)}>Copy JSON</button>
+                <button type="button" className="secondary" onClick={() => copyExport(markdownExport)}>Copy Markdown</button>
+              </div>
+            </div>
+            <label className="export-preview">
+              <span>Markdown preview</span>
+              <textarea value={markdownExport} readOnly rows={8} />
+            </label>
+          </section>
 
           <div className="name-grid">
             {ensemble.names.map((name) => <NameCard key={name.id} name={name} />)}
