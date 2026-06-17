@@ -7,7 +7,7 @@ export const stylePacks: StylePack[] = [{
   version: '0.1.0',
   localeHint: 'fictional-en-GB-literary',
   culturalAnchors: ['Albion', 'Arthurian romance', 'Victorian novels', 'border ballads'],
-  provenance: { sourceId: 'british-literary-fantasy@0.1.0', sourceKind: 'style-pack', label: 'Style pack', detail: 'Local JSON-style pack with fictionalized phonotactics and curated seeds.' },
+  provenance: { sourceId: 'british-literary-fantasy@0.1.0', sourceKind: 'style-pack', label: 'Style pack', detail: 'Local JSON-style pack with fictionalized phonotactics, weighted endings, spelling alternates, and style constraints.' },
   phonotactics: {
     onsets: ['', 'b', 'br', 'c', 'cl', 'd', 'dr', 'f', 'g', 'gw', 'h', 'l', 'm', 'n', 'p', 'r', 's', 't', 'th', 'v', 'w', 'y'].map((value, index) => ({ value, weight: index === 0 ? 3 : 4 })),
     nuclei: ['a', 'ae', 'e', 'ea', 'i', 'ia', 'o', 'oo', 'u', 'y'].map((value) => ({ value, weight: value.length === 1 ? 6 : 2 })),
@@ -21,8 +21,7 @@ export const stylePacks: StylePack[] = [{
     textures: [{ value: 'soft', weight: 5 }, { value: 'balanced', weight: 6 }, { value: 'hard', weight: 2 }, { value: 'liquid', weight: 4 }],
     rarityBands: [{ value: 'common', weight: 7 }, { value: 'uncommon', weight: 6 }, { value: 'rare', weight: 3 }, { value: 'epic', weight: 1 }, { value: 'legendary', weight: 0.35 }],
   },
-  curatedNames: ['Aveline', 'Elowen', 'Merryn', 'Oswin', 'Rowena', 'Tamsin', 'Theobald', 'Wystan'],
-  curatedVariants: { Aveline: ['Avelyn', 'Avelina'], Elowen: ['Elowyn', 'Elowenn'], Merryn: ['Meryn', 'Merren'], Oswin: ['Oswyn', 'Ossian'], Rowena: ['Rowenna', 'Roena'], Tamsin: ['Tamsyn', 'Tamzin'], Theobald: ['Theobold', 'Tybalt'], Wystan: ['Wistan', 'Wysten'] },
+  listedVariants: { Aveline: ['Avelyn', 'Avelina'], Elowen: ['Elowyn', 'Elowenn'], Merryn: ['Meryn', 'Merren'], Oswin: ['Oswyn', 'Ossian'], Rowena: ['Rowenna', 'Roena'], Tamsin: ['Tamsyn', 'Tamzin'], Theobald: ['Theobold', 'Tybalt'], Wystan: ['Wistan', 'Wysten'] },
   variantRules: [
     { id: 'terminal-a-to-ia', label: 'Terminal -a to -ia', from: 'a$', to: 'ia', maxApplications: 1, sourceKind: 'style-pack' },
     { id: 'i-to-y', label: 'Medial i to y', from: 'i', to: 'y', maxApplications: 1, sourceKind: 'algorithm' },

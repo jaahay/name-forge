@@ -85,15 +85,13 @@ describe('generator control knobs', () => {
     expect(high.rarityBand).toBe('rare');
   });
 
-  it('uses cultural anchoring as smooth curated-source pressure', () => {
+  it('generates primary names from phonotactics instead of listed examples', () => {
     const pack = createDefaultRegistry().getStylePack(settings.stylePackId);
-    const silhouette = testSilhouette();
-    const low = generateNameFromSilhouette(silhouette, pack, { ...settings, culturalAnchoring: 0, orthographicWeirdness: 0 }, fixedWeightedRandom([]), 0);
-    const high = generateNameFromSilhouette(silhouette, pack, { ...settings, culturalAnchoring: 1, orthographicWeirdness: 0 }, fixedWeightedRandom([]), 0);
+    const name = generateNameFromSilhouette(testSilhouette(), pack, { ...settings, culturalAnchoring: 1, orthographicWeirdness: 0 }, fixedWeightedRandom([]), 0);
 
-    expect(low.name).not.toBe('Aveline');
-    expect(high.name).toBe('Aveline');
-    expect(high.provenance.some((item) => item.label === 'Curated seed')).toBe(true);
+    expect(name.name).not.toBe('Aveline');
+    expect(name.provenance.some((item) => item.label === 'Curated seed')).toBe(false);
+    expect(name.provenance.some((item) => item.label === 'Generated name')).toBe(true);
   });
 
   it('uses orthographic weirdness to mutate generated spelling and expand variants without one-letter outputs', () => {

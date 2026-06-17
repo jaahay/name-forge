@@ -11,6 +11,7 @@ See [`product-requirements.md`](product-requirements.md) for the full product sp
 3. **Silhouette before spelling**: the system models the intended name shape before exact letters are generated.
 4. **Provenance-bearing data**: generated names and variants report style pack, source, rules, seed, and scoring signals.
 5. **Hard-code mechanisms, not linguistic knowledge**: algorithms and schemas live in the engine; inventories, anchors, phonotactics, variants, and style constraints live in packs or providers.
+6. **Generated primary names**: style packs provide generation ingredients and spelling alternates; they do not provide whole names for the primary output path.
 
 ## Runtime pipeline
 
@@ -56,7 +57,7 @@ The engine centers on these first-class types:
 - `NameSilhouette`: the pre-spelling shape of one full name.
 - `GeneratedName`: rendered text plus parts, score metadata, variants, provenance, warnings, and seed.
 - `CandidateScore`: decomposed scoring signals, not just one opaque score.
-- `NameVariant`: generated or curated spelling alternatives with relationship types.
+- `NameVariant`: listed or generated spelling alternatives with relationship metadata.
 - `ProvenanceEntry`: source and contribution metadata.
 - `StylePack`: soft-coded aesthetic and phonotactic constraints.
 - `DataSourceDescriptor`: registry pointer to built-in, file, HTTP, API, package, or custom pack sources.
@@ -81,7 +82,6 @@ The provider registry stores pointers and contracts, not large data payloads. Bu
 ### Soft-coded data responsibilities
 
 - style packs
-- name corpora
 - pronunciation dictionaries
 - spelling variant rules
 - cultural naming packs
@@ -103,7 +103,7 @@ This layer should stay independent enough to evolve into role-aware and faction-
 
 ## Spelling variants
 
-Variants must be labeled by relationship type. MVP generated variants should be clearly marked as generated, not curated. Future curated or external-source variants can use the same contract with stronger confidence and source provenance.
+Variants must be labeled by relationship type. MVP listed variants should be clearly marked as listed alternates, and rule-created variants should be clearly marked as generated spellings. Future external-source variants can use the same contract with stronger confidence and source provenance.
 
 Supported relationship types include `same_pronunciation`, `near_pronunciation`, `orthographic_variant`, `regional_variant`, `historical_variant`, `transliteration`, `cognate`, `diminutive`, `nickname`, `creative_respelling`, and `alias`.
 
@@ -111,19 +111,19 @@ Supported relationship types include `same_pronunciation`, `near_pronunciation`,
 
 Every output should answer:
 
-- Which source or generator produced this?
+- Which generator produced this?
 - Which style pack and rules contributed?
-- Was it found, curated, or invented?
+- Was an alternate spelling listed or generated?
 - What seed reproduced it?
 - Which scoring reasons explain its rank?
 
-The provenance contract is product-critical because it keeps generated, curated, and future externally sourced results distinct.
+The provenance contract is product-critical because it keeps generated primary names, listed alternates, and future externally sourced results distinct.
 
 ## UI contract
 
 The MVP UI should expose one single-page generation flow with controls for cast size, seed, style preset, novelty, pronounceability, memorability, cultural anchoring, and orthographic weirdness.
 
-Each output card should display the generated name, score, silhouette summary, rarity band, variants, provenance labels, and concise explanation metadata.
+Each output card should display the generated name, silhouette summary, rarity band, alternate spellings, and concise diagnostic metadata.
 
 ## Testing strategy
 
