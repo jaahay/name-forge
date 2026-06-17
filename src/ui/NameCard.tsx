@@ -16,6 +16,7 @@ function labelFor(value: string): string {
 export function NameCard({ name }: NameCardProps) {
   const rarity = rarityPresentation[name.silhouette.rarityBand];
   const identity = name.identity;
+  const roleLabel = name.role?.label ?? 'No role';
   const toneLabel = `${labelFor(name.silhouette.texture)} tone`;
   const formatLabel = identity ? identity.format.label : `${labelFor(name.silhouette.rhythm)} rhythm`;
 
@@ -25,7 +26,7 @@ export function NameCard({ name }: NameCardProps) {
         <div className="name-card-header">
           <div className="name-card-title-block">
             <h2 className={`name-card-title ${rarity.className}`}>{name.name}</h2>
-            <p className="name-style-row"><span>Tone: {toneLabel}</span><span>Format: {formatLabel}</span></p>
+            <p className="name-style-row"><span>Role: {roleLabel}</span><span>Tone: {toneLabel}</span><span>Format: {formatLabel}</span></p>
           </div>
           <div className="name-card-meta" aria-label={`${name.silhouette.syllableCount} syllables, ${rarity.label} rarity`}>
             <span>{name.silhouette.syllableCount} syllables</span>
