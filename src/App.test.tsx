@@ -22,12 +22,13 @@ describe('App', () => {
     expect(html).toContain('<details');
     expect(html).toContain('texture-');
     expect(html).toContain('Details');
-    expect(html).toContain('Overall fit score');
+    expect(html).toContain('diagnostic score breakdown');
     expect(html).toContain('current dials');
     expect(html).toContain('Style fit');
     expect(html).toContain('Cast fit');
     expect(html).toContain('Source trace');
     expect(html).toContain('Source');
+    expect(html).not.toContain('Overall fit score');
     expect(html).not.toContain('Errata');
     expect(html).not.toContain('Unreleased');
     expect(html).not.toContain('Name Forge version');
