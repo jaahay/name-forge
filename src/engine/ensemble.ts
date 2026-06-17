@@ -1,6 +1,7 @@
 import { createSeededRandom, clamp } from './random';
 import { createNameSilhouette } from './silhouettes';
 import { generateNameFromSilhouette } from './generator';
+import { createNameIdentity, requiresFamilyName, resolveMaterializedFormatKind } from './identity';
 import { combineOverallFit } from './scoring';
 import type { GeneratedEnsemble, GeneratedName, GenerationSettings, NameSilhouette } from './types';
 import type { SourceRegistry } from './registry';
@@ -17,6 +18,29 @@ function createBalancedSilhouette(settings: GenerationSettings, randomLabel: str
   return createNameSilhouette({ ...settings, novelty: clamp(settings.novelty + ((index % 5) - 2) * 0.06) }, pack, random, index);
 }
 
+function withNameIdentity(candidate: GeneratedName, settings: GenerationSettings, registry: SourceRegistry, index: number, attempt: number): GeneratedName {
+  const formatKind = resolveMaterializedFormatKind(settings.nameFormat, index);
+  const pack = registry.getStylePack(settings.stylePackId);
+  const family = requiresFamilyName(formatKind)
+    ? generateNameFromSilhouette(
+      createBalancedSilhouette(settings, `slot-${index}:family-${attempt}`, registry, index + 1000),
+      pack,
+      settings,
+      createSeededRandom(`${settings.seed}:family:${index}:${attempt}`),
+      index + 1000,
+    )
+    : undefined;
+  const identity = createNameIdentity(candidate, family, formatKind);
+  const safeDisplaySlug = identity.displayName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  return {
+    ...candidate,
+    id: `name-${index + 1}-${safeDisplaySlug}`,
+    name: identity.displayName,
+    identity,
+    provenance: [...candidate.provenance, identity.format.provenance],
+  };
+}
+
 export function generateEnsemble(settings: GenerationSettings, registry: SourceRegistry): GeneratedEnsemble {
   const castSize = Math.round(clamp(settings.castSize, 1, 24));
   const safeSettings = { ...settings, castSize };
@@ -26,7 +50,8 @@ export function generateEnsemble(settings: GenerationSettings, registry: SourceR
     const candidates = Array.from({ length: 16 }, (_, attempt) => {
       const silhouette = createBalancedSilhouette(safeSettings, `slot-${index}:attempt-${attempt}`, registry, index);
       const random = createSeededRandom(`${settings.seed}:name:${index}:${attempt}`);
-      return withEnsembleFit(generateNameFromSilhouette(silhouette, pack, safeSettings, random, index), selected, safeSettings);
+      const baseName = generateNameFromSilhouette(silhouette, pack, safeSettings, random, index);
+      return withEnsembleFit(withNameIdentity(baseName, safeSettings, registry, index, attempt), selected, safeSettings);
     });
     candidates.sort((left, right) => right.scores.overallFit - left.scores.overallFit);
     selected.push(candidates[0]);
