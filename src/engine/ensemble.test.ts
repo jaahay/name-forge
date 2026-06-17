@@ -26,18 +26,19 @@ describe('generateEnsemble role and rarity controls', () => {
     expect(first.names.map((name) => name.role?.role)).toEqual(['protagonist', 'rival', 'mentor', 'sidekick']);
   });
 
-  it('lets explicit slot roles override the selected role mix', () => {
+  it('lets sparse slot roles override only selected slots', () => {
     const registry = createDefaultRegistry();
     const ensemble = generateEnsemble({
       ...baseSettings,
       castSize: 3,
       rolePreset: 'classic-ensemble',
-      slotRoles: ['villain', 'mentor'],
+      slotRoleOverrides: { 0: 'villain', 2: 'sidekick' },
     }, registry);
 
-    expect(ensemble.names.map((name) => name.role?.role)).toEqual(['villain', 'mentor', 'mentor']);
+    expect(ensemble.names.map((name) => name.role?.role)).toEqual(['villain', 'rival', 'sidekick']);
     expect(ensemble.names[0].role?.source).toBe('slot');
-    expect(ensemble.names[2].role?.source).toBe('preset');
+    expect(ensemble.names[1].role?.source).toBe('preset');
+    expect(ensemble.names[2].role?.source).toBe('slot');
   });
 
   it('threads rarity distributions through selected names', () => {
