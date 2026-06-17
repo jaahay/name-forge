@@ -26,9 +26,12 @@ describe('App', () => {
     expect(html).toContain('Style fit');
     expect(html).toContain('Cast fit');
     expect(html).toContain('Alternate spellings');
-    expect(html).toContain('Generated from the same base name');
     expect(html).not.toContain('Source trace');
     expect(html).not.toContain('Overall fit score');
+    expect(html).not.toContain('medium target');
+    expect(html).not.toContain('rarity target');
+    expect(html).not.toContain('Diagnostics explain why this name was selected');
+    expect(html).not.toContain('Generated from the same base name');
     expect(html).not.toContain('Errata');
     expect(html).not.toContain('Unreleased');
     expect(html).not.toContain('Name Forge version');
