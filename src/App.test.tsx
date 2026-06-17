@@ -26,8 +26,8 @@ describe('App', () => {
     expect(html).toContain('current dials');
     expect(html).toContain('Style fit');
     expect(html).toContain('Cast fit');
-    expect(html).toContain('Variants');
-    expect(html).toContain('Spelling alternates generated from the same base name');
+    expect(html).toContain('Alternate spellings');
+    expect(html).toContain('Generated from the same base name');
     expect(html).not.toContain('Source trace');
     expect(html).not.toContain('Overall fit score');
     expect(html).not.toContain('Errata');
