@@ -1,6 +1,8 @@
 import type { FormEvent } from 'react';
 import { serializeCastAsJson, serializeCastAsMarkdown } from '../engine/export';
-import type { GeneratedEnsemble, GenerationSettings, NameFormatKind, StylePackSummary } from '../engine/types';
+import { rarityDistributionOptions } from '../engine/rarity';
+import { castRoleOptions, castRolePresetOptions } from '../engine/roles';
+import type { CastRole, CastRolePresetKind, GeneratedEnsemble, GenerationSettings, NameFormatKind, RarityDistributionPresetKind, StylePackSummary } from '../engine/types';
 import { scoreControls, type ControlKey } from './presentation';
 import { ScoreControl } from './ScoreControl';
 import { NameCard } from './NameCard';
@@ -33,6 +35,16 @@ function copyExport(value: string) {
   void navigator.clipboard?.writeText(value);
 }
 
+function updateSlotRole(currentRoles: GenerationSettings['slotRoleOverrides'], index: number, role: CastRole | ''): GenerationSettings['slotRoleOverrides'] {
+  const nextRoles = { ...(currentRoles ?? {}) };
+  if (role === '') {
+    delete nextRoles[index];
+    return nextRoles;
+  }
+  nextRoles[index] = role;
+  return nextRoles;
+}
+
 export function GeneratorView({
   stylePacks,
   settings,
@@ -45,6 +57,7 @@ export function GeneratorView({
 }: GeneratorViewProps) {
   const jsonExport = serializeCastAsJson(ensemble);
   const markdownExport = serializeCastAsMarkdown(ensemble);
+  const slotRoleCount = Math.max(0, Math.min(Math.round(settings.castSize), 8));
 
   return (
     <>
@@ -85,6 +98,37 @@ export function GeneratorView({
               {formatOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
             </select>
           </label>
+
+          <div className="control-row split">
+            <label>
+              <span>Cast role mix</span>
+              <select value={settings.rolePreset ?? 'none'} onChange={(event) => onUpdateSetting('rolePreset', event.target.value as CastRolePresetKind)}>
+                {castRolePresetOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+              </select>
+            </label>
+            <label>
+              <span>Rarity distribution</span>
+              <select value={settings.rarityDistribution ?? 'style-pack'} onChange={(event) => onUpdateSetting('rarityDistribution', event.target.value as RarityDistributionPresetKind)}>
+                {rarityDistributionOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+              </select>
+            </label>
+          </div>
+
+          <div className="slot-role-grid" aria-label="Slot role overrides">
+            {Array.from({ length: slotRoleCount }, (_, index) => (
+              <label key={`slot-role-${index + 1}`}>
+                <span>Slot {index + 1} role</span>
+                <select
+                  value={settings.slotRoleOverrides?.[index] ?? ''}
+                  onChange={(event) => onUpdateSetting('slotRoleOverrides', updateSlotRole(settings.slotRoleOverrides, index, event.target.value as CastRole | ''))}
+                >
+                  <option value="">Use role mix</option>
+                  {castRoleOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                </select>
+              </label>
+            ))}
+            <p className="section-note">Optional slot role overrides take precedence over the selected role mix.</p>
+          </div>
 
           {scoreControls.map((control) => (
             <ScoreControl

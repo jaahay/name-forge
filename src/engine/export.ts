@@ -9,6 +9,7 @@ export interface ExportedNamePart {
 export interface ExportedName {
   id: string;
   name: string;
+  role?: string;
   score: number;
   scores: GeneratedName['scores'];
   silhouette: Pick<NameSilhouette, 'syllableCount' | 'stressPattern' | 'rhythm' | 'rarityBand' | 'texture' | 'targetNovelty' | 'targetLength'>;
@@ -51,6 +52,7 @@ function exportName(name: GeneratedName, seed: string): ExportedName {
   return {
     id: name.id,
     name: name.name,
+    role: name.role?.label,
     score: name.scores.overallFit,
     scores: name.scores,
     silhouette: {
@@ -123,6 +125,7 @@ export function serializeCastAsMarkdown(ensemble: GeneratedEnsemble): string {
     lines.push(
       `## ${index + 1}. ${exported.name}`,
       '',
+      `- Role: ${exported.role ?? 'Unassigned'}`,
       `- Overall fit: ${scoreLabel(exported.score)}`,
       `- Format: ${exported.format}`,
       `- Parts: ${partText}`,
