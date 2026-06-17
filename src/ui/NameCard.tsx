@@ -26,11 +26,13 @@ export function NameCard({ name }: NameCardProps) {
         {scorePresentation.map((score) => <div key={`${name.id}-${score.key}`}><dt>{score.label}</dt><dd>{formatScore(name.scores[score.key])}</dd></div>)}
       </dl>
       <div className="metadata"><span>{name.silhouette.texture} texture</span><span>{name.silhouette.targetLength} target</span><span>{name.silhouette.rarityBand} rarity target</span></div>
-      <div><h3>Variants</h3><ul className="variants">{name.variants.map((variant) => <li key={`${name.id}-${variant.value}`}><span>{variant.value}</span><em>{variant.kind}</em></li>)}</ul></div>
-      <details className="source-trace">
-        <summary>Source trace</summary>
-        <ul className="provenance">{name.provenance.map((item) => <li key={`${name.id}-${item.sourceId}-${item.label}`}><strong>{item.label}</strong><span>{item.detail}</span></li>)}</ul>
-      </details>
+      <div>
+        <h3>Variants</h3>
+        <p className="section-note">Spelling alternates generated from the same base name.</p>
+        {name.variants.length > 0 ? (
+          <ul className="variants">{name.variants.map((variant) => <li key={`${name.id}-${variant.value}`}><span>{variant.value}</span><em>{variant.kind}</em></li>)}</ul>
+        ) : <p className="empty-state">No spelling alternates for this name.</p>}
+      </div>
     </details>
   );
 }
