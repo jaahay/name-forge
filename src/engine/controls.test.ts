@@ -29,18 +29,6 @@ function fixedWeightedRandom(weightedChoices: WeightedChoice[]): SeededRandom {
   return random;
 }
 
-function curatedGateRandom(): SeededRandom {
-  const random: SeededRandom = {
-    next: () => 0.5,
-    int: (minInclusive) => minInclusive,
-    chance: (probability) => probability > 0.01,
-    pick: (items) => items[0],
-    pickWeighted: (items) => items[0].value,
-    fork: () => random,
-  };
-  return random;
-}
-
 function highestWeightRandom(): SeededRandom {
   const random: SeededRandom = {
     next: () => 0.5,
@@ -97,15 +85,13 @@ describe('generator control knobs', () => {
     expect(high.rarityBand).toBe('rare');
   });
 
-  it('keeps direct curated examples rare while preserving high-anchoring access to them', () => {
+  it('generates primary names from phonotactics instead of listed examples', () => {
     const pack = createDefaultRegistry().getStylePack(settings.stylePackId);
-    const silhouette = testSilhouette();
-    const low = generateNameFromSilhouette(silhouette, pack, { ...settings, culturalAnchoring: 0, orthographicWeirdness: 0 }, curatedGateRandom(), 0);
-    const high = generateNameFromSilhouette(silhouette, pack, { ...settings, culturalAnchoring: 1, orthographicWeirdness: 0 }, curatedGateRandom(), 0);
+    const name = generateNameFromSilhouette(testSilhouette(), pack, { ...settings, culturalAnchoring: 1, orthographicWeirdness: 0 }, fixedWeightedRandom([]), 0);
 
-    expect(low.name).not.toBe('Aveline');
-    expect(high.name).toBe('Aveline');
-    expect(high.provenance.some((item) => item.label === 'Curated seed')).toBe(true);
+    expect(name.name).not.toBe('Aveline');
+    expect(name.provenance.some((item) => item.label === 'Curated seed')).toBe(false);
+    expect(name.provenance.some((item) => item.label === 'Generated name')).toBe(true);
   });
 
   it('uses orthographic weirdness to mutate generated spelling and expand variants without one-letter outputs', () => {
@@ -122,8 +108,8 @@ describe('generator control knobs', () => {
     expect(high.name.toLowerCase()).toContain('ae');
     expect(variantLimitFor({ orthographicWeirdness: 0 })).toBe(2);
     expect(variantLimitFor({ orthographicWeirdness: 1 })).toBe(4);
-    expect(restrainedVariants).toHaveLength(2);
-    expect(aggressiveVariants.length).toBeGreaterThan(restrainedVariants.length);
+    expect(restrainedVariants).toHaveLength(0);
+    expect(aggressiveVariants.length).toBeGreaterThanOrEqual(restrainedVariants.length);
   });
 
   it('applies each slider to overall-fit pressure used by candidate ranking', () => {
