@@ -8,12 +8,13 @@ interface NameCardProps {
 
 export function NameCard({ name }: NameCardProps) {
   const rarity = rarityPresentation[name.silhouette.rarityBand];
+  const identity = name.identity;
 
   return (
     <details className={`name-card panel ${textureClassName(name.silhouette.texture)}`}>
       <summary className="name-card-summary">
         <div className="name-card-header">
-          <div><h2 className={rarity.className}>{name.name}</h2><p>{name.silhouette.rhythm} rhythm</p></div>
+          <div><h2 className={rarity.className}>{name.name}</h2><p>{identity ? identity.format.label : `${name.silhouette.rhythm} rhythm`}</p></div>
           <div className="name-card-meta" aria-label={`${name.silhouette.syllableCount} syllables, ${rarity.label} rarity`}>
             <span>{name.silhouette.syllableCount} syllables</span>
             <span className={rarityClassName(name.silhouette.rarityBand)}>{rarity.label}</span>
@@ -24,6 +25,15 @@ export function NameCard({ name }: NameCardProps) {
       <dl className="score-list" aria-label={`${name.name} diagnostic score breakdown`}>
         {scorePresentation.map((score) => <div key={`${name.id}-${score.key}`}><dt>{score.label}</dt><dd>{formatScore(name.scores[score.key])}</dd></div>)}
       </dl>
+      {identity ? (
+        <div>
+          <h3>Name parts</h3>
+          <p className="section-note">{identity.format.pattern}</p>
+          <ul className="variants">
+            {identity.parts.map((part) => <li key={part.id}><span>{part.value}</span><em>{part.role}</em></li>)}
+          </ul>
+        </div>
+      ) : null}
       <div>
         <h3>Alternate spellings</h3>
         {name.variants.length > 0 ? (
