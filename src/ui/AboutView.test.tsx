@@ -3,7 +3,7 @@ import { renderToString } from 'react-dom/server';
 import { AboutView } from './AboutView';
 
 describe('AboutView', () => {
-  it('explains every generator dial and the overall fit score in plain language', () => {
+  it('explains every generator dial and the diagnostic score purpose in plain language', () => {
     const html = renderToString(<AboutView authorSiteUrl="https://jameshay.org/" />);
 
     expect(html).toContain('What the dials mean');
@@ -15,8 +15,8 @@ describe('AboutView', () => {
     expect(html).toContain('Memorability');
     expect(html).toContain('Cultural anchoring');
     expect(html).toContain('Orthographic weirdness');
-    expect(html).toContain('Why scores often land in the 80s');
-    expect(html).toContain('not a school grade');
-    expect(html).toContain('strong fit for the current dials');
+    expect(html).toContain('What the diagnostic scores are for');
+    expect(html).toContain('not grades');
+    expect(html).toContain('focuses on concrete traits instead of a headline score');
   });
 });
