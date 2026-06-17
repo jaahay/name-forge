@@ -3,7 +3,7 @@ import { renderToString } from 'react-dom/server';
 import App from './App';
 
 describe('App', () => {
-  it('renders the generation shell with the core controls, output regions, and project chrome', () => {
+  it('renders the generation shell with the core controls, output regions, exports, and project chrome', () => {
     const html = renderToString(<App />);
 
     expect(html).toContain('Name Forge');
@@ -23,6 +23,13 @@ describe('App', () => {
     expect(html).toContain('Randomize seed');
     expect(html).toContain('Generate cast');
     expect(html).toContain('Ensemble balance');
+    expect(html).toContain('Export generated cast');
+    expect(html).toContain('Download JSON');
+    expect(html).toContain('Download Markdown');
+    expect(html).toContain('Copy JSON');
+    expect(html).toContain('Copy Markdown');
+    expect(html).toContain('Markdown preview');
+    expect(html).toContain('# Name Forge Cast Export');
     expect(html).toContain('name-forge-001');
     expect(html).toContain('<details');
     expect(html).toContain('texture-');
