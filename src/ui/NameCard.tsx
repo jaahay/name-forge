@@ -27,11 +27,11 @@ export function NameCard({ name }: NameCardProps) {
       </dl>
       <div className="metadata"><span>{name.silhouette.texture} texture</span><span>{name.silhouette.targetLength} target</span><span>{name.silhouette.rarityBand} rarity target</span></div>
       <div>
-        <h3>Variants</h3>
-        <p className="section-note">Spelling alternates generated from the same base name.</p>
+        <h3>Alternate spellings</h3>
+        <p className="section-note">Generated from the same base name.</p>
         {name.variants.length > 0 ? (
           <ul className="variants">{name.variants.map((variant) => <li key={`${name.id}-${variant.value}`}><span>{variant.value}</span><em>{variant.kind}</em></li>)}</ul>
-        ) : <p className="empty-state">No spelling alternates for this name.</p>}
+        ) : <p className="empty-state">No alternate spellings for this name.</p>}
       </div>
     </details>
   );
