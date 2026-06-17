@@ -2,7 +2,10 @@ import type { GeneratedName, GeneratedNamePart, NameFormatKind, NameFormatRule, 
 
 export type MaterializedNameFormatKind = Exclude<NameFormatKind, 'mixed'>;
 
-const mixedFormatSequence: MaterializedNameFormatKind[] = ['given-only', 'given-family', 'initials-family'];
+const mixedFormatSequence: MaterializedNameFormatKind[] = ['given-only', 'given-family', 'initials-family', 'title-name', 'epithet-place'];
+const titleOptions = ['Archivist', 'Captain', 'Chronicler', 'Doctor', 'Keeper', 'Marshal', 'Professor', 'Warden'];
+const epithetOptions = ['the Ashen', 'the Bright', 'the Far', 'the Kindled', 'the Riverwise', 'the Silver', 'the Starlit', 'the Wry'];
+const placeSuffixes = ['ford', 'hearth', 'holt', 'mere', 'reach', 'vale', 'wick', 'wold'];
 
 const formatRuleProvenance: ProvenanceNote = {
   sourceId: 'name-forge:name-format-rules@0.1.0',
@@ -33,6 +36,20 @@ const formatRules: Record<MaterializedNameFormatKind, NameFormatRule> = {
     pattern: '{initials} {family}',
     provenance: formatRuleProvenance,
   },
+  'title-name': {
+    id: 'format:title-name',
+    kind: 'title-name',
+    label: 'Title + name',
+    pattern: '{title} {given}',
+    provenance: formatRuleProvenance,
+  },
+  'epithet-place': {
+    id: 'format:epithet-place',
+    kind: 'epithet-place',
+    label: 'Epithet/place-style name',
+    pattern: '{given} {epithet} of {place}',
+    provenance: formatRuleProvenance,
+  },
 };
 
 export function resolveMaterializedFormatKind(format: NameFormatKind | undefined, index: number): MaterializedNameFormatKind {
@@ -40,8 +57,8 @@ export function resolveMaterializedFormatKind(format: NameFormatKind | undefined
   return format;
 }
 
-export function requiresFamilyName(format: MaterializedNameFormatKind): boolean {
-  return format === 'given-family' || format === 'initials-family';
+export function requiresSupportingName(format: MaterializedNameFormatKind): boolean {
+  return format === 'given-family' || format === 'initials-family' || format === 'epithet-place';
 }
 
 function partProvenance(role: GeneratedNamePart['role'], sourceName: GeneratedName): ProvenanceNote {
@@ -64,6 +81,15 @@ function createPart(role: GeneratedNamePart['role'], value: string, sourceName: 
   };
 }
 
+function fingerprint(value: string): number {
+  return [...value].reduce((total, character, index) => total + character.charCodeAt(0) * (index + 1), 0);
+}
+
+function pickDeterministic(options: string[], key: string): string {
+  const selected = options[fingerprint(key) % options.length];
+  return selected ?? options[0] ?? '';
+}
+
 function initialsFor(name: string): string {
   return name
     .split(/[\s-]+/)
@@ -72,11 +98,21 @@ function initialsFor(name: string): string {
     .join(' ');
 }
 
-export function createNameIdentity(given: GeneratedName, family: GeneratedName | undefined, format: MaterializedNameFormatKind): NameIdentity {
+function placeNameFor(name: string): string {
+  const compactName = name.replace(/[^A-Za-z]/g, '');
+  const baseStem = compactName.length >= 3 ? compactName.slice(0, Math.min(8, compactName.length)) : 'North';
+  const stem = `${baseStem.charAt(0).toUpperCase()}${baseStem.slice(1).toLowerCase()}`;
+  const suffix = pickDeterministic(placeSuffixes, name);
+  return stem.toLowerCase().endsWith(suffix) ? stem : `${stem}${suffix}`;
+}
+
+export function createNameIdentity(given: GeneratedName, supportingName: GeneratedName | undefined, format: MaterializedNameFormatKind): NameIdentity {
   const rule = formatRules[format];
   const givenPart = createPart('given', given.name, given);
-  const familyPart = family ? createPart('family', family.name, family) : undefined;
+  const familyPart = supportingName ? createPart('family', supportingName.name, supportingName) : undefined;
   const initialPart = createPart('initial', initialsFor(given.name), given);
+  const titlePart = createPart('title', pickDeterministic(titleOptions, given.name), given);
+  const epithetPart = createPart('epithet', pickDeterministic(epithetOptions, given.name), given);
 
   if (format === 'given-only') {
     return {
@@ -84,6 +120,26 @@ export function createNameIdentity(given: GeneratedName, family: GeneratedName |
       format: rule,
       parts: [givenPart],
       provenance: [rule.provenance, ...givenPart.provenance],
+    };
+  }
+
+  if (format === 'title-name') {
+    return {
+      displayName: `${titlePart.value} ${givenPart.value}`,
+      format: rule,
+      parts: [titlePart, givenPart],
+      provenance: [rule.provenance, ...titlePart.provenance, ...givenPart.provenance],
+    };
+  }
+
+  if (format === 'epithet-place') {
+    const placeSource = supportingName ?? given;
+    const placePart = createPart('place', placeNameFor(placeSource.name), placeSource);
+    return {
+      displayName: `${givenPart.value} ${epithetPart.value} of ${placePart.value}`,
+      format: rule,
+      parts: [givenPart, epithetPart, placePart],
+      provenance: [rule.provenance, ...givenPart.provenance, ...epithetPart.provenance, ...placePart.provenance],
     };
   }
 
