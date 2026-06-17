@@ -4,10 +4,11 @@ import { createDefaultRegistry } from './registry';
 import type { SeededRandom } from './random';
 import { scoreName } from './scoring';
 import { createNameSilhouette } from './silhouettes';
-import type { GenerationSettings, NameSilhouette } from './types';
+import type { GenerationSettings, NameSilhouette, ScoreKey } from './types';
 import { generateVariants, variantLimitFor } from './variants';
 
 const settings: GenerationSettings = { castSize: 6, novelty: 0.5, pronounceability: 0.7, memorability: 0.6, culturalAnchoring: 0.65, orthographicWeirdness: 0.25, stylePackId: 'british-literary-fantasy', seed: 'control-test-seed' };
+const componentKeys: ScoreKey[] = ['pronounceability', 'memorability', 'novelty', 'culturalAnchoring', 'orthographicNaturalness', 'styleFit', 'silhouetteFit', 'ensembleFit'];
 
 type WeightedChoice = string | number;
 
@@ -95,7 +96,7 @@ describe('generator control knobs', () => {
     expect(high.provenance.some((item) => item.label === 'Curated seed')).toBe(true);
   });
 
-  it('uses orthographic weirdness to mutate generated spelling and expand variants', () => {
+  it('uses orthographic weirdness to mutate generated spelling and expand variants without one-letter outputs', () => {
     const pack = createDefaultRegistry().getStylePack(settings.stylePackId);
     const silhouette = testSilhouette();
     const low = generateNameFromSilhouette(silhouette, pack, { ...settings, culturalAnchoring: 0, orthographicWeirdness: 0 }, fixedWeightedRandom([]), 0);
@@ -103,8 +104,10 @@ describe('generator control knobs', () => {
     const restrainedVariants = generateVariants('Vivian', pack, { orthographicWeirdness: 0 });
     const aggressiveVariants = generateVariants('Vivian', pack, { orthographicWeirdness: 1 });
 
-    expect(low.name).toBe('A');
-    expect(high.name).toBe('Ae');
+    expect(low.name.length).toBeGreaterThanOrEqual(3);
+    expect(high.name.length).toBeGreaterThanOrEqual(3);
+    expect(high.name).not.toBe(low.name);
+    expect(high.name.toLowerCase()).toContain('ae');
     expect(variantLimitFor({ orthographicWeirdness: 0 })).toBe(2);
     expect(variantLimitFor({ orthographicWeirdness: 1 })).toBe(4);
     expect(restrainedVariants).toHaveLength(2);
@@ -122,5 +125,17 @@ describe('generator control knobs', () => {
 
       expect(high.overallFit).not.toBe(low.overallFit);
     }
+  });
+
+  it('keeps component scores intrinsic while overall fit responds to preferences', () => {
+    const pack = createDefaultRegistry().getStylePack(settings.stylePackId);
+    const silhouette = testSilhouette({ syllableCount: 2, shape: ['CVC', 'CV'], targetLength: 'medium' });
+    const naturalPreference = scoreName('Aldren', silhouette, pack, { ...settings, orthographicWeirdness: 0 });
+    const weirdPreference = scoreName('Aldren', silhouette, pack, { ...settings, orthographicWeirdness: 1 });
+
+    for (const key of componentKeys) {
+      expect(weirdPreference[key]).toBe(naturalPreference[key]);
+    }
+    expect(weirdPreference.overallFit).not.toBe(naturalPreference.overallFit);
   });
 });
