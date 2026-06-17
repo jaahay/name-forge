@@ -27,7 +27,10 @@ describe('App', () => {
     expect(html).toContain('<details');
     expect(html).toContain('texture-');
     expect(html).toContain('Details');
+    expect(html).toContain('Tone:');
+    expect(html).toContain('Format:');
     expect(html).toContain('diagnostic score breakdown');
+    expect(html).toContain('Diagnostic scores');
     expect(html).toContain('Style fit');
     expect(html).toContain('Cast fit');
     expect(html).toContain('Name parts');
