@@ -54,7 +54,10 @@ h1, h2, h3, p { margin-top: 0; }
 .name-card h2 { margin-bottom: 0.15rem; font-family: Georgia, "Times New Roman", serif; font-size: 2rem; }
 .name-card h3 { margin-bottom: 0.45rem; color: #f0b85f; font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; }
 .name-card p { margin-bottom: 0; color: #af9f84; }
+.score-summary { display: grid; justify-items: center; gap: 0.3rem; min-width: 4.5rem; }
 .score-pill { display: grid; place-items: center; width: 3.3rem; height: 3.3rem; border-radius: 50%; color: #1a130b; background: #f0b85f; font-weight: 900; }
+.score-band { color: #f8d99f; font-size: 0.68rem; font-weight: 900; letter-spacing: 0.08em; text-align: center; text-transform: uppercase; }
+.score-note { border-left: 2px solid rgba(240, 184, 95, 0.38); padding-left: 0.65rem; font-size: 0.8rem; }
 .score-list { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem; margin: 0; }
 .score-list div { border-radius: 0.85rem; padding: 0.55rem; background: rgba(255, 255, 255, 0.06); }
 .score-list dt { color: #a8987e; font-size: 0.66rem; font-weight: 800; text-transform: uppercase; }
@@ -79,12 +82,15 @@ h1, h2, h3, p { margin-top: 0; }
 .changelog-heading, .about-heading { display: flex; justify-content: space-between; gap: 1.5rem; align-items: end; }
 .changelog-heading h1, .about-heading h1 { max-width: 760px; margin-bottom: 0; font-size: clamp(2.1rem, 4vw, 4rem); line-height: 0.98; }
 .changelog-heading > p, .about-heading > p { max-width: 560px; margin-bottom: 0; color: #d6c5a8; }
-.changelog-list, .about-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin: 0; padding: 0; list-style: none; }
-.changelog-list > li, .about-grid article { border: 1px solid rgba(240, 184, 95, 0.18); border-radius: 1.1rem; padding: 1rem; background: rgba(12, 9, 6, 0.32); }
+.changelog-list, .about-grid, .dial-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin: 0; padding: 0; list-style: none; }
+.changelog-list > li, .about-grid article, .dial-list > li { border: 1px solid rgba(240, 184, 95, 0.18); border-radius: 1.1rem; padding: 1rem; background: rgba(12, 9, 6, 0.32); }
 .changelog-entry-header { display: grid; gap: 0.25rem; margin-bottom: 0.5rem; }
-.changelog-entry-header h2, .about-grid h2 { margin: 0 0 0.5rem; color: #f8d99f; font-size: 1.15rem; }
-.changelog-list p, .about-grid p { color: #d6c5a8; }
+.changelog-entry-header h2, .about-grid h2, .dial-list h3 { margin: 0 0 0.5rem; color: #f8d99f; font-size: 1.15rem; }
+.changelog-list p, .about-grid p, .dial-list p { color: #d6c5a8; }
 .changelog-list ul { display: grid; gap: 0.45rem; margin: 0; padding-left: 1.1rem; color: #baa98c; }
+.dial-list small { display: block; margin-top: 0.65rem; color: #baa98c; font-size: 0.78rem; }
+.about-section { display: grid; gap: 0.8rem; }
+.about-section > h2 { margin-bottom: 0; color: #f8d99f; }
 .history-link { justify-self: start; border: 1px solid rgba(240, 184, 95, 0.26); border-radius: 999px; padding: 0.7rem 0.95rem; color: #f8d99f; background: rgba(240, 184, 95, 0.08); font-size: 0.84rem; font-weight: 900; letter-spacing: 0.08em; text-decoration: none; text-transform: uppercase; }
 .history-link:hover { border-color: rgba(240, 184, 95, 0.5); color: #1a130b; background: #f0b85f; }
 .site-footer { display: flex; justify-content: space-between; gap: 1rem; align-items: start; margin-top: 1rem; padding: 1rem 1.2rem; color: #b7a58a; font-size: 0.84rem; }
