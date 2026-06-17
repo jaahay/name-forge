@@ -53,7 +53,7 @@ describe('cast export serialization', () => {
 
     expect(markdown).toContain('# Name Forge Cast Export');
     expect(markdown).toContain('Seed: `export-test-seed`');
-    expect(markdown).toContain('Style pack: British Literary Fantasy');
+    expect(markdown).toContain('Style pack: British literary fantasy');
     expect(markdown).toContain('## Ensemble balance');
     expect(markdown).toContain('## 1.');
     expect(markdown).toContain('- Overall fit:');
