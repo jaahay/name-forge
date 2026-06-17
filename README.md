@@ -15,7 +15,7 @@ Name Forge is a Vite + TypeScript + React MVP for generating plausible fictional
 - Simple phonotactic generation from a data-shaped style pack.
 - Cast-level balancing to reduce repeated initials and repeated endings while varying rarity, novelty, and syllable count.
 - Plausibility scoring across pronounceability, memorability, novelty, cultural anchoring, and orthographic naturalness.
-- Spelling variants marked as curated or generated.
+- Spelling variants marked as listed alternates or generated spellings.
 - Source/provider registry abstraction with provenance-bearing outputs.
 
 ## Getting started
