@@ -35,10 +35,11 @@ function copyExport(value: string) {
   void navigator.clipboard?.writeText(value);
 }
 
-function updateSlotRole(currentRoles: GenerationSettings['slotRoles'], index: number, role: CastRole | ''): GenerationSettings['slotRoles'] {
-  const nextRoles = [...(currentRoles ?? [])];
+function updateSlotRole(currentRoles: GenerationSettings['slotRoleOverrides'], index: number, role: CastRole | ''): GenerationSettings['slotRoleOverrides'] {
+  const nextRoles = { ...(currentRoles ?? {}) };
   if (role === '') {
-    return nextRoles.slice(0, index);
+    delete nextRoles[index];
+    return nextRoles;
   }
   nextRoles[index] = role;
   return nextRoles;
@@ -118,15 +119,15 @@ export function GeneratorView({
               <label key={`slot-role-${index + 1}`}>
                 <span>Slot {index + 1} role</span>
                 <select
-                  value={settings.slotRoles?.[index] ?? ''}
-                  onChange={(event) => onUpdateSetting('slotRoles', updateSlotRole(settings.slotRoles, index, event.target.value as CastRole | ''))}
+                  value={settings.slotRoleOverrides?.[index] ?? ''}
+                  onChange={(event) => onUpdateSetting('slotRoleOverrides', updateSlotRole(settings.slotRoleOverrides, index, event.target.value as CastRole | ''))}
                 >
                   <option value="">Use role mix</option>
                   {castRoleOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                 </select>
               </label>
             ))}
-            <p className="section-note">Optional slot roles override the selected role mix from left to right.</p>
+            <p className="section-note">Optional slot role overrides take precedence over the selected role mix.</p>
           </div>
 
           {scoreControls.map((control) => (
