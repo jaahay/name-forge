@@ -26,7 +26,7 @@ const initialSettings: GenerationSettings = {
   nameFormat: 'mixed',
   rarityDistribution: 'style-pack',
   rolePreset: 'none',
-  slotRoles: [],
+  slotRoleOverrides: {},
 };
 
 export default function App() {
