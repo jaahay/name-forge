@@ -16,6 +16,7 @@ export type NameFormatKind = 'given-only' | 'given-family' | 'initials-family' |
 export type NamePartRole = 'given' | 'family' | 'initial' | 'title' | 'epithet' | 'place';
 export type CastRole = 'protagonist' | 'rival' | 'mentor' | 'sidekick' | 'guardian' | 'outsider' | 'villain' | 'wildcard';
 export type CastRolePresetKind = 'none' | 'classic-ensemble' | 'quest-party' | 'court-intrigue';
+export type SlotRoleOverrides = Partial<Record<number, CastRole>>;
 
 export interface GenerationSettings {
   castSize: number;
@@ -29,7 +30,7 @@ export interface GenerationSettings {
   nameFormat?: NameFormatKind;
   rarityDistribution?: RarityDistributionPresetKind;
   rolePreset?: CastRolePresetKind;
-  slotRoles?: CastRole[];
+  slotRoleOverrides?: SlotRoleOverrides;
 }
 
 export interface WeightedValue<T = string> { value: T; weight: number; }
