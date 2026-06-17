@@ -55,10 +55,12 @@ h1, h2, h3, p { margin-top: 0; }
 .texture-liquid::before { background: radial-gradient(ellipse at 20% 0%, rgba(110, 205, 255, 0.3), transparent 16rem), linear-gradient(120deg, transparent, rgba(190, 138, 255, 0.18)); }
 .name-card.texture-liquid h2 { font-style: italic; letter-spacing: 0.02em; }
 .name-card h2 { margin-bottom: 0.15rem; font-family: Georgia, "Times New Roman", serif; font-size: 2rem; }
-.name-card h3 { margin-bottom: 0.45rem; color: #f0b85f; font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; }
+.name-card h3 { margin-bottom: 0.25rem; color: #f0b85f; font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; }
 .name-card p { margin-bottom: 0; color: #af9f84; }
 .name-card-meta { display: flex; gap: 0.45rem; flex-wrap: wrap; justify-content: flex-end; }
-.score-note { border-left: 2px solid rgba(240, 184, 95, 0.38); padding-left: 0.65rem; font-size: 0.8rem; }
+.score-note, .section-note, .empty-state { border-left: 2px solid rgba(240, 184, 95, 0.38); padding-left: 0.65rem; font-size: 0.8rem; }
+.section-note { margin-bottom: 0.55rem; }
+.empty-state { color: #d6c5a8; font-style: italic; }
 .score-list { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem; margin: 0; }
 .score-list div { border-radius: 0.85rem; padding: 0.55rem; background: rgba(255, 255, 255, 0.06); }
 .score-list dt { color: #a8987e; font-size: 0.66rem; font-weight: 800; text-transform: uppercase; }
@@ -73,9 +75,6 @@ h1, h2, h3, p { margin-top: 0; }
 .metadata .rarity-pill, .name-card-meta .rarity-pill { font-weight: 900; text-shadow: 0 0 14px currentColor; }
 .variants li { display: inline-flex; gap: 0.4rem; align-items: center; border-radius: 999px; padding: 0.45rem 0.7rem; background: rgba(255, 255, 255, 0.07); }
 .variants em { color: #b7a58a; font-size: 0.72rem; }
-.source-trace { display: grid; gap: 0.55rem; }
-.source-trace > summary { color: #f0b85f; cursor: pointer; font-size: 0.8rem; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; }
-.source-trace[open] { gap: 0.7rem; }
 .provenance { display: grid; margin-top: 0.55rem; }
 .provenance li { display: grid; gap: 0.2rem; border-left: 2px solid rgba(240, 184, 95, 0.55); padding-left: 0.65rem; color: #baa98c; font-size: 0.82rem; }
 .provenance strong { color: #f4ddae; }
