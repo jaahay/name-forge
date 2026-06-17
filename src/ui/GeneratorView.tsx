@@ -20,6 +20,8 @@ const formatOptions: Array<{ value: NameFormatKind; label: string }> = [
   { value: 'given-only', label: 'Given name only' },
   { value: 'given-family', label: 'Given + family' },
   { value: 'initials-family', label: 'Initials + family' },
+  { value: 'title-name', label: 'Title + name' },
+  { value: 'epithet-place', label: 'Epithet/place-style' },
 ];
 
 export function GeneratorView({
