@@ -4,7 +4,7 @@ import { createDefaultRegistry } from './registry';
 import type { SeededRandom } from './random';
 import { scoreName } from './scoring';
 import { createNameSilhouette } from './silhouettes';
-import type { GenerationSettings, NameSilhouette, RarityBand } from './types';
+import type { GenerationSettings, NameSilhouette } from './types';
 import { generateVariants, variantLimitFor } from './variants';
 
 const settings: GenerationSettings = { castSize: 6, novelty: 0.5, pronounceability: 0.7, memorability: 0.6, culturalAnchoring: 0.65, orthographicWeirdness: 0.25, stylePackId: 'british-literary-fantasy', seed: 'control-test-seed' };
@@ -80,8 +80,8 @@ describe('generator control knobs', () => {
     const low = createNameSilhouette({ ...settings, novelty: 0 }, pack, fixedWeightedRandom([2, 'common', 'balanced']), 0);
     const high = createNameSilhouette({ ...settings, novelty: 1 }, pack, fixedWeightedRandom([2, 'common', 'balanced']), 0);
 
-    expect(low.rarityBand).toBe<RarityBand>('common');
-    expect(high.rarityBand).toBe<RarityBand>('rare');
+    expect(low.rarityBand).toBe('common');
+    expect(high.rarityBand).toBe('rare');
   });
 
   it('uses cultural anchoring as smooth curated-source pressure', () => {
