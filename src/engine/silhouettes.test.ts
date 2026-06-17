@@ -18,4 +18,24 @@ describe('createNameSilhouette', () => {
     expect(first.stressPattern.length).toBeGreaterThan(0);
     expect(first.provenance.some((item) => item.label === 'Name silhouette')).toBe(true);
   });
+
+  it('uses explicit rarity distribution independently from novelty', () => {
+    const registry = createDefaultRegistry();
+    const pack = registry.getStylePack(settings.stylePackId);
+    const grounded = createNameSilhouette(
+      { ...settings, novelty: 1, rarityDistribution: 'grounded' },
+      pack,
+      createSeededRandom(settings.seed),
+      0,
+    );
+    const mythic = createNameSilhouette(
+      { ...settings, novelty: 0, rarityDistribution: 'mythic-arc' },
+      pack,
+      createSeededRandom(settings.seed),
+      4,
+    );
+
+    expect(grounded.rarityBand).toBe('common');
+    expect(mythic.rarityBand).toBe('legendary');
+  });
 });
