@@ -3,8 +3,8 @@ export type RarityBand = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 export type NameTexture = 'soft' | 'balanced' | 'hard' | 'liquid';
 export type VariantKind = 'listed' | 'generated';
 export type SourceKind = 'style-pack' | 'algorithm' | 'listed-source' | 'remote-pack';
-export type NameFormatKind = 'given-only' | 'given-family' | 'initials-family' | 'mixed';
-export type NamePartRole = 'given' | 'family' | 'initial';
+export type NameFormatKind = 'given-only' | 'given-family' | 'initials-family' | 'title-name' | 'epithet-place' | 'mixed';
+export type NamePartRole = 'given' | 'family' | 'initial' | 'title' | 'epithet' | 'place';
 
 export interface GenerationSettings { castSize: number; novelty: number; pronounceability: number; memorability: number; culturalAnchoring: number; orthographicWeirdness: number; stylePackId: string; seed: string; nameFormat?: NameFormatKind; }
 export interface WeightedValue<T = string> { value: T; weight: number; }

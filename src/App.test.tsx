@@ -15,6 +15,8 @@ describe('App', () => {
     expect(html).toContain('Name format');
     expect(html).toContain('Mixed cast formats');
     expect(html).toContain('Initials + family');
+    expect(html).toContain('Title + name');
+    expect(html).toContain('Epithet/place-style');
     expect(html).toContain('Novelty value');
     expect(html).toContain('Randomize Novelty');
     expect(html).toContain('Randomize sliders');
@@ -25,7 +27,10 @@ describe('App', () => {
     expect(html).toContain('<details');
     expect(html).toContain('texture-');
     expect(html).toContain('Details');
+    expect(html).toContain('Tone:');
+    expect(html).toContain('Format:');
     expect(html).toContain('diagnostic score breakdown');
+    expect(html).toContain('Diagnostic scores');
     expect(html).toContain('Style fit');
     expect(html).toContain('Cast fit');
     expect(html).toContain('Name parts');

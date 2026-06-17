@@ -5,6 +5,9 @@ button, input, select { font: inherit; }
 button { border: 0; border-radius: 999px; padding: 0.85rem 1.2rem; color: #1a130b; background: #f0b85f; cursor: pointer; font-weight: 800; box-shadow: 0 12px 30px rgba(240, 184, 95, 0.24); }
 button.secondary { color: #f2efe6; background: rgba(255, 255, 255, 0.08); box-shadow: none; }
 input, select { width: 100%; border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 0.85rem; padding: 0.7rem 0.8rem; color: #f7f0e3; background: rgba(255, 255, 255, 0.07); }
+select { appearance: none; cursor: pointer; background-color: rgba(44, 36, 29, 0.96); box-shadow: inset 0 0 0 1px rgba(240, 184, 95, 0.08); }
+select:hover, select:focus { border-color: rgba(240, 184, 95, 0.5); background-color: rgba(55, 45, 35, 0.98); outline: none; }
+select option { color: #f7f0e3; background: #2b241d; }
 input[type='range'] { padding: 0; accent-color: #f0b85f; }
 h1, h2, h3, p { margin-top: 0; }
 .app-shell { width: min(1440px, calc(100vw - 2rem)); margin: 0 auto; padding: 1rem 0 4rem; }
@@ -38,12 +41,15 @@ h1, h2, h3, p { margin-top: 0; }
 .ensemble-note h2 { margin-bottom: 0.35rem; font-size: 1rem; }
 .ensemble-note p { margin-bottom: 0; color: #d6c5a8; }
 .name-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 1rem; align-items: start; }
-.name-card { position: relative; isolation: isolate; overflow: hidden; padding: 1rem; }
+.name-card { position: relative; isolation: isolate; overflow: hidden; padding: 1rem; min-width: 0; }
 .name-card::before { content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none; border-radius: inherit; opacity: 0.85; }
 .name-card > * { position: relative; z-index: 1; }
 .name-card[open] { display: grid; gap: 1rem; }
 .name-card-summary { display: grid; gap: 0.65rem; cursor: pointer; }
-.name-card-header { display: flex; justify-content: space-between; gap: 1rem; align-items: start; }
+.name-card-header { display: flex; justify-content: space-between; gap: 1rem; align-items: start; min-width: 0; }
+.name-card-title-block { min-width: 0; }
+.name-style-row { display: flex; flex-wrap: wrap; gap: 0.4rem 0.65rem; }
+.name-style-row span { overflow-wrap: anywhere; }
 .collapse-cue { color: #a8987e; font-size: 0.76rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
 .texture-soft { border-color: rgba(255, 218, 185, 0.3); border-radius: 2rem; }
 .texture-soft::before { background: radial-gradient(circle at 12% 0%, rgba(255, 218, 185, 0.34), transparent 14rem); }
@@ -55,11 +61,12 @@ h1, h2, h3, p { margin-top: 0; }
 .texture-liquid::before { background: radial-gradient(ellipse at 20% 0%, rgba(110, 205, 255, 0.3), transparent 16rem), linear-gradient(120deg, transparent, rgba(190, 138, 255, 0.18)); }
 .name-card.texture-liquid h2 { font-style: italic; letter-spacing: 0.02em; }
 .name-card h2 { margin-bottom: 0.15rem; font-family: Georgia, "Times New Roman", serif; font-size: 2rem; }
+.name-card-title { max-width: 100%; overflow-wrap: anywhere; word-break: break-word; line-height: 1.08; }
 .name-card h3 { margin-bottom: 0.25rem; color: #f0b85f; font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; }
 .name-card p { margin-bottom: 0; color: #af9f84; }
-.name-card-meta { display: flex; gap: 0.45rem; flex-wrap: wrap; justify-content: flex-end; }
+.name-card-meta { display: flex; gap: 0.45rem; flex: 0 0 auto; flex-wrap: wrap; justify-content: flex-end; max-width: 42%; }
 .score-note, .section-note, .empty-state { border-left: 2px solid rgba(240, 184, 95, 0.38); padding-left: 0.65rem; font-size: 0.8rem; }
-.section-note { margin-bottom: 0.55rem; }
+.section-note { margin-bottom: 0.55rem; overflow-wrap: anywhere; }
 .empty-state { color: #d6c5a8; font-style: italic; }
 .score-list { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem; margin: 0; }
 .score-list div { border-radius: 0.85rem; padding: 0.55rem; background: rgba(255, 255, 255, 0.06); }
@@ -73,8 +80,9 @@ h1, h2, h3, p { margin-top: 0; }
 .name-card h2.rarity-legendary, .metadata .rarity-legendary, .name-card-meta .rarity-legendary { border-color: rgba(255, 128, 0, 0.58); color: #ff9c2b; background: rgba(255, 128, 0, 0.12); }
 .name-card h2[class*='rarity-'] { background: transparent; text-shadow: 0 0 18px currentColor; }
 .metadata .rarity-pill, .name-card-meta .rarity-pill { font-weight: 900; text-shadow: 0 0 14px currentColor; }
-.variants li { display: inline-flex; gap: 0.4rem; align-items: center; border-radius: 999px; padding: 0.45rem 0.7rem; background: rgba(255, 255, 255, 0.07); }
-.variants em { color: #b7a58a; font-size: 0.72rem; }
+.variants li { display: inline-flex; gap: 0.4rem; align-items: center; max-width: 100%; border-radius: 999px; padding: 0.45rem 0.7rem; background: rgba(255, 255, 255, 0.07); }
+.variants span { min-width: 0; overflow-wrap: anywhere; word-break: break-word; }
+.variants em { flex: 0 0 auto; color: #b7a58a; font-size: 0.72rem; }
 .provenance { display: grid; margin-top: 0.55rem; }
 .provenance li { display: grid; gap: 0.2rem; border-left: 2px solid rgba(240, 184, 95, 0.55); padding-left: 0.65rem; color: #baa98c; font-size: 0.82rem; }
 .provenance strong { color: #f4ddae; }
@@ -88,8 +96,6 @@ h1, h2, h3, p { margin-top: 0; }
 .changelog-entry-header h2, .about-grid h2, .dial-list h3 { margin: 0 0 0.5rem; color: #f8d99f; font-size: 1.15rem; }
 .changelog-list p, .about-grid p, .dial-list p { color: #d6c5a8; }
 .changelog-list ul { display: grid; gap: 0.45rem; margin: 0; padding-left: 1.1rem; color: #baa98c; }
-.dial-list small { display: block; margin-top: 0.65rem; color: #baa98c; font-size: 0.78rem; }
-.about-section { display: grid; gap: 0.8rem; }
 .about-section > h2 { margin-bottom: 0; color: #f8d99f; }
 .history-link { justify-self: start; border: 1px solid rgba(240, 184, 95, 0.26); border-radius: 999px; padding: 0.7rem 0.95rem; color: #f8d99f; background: rgba(240, 184, 95, 0.08); font-size: 0.84rem; font-weight: 900; letter-spacing: 0.08em; text-decoration: none; text-transform: uppercase; }
 .history-link:hover { border-color: rgba(240, 184, 95, 0.5); color: #1a130b; background: #f0b85f; }
