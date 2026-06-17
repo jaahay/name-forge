@@ -23,7 +23,7 @@ function settingWeightedScoreWeights(settings?: GenerationSettings): Record<Scor
     orthographicNaturalness: lerp(0.2, 0.06, settings.orthographicWeirdness),
     styleFit: 0.1,
     silhouetteFit: 0.08,
-    ensembleFit: 0.06,
+    ensembleFit: lerp(0.04, 0.11, settings.memorability),
   };
 }
 
@@ -42,9 +42,9 @@ export function scoreName(name: string, silhouette: NameSilhouette, pack: StyleP
   const rareFragments = pack.phonotactics.rareGraphemes.filter((fragment) => lower.includes(fragment)).length;
   const pronounceability = clamp(0.94 - consonantRun * 0.13 - Math.abs(vowelRatio - 0.42) * 0.9 - repeatedLetters * 0.035);
   const memorability = clamp(0.5 + (length >= 5 && length <= 9 ? 0.24 : 0.08) + (silhouette.rhythm === 'balanced' ? 0.1 : 0.06) + (new Set(lower).size / Math.max(length, 1)) * 0.24);
-  const novelty = clamp(0.22 + silhouette.targetNovelty * 0.45 + rareFragments * 0.12 + settings.orthographicWeirdness * 0.2);
+  const novelty = clamp(0.22 + silhouette.targetNovelty * 0.45 + rareFragments * 0.18);
   const culturalAnchoring = culturalAnchorScore(name, pack);
-  const orthographicNaturalness = clamp(0.92 - settings.orthographicWeirdness * 0.18 - (containsForbiddenFragment(name, pack) ? 0.42 : 0) - Math.max(0, consonantRun - 2) * 0.1);
+  const orthographicNaturalness = clamp(0.92 - (containsForbiddenFragment(name, pack) ? 0.42 : 0) - Math.max(0, consonantRun - 2) * 0.1 - rareFragments * 0.04);
   const styleFit = styleFitScore(name, pack);
   const silhouetteFit = silhouetteFitScore(name, silhouette);
   const ensembleFit = 0.72;
