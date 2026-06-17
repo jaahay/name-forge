@@ -113,7 +113,7 @@ export function serializeCastAsMarkdown(ensemble: GeneratedEnsemble): string {
   ensemble.names.forEach((name, index) => {
     const exported = exportName(name, ensemble.settings.seed);
     const variantText = exported.variants.length > 0
-      ? exported.variants.map((variant) => `${variant.value} (${variant.kind})`).join(', ')
+      ? exported.variants.map((variant) => `${variant.value} (${variant.kind}, ${variant.sourceId})`).join(', ')
       : 'None';
     const partText = exported.parts.length > 0
       ? exported.parts.map((part) => `${part.role}: ${part.value}`).join('; ')
