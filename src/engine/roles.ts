@@ -38,15 +38,8 @@ export function parseCastRole(value: string): CastRole | undefined {
   return castRoleOptions.some((option) => option.value === normalized) ? normalized as CastRole : undefined;
 }
 
-export function parseSlotRoles(value: string): CastRole[] {
-  return value
-    .split(/[,\n]/)
-    .map(parseCastRole)
-    .filter((role): role is CastRole => Boolean(role));
-}
-
 export function resolveCastRole(settings: GenerationSettings, index: number): CastRoleAssignment | undefined {
-  const slotRole = settings.slotRoles?.[index];
+  const slotRole = settings.slotRoleOverrides?.[index];
   if (slotRole) {
     return { role: slotRole, label: castRoleLabels[slotRole], source: 'slot', slot: index + 1 };
   }
