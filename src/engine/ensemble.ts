@@ -9,7 +9,7 @@ function endingKey(name: string): string { const normalized = name.toLowerCase()
 function cadenceKey(name: GeneratedName): string { return `${name.silhouette.stressPattern}:${name.silhouette.syllableCount}:${name.silhouette.rhythm}`; }
 function countRepeated(values: string[]): number { const seen = new Set<string>(); let repeated = 0; for (const value of values) { if (seen.has(value)) repeated += 1; seen.add(value); } return repeated; }
 function ensembleFitScore(candidate: GeneratedName, selected: GeneratedName[]): number { const initials = new Set(selected.map((name) => name.name.charAt(0).toLowerCase())); const endings = new Set(selected.map((name) => endingKey(name.name))); const cadences = new Set(selected.map(cadenceKey)); const rarities = new Set(selected.map((name) => name.silhouette.rarityBand)); const names = new Set(selected.map((name) => name.name.toLowerCase())); const penalty = (initials.has(candidate.name.charAt(0).toLowerCase()) ? 0.24 : 0) + (endings.has(endingKey(candidate.name)) ? 0.22 : 0) + (cadences.has(cadenceKey(candidate)) ? 0.16 : 0) + (rarities.has(candidate.silhouette.rarityBand) ? 0.08 : 0) + (names.has(candidate.name.toLowerCase()) ? 1 : 0); return clamp(1 - penalty); }
-function withEnsembleFit(candidate: GeneratedName, selected: GeneratedName[]): GeneratedName { const ensembleFit = ensembleFitScore(candidate, selected); const scores = { ...candidate.scores, ensembleFit }; return { ...candidate, scores: { ...scores, overallFit: combineOverallFit(scores) } }; }
+function withEnsembleFit(candidate: GeneratedName, selected: GeneratedName[], settings: GenerationSettings): GeneratedName { const ensembleFit = ensembleFitScore(candidate, selected); const scores = { ...candidate.scores, ensembleFit }; return { ...candidate, scores: { ...scores, overallFit: combineOverallFit(scores, settings) } }; }
 
 function createBalancedSilhouette(settings: GenerationSettings, randomLabel: string, registry: SourceRegistry, index: number): NameSilhouette {
   const pack = registry.getStylePack(settings.stylePackId);
@@ -26,7 +26,7 @@ export function generateEnsemble(settings: GenerationSettings, registry: SourceR
     const candidates = Array.from({ length: 16 }, (_, attempt) => {
       const silhouette = createBalancedSilhouette(safeSettings, `slot-${index}:attempt-${attempt}`, registry, index);
       const random = createSeededRandom(`${settings.seed}:name:${index}:${attempt}`);
-      return withEnsembleFit(generateNameFromSilhouette(silhouette, pack, safeSettings, random, index), selected);
+      return withEnsembleFit(generateNameFromSilhouette(silhouette, pack, safeSettings, random, index), selected, safeSettings);
     });
     candidates.sort((left, right) => right.scores.overallFit - left.scores.overallFit);
     selected.push(candidates[0]);
