@@ -1,7 +1,7 @@
 import { createSeededRandom, clamp } from './random';
 import { createNameSilhouette } from './silhouettes';
 import { generateNameFromSilhouette } from './generator';
-import { createNameIdentity, requiresFamilyName, resolveMaterializedFormatKind } from './identity';
+import { createNameIdentity, requiresSupportingName, resolveMaterializedFormatKind } from './identity';
 import { combineOverallFit } from './scoring';
 import type { GeneratedEnsemble, GeneratedName, GenerationSettings, NameSilhouette } from './types';
 import type { SourceRegistry } from './registry';
@@ -21,16 +21,16 @@ function createBalancedSilhouette(settings: GenerationSettings, randomLabel: str
 function withNameIdentity(candidate: GeneratedName, settings: GenerationSettings, registry: SourceRegistry, index: number, attempt: number): GeneratedName {
   const formatKind = resolveMaterializedFormatKind(settings.nameFormat, index);
   const pack = registry.getStylePack(settings.stylePackId);
-  const family = requiresFamilyName(formatKind)
+  const supportingName = requiresSupportingName(formatKind)
     ? generateNameFromSilhouette(
-      createBalancedSilhouette(settings, `slot-${index}:family-${attempt}`, registry, index + 1000),
+      createBalancedSilhouette(settings, `slot-${index}:supporting-${attempt}`, registry, index + 1000),
       pack,
       settings,
-      createSeededRandom(`${settings.seed}:family:${index}:${attempt}`),
+      createSeededRandom(`${settings.seed}:supporting:${index}:${attempt}`),
       index + 1000,
     )
     : undefined;
-  const identity = createNameIdentity(candidate, family, formatKind);
+  const identity = createNameIdentity(candidate, supportingName, formatKind);
   const safeDisplaySlug = identity.displayName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   return {
     ...candidate,
