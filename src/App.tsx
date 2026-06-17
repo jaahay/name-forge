@@ -23,6 +23,7 @@ const initialSettings: GenerationSettings = {
   orthographicWeirdness: 0.28,
   stylePackId: stylePacks[0]?.id ?? 'british-literary-fantasy',
   seed: 'name-forge-001',
+  nameFormat: 'mixed',
 };
 
 export default function App() {
