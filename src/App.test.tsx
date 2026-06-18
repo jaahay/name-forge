@@ -51,13 +51,14 @@ describe('App', () => {
     expect(html).toContain('Open');
     expect(html).toContain('Details');
     expect(html).toContain('Texture');
-    expect(html).toContain('Fit scores');
+    expect(html).toContain('Fit');
     expect(html).toContain('Name parts');
     expect(html).toContain('fit score breakdown');
     expect(html).not.toContain('Card detail');
     expect(html).not.toContain('Brief');
     expect(html).not.toContain('Tone');
     expect(html).not.toContain('Diagnostics');
+    expect(html).not.toContain('Fit scores');
     expect(html).not.toContain('diagnostic score breakdown');
     expect(html).not.toContain('Alternate spellings</h3>');
     expect(html).not.toContain('No alternate spellings for this name.');
