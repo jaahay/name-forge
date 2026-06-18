@@ -158,7 +158,7 @@ export function GeneratorView({
             </div>
           </details>
 
-          <details className="control-section" open>
+          <details className="control-section">
             <summary>Rarity & scoring</summary>
             <div className="control-section-body">
               <label>
