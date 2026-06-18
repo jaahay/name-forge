@@ -3,7 +3,7 @@ import { serializeCastAsJson, serializeCastAsMarkdown } from '../engine/export';
 import { rarityDistributionOptions } from '../engine/rarity';
 import { castRoleOptions, castRolePresetOptions } from '../engine/roles';
 import type { CastRole, CastRolePresetKind, GeneratedEnsemble, GenerationSettings, NameFormatKind, RarityDistributionPresetKind, StylePackSummary } from '../engine/types';
-import { scoreControls, type ControlKey } from './presentation';
+import { cardDensityOptions, scoreControls, type CardDensity, type ControlKey } from './presentation';
 import { ScoreControl } from './ScoreControl';
 import { NameCard } from './NameCard';
 
@@ -11,6 +11,8 @@ interface GeneratorViewProps {
   stylePacks: StylePackSummary[];
   settings: GenerationSettings;
   ensemble: GeneratedEnsemble;
+  cardDensity: CardDensity;
+  onUpdateCardDensity: (density: CardDensity) => void;
   onUpdateSetting: <K extends keyof GenerationSettings>(key: K, value: GenerationSettings[K]) => void;
   onRegenerate: (event?: FormEvent) => void;
   onRandomizeSeed: () => void;
@@ -35,6 +37,11 @@ function copyExport(value: string) {
   void navigator.clipboard?.writeText(value);
 }
 
+function clampCastSize(value: number): number {
+  if (Number.isNaN(value)) return 1;
+  return Math.max(1, Math.min(24, Math.round(value)));
+}
+
 function updateSlotRole(currentRoles: GenerationSettings['slotRoleOverrides'], index: number, role: CastRole | ''): GenerationSettings['slotRoleOverrides'] {
   const nextRoles = { ...(currentRoles ?? {}) };
   if (role === '') {
@@ -49,6 +56,8 @@ export function GeneratorView({
   stylePacks,
   settings,
   ensemble,
+  cardDensity,
+  onUpdateCardDensity,
   onUpdateSetting,
   onRegenerate,
   onRandomizeSeed,
@@ -57,7 +66,13 @@ export function GeneratorView({
 }: GeneratorViewProps) {
   const jsonExport = serializeCastAsJson(ensemble);
   const markdownExport = serializeCastAsMarkdown(ensemble);
-  const slotRoleCount = Math.max(0, Math.min(Math.round(settings.castSize), 8));
+  const castSize = clampCastSize(settings.castSize);
+  const slotRoleCount = Math.max(0, Math.min(castSize, 8));
+  const hasRoleMix = (settings.rolePreset ?? 'none') !== 'none';
+
+  function updateCastSize(value: number) {
+    onUpdateSetting('castSize', clampCastSize(value));
+  }
 
   return (
     <>
@@ -79,71 +94,90 @@ export function GeneratorView({
 
       <section className="workspace">
         <form className="controls panel" onSubmit={onRegenerate}>
-          <div className="control-row split">
-            <label>
-              <span>Cast size</span>
-              <input type="number" min="1" max="24" value={settings.castSize} onChange={(event) => onUpdateSetting('castSize', Number(event.target.value))} />
-            </label>
-            <label>
-              <span>Style preset</span>
-              <select value={settings.stylePackId} onChange={(event) => onUpdateSetting('stylePackId', event.target.value)}>
-                {stylePacks.map((pack) => <option key={pack.id} value={pack.id}>{pack.label}</option>)}
-              </select>
-            </label>
-          </div>
-
-          <label>
-            <span>Name format</span>
-            <select value={settings.nameFormat ?? 'given-only'} onChange={(event) => onUpdateSetting('nameFormat', event.target.value as NameFormatKind)}>
-              {formatOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-            </select>
-          </label>
-
-          <div className="control-row split">
-            <label>
-              <span>Cast role mix</span>
-              <select value={settings.rolePreset ?? 'none'} onChange={(event) => onUpdateSetting('rolePreset', event.target.value as CastRolePresetKind)}>
-                {castRolePresetOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-              </select>
-            </label>
-            <label>
-              <span>Rarity distribution</span>
-              <select value={settings.rarityDistribution ?? 'style-pack'} onChange={(event) => onUpdateSetting('rarityDistribution', event.target.value as RarityDistributionPresetKind)}>
-                {rarityDistributionOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-              </select>
-            </label>
-          </div>
-
-          <div className="slot-role-grid" aria-label="Slot role overrides">
-            {Array.from({ length: slotRoleCount }, (_, index) => (
-              <label key={`slot-role-${index + 1}`}>
-                <span>Slot {index + 1} role</span>
-                <select
-                  value={settings.slotRoleOverrides?.[index] ?? ''}
-                  onChange={(event) => onUpdateSetting('slotRoleOverrides', updateSlotRole(settings.slotRoleOverrides, index, event.target.value as CastRole | ''))}
-                >
-                  <option value="">Use role mix</option>
-                  {castRoleOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+          <details className="control-section" open>
+            <summary>Basics</summary>
+            <div className="control-section-body">
+              <label>
+                <span>Cast size</span>
+                <div className="cast-size-control">
+                  <button type="button" className="stepper-button" onClick={() => updateCastSize(castSize - 1)} aria-label="Decrease cast size">-</button>
+                  <input type="number" min="1" max="24" value={castSize} onChange={(event) => updateCastSize(Number(event.target.value))} />
+                  <button type="button" className="stepper-button" onClick={() => updateCastSize(castSize + 1)} aria-label="Increase cast size">+</button>
+                </div>
+              </label>
+              <label>
+                <span>Style preset</span>
+                <select value={settings.stylePackId} onChange={(event) => onUpdateSetting('stylePackId', event.target.value)}>
+                  {stylePacks.map((pack) => <option key={pack.id} value={pack.id}>{pack.label}</option>)}
                 </select>
               </label>
-            ))}
-            <p className="section-note">Optional slot role overrides take precedence over the selected role mix.</p>
-          </div>
+              <label>
+                <span>Name format</span>
+                <select value={settings.nameFormat ?? 'given-only'} onChange={(event) => onUpdateSetting('nameFormat', event.target.value as NameFormatKind)}>
+                  {formatOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                </select>
+              </label>
+              <label className="seed-control">
+                <span>Seed</span>
+                <input value={settings.seed} onChange={(event) => onUpdateSetting('seed', event.target.value)} />
+              </label>
+            </div>
+          </details>
 
-          {scoreControls.map((control) => (
-            <ScoreControl
-              key={control.key}
-              control={control}
-              value={Number(settings[control.key])}
-              onChange={(key, value) => onUpdateSetting(key, value)}
-              onRandomize={onRandomizeSlider}
-            />
-          ))}
+          <details className="control-section" open>
+            <summary>Fiction</summary>
+            <div className="control-section-body">
+              <label>
+                <span>Cast role mix</span>
+                <select value={settings.rolePreset ?? 'none'} onChange={(event) => onUpdateSetting('rolePreset', event.target.value as CastRolePresetKind)}>
+                  {castRolePresetOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                </select>
+              </label>
+              {hasRoleMix ? (
+                <details className="slot-overrides">
+                  <summary>Customize slots</summary>
+                  <div className="slot-role-grid" aria-label="Slot role overrides">
+                    {Array.from({ length: slotRoleCount }, (_, index) => (
+                      <label key={`slot-role-${index + 1}`}>
+                        <span>Slot {index + 1}</span>
+                        <select
+                          value={settings.slotRoleOverrides?.[index] ?? ''}
+                          onChange={(event) => onUpdateSetting('slotRoleOverrides', updateSlotRole(settings.slotRoleOverrides, index, event.target.value as CastRole | ''))}
+                        >
+                          <option value="">Use role mix</option>
+                          {castRoleOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                        </select>
+                      </label>
+                    ))}
+                    <p className="section-note">Slot overrides only affect selected slots and preserve the rest of the role mix.</p>
+                  </div>
+                </details>
+              ) : (
+                <p className="section-note">Choose a role mix to reveal optional slot-by-slot overrides.</p>
+              )}
+            </div>
+          </details>
 
-          <label className="seed-control">
-            <span>Seed</span>
-            <input value={settings.seed} onChange={(event) => onUpdateSetting('seed', event.target.value)} />
-          </label>
+          <details className="control-section" open>
+            <summary>Rarity & scoring</summary>
+            <div className="control-section-body">
+              <label>
+                <span>Rarity distribution</span>
+                <select value={settings.rarityDistribution ?? 'style-pack'} onChange={(event) => onUpdateSetting('rarityDistribution', event.target.value as RarityDistributionPresetKind)}>
+                  {rarityDistributionOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                </select>
+              </label>
+              {scoreControls.map((control) => (
+                <ScoreControl
+                  key={control.key}
+                  control={control}
+                  value={Number(settings[control.key])}
+                  onChange={(key, value) => onUpdateSetting(key, value)}
+                  onRandomize={onRandomizeSlider}
+                />
+              ))}
+            </div>
+          </details>
 
           <div className="actions">
             <button type="submit">Generate cast</button>
@@ -153,34 +187,42 @@ export function GeneratorView({
         </form>
 
         <section className="output" aria-live="polite">
-          <div className="ensemble-note panel">
-            <h2>Ensemble balance</h2>
-            <p>{ensemble.diagnostics.summary}</p>
+          <div className="output-toolbar panel">
+            <div className="ensemble-note">
+              <h2>Ensemble balance</h2>
+              <p>{ensemble.diagnostics.summary}</p>
+            </div>
+            <label className="density-control">
+              <span>Card detail</span>
+              <select value={cardDensity} onChange={(event) => onUpdateCardDensity(event.target.value as CardDensity)}>
+                {cardDensityOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+              </select>
+              <small>{cardDensityOptions.find((option) => option.value === cardDensity)?.help}</small>
+            </label>
+          </div>
+
+          <div className={`name-grid card-density-${cardDensity}`}>
+            {ensemble.names.map((name) => <NameCard key={name.id} name={name} density={cardDensity} />)}
           </div>
 
           <section className="export-panel panel" aria-labelledby="export-heading">
             <div className="export-heading">
               <div>
                 <p className="eyebrow">Export</p>
-                <h2 id="export-heading">Export generated cast</h2>
-                <p>Download or copy the current deterministic cast as JSON or Markdown.</p>
+                <h2 id="export-heading">Export cast</h2>
               </div>
               <div className="export-actions" aria-label="Cast export actions">
-                <a className="export-link" download="name-forge-cast.json" href={exportHref('application/json', jsonExport)}>Download JSON</a>
-                <a className="export-link" download="name-forge-cast.md" href={exportHref('text/markdown', markdownExport)}>Download Markdown</a>
+                <a className="export-link" download="name-forge-cast.json" href={exportHref('application/json', jsonExport)}>JSON</a>
+                <a className="export-link" download="name-forge-cast.md" href={exportHref('text/markdown', markdownExport)}>Markdown</a>
                 <button type="button" className="secondary" onClick={() => copyExport(jsonExport)}>Copy JSON</button>
                 <button type="button" className="secondary" onClick={() => copyExport(markdownExport)}>Copy Markdown</button>
               </div>
             </div>
-            <label className="export-preview">
-              <span>Markdown preview</span>
-              <textarea value={markdownExport} readOnly rows={8} />
-            </label>
+            <details className="export-preview">
+              <summary>Show Markdown preview</summary>
+              <textarea value={markdownExport} readOnly rows={8} aria-label="Markdown export preview" />
+            </details>
           </section>
-
-          <div className="name-grid">
-            {ensemble.names.map((name) => <NameCard key={name.id} name={name} />)}
-          </div>
         </section>
       </section>
     </>
