@@ -1,11 +1,24 @@
-import type { GenerationSettings, NameSilhouette, StylePack, WeightedValue } from './types';
+import type { CastRoleAssignment, GenerationSettings, NameSilhouette, NameTexture, StylePack, WeightedValue } from './types';
 import type { SeededRandom } from './random';
 import { clamp, lerp } from './random';
 import { selectRarityBand } from './rarity';
+import { getRolePreferenceProfile, resolveRoleInfluence } from './roles';
 
-function selectSyllableCount(settings: GenerationSettings, pack: StylePack, random: SeededRandom): number {
+function blendWeightedValues<T>(baseValues: Array<WeightedValue<T>>, preferredValues: Array<WeightedValue<T>>, strength: number): Array<WeightedValue<T>> {
+  return baseValues.map(({ value, weight }) => {
+    const preferredWeight = preferredValues.find((preferred) => preferred.value === value)?.weight ?? 1;
+    return { value, weight: weight * lerp(1, preferredWeight, strength) };
+  });
+}
+
+function selectSyllableCount(settings: GenerationSettings, pack: StylePack, random: SeededRandom, role?: CastRoleAssignment): number {
   const memorability = clamp(settings.memorability);
-  const weightedCounts: Array<WeightedValue<number>> = pack.silhouetteBias.syllableCounts.map(({ value, weight }) => {
+  const roleInfluence = resolveRoleInfluence(settings, role);
+  const roleProfile = roleInfluence ? getRolePreferenceProfile(roleInfluence.role) : undefined;
+  const baseCounts = roleProfile
+    ? blendWeightedValues(pack.silhouetteBias.syllableCounts, roleProfile.syllableCounts, roleInfluence?.strength ?? 0)
+    : pack.silhouetteBias.syllableCounts;
+  const weightedCounts: Array<WeightedValue<number>> = baseCounts.map(({ value, weight }) => {
     const compactBoost = value <= 2 ? lerp(0.72, 1.72, memorability) : value === 3 ? lerp(1.1, 0.92, memorability) : lerp(1.28, 0.5, memorability);
     return { value, weight: weight * compactBoost };
   });
@@ -27,11 +40,19 @@ function rhythmFor(stressPattern: string): string {
   return 'balanced';
 }
 
-export function createNameSilhouette(settings: GenerationSettings, pack: StylePack, random: SeededRandom, index: number): NameSilhouette {
-  const syllableCount = selectSyllableCount(settings, pack, random);
+function selectTexture(settings: GenerationSettings, pack: StylePack, random: SeededRandom, role?: CastRoleAssignment): NameTexture {
+  const roleInfluence = resolveRoleInfluence(settings, role);
+  if (!roleInfluence) return random.pickWeighted(pack.silhouetteBias.textures);
+  const profile = getRolePreferenceProfile(roleInfluence.role);
+  return random.pickWeighted(blendWeightedValues(pack.silhouetteBias.textures, profile.textures, roleInfluence.strength));
+}
+
+export function createNameSilhouette(settings: GenerationSettings, pack: StylePack, random: SeededRandom, index: number, role?: CastRoleAssignment): NameSilhouette {
+  const roleInfluence = resolveRoleInfluence(settings, role);
+  const syllableCount = selectSyllableCount(settings, pack, random, role);
   const stressPattern = stressPatternFor(syllableCount, settings, random);
   const rarityBand = selectRarityBand(settings, pack, random, index);
-  const texture = random.pickWeighted(pack.silhouetteBias.textures);
+  const texture = selectTexture(settings, pack, random, role);
   const targetLength = syllableCount <= 2 ? 'short' : syllableCount === 3 ? 'medium' : 'long';
   const openSyllableBias = lerp(0.24, 0.76, settings.pronounceability);
   const collisionBias = lerp(0.56, 0.24, settings.pronounceability);
@@ -42,5 +63,34 @@ export function createNameSilhouette(settings: GenerationSettings, pack: StylePa
     if (texture === 'liquid' && random.chance(liquidBias)) return 'LCV';
     return random.chance(openSyllableBias) ? 'CV' : 'CVC';
   });
-  return { id: `silhouette-${index + 1}`, syllableCount, stressPattern, rhythm: rhythmFor(stressPattern), shape, rarityBand, texture, targetNovelty: clamp(settings.novelty + random.next() * 0.18 - 0.09), targetLength, provenance: [pack.provenance, { sourceId: 'name-forge:silhouette-engine@0.1.0', sourceKind: 'algorithm', label: 'Name silhouette', detail: 'Generated before exact letters using syllable count, rhythm, rarity, texture, target novelty, pronounceability, memorability pressure, and optional rarity distribution controls.' }] };
+  const provenance = [
+    pack.provenance,
+    {
+      sourceId: 'name-forge:silhouette-engine@0.1.0',
+      sourceKind: 'algorithm' as const,
+      label: 'Name silhouette',
+      detail: 'Generated before exact letters using syllable count, rhythm, rarity, texture, target novelty, pronounceability, memorability pressure, and optional rarity distribution controls.',
+    },
+  ];
+  if (roleInfluence) {
+    provenance.push({
+      sourceId: 'name-forge:role-influence@0.1.0',
+      sourceKind: 'algorithm',
+      label: 'Role influence',
+      detail: `${roleInfluence.label} applied at ${roleInfluence.level} strength to nudge silhouette and scoring preferences without changing the explicit role assignment.`,
+    });
+  }
+  return {
+    id: `silhouette-${index + 1}`,
+    syllableCount,
+    stressPattern,
+    rhythm: rhythmFor(stressPattern),
+    shape,
+    rarityBand,
+    texture,
+    targetNovelty: clamp(settings.novelty + random.next() * 0.18 - 0.09),
+    targetLength,
+    roleInfluence,
+    provenance,
+  };
 }
