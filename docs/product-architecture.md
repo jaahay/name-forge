@@ -1,23 +1,27 @@
 # Name Forge product architecture
 
-Name Forge should remain one product: a random name workbench. It should not collapse into only a fiction-cast generator, even though fiction-cast generation is currently the most developed mode.
+Name Forge should remain one product: a random-name workbench. Its first serious mode is **Fiction cast**, but the product should not collapse into only a fiction-cast generator.
 
-The product should support multiple naming modes that share core generation, scoring, comparison, and export primitives while adding mode-specific controls and presentation.
+The product should support multiple naming modes that share core generation, scoring, comparison, export, and provenance primitives while giving each mode its own controls, vocabulary, and result presentation.
 
 ## Product language
 
-Use **mode** in the UI and **engine** only where implementation language helps.
+Use **mode** in the UI and product docs.
 
-- UI language: `Fiction cast mode`, `Brand / product mode`, `Place mode`.
-- Internal language: mode or engine modules that share the same core generation pipeline.
+Use **engine** only when discussing implementation internals.
 
-A useful top-level prompt for the product is:
+Examples:
+
+- UI: `Fiction cast mode`, `Brand / product mode`, `Place mode`.
+- Code/docs: mode configs, shared engine primitives, and mode-specific presentation.
+
+The useful top-level product prompt is:
 
 > What are you naming?
 
-That prompt should lead users toward the right mode without fragmenting Name Forge into separate products.
+That prompt should route users into the right mode without fragmenting Name Forge into separate products.
 
-## Core product model
+## Product loop
 
 Name Forge is a workbench for random names with a common loop:
 
@@ -25,36 +29,54 @@ Name Forge is a workbench for random names with a common loop:
 Style -> Constraints -> Generate -> Score -> Compare -> Export
 ```
 
-Each mode can tune that loop differently, but the shared product primitives should stay recognizable:
+Each mode can tune the loop differently, but these shared product primitives should stay recognizable:
 
-- **Style**: source packs, tone, domain, language feel, or theme pools.
-- **Constraints**: quantity, format, length, rarity, memorability, pronounceability, or domain-specific requirements.
+- **Style**: source packs, texture, tone, domain, language feel, or theme pools.
+- **Constraints**: quantity, format, length, rarity, memorability, pronounceability, or mode-specific requirements.
 - **Generate**: deterministic random candidate creation from a seed and settings.
 - **Score**: explainable quality signals for ranking and filtering names.
 - **Compare**: ensemble balance, duplicate pressure, similarity pressure, or list coherence.
 - **Export**: JSON, Markdown, or mode-specific handoff formats.
 
-## Candidate modes
+## Current supported mode
 
 ### Fiction cast
 
-The current advanced mode. It supports coherent-but-distinct character ensembles, role mixes, slot overrides, rarity distributions, and fiction-oriented exports.
+The current product surface is Fiction cast mode.
 
 Primary job:
 
 > Help me name a cast of characters that feel coherent but distinct.
 
-Likely controls:
+Current controls:
 
 - Cast size
 - Style preset
 - Name format
 - Cast role mix
 - Slot overrides
+- Role influence
 - Rarity distribution
-- Role influence, if enabled later
-- Card density
+- Novelty
+- Pronounceability
+- Memorability
+- Cultural anchoring
+- Orthographic weirdness
 - Cast export
+
+Current result presentation:
+
+- Compact browsing cards
+- Syllable and alternate-spelling hints while collapsed
+- Nested **Details** for role, texture, format, rarity, name parts, and provenance-style metadata
+- Nested **Fit** for score breakdowns
+- JSON and Markdown cast export
+
+Fiction cast mode is allowed to be fiction-specific. Its role controls, cast language, slot overrides, and cast export should not be watered down merely to look generic.
+
+## Candidate future modes
+
+These are product directions, not implementation commitments for the current slice.
 
 ### Brand / product
 
@@ -129,7 +151,7 @@ Likely controls:
 
 ### Game / NPC quick names
 
-A faster sibling of fiction-cast mode for prep or live play.
+A faster sibling of Fiction cast mode for prep or live play.
 
 Primary job:
 
@@ -162,53 +184,106 @@ Likely controls:
 - Prefix or suffix consistency
 - Set-level export
 
-## Architecture direction
+## Mode boundary direction
 
-A future mode boundary might look roughly like this:
+The first implementation boundary is intentionally light:
 
 ```ts
-interface NameMode {
-  id: string;
+export type NamingModeId = 'fiction-cast';
+
+export interface NamingModeConfig {
+  id: NamingModeId;
   label: string;
+  shortLabel: string;
   description: string;
-  defaultSettings: GenerationSettings;
-  controls: ControlSchema[];
-  generate(settings: GenerationSettings): GeneratedResult;
-  export(result: GeneratedResult): ExportBundle;
+  heroTitle: string;
+  heroCopy: string;
+  outputHeading: string;
+  exportHeading: string;
+  generateLabel: string;
+  defaultSettings: (stylePackId: string) => GenerationSettings;
 }
 ```
 
-This is directional rather than final. The exact interface should emerge from the first refactor.
+This is not yet a plugin API. It is a seam that removes fiction-specific defaults and presentation copy from the app shell.
 
-The important boundary is product-level: mode-specific logic should not leak into the entire app shell. The fiction-cast workflow should become the first serious mode, not the whole product identity.
+The future interface may grow toward controls, result presentation, mode-specific export bundles, and mode-specific scoring priorities, but that should happen when a second real mode exists.
+
+## Shared vs mode-specific responsibilities
+
+### Shared primitives
+
+- Seeded random generation
+- Style packs and source registry
+- Silhouettes and constraints
+- Candidate generation
+- Decomposed scoring
+- Comparison pressure across a result set
+- Variants
+- Provenance
+- Export mechanics
+
+### Fiction cast responsibilities
+
+- Cast vocabulary
+- Role mix and slot overrides
+- Role influence
+- Cast size language
+- Ensemble-balance presentation
+- Cast-oriented JSON and Markdown copy
+- Result cards optimized for character-name scanning
+
+### Future mode responsibilities
+
+Each future mode should own its own:
+
+- default settings
+- controls
+- labels and vocabulary
+- scoring priorities
+- result card presentation
+- export shape
 
 ## UX direction
 
-The generator should eventually start with a mode selector such as:
+The generator should begin with:
 
 ```text
 What are you naming?
 [Fiction cast]
 ```
 
-Then each mode can reveal its own controls and result presentation.
+The selector may be disabled while only one mode exists. That is acceptable because it introduces the product model without pretending additional modes are ready.
 
 Near-term implications:
 
-- Move fiction-specific controls behind a fiction-mode boundary.
+- Keep current fiction controls behind the Fiction cast mode boundary.
 - Use progressive disclosure for advanced mode-specific controls.
 - Keep baseline generation approachable.
-- Avoid making export or diagnostics dominate the primary generation loop.
-- Let result-card density vary by mode and user intent.
+- Avoid making export or Fit metadata dominate the primary generation loop.
+- Let result-card presentation vary by mode and user intent later.
 
-## Non-goals for the first implementation slice
+## Tracking model after Phase One
 
-Do not build every candidate mode at once.
+The original PRD used phases as a build-order metaphor. That was useful for inception, but it no longer describes the product accurately.
 
-The first implementation should likely focus on clarifying the current fiction-cast mode boundary and improving the generator layout. Other modes should remain documented as product direction until the shared primitives are clearer.
+Going forward, track work by:
+
+1. **Mode maturity**: how complete and coherent each naming mode is.
+2. **Shared primitive maturity**: how reusable the underlying generation, scoring, comparison, export, and provenance pieces are.
+3. **Validation posture**: whether a branch is exploratory, draft PR, or merge-ready.
+
+See [`phase-one-closeout.md`](phase-one-closeout.md) for the Phase One retirement notes.
+
+## Non-goals for the current implementation slice
+
+- Do not build every candidate mode.
+- Do not create a full plugin framework.
+- Do not make Fiction cast generic at the cost of its product quality.
+- Do not let the old phase model drive current scope decisions.
 
 ## Related work
 
 - #36 introduced fiction-cast role and rarity controls.
-- #37 tracks optional role-specific phonotactic and scoring influence.
-- #38 tracks this multi-mode product architecture direction.
+- #37 introduced optional role-specific naming influence.
+- #38 tracks the multi-mode product architecture direction.
