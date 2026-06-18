@@ -19,6 +19,7 @@ function NameCardHeader({ name, density }: NameCardProps) {
   const rarity = rarityPresentation[name.silhouette.rarityBand];
   const identity = name.identity;
   const roleLabel = name.role?.label ?? 'No role';
+  const roleInfluenceLabel = name.roleInfluence ? `${name.roleInfluence.level} influence` : 'role-neutral';
   const toneLabel = `${labelFor(name.silhouette.texture)} tone`;
   const formatLabel = identity ? identity.format.label : `${labelFor(name.silhouette.rhythm)} rhythm`;
 
@@ -29,7 +30,7 @@ function NameCardHeader({ name, density }: NameCardProps) {
         {density === 'basic' ? (
           <p className="name-style-row compact"><span>{roleLabel}</span></p>
         ) : (
-          <p className="name-style-row"><span>Role: {roleLabel}</span><span>Tone: {toneLabel}</span><span>Format: {formatLabel}</span></p>
+          <p className="name-style-row"><span>Role: {roleLabel}</span><span>Influence: {roleInfluenceLabel}</span><span>Tone: {toneLabel}</span><span>Format: {formatLabel}</span></p>
         )}
       </div>
       <div className="name-card-meta" aria-label={`${name.silhouette.syllableCount} syllables, ${rarity.label} rarity`}>
@@ -57,6 +58,12 @@ export function NameCard({ name, density }: NameCardProps) {
           <ul className="variants">
             {identity.parts.map((part) => <li key={part.id}><span>{part.value}</span><em>{part.role}</em></li>)}
           </ul>
+        </div>
+      ) : null}
+      {name.roleInfluence ? (
+        <div>
+          <h3>Role influence</h3>
+          <p className="section-note">{name.roleInfluence.label} nudged this result at {name.roleInfluence.level} strength: {name.roleInfluence.effects.join(', ')}.</p>
         </div>
       ) : null}
       <div>
