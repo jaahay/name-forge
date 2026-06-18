@@ -6,10 +6,10 @@ All notable changes to Name Forge are documented here. The format is intentional
 
 ### Added
 
-- Added optional role influence controls so fiction-cast roles can remain metadata-only or lightly/strongly nudge silhouettes, phonotactics, and role-fit scoring.
+- Added optional role influence controls so fiction-cast roles can remain metadata-only or lightly/strongly nudge silhouettes, sound patterns, and role-fit scoring.
 - Added fiction-cast role controls, including role presets and per-slot role overrides.
 - Added rarity distribution controls so a generated cast can follow grounded, balanced, rare-forward, or mythic rarity plans.
-- Added Basic, Brief, and Detail card density modes for scanning, browsing, or inspecting generated names.
+- Added nested Details and Diagnostics sections inside each result card so deeper metadata stays available without a global card-detail selector.
 - Added a compact export panel with JSON, Markdown, copy actions, and a collapsed Markdown preview.
 - Added a whimsical SVG favicon: an ember-dark forge tile with a small anvil, sparks, and an `N` monogram. The asset is designed to remain legible at browser-tab size while still matching the warm, forged-metal visual language of the interface.
 - Added richer frontend metadata for crawlers and link previews, including author, Open Graph, Twitter card, canonical URL, and author-link metadata.
@@ -23,7 +23,7 @@ All notable changes to Name Forge are documented here. The format is intentional
 - Moved Export below the generated cards so it behaves like a late-stage action instead of competing with generation controls.
 - Collapsed slot role overrides until a role mix is selected, then placed the overrides behind a `Customize slots` disclosure.
 - Changed cast size from a bare number field to a compact minus / editable number / plus control.
-- Updated the About copy, README, and architecture documentation to match the role, rarity, card-density, and export surfaces.
+- Updated the About copy, README, and architecture documentation to match the role, rarity, card, and export surfaces.
 - Updated the author cross-link to use `https://jameshay.org/` as the canonical personal site.
 - Expanded the render smoke test to cover the in-app changelog and footer affordances that are now part of the public shell contract.
 
