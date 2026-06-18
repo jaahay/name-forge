@@ -26,6 +26,7 @@ const initialSettings: GenerationSettings = {
   nameFormat: 'mixed',
   rarityDistribution: 'style-pack',
   rolePreset: 'none',
+  roleInfluence: 'off',
   slotRoleOverrides: {},
 };
 
