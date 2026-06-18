@@ -44,14 +44,6 @@ export function NameCard({ name, density }: NameCardProps) {
   const identity = name.identity;
   const densityClassName = `name-card panel ${textureClassName(name.silhouette.texture)} card-density-${density}`;
 
-  if (density === 'basic') {
-    return (
-      <article className={densityClassName}>
-        <NameCardHeader name={name} density={density} />
-      </article>
-    );
-  }
-
   return (
     <details className={densityClassName}>
       <summary className="name-card-summary">
