@@ -83,7 +83,7 @@ export function NameCard({ name }: NameCardProps) {
         </details>
 
         <details className="card-subview">
-          <summary>Fit scores</summary>
+          <summary>Fit</summary>
           <div className="card-subview-body">
             <dl className="score-list compact-score-list" aria-label={`${name.name} fit score breakdown`}>
               {scorePresentation.map((score) => <div key={`${name.id}-${score.key}`}><dt>{score.label}</dt><dd>{formatScore(name.scores[score.key])}</dd></div>)}
