@@ -41,7 +41,7 @@ export function NameCard({ name }: NameCardProps) {
   const rarity = rarityPresentation[name.silhouette.rarityBand];
   const roleLabel = name.role?.label ?? 'No role';
   const roleInfluenceLabel = name.roleInfluence ? `${name.roleInfluence.level} influence` : 'role-neutral';
-  const toneLabel = `${labelFor(name.silhouette.texture)} tone`;
+  const textureLabel = `${labelFor(name.silhouette.texture)} texture`;
   const formatLabel = identity ? identity.format.label : `${labelFor(name.silhouette.rhythm)} rhythm`;
   const densityClassName = `name-card panel ${textureClassName(name.silhouette.texture)}`;
 
@@ -59,7 +59,7 @@ export function NameCard({ name }: NameCardProps) {
             <ul className="metadata compact-metadata" aria-label={`${name.name} details`}>
               <li><span>Role</span><strong>{roleLabel}</strong></li>
               <li><span>Influence</span><strong>{roleInfluenceLabel}</strong></li>
-              <li><span>Tone</span><strong>{toneLabel}</strong></li>
+              <li><span>Texture</span><strong>{textureLabel}</strong></li>
               <li><span>Format</span><strong>{formatLabel}</strong></li>
               <li><span>Rarity</span><strong className={rarity.className}>{rarity.label}</strong></li>
             </ul>
@@ -83,9 +83,9 @@ export function NameCard({ name }: NameCardProps) {
         </details>
 
         <details className="card-subview">
-          <summary>Diagnostics</summary>
+          <summary>Fit scores</summary>
           <div className="card-subview-body">
-            <dl className="score-list compact-score-list" aria-label={`${name.name} diagnostic score breakdown`}>
+            <dl className="score-list compact-score-list" aria-label={`${name.name} fit score breakdown`}>
               {scorePresentation.map((score) => <div key={`${name.id}-${score.key}`}><dt>{score.label}</dt><dd>{formatScore(name.scores[score.key])}</dd></div>)}
             </dl>
           </div>
