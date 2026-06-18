@@ -3,13 +3,18 @@ import { renderToString } from 'react-dom/server';
 import App from './App';
 
 describe('App', () => {
-  it('renders the generation shell with grouped controls, nested card details, compact exports, and project chrome', () => {
+  it('renders the fiction cast mode shell with grouped controls, nested card details, compact exports, and project chrome', () => {
     const html = renderToString(<App />);
 
     expect(html).toContain('Name Forge');
     expect(html).toContain('Generator');
     expect(html).toContain('Changelog');
     expect(html).toContain('About');
+    expect(html).toContain('Name Forge / Fiction cast mode');
+    expect(html).toContain('Mode');
+    expect(html).toContain('What are you naming?');
+    expect(html).toContain('Fiction cast');
+    expect(html).toContain('Build a coherent-but-distinct ensemble of fictional character names.');
     expect(html).toContain('Basics');
     expect(html).toContain('Fiction');
     expect(html).toContain('Rarity');
