@@ -6,6 +6,7 @@ All notable changes to Name Forge are documented here. The format is intentional
 
 ### Added
 
+- Added optional role influence controls so fiction-cast roles can remain metadata-only or lightly/strongly nudge silhouettes, phonotactics, and role-fit scoring.
 - Added fiction-cast role controls, including role presets and per-slot role overrides.
 - Added rarity distribution controls so a generated cast can follow grounded, balanced, rare-forward, or mythic rarity plans.
 - Added Basic, Brief, and Detail card density modes for scanning, browsing, or inspecting generated names.
@@ -28,7 +29,7 @@ All notable changes to Name Forge are documented here. The format is intentional
 
 ### Notes
 
-- Role metadata labels cast slots but does not yet apply role-specific phonotactic or scoring influence; that remains a separate opt-in slice.
+- Role influence is opt-in. The default `off` setting keeps role assignments as labels only so role mix metadata does not alter generation or scoring.
 - The version label is intentionally quiet. Name Forge is not currently presenting a formal release train to end users; the label is mostly useful for support, screenshots, and quick confirmation of which deployed shell someone is looking at.
 - Generated names remain drafting material. Cultural, legal, and project-fit review should happen before names are published.
 
@@ -38,7 +39,3 @@ All notable changes to Name Forge are documented here. The format is intentional
 
 - Built the first React/Vite app shell for Name Forge.
 - Added deterministic seed-based generation controls for cast size, style preset, novelty, pronounceability, memorability, cultural anchoring, and orthographic weirdness.
-- Rendered cast-aware generated names with fit scores, silhouette metadata, rarity presentation, spelling variants, and provenance.
-- Added collapsible result cards so the generated cast can be scanned quickly while keeping detailed scoring and provenance available.
-- Added texture-aware card styling that reflects each name silhouette's soft, balanced, hard, or liquid feel.
-- Added a Vitest server-render smoke test for the core generation shell.
