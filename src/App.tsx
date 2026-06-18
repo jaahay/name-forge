@@ -5,30 +5,17 @@ import type { GenerationSettings } from './engine/types';
 import { AboutView } from './ui/AboutView';
 import { ChangelogView } from './ui/ChangelogView';
 import { GeneratorView } from './ui/GeneratorView';
+import { fictionCastMode } from './ui/modes';
 import type { AppView, ControlKey } from './ui/presentation';
 import { randomizeScoreSettings, randomScore } from './ui/score';
 
 const registry = createDefaultRegistry();
 const stylePacks = registry.listStylePacks();
+const activeMode = fictionCastMode;
+const initialSettings = activeMode.defaultSettings(stylePacks[0]?.id ?? 'british-literary-fantasy');
 const authorSiteUrl = 'https://jameshay.org/';
 const sourceUrl = 'https://github.com/jaahay/name-forge';
 const commitHistoryUrl = `${sourceUrl}/commits/main/`;
-
-const initialSettings: GenerationSettings = {
-  castSize: 8,
-  novelty: 0.48,
-  pronounceability: 0.72,
-  memorability: 0.65,
-  culturalAnchoring: 0.62,
-  orthographicWeirdness: 0.28,
-  stylePackId: stylePacks[0]?.id ?? 'british-literary-fantasy',
-  seed: 'name-forge-001',
-  nameFormat: 'mixed',
-  rarityDistribution: 'style-pack',
-  rolePreset: 'none',
-  roleInfluence: 'off',
-  slotRoleOverrides: {},
-};
 
 export default function App() {
   const [currentView, setCurrentView] = useState<AppView>('generator');
@@ -74,6 +61,7 @@ export default function App() {
 
       {currentView === 'generator' ? (
         <GeneratorView
+          mode={activeMode}
           stylePacks={stylePacks}
           settings={settings}
           ensemble={ensemble}
