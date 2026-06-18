@@ -14,6 +14,8 @@ const settings: GenerationSettings = {
   stylePackId: 'british-literary-fantasy',
   seed: 'export-test-seed',
   nameFormat: 'mixed',
+  rolePreset: 'classic-ensemble',
+  roleInfluence: 'light',
 };
 
 function exportableEnsemble() {
@@ -32,6 +34,7 @@ describe('cast export serialization', () => {
     expect(payload.generatedBy).toBe('Name Forge');
     expect(payload.seed).toBe(settings.seed);
     expect(payload.settings.seed).toBe(settings.seed);
+    expect(payload.settings.roleInfluence).toBe('light');
     expect(payload.sourcePack.id).toBe(settings.stylePackId);
     expect(payload.names).toHaveLength(settings.castSize);
 
@@ -40,7 +43,11 @@ describe('cast export serialization', () => {
     if (!firstName) throw new Error('Expected at least one exported name.');
     expect(firstName.name).toBe(ensemble.names[0]?.name);
     expect(firstName.seed).toBe(settings.seed);
+    expect(firstName.role).toBe('Protagonist');
+    expect(firstName.roleInfluence?.level).toBe('light');
+    expect(firstName.roleInfluence?.profileId).toBe('role-profile:protagonist');
     expect(firstName.score).toBe(ensemble.names[0]?.scores.overallFit);
+    expect(firstName.scores.roleFit).toBe(ensemble.names[0]?.scores.roleFit);
     expect(firstName.silhouette.syllableCount).toBeGreaterThan(0);
     expect(firstName.silhouette.rarityBand).toBeDefined();
     expect(firstName.parts.length).toBeGreaterThan(0);
@@ -48,14 +55,17 @@ describe('cast export serialization', () => {
     expect(firstName.warnings).toEqual([]);
   });
 
-  it('renders a Markdown export with score, silhouette, variants, provenance, and seed', () => {
+  it('renders a Markdown export with score, silhouette, variants, provenance, role influence, and seed', () => {
     const markdown = serializeCastAsMarkdown(exportableEnsemble());
 
     expect(markdown).toContain('# Name Forge Cast Export');
     expect(markdown).toContain('Seed: `export-test-seed`');
     expect(markdown).toContain('Style pack: British literary fantasy');
+    expect(markdown).toContain('Role influence: light');
     expect(markdown).toContain('## Ensemble balance');
     expect(markdown).toContain('## 1.');
+    expect(markdown).toContain('- Role: Protagonist');
+    expect(markdown).toContain('- Role influence: Protagonist clarity (light;');
     expect(markdown).toContain('- Overall fit:');
     expect(markdown).toContain('- Format:');
     expect(markdown).toContain('- Parts:');
