@@ -1,8 +1,8 @@
 import type { FormEvent } from 'react';
 import { serializeCastAsJson, serializeCastAsMarkdown } from '../engine/export';
 import { rarityDistributionOptions } from '../engine/rarity';
-import { castRoleOptions, castRolePresetOptions } from '../engine/roles';
-import type { CastRole, CastRolePresetKind, GeneratedEnsemble, GenerationSettings, NameFormatKind, RarityDistributionPresetKind, StylePackSummary } from '../engine/types';
+import { castRoleOptions, castRolePresetOptions, roleInfluenceOptions } from '../engine/roles';
+import type { CastRole, CastRolePresetKind, GeneratedEnsemble, GenerationSettings, NameFormatKind, RarityDistributionPresetKind, RoleInfluenceLevel, StylePackSummary } from '../engine/types';
 import { cardDensityOptions, scoreControls, type CardDensity, type ControlKey } from './presentation';
 import { ScoreControl } from './ScoreControl';
 import { NameCard } from './NameCard';
@@ -69,6 +69,7 @@ export function GeneratorView({
   const castSize = clampCastSize(settings.castSize);
   const slotRoleCount = Math.max(0, Math.min(castSize, 8));
   const hasRoleMix = (settings.rolePreset ?? 'none') !== 'none';
+  const selectedRoleInfluence = roleInfluenceOptions.find((option) => option.value === (settings.roleInfluence ?? 'off'));
 
   function updateCastSize(value: number) {
     onUpdateSetting('castSize', clampCastSize(value));
@@ -133,6 +134,14 @@ export function GeneratorView({
                   {castRolePresetOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                 </select>
               </label>
+              <label>
+                <span>Role influence</span>
+                <select value={settings.roleInfluence ?? 'off'} onChange={(event) => onUpdateSetting('roleInfluence', event.target.value as RoleInfluenceLevel)}>
+                  {roleInfluenceOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                </select>
+                <small>{selectedRoleInfluence?.help}</small>
+              </label>
+              <p className="section-note">Role influence is opt-in. Off keeps roles as labels only; Light and Strong nudge silhouette, phonotactics, role-fit scoring, and export metadata.</p>
               {hasRoleMix ? (
                 <details className="slot-overrides">
                   <summary>Customize slots</summary>
