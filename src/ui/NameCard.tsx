@@ -1,9 +1,11 @@
 import type { GeneratedName } from '../engine/types';
+import type { CardDensity } from './presentation';
 import { rarityPresentation, scorePresentation } from './presentation';
 import { formatScore, rarityClassName, textureClassName } from './score';
 
 interface NameCardProps {
   name: GeneratedName;
+  density: CardDensity;
 }
 
 function labelFor(value: string): string {
@@ -13,7 +15,7 @@ function labelFor(value: string): string {
     .join(' ');
 }
 
-export function NameCard({ name }: NameCardProps) {
+function NameCardHeader({ name, density }: NameCardProps) {
   const rarity = rarityPresentation[name.silhouette.rarityBand];
   const identity = name.identity;
   const roleLabel = name.role?.label ?? 'No role';
@@ -21,19 +23,32 @@ export function NameCard({ name }: NameCardProps) {
   const formatLabel = identity ? identity.format.label : `${labelFor(name.silhouette.rhythm)} rhythm`;
 
   return (
-    <details className={`name-card panel ${textureClassName(name.silhouette.texture)}`}>
+    <div className="name-card-header">
+      <div className="name-card-title-block">
+        <h2 className={`name-card-title ${rarity.className}`}>{name.name}</h2>
+        {density === 'basic' ? (
+          <p className="name-style-row compact"><span>{roleLabel}</span></p>
+        ) : (
+          <p className="name-style-row"><span>Role: {roleLabel}</span><span>Tone: {toneLabel}</span><span>Format: {formatLabel}</span></p>
+        )}
+      </div>
+      <div className="name-card-meta" aria-label={`${name.silhouette.syllableCount} syllables, ${rarity.label} rarity`}>
+        <span>{name.silhouette.syllableCount} syllables</span>
+        <span className={rarityClassName(name.silhouette.rarityBand)}>{rarity.label}</span>
+      </div>
+    </div>
+  );
+}
+
+export function NameCard({ name, density }: NameCardProps) {
+  const identity = name.identity;
+  const densityClassName = `name-card panel ${textureClassName(name.silhouette.texture)} card-density-${density}`;
+
+  return (
+    <details className={densityClassName}>
       <summary className="name-card-summary">
-        <div className="name-card-header">
-          <div className="name-card-title-block">
-            <h2 className={`name-card-title ${rarity.className}`}>{name.name}</h2>
-            <p className="name-style-row"><span>Role: {roleLabel}</span><span>Tone: {toneLabel}</span><span>Format: {formatLabel}</span></p>
-          </div>
-          <div className="name-card-meta" aria-label={`${name.silhouette.syllableCount} syllables, ${rarity.label} rarity`}>
-            <span>{name.silhouette.syllableCount} syllables</span>
-            <span className={rarityClassName(name.silhouette.rarityBand)}>{rarity.label}</span>
-          </div>
-        </div>
-        <span className="collapse-cue">Details</span>
+        <NameCardHeader name={name} density={density} />
+        <span className="collapse-cue">{density === 'detail' ? 'Details' : 'More'}</span>
       </summary>
       {identity ? (
         <div>
@@ -50,12 +65,14 @@ export function NameCard({ name }: NameCardProps) {
           <ul className="variants">{name.variants.map((variant) => <li key={`${name.id}-${variant.value}`}><span>{variant.value}</span><em>{variant.kind}</em></li>)}</ul>
         ) : <p className="empty-state">No alternate spellings for this name.</p>}
       </div>
-      <div>
-        <h3>Diagnostic scores</h3>
-        <dl className="score-list" aria-label={`${name.name} diagnostic score breakdown`}>
-          {scorePresentation.map((score) => <div key={`${name.id}-${score.key}`}><dt>{score.label}</dt><dd>{formatScore(name.scores[score.key])}</dd></div>)}
-        </dl>
-      </div>
+      {density === 'detail' ? (
+        <div>
+          <h3>Diagnostic scores</h3>
+          <dl className="score-list" aria-label={`${name.name} diagnostic score breakdown`}>
+            {scorePresentation.map((score) => <div key={`${name.id}-${score.key}`}><dt>{score.label}</dt><dd>{formatScore(name.scores[score.key])}</dd></div>)}
+          </dl>
+        </div>
+      ) : null}
     </details>
   );
 }

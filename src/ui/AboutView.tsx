@@ -19,19 +19,19 @@ export function AboutView({ authorSiteUrl }: AboutViewProps) {
         <p className="eyebrow">About</p>
         <h1 id="about-title">What Name Forge does</h1>
         <p>
-          Name Forge is a cast-aware name generator. It creates names as a set, then explains how each
-          result fits the selected style, shape, rhythm, spelling, and ensemble.
+          Name Forge is a cast-aware name workbench. It creates names as a set, then explains how each
+          result fits the selected style, shape, role, rarity, rhythm, spelling, and ensemble.
         </p>
       </div>
 
       <div className="about-grid">
         <article>
           <h2>Controls shape the search</h2>
-          <p>Style preset, seed, cast size, and dials steer the generator without hand-writing every result.</p>
+          <p>Basics set the cast, Fiction controls shape role metadata, and Rarity & scoring dials tune the search pressure.</p>
         </article>
         <article>
-          <h2>Cards explain the result</h2>
-          <p>Collapsed cards show the name, rhythm, syllable count, and rarity. Details show diagnostic scores and alternate spellings.</p>
+          <h2>Cards adapt to the task</h2>
+          <p>Basic, Brief, and Detail density modes change how much each card shows while keeping every card expandable for inspection.</p>
         </article>
         <article>
           <h2>About the author</h2>
@@ -44,7 +44,7 @@ export function AboutView({ authorSiteUrl }: AboutViewProps) {
         <p>
           The dials are creative pressure controls. They change what kinds of names Name Forge tries and which
           finished names it prefers. The score components still describe the name itself; the hidden overall fit
-          score helps choose names that match your current dial settings.
+          score helps choose names that match your current settings.
         </p>
         <ul className="dial-list">
           <li>
@@ -62,6 +62,21 @@ export function AboutView({ authorSiteUrl }: AboutViewProps) {
             <p>The repeat button for randomness. Reusing the same seed and settings should reproduce the same cast.</p>
             <small>Example: save a seed when a cast is close, then adjust one dial at a time.</small>
           </li>
+          <li>
+            <h3>Cast role mix</h3>
+            <p>A fiction-cast structure that labels slots as protagonist, rival, mentor, sidekick, and related roles.</p>
+            <small>Slot overrides can customize individual positions without changing the whole role mix.</small>
+          </li>
+          <li>
+            <h3>Rarity distribution</h3>
+            <p>A cast-level rarity plan, separate from novelty, for deciding how grounded or mythic the ensemble should feel.</p>
+            <small>Example: a mythic arc can deliberately move from common names toward legendary ones.</small>
+          </li>
+          <li>
+            <h3>Card detail</h3>
+            <p>The browsing density for generated cards. Basic scans quickly, Brief is the default reading view, and Detail reveals diagnostics.</p>
+            <small>Changing card detail does not regenerate names; it only changes presentation.</small>
+          </li>
           {scoreControls.map((control) => (
             <li key={control.key}>
               <h3>{control.label}</h3>
@@ -75,7 +90,7 @@ export function AboutView({ authorSiteUrl }: AboutViewProps) {
       <section className="about-section" aria-labelledby="score-title">
         <h2 id="score-title">What the diagnostic scores are for</h2>
         <p>
-          The numbers inside Details are diagnostics, not grades and not percentiles. They explain why the generator
+          The numbers inside Detail mode are diagnostics, not grades and not percentiles. They explain why the generator
           picked a name and help compare close alternatives when you are tuning the dials.
         </p>
         <p>
