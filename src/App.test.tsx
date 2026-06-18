@@ -23,6 +23,12 @@ describe('App', () => {
     expect(html).toContain('Title + name');
     expect(html).toContain('Epithet/place-style');
     expect(html).toContain('Cast role mix');
+    expect(html).toContain('Role influence');
+    expect(html).toContain('Off');
+    expect(html).toContain('Light');
+    expect(html).toContain('Strong');
+    expect(html).toContain('Roles label cast slots only; generation and scoring stay role-neutral.');
+    expect(html).toContain('Role influence is opt-in.');
     expect(html).toContain('Choose a role mix to reveal optional slot-by-slot overrides.');
     expect(html).toContain('Card detail');
     expect(html).toContain('Basic');
@@ -41,6 +47,7 @@ describe('App', () => {
     expect(html).toContain('Copy Markdown');
     expect(html).toContain('Show Markdown preview');
     expect(html).toContain('# Name Forge Cast Export');
+    expect(html).toContain('Role influence: off');
     expect(html).toContain('name-forge-001');
     expect(html).toContain('<details');
     expect(html).toContain('texture-');
