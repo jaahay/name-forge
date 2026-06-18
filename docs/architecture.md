@@ -58,7 +58,7 @@ src/
     AboutView.tsx         Product explanation copy
     ChangelogView.tsx     In-app changelog rendering
     GeneratorView.tsx     Generation controls, result grid, and export surface
-    NameCard.tsx          Card density and expandable result details
+    NameCard.tsx          Compact card summary plus nested Details and Diagnostics sections
     ScoreControl.tsx      Numeric and slider score control rendering
     presentation.ts       UI labels, score labels, rarity labels, and changelog entries
     score.ts              UI score formatting and visual class helpers
@@ -76,13 +76,13 @@ The engine centers on these first-class types:
 - `NameVariant`: listed or generated spelling alternatives with relationship metadata.
 - `ProvenanceEntry`: source and contribution metadata.
 - `StylePack`: soft-coded aesthetic and phonotactic constraints.
-- `DataSourceDescriptor`: registry pointer to built-in, file, HTTP, API, package, or custom pack sources.
+- `DataSourceDescriptor`: registry pointer to built-in and future external pack sources.
 
 ## Style packs and provider registry
 
 Style packs define the statistical neighborhood for generation. They guide candidate creation and distance calculations; they should not be copied blindly into output.
 
-The provider registry stores pointers and contracts, not large data payloads. Built-in providers are enough for MVP, but the registry shape should support future file packs, remote packs, pronunciation dictionaries, frequency data, script inventories, and audio backends.
+The provider registry stores pointers and contracts, not large data payloads. Built-in providers are enough for MVP, but the registry shape should support future file packs, pronunciation dictionaries, frequency data, script inventories, and audio backends.
 
 ### Hard-coded engine responsibilities
 
@@ -105,7 +105,7 @@ The provider registry stores pointers and contracts, not large data payloads. Bu
 - cultural naming packs
 - frequency data
 - phoneme and grapheme inventories
-- remote APIs and user-uploaded packs
+- external pack integrations
 
 ## Scoring model
 
@@ -144,7 +144,7 @@ The MVP UI should expose one single-page fiction-cast generation flow with progr
 
 The core controls are cast size, seed, style preset, name format, cast role mix, slot role overrides, rarity distribution, novelty, pronounceability, memorability, cultural anchoring, and orthographic weirdness.
 
-Each output card should display the generated name, role or format traits, syllable count, rarity band, and expandable details. Card density controls how much is shown in the summary: Basic for scanning, Brief for everyday browsing, and Detail for diagnostic scores.
+Each collapsed output card should prioritize quick browsing: generated name, syllable count, and alternate spellings only when alternates exist. Opening a card reveals nested Details and Diagnostics sections for role, tone, format, rarity, name parts, role influence, and compact score metadata.
 
 The export surface should stay late in the flow and support JSON and Markdown without making raw export text dominate the generated cast.
 
@@ -162,7 +162,7 @@ Unit tests should prioritize deterministic engine contracts:
 - variants are generated and labeled correctly
 - registry resolves built-in style packs and source descriptors
 
-UI smoke tests should verify shell-level contracts such as visible controls, grouped sections, card density labels, compact export affordances, and the absence of obsolete public copy.
+UI smoke tests should verify shell-level contracts such as visible controls, grouped sections, compact nested cards, compact export affordances, and the absence of obsolete public copy.
 
 ## MVP readiness checklist
 

@@ -1,4 +1,4 @@
-import type { GeneratedEnsemble, GeneratedName, NameSilhouette, ProvenanceNote } from './types';
+import type { GeneratedEnsemble, GeneratedName, NameSilhouette, ProvenanceNote, RoleInfluenceMetadata } from './types';
 
 export interface ExportedNamePart {
   role: string;
@@ -6,10 +6,18 @@ export interface ExportedNamePart {
   sourceName: string;
 }
 
+export interface ExportedRoleInfluence {
+  level: RoleInfluenceMetadata['level'];
+  profileId: string;
+  label: string;
+  effects: string[];
+}
+
 export interface ExportedName {
   id: string;
   name: string;
   role?: string;
+  roleInfluence?: ExportedRoleInfluence;
   score: number;
   scores: GeneratedName['scores'];
   silhouette: Pick<NameSilhouette, 'syllableCount' | 'stressPattern' | 'rhythm' | 'rarityBand' | 'texture' | 'targetNovelty' | 'targetLength'>;
@@ -47,12 +55,23 @@ function scoreLabel(value: number): string {
   return value.toFixed(2);
 }
 
+function exportRoleInfluence(influence: RoleInfluenceMetadata | undefined): ExportedRoleInfluence | undefined {
+  if (!influence) return undefined;
+  return {
+    level: influence.level,
+    profileId: influence.profileId,
+    label: influence.label,
+    effects: influence.effects,
+  };
+}
+
 function exportName(name: GeneratedName, seed: string): ExportedName {
   const identity = name.identity;
   return {
     id: name.id,
     name: name.name,
     role: name.role?.label,
+    roleInfluence: exportRoleInfluence(name.roleInfluence),
     score: name.scores.overallFit,
     scores: name.scores,
     silhouette: {
@@ -105,6 +124,7 @@ export function serializeCastAsMarkdown(ensemble: GeneratedEnsemble): string {
     `Seed: \`${ensemble.settings.seed}\``,
     `Style pack: ${ensemble.sourcePack.label}`,
     `Cast size: ${ensemble.names.length}`,
+    `Role influence: ${ensemble.settings.roleInfluence ?? 'off'}`,
     '',
     '## Ensemble balance',
     '',
@@ -121,11 +141,15 @@ export function serializeCastAsMarkdown(ensemble: GeneratedEnsemble): string {
       ? exported.parts.map((part) => `${part.role}: ${part.value}`).join('; ')
       : 'Single generated name';
     const provenanceText = exported.provenance.length > 0 ? exported.provenance.join('; ') : 'None';
+    const roleInfluenceText = exported.roleInfluence
+      ? `${exported.roleInfluence.label} (${exported.roleInfluence.level}; ${exported.roleInfluence.effects.join(', ')})`
+      : 'Off';
 
     lines.push(
       `## ${index + 1}. ${exported.name}`,
       '',
       `- Role: ${exported.role ?? 'Unassigned'}`,
+      `- Role influence: ${roleInfluenceText}`,
       `- Overall fit: ${scoreLabel(exported.score)}`,
       `- Format: ${exported.format}`,
       `- Parts: ${partText}`,

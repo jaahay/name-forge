@@ -1,9 +1,9 @@
 import type { FormEvent } from 'react';
 import { serializeCastAsJson, serializeCastAsMarkdown } from '../engine/export';
 import { rarityDistributionOptions } from '../engine/rarity';
-import { castRoleOptions, castRolePresetOptions } from '../engine/roles';
-import type { CastRole, CastRolePresetKind, GeneratedEnsemble, GenerationSettings, NameFormatKind, RarityDistributionPresetKind, StylePackSummary } from '../engine/types';
-import { cardDensityOptions, scoreControls, type CardDensity, type ControlKey } from './presentation';
+import { castRoleOptions, castRolePresetOptions, roleInfluenceOptions } from '../engine/roles';
+import type { CastRole, CastRolePresetKind, GeneratedEnsemble, GenerationSettings, NameFormatKind, RarityDistributionPresetKind, RoleInfluenceLevel, StylePackSummary } from '../engine/types';
+import { scoreControls, type ControlKey } from './presentation';
 import { ScoreControl } from './ScoreControl';
 import { NameCard } from './NameCard';
 
@@ -11,8 +11,6 @@ interface GeneratorViewProps {
   stylePacks: StylePackSummary[];
   settings: GenerationSettings;
   ensemble: GeneratedEnsemble;
-  cardDensity: CardDensity;
-  onUpdateCardDensity: (density: CardDensity) => void;
   onUpdateSetting: <K extends keyof GenerationSettings>(key: K, value: GenerationSettings[K]) => void;
   onRegenerate: (event?: FormEvent) => void;
   onRandomizeSeed: () => void;
@@ -56,8 +54,6 @@ export function GeneratorView({
   stylePacks,
   settings,
   ensemble,
-  cardDensity,
-  onUpdateCardDensity,
   onUpdateSetting,
   onRegenerate,
   onRandomizeSeed,
@@ -69,6 +65,7 @@ export function GeneratorView({
   const castSize = clampCastSize(settings.castSize);
   const slotRoleCount = Math.max(0, Math.min(castSize, 8));
   const hasRoleMix = (settings.rolePreset ?? 'none') !== 'none';
+  const selectedRoleInfluence = roleInfluenceOptions.find((option) => option.value === (settings.roleInfluence ?? 'off'));
 
   function updateCastSize(value: number) {
     onUpdateSetting('castSize', clampCastSize(value));
@@ -133,6 +130,14 @@ export function GeneratorView({
                   {castRolePresetOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                 </select>
               </label>
+              <label>
+                <span>Role influence</span>
+                <select value={settings.roleInfluence ?? 'off'} onChange={(event) => onUpdateSetting('roleInfluence', event.target.value as RoleInfluenceLevel)}>
+                  {roleInfluenceOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                </select>
+                <small>{selectedRoleInfluence?.help}</small>
+              </label>
+              <p className="section-note">Role influence is opt-in. Off keeps roles as labels only; Light and Strong nudge silhouette, sound patterns, role-fit scoring, and export metadata.</p>
               {hasRoleMix ? (
                 <details className="slot-overrides">
                   <summary>Customize slots</summary>
@@ -192,17 +197,10 @@ export function GeneratorView({
               <h2>Ensemble balance</h2>
               <p>{ensemble.diagnostics.summary}</p>
             </div>
-            <label className="density-control">
-              <span>Card detail</span>
-              <select value={cardDensity} onChange={(event) => onUpdateCardDensity(event.target.value as CardDensity)}>
-                {cardDensityOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-              </select>
-              <small>{cardDensityOptions.find((option) => option.value === cardDensity)?.help}</small>
-            </label>
           </div>
 
-          <div className={`name-grid card-density-${cardDensity}`}>
-            {ensemble.names.map((name) => <NameCard key={name.id} name={name} density={cardDensity} />)}
+          <div className="name-grid">
+            {ensemble.names.map((name) => <NameCard key={name.id} name={name} />)}
           </div>
 
           <section className="export-panel panel" aria-labelledby="export-heading">

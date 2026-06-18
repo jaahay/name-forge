@@ -5,7 +5,7 @@ import type { GenerationSettings } from './engine/types';
 import { AboutView } from './ui/AboutView';
 import { ChangelogView } from './ui/ChangelogView';
 import { GeneratorView } from './ui/GeneratorView';
-import type { AppView, CardDensity, ControlKey } from './ui/presentation';
+import type { AppView, ControlKey } from './ui/presentation';
 import { randomizeScoreSettings, randomScore } from './ui/score';
 
 const registry = createDefaultRegistry();
@@ -26,6 +26,7 @@ const initialSettings: GenerationSettings = {
   nameFormat: 'mixed',
   rarityDistribution: 'style-pack',
   rolePreset: 'none',
+  roleInfluence: 'off',
   slotRoleOverrides: {},
 };
 
@@ -33,7 +34,6 @@ export default function App() {
   const [currentView, setCurrentView] = useState<AppView>('generator');
   const [settings, setSettings] = useState<GenerationSettings>(initialSettings);
   const [committedSettings, setCommittedSettings] = useState<GenerationSettings>(initialSettings);
-  const [cardDensity, setCardDensity] = useState<CardDensity>('brief');
   const ensemble = useMemo(() => generateEnsemble(committedSettings, registry), [committedSettings]);
 
   function updateSetting<K extends keyof GenerationSettings>(key: K, value: GenerationSettings[K]) {
@@ -77,8 +77,6 @@ export default function App() {
           stylePacks={stylePacks}
           settings={settings}
           ensemble={ensemble}
-          cardDensity={cardDensity}
-          onUpdateCardDensity={setCardDensity}
           onUpdateSetting={updateSetting}
           onRegenerate={regenerate}
           onRandomizeSeed={randomizeSeed}

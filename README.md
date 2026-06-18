@@ -12,7 +12,7 @@ Name Forge is a Vite + TypeScript + React MVP for generating plausible fictional
 
 - Single-page React UI organized around cast setup, fiction controls, rarity and scoring controls, result browsing, and export.
 - Controls for cast size, seed, style preset, name format, cast role mix, slot role overrides, rarity distribution, novelty, pronounceability, memorability, cultural anchoring, and orthographic weirdness.
-- Global card density modes for scanning generated names at Basic, Brief, or Detail levels without changing generation output.
+- Compact result cards for scanning generated names, with nested Details and Diagnostics sections for deeper metadata.
 - Deterministic seeded randomness for repeatable casts.
 - First-class `NameSilhouette` generation before exact letters exist.
 - Simple phonotactic generation from data-shaped style packs.

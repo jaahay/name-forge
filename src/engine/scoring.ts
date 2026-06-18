@@ -1,8 +1,9 @@
-import type { GenerationSettings, NameScores, NameSilhouette, ScoreKey, StylePack } from './types';
+import type { GenerationSettings, NameScores, NameSilhouette, RoleInfluenceMetadata, ScoreKey, StylePack } from './types';
 import { clamp, lerp } from './random';
+import { getRolePreferenceProfile } from './roles';
 
 const vowels = new Set(['a', 'e', 'i', 'o', 'u', 'y']);
-const scoreWeights: Record<ScoreKey, number> = { pronounceability: 0.22, memorability: 0.16, novelty: 0.12, culturalAnchoring: 0.12, orthographicNaturalness: 0.14, styleFit: 0.1, silhouetteFit: 0.08, ensembleFit: 0.06 };
+const scoreWeights: Record<ScoreKey, number> = { pronounceability: 0.22, memorability: 0.16, novelty: 0.12, culturalAnchoring: 0.12, orthographicNaturalness: 0.14, styleFit: 0.1, silhouetteFit: 0.08, ensembleFit: 0.06, roleFit: 0 };
 
 function countVowels(name: string): number { return [...name.toLowerCase()].filter((letter) => vowels.has(letter)).length; }
 function countVowelGroups(name: string): number { return Math.max(1, name.toLowerCase().match(/[aeiouy]+/g)?.length ?? 1); }
@@ -13,8 +14,25 @@ function targetLengthScore(name: string, silhouette: NameSilhouette): number { c
 function styleFitScore(name: string, pack: StylePack): number { const lower = name.toLowerCase(); const endingFit = pack.phonotactics.preferredEndings.some(({ value }) => lower.endsWith(value)) ? 0.26 : 0.08; const rareFit = pack.phonotactics.rareGraphemes.some((fragment) => lower.includes(fragment)) ? 0.14 : 0.06; return clamp(0.54 + endingFit + rareFit - (containsForbiddenFragment(name, pack) ? 0.3 : 0)); }
 function silhouetteFitScore(name: string, silhouette: NameSilhouette): number { const syllableFit = clamp(1 - Math.abs(countVowelGroups(name) - silhouette.syllableCount) * 0.18); const textureFit = silhouette.texture === 'hard' && /[kgtdbp]/i.test(name) ? 0.9 : silhouette.texture === 'liquid' && /[lrw]/i.test(name) ? 0.9 : 0.76; return clamp(targetLengthScore(name, silhouette) * 0.44 + syllableFit * 0.4 + textureFit * 0.16); }
 
+function weightedMatch<T>(value: T, preferences: Array<{ value: T; weight: number }>): number {
+  const maxWeight = Math.max(...preferences.map((preference) => preference.weight), 1);
+  const match = preferences.find((preference) => preference.value === value)?.weight ?? 1;
+  return clamp(match / maxWeight);
+}
+
+function roleFitScore(name: string, silhouette: NameSilhouette, influence?: RoleInfluenceMetadata): number {
+  if (!influence) return 0.72;
+  const profile = getRolePreferenceProfile(influence.role);
+  const lengthFit = weightedMatch(silhouette.targetLength, profile.targetLengths) * targetLengthScore(name, silhouette);
+  const textureFit = weightedMatch(silhouette.texture, profile.textures);
+  const rhythmFit = weightedMatch(silhouette.rhythm, profile.rhythms);
+  const syllableFit = weightedMatch(silhouette.syllableCount, profile.syllableCounts);
+  return clamp(lengthFit * 0.3 + textureFit * 0.28 + rhythmFit * 0.22 + syllableFit * 0.2);
+}
+
 function settingWeightedScoreWeights(settings?: GenerationSettings): Record<ScoreKey, number> {
   if (!settings) return scoreWeights;
+  const roleFitWeight = settings.roleInfluence === 'strong' ? 0.12 : settings.roleInfluence === 'light' ? 0.06 : 0;
   return {
     pronounceability: lerp(0.08, 0.24, settings.pronounceability),
     memorability: lerp(0.06, 0.24, settings.memorability),
@@ -24,13 +42,14 @@ function settingWeightedScoreWeights(settings?: GenerationSettings): Record<Scor
     styleFit: 0.1,
     silhouetteFit: 0.08,
     ensembleFit: lerp(0.04, 0.11, settings.memorability),
+    roleFit: roleFitWeight,
   };
 }
 
 export function combineOverallFit(scores: Pick<NameScores, ScoreKey>, settings?: GenerationSettings): number {
   const weights = settingWeightedScoreWeights(settings);
   const totalWeight = Object.values(weights).reduce((sum, weight) => sum + weight, 0);
-  return clamp((weights.pronounceability * scores.pronounceability + weights.memorability * scores.memorability + weights.novelty * scores.novelty + weights.culturalAnchoring * scores.culturalAnchoring + weights.orthographicNaturalness * scores.orthographicNaturalness + weights.styleFit * scores.styleFit + weights.silhouetteFit * scores.silhouetteFit + weights.ensembleFit * scores.ensembleFit) / totalWeight);
+  return clamp((weights.pronounceability * scores.pronounceability + weights.memorability * scores.memorability + weights.novelty * scores.novelty + weights.culturalAnchoring * scores.culturalAnchoring + weights.orthographicNaturalness * scores.orthographicNaturalness + weights.styleFit * scores.styleFit + weights.silhouetteFit * scores.silhouetteFit + weights.ensembleFit * scores.ensembleFit + weights.roleFit * scores.roleFit) / totalWeight);
 }
 
 export function scoreName(name: string, silhouette: NameSilhouette, pack: StylePack, settings: GenerationSettings): NameScores {
@@ -48,6 +67,7 @@ export function scoreName(name: string, silhouette: NameSilhouette, pack: StyleP
   const styleFit = styleFitScore(name, pack);
   const silhouetteFit = silhouetteFitScore(name, silhouette);
   const ensembleFit = 0.72;
-  const baseScores = { pronounceability, memorability, novelty, culturalAnchoring, orthographicNaturalness, styleFit, silhouetteFit, ensembleFit };
+  const roleFit = roleFitScore(name, silhouette, silhouette.roleInfluence);
+  const baseScores = { pronounceability, memorability, novelty, culturalAnchoring, orthographicNaturalness, styleFit, silhouetteFit, ensembleFit, roleFit };
   return { ...baseScores, overallFit: combineOverallFit(baseScores, settings) };
 }

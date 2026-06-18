@@ -59,5 +59,21 @@ export function generateNameFromSilhouette(silhouette: NameSilhouette, pack: Sty
   const baseName = enforceMinimumNameLength(titleCase(applyOrthographicWeirdness(applyEnding(softenCollisions(silhouette.shape.map((shape) => generateSyllable(shape, silhouette, pack, random)).join('')), silhouette, pack, settings, random), pack, settings, random)), pack);
   const scores = scoreName(baseName, silhouette, pack, settings);
   const variants = generateVariants(baseName, pack, settings);
-  return { id: `name-${index + 1}-${baseName.toLowerCase()}`, name: baseName, silhouette, scores, variants, provenance: [...silhouette.provenance, { sourceId: 'name-forge:phonotactic-generator@0.1.0', sourceKind: 'algorithm', label: 'Generated name', detail: 'Generated from style-pack phonotactics, selected silhouette, seeded randomness, anchoring pressure, orthographic weirdness, and minimum viability guards.' }, { sourceId: 'name-forge:scoring@0.1.0', sourceKind: 'algorithm', label: 'Overall fit scoring', detail: 'Overall fit is a slider-weighted selection score over intrinsic component scores. The displayed number is not a school grade or percentile.' }] };
+  const roleInfluenceProvenance = silhouette.roleInfluence
+    ? [{ sourceId: 'name-forge:role-influence@0.1.0', sourceKind: 'algorithm' as const, label: 'Role scoring influence', detail: `${silhouette.roleInfluence.label} contributed role-fit metadata and optional overall-fit weight at ${silhouette.roleInfluence.level} strength.` }]
+    : [];
+  return {
+    id: `name-${index + 1}-${baseName.toLowerCase()}`,
+    name: baseName,
+    silhouette,
+    scores,
+    variants,
+    roleInfluence: silhouette.roleInfluence,
+    provenance: [
+      ...silhouette.provenance,
+      { sourceId: 'name-forge:phonotactic-generator@0.1.0', sourceKind: 'algorithm', label: 'Generated name', detail: 'Generated from style-pack phonotactics, selected silhouette, seeded randomness, anchoring pressure, orthographic weirdness, and minimum viability guards.' },
+      { sourceId: 'name-forge:scoring@0.1.0', sourceKind: 'algorithm', label: 'Overall fit scoring', detail: 'Overall fit is a slider-weighted selection score over intrinsic component scores. The displayed number is not a school grade or percentile.' },
+      ...roleInfluenceProvenance,
+    ],
+  };
 }

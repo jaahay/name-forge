@@ -47,6 +47,7 @@ describe('generateEnsemble', () => {
       expect(name.scores.styleFit).toBeGreaterThan(0);
       expect(name.scores.silhouetteFit).toBeGreaterThan(0);
       expect(name.scores.ensembleFit).toBeGreaterThanOrEqual(0);
+      expect(name.scores.roleFit).toBeGreaterThanOrEqual(0);
     }
   });
 
@@ -56,6 +57,46 @@ describe('generateEnsemble', () => {
     expect(ensemble.diagnostics.repeatedEndings).toBeLessThan(settings.castSize);
     expect(ensemble.diagnostics.repeatedCadences).toBeLessThan(settings.castSize);
     expect(ensemble.diagnostics.repeatedRarityBands).toBeLessThan(settings.castSize);
+  });
+
+  it('keeps role presets metadata-only when role influence is off', () => {
+    const roleNeutral = generateEnsemble({ ...settings, rolePreset: 'none', roleInfluence: 'off' }, createDefaultRegistry());
+    const roleLabeled = generateEnsemble({ ...settings, rolePreset: 'classic-ensemble', roleInfluence: 'off' }, createDefaultRegistry());
+
+    expect(roleLabeled.names.map((name) => name.name)).toEqual(roleNeutral.names.map((name) => name.name));
+    expect(roleLabeled.names.map((name) => name.scores.overallFit)).toEqual(roleNeutral.names.map((name) => name.scores.overallFit));
+
+    const [firstName] = roleLabeled.names;
+    expect(firstName).toBeDefined();
+    if (!firstName) throw new Error('Expected first role-labeled name.');
+    expect(firstName.role?.role).toBe('protagonist');
+    expect(firstName.roleInfluence).toBeUndefined();
+    expect(firstName.silhouette.roleInfluence).toBeUndefined();
+    expect(firstName.scores.roleFit).toBe(0.72);
+  });
+
+  it('applies deterministic role influence when enabled', () => {
+    const offNames = nameListFor({ rolePreset: 'classic-ensemble', roleInfluence: 'off' });
+    const lightFirst = generateEnsemble({ ...settings, rolePreset: 'classic-ensemble', roleInfluence: 'light' }, createDefaultRegistry());
+    const lightSecond = generateEnsemble({ ...settings, rolePreset: 'classic-ensemble', roleInfluence: 'light' }, createDefaultRegistry());
+    const strong = generateEnsemble({ ...settings, rolePreset: 'classic-ensemble', roleInfluence: 'strong' }, createDefaultRegistry());
+
+    expect(lightSecond.names.map((name) => name.name)).toEqual(lightFirst.names.map((name) => name.name));
+    expect(lightFirst.names.map((name) => name.name)).not.toEqual(offNames);
+
+    const [lightName] = lightFirst.names;
+    const [strongName] = strong.names;
+    expect(lightName).toBeDefined();
+    expect(strongName).toBeDefined();
+    if (!lightName || !strongName) throw new Error('Expected role-influenced names.');
+    expect(lightName.role?.role).toBe('protagonist');
+    expect(lightName.roleInfluence?.level).toBe('light');
+    expect(lightName.roleInfluence?.profileId).toBe('role-profile:protagonist');
+    expect(lightName.silhouette.roleInfluence?.label).toBe('Protagonist clarity');
+    expect(lightName.scores.roleFit).toBeGreaterThan(0);
+    expect(lightName.provenance.some((entry) => entry.label === 'Role scoring influence')).toBe(true);
+    expect(strongName.roleInfluence?.level).toBe('strong');
+    expect(strongName.scores.roleFit).toBeGreaterThan(0);
   });
 
   it('uses classic MMO rarity bands', () => {

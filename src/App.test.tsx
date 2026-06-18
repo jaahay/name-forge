@@ -3,7 +3,7 @@ import { renderToString } from 'react-dom/server';
 import App from './App';
 
 describe('App', () => {
-  it('renders the generation shell with grouped controls, card density, compact exports, and project chrome', () => {
+  it('renders the generation shell with grouped controls, nested card details, compact exports, and project chrome', () => {
     const html = renderToString(<App />);
 
     expect(html).toContain('Name Forge');
@@ -23,11 +23,14 @@ describe('App', () => {
     expect(html).toContain('Title + name');
     expect(html).toContain('Epithet/place-style');
     expect(html).toContain('Cast role mix');
+    expect(html).toContain('Role influence');
+    expect(html).toContain('Off');
+    expect(html).toContain('Light');
+    expect(html).toContain('Strong');
+    expect(html).toContain('Roles label cast slots only; generation and scoring stay role-neutral.');
+    expect(html).toContain('Role influence is opt-in.');
+    expect(html).toContain('sound patterns');
     expect(html).toContain('Choose a role mix to reveal optional slot-by-slot overrides.');
-    expect(html).toContain('Card detail');
-    expect(html).toContain('Basic');
-    expect(html).toContain('Brief');
-    expect(html).toContain('Detail');
     expect(html).toContain('Novelty value');
     expect(html).toContain('Randomize Novelty');
     expect(html).toContain('Randomize sliders');
@@ -41,16 +44,24 @@ describe('App', () => {
     expect(html).toContain('Copy Markdown');
     expect(html).toContain('Show Markdown preview');
     expect(html).toContain('# Name Forge Cast Export');
+    expect(html).toContain('Role influence: off');
     expect(html).toContain('name-forge-001');
     expect(html).toContain('<details');
     expect(html).toContain('texture-');
-    expect(html).toContain('More');
-    expect(html).toContain('Tone:');
-    expect(html).toContain('Format:');
+    expect(html).toContain('Open');
+    expect(html).toContain('Details');
+    expect(html).toContain('Texture');
+    expect(html).toContain('Fit');
     expect(html).toContain('Name parts');
-    expect(html).toContain('Alternate spellings');
+    expect(html).toContain('fit score breakdown');
+    expect(html).not.toContain('Card detail');
+    expect(html).not.toContain('Brief');
+    expect(html).not.toContain('Tone');
+    expect(html).not.toContain('Diagnostics');
+    expect(html).not.toContain('Fit scores');
     expect(html).not.toContain('diagnostic score breakdown');
-    expect(html).not.toContain('Diagnostic scores');
+    expect(html).not.toContain('Alternate spellings</h3>');
+    expect(html).not.toContain('No alternate spellings for this name.');
     expect(html).not.toContain('Download JSON');
     expect(html).not.toContain('Download Markdown');
     expect(html).not.toContain('Export generated cast');
@@ -58,11 +69,9 @@ describe('App', () => {
     expect(html).not.toContain('Overall fit score');
     expect(html).not.toContain('medium target');
     expect(html).not.toContain('rarity target');
-    expect(html).not.toContain('Diagnostics explain why this name was selected');
     expect(html).not.toContain('Generated from the same base name');
     expect(html).not.toContain('Errata');
     expect(html).not.toContain('Unreleased');
     expect(html).not.toContain('Name Forge version');
-    expect(html).not.toContain('Fictional names');
   });
 });
