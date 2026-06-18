@@ -1,6 +1,7 @@
 import type { RarityBand, ScoreKey } from '../engine/types';
 
 export type AppView = 'generator' | 'changelog' | 'about';
+export type CardDensity = 'basic' | 'brief' | 'detail';
 
 export type ControlKey =
   | 'novelty'
@@ -8,6 +9,12 @@ export type ControlKey =
   | 'memorability'
   | 'culturalAnchoring'
   | 'orthographicWeirdness';
+
+export const cardDensityOptions: Array<{ value: CardDensity; label: string; help: string }> = [
+  { value: 'basic', label: 'Basic', help: 'Name, role, syllables, and rarity only.' },
+  { value: 'brief', label: 'Brief', help: 'Adds tone and format, with compact expansion content.' },
+  { value: 'detail', label: 'Detail', help: 'Shows the full expanded diagnostic surface.' },
+];
 
 export const scoreControls: Array<{
   key: ControlKey;
@@ -43,6 +50,15 @@ export const rarityPresentation: Record<RarityBand, { label: string; className: 
 };
 
 export const changelogEntries = [
+  {
+    title: 'Fiction workflow layout',
+    summary: 'Restructures the generator around cast setup, fiction controls, browsing density, and late-stage export.',
+    changes: [
+      'Moved export below the generated cards and collapsed the preview behind an explicit toggle.',
+      'Grouped controls into Basics, Fiction, and Rarity & scoring sections with slot overrides hidden until a role mix is selected.',
+      'Added a global Basic / Brief / Detail card density selector for browsing generated casts.',
+    ],
+  },
   {
     title: 'Card styling and controls',
     summary: 'Improves the result card surface and makes generation controls faster to tune.',
