@@ -53,11 +53,23 @@ describe('App', () => {
       'Texture',
       'Fit',
     ];
+    const collapsedControlSectionSummaries = [
+      'Mode',
+      'Basics',
+      'Fiction',
+      'Rarity &amp; scoring',
+    ];
 
     expect(html).toMatch(/Name Forge \/ .*Fiction cast.* mode/);
 
     for (const expected of expectedCopy) {
       expect(html).toContain(expected);
     }
+
+    for (const summary of collapsedControlSectionSummaries) {
+      expect(html).toMatch(new RegExp(`<details class="control-section"><summary>${summary}</summary>`));
+    }
+
+    expect(html).not.toContain('<details class="control-section" open');
   });
 });
