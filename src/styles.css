@@ -50,15 +50,9 @@ h1, h2, h3, p { margin-top: 0; }
 .actions button[type='submit'] { flex: 1 1 100%; }
 .actions button.secondary { flex: 1 1 calc(50% - 0.3rem); padding-inline: 0.78rem; }
 .output { display: grid; gap: 0.85rem; min-width: 0; }
-.generation-context { display: flex; gap: 0.42rem; flex-wrap: wrap; align-items: center; color: #b7a58a; font-size: 0.76rem; }
-.generation-context span, .generation-context strong { border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 999px; padding: 0.32rem 0.52rem; background: rgba(255, 255, 255, 0.05); }
-.generation-context strong { color: #f8d99f; }
 .results-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 360px); gap: 0.85rem; align-items: start; }
-.roster-panel { display: grid; gap: 0.85rem; min-width: 0; padding: 0.9rem; }
-.roster-heading { display: flex; gap: 1rem; align-items: end; justify-content: space-between; }
-.roster-heading h2 { margin-bottom: 0; color: #f7f0e3; font-size: 1.18rem; }
-.roster-heading .eyebrow { margin-bottom: 0.18rem; }
-.roster-heading p { max-width: 420px; margin-bottom: 0; color: #b7a58a; font-size: 0.82rem; }
+.roster-panel { display: grid; gap: 0.7rem; min-width: 0; padding: 0.9rem; }
+.roster-label { margin-bottom: 0; }
 .name-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap: 0.72rem; align-items: stretch; }
 .name-card { position: relative; isolation: isolate; overflow: hidden; min-width: 0; display: grid; transition: border-color 150ms ease, transform 150ms ease, background-color 150ms ease, box-shadow 150ms ease; }
 .name-card:hover, .name-card:focus-within { border-color: rgba(240, 184, 95, 0.46); background: rgba(240, 184, 95, 0.06); transform: translateY(-1px); }
@@ -160,6 +154,6 @@ h1, h2, h3, p { margin-top: 0; }
 .site-footer a:hover { text-decoration: underline; }
 @media (max-width: 1180px) { .results-layout { grid-template-columns: 1fr; } .selected-name-panel { position: static; } .name-detail-grid { grid-template-columns: minmax(0, 1fr) minmax(220px, 0.8fr); } .detail-metadata { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 900px) { .hero, .workspace { grid-template-columns: 1fr; } .controls { position: static; max-height: none; } .actions { position: static; margin: 0; background: transparent; } .changelog-heading, .about-heading { display: grid; } .export-actions { justify-content: flex-start; } }
-@media (max-width: 720px) { .name-detail-grid, .detail-score-list { grid-template-columns: 1fr; } .app-tabs, .roster-heading, .save-heading { display: grid; justify-content: stretch; } .utility-tabs { justify-content: flex-start; } .hero-stats { justify-content: flex-start; min-width: 0; } }
-@media (max-width: 640px) { .slider-heading, .slider-tools, .name-card-header, .selected-name-heading { display: grid; justify-content: stretch; } .slider-value { width: 100%; } .generation-context { display: grid; } .name-card-meta { max-width: none; justify-content: flex-start; } }
+@media (max-width: 720px) { .name-detail-grid, .detail-score-list { grid-template-columns: 1fr; } .app-tabs, .save-heading { display: grid; justify-content: stretch; } .utility-tabs { justify-content: flex-start; } .hero-stats { justify-content: flex-start; min-width: 0; } }
+@media (max-width: 640px) { .slider-heading, .slider-tools, .name-card-header, .selected-name-heading { display: grid; justify-content: stretch; } .generation-context { display: grid; } .slider-value { width: 100%; } .name-card-meta { max-width: none; justify-content: flex-start; } }
 @media (max-width: 520px) { .score-list, .detail-metadata, .inspector-summary { grid-template-columns: 1fr; } .site-footer { flex-direction: column; } }
