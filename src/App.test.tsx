@@ -47,7 +47,7 @@ describe('App', () => {
       'Generate',
       'Selected',
       'Texture',
-      'Checks',
+      'Read',
       'Name parts',
       'Save',
       'Copy',
@@ -110,6 +110,7 @@ describe('App', () => {
     expect(html).not.toContain('Show Markdown preview');
     expect(html).not.toContain('In inspector');
     expect(html).not.toContain('Profile');
+    expect(html).not.toContain('Checks');
     expect(html).not.toContain('Construction');
     expect(html).not.toContain('Fit scores');
     expect(html).not.toContain('Export cast');
