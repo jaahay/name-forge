@@ -3,7 +3,7 @@ import { renderToString } from 'react-dom/server';
 import App from './App';
 
 describe('App', () => {
-  it('renders the fiction cast workbench with compact header, roster, selected-name inspector, export controls, and project chrome', () => {
+  it('renders the fiction cast workbench with compact header, roster, selected-name inspector, save controls, and project chrome', () => {
     const html = renderToString(<App />);
 
     const expectedCopy = [
@@ -43,21 +43,18 @@ describe('App', () => {
       'Reroll names',
       'Shuffle feel',
       'Generate',
-      'Roster',
-      'Generated names',
-      'Pick a tile to inspect fit, construction, and role signals.',
-      'Generated from',
+      'Cast roster',
       'Selected',
-      'Selection',
+      'Selected name',
       'Texture',
-      'Fit scores',
-      'Construction',
-      'Export cast',
+      'Checks',
+      'Name parts',
+      'Save cast',
       'JSON',
       'Markdown',
       'Copy JSON',
       'Copy Markdown',
-      'Show Markdown preview',
+      'Preview Markdown',
     ];
     const collapsedControlSectionSummaries = [
       'Cast setup',
@@ -79,6 +76,7 @@ describe('App', () => {
     expect(html).toContain('class="hero panel app-header"');
     expect(html).toContain('class="workspace workbench"');
     expect(html).toContain('class="roster-panel panel"');
+    expect(html).toContain('class="save-panel panel"');
     expect(html).toContain('aria-label="Naming modes"');
     expect(html).toContain('class="mode-tab active"');
     expect(html).toContain('class="name-grid"');
@@ -86,7 +84,6 @@ describe('App', () => {
     expect(html).toContain('class="selected-name-chips"');
     expect(html).toContain('class="inspector-summary"');
     expect(html).toContain('class="name-detail-grid"');
-    expect(html).toContain('class="generation-context export-summary"');
     expect(html).toContain('class="selection-cue"');
     expect(html).toContain('aria-pressed="true"');
     expect(html).toContain('aria-label="Generation actions"');
@@ -94,10 +91,19 @@ describe('App', () => {
     expect(html).not.toContain('class="name-grid has-selection"');
     expect(html).not.toContain('class="name-inline-detail"');
     expect(html).not.toContain('class="collapse-cue"');
+    expect(html).not.toContain('class="generation-context export-summary"');
     expect(html).not.toContain('aria-expanded="true"');
     expect(html).not.toContain('Names that are random, usable, and cast-aware.');
+    expect(html).not.toContain('Generated names');
+    expect(html).not.toContain('Pick a tile');
+    expect(html).not.toContain('Generated from');
+    expect(html).not.toContain('Roll notes');
     expect(html).not.toContain('In inspector');
     expect(html).not.toContain('Profile');
+    expect(html).not.toContain('Construction');
+    expect(html).not.toContain('Fit scores');
+    expect(html).not.toContain('Export cast');
+    expect(html).not.toContain('Show Markdown preview');
     expect(html).not.toContain('Randomize sliders');
     expect(html).not.toContain('Randomize seed');
     expect(html).not.toContain('Randomize Novelty');
