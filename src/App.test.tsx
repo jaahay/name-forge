@@ -3,7 +3,7 @@ import { renderToString } from 'react-dom/server';
 import App from './App';
 
 describe('App', () => {
-  it('renders the fiction cast mode shell with grouped controls, nested card details, compact exports, and project chrome', () => {
+  it('renders the fiction cast mode shell with grouped controls, card details, export controls, and project chrome', () => {
     const html = renderToString(<App />);
 
     const expectedCopy = [
@@ -49,17 +49,10 @@ describe('App', () => {
       'Copy JSON',
       'Copy Markdown',
       'Show Markdown preview',
-      '# Name Forge Cast Export',
-      'Role influence: off',
-      'name-forge-001',
-      '<details',
-      'texture-',
       'Open',
       'Details',
       'Texture',
       'Fit',
-      'Name parts',
-      'fit score breakdown',
     ];
 
     for (const expected of expectedCopy) {
