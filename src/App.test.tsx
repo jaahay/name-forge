@@ -74,8 +74,10 @@ describe('App', () => {
     expect(html).toContain('class="mode-tab active"');
     expect(html).toContain('class="name-grid has-selection"');
     expect(html).toContain('class="name-inline-detail"');
+    expect(html).toContain('class="generation-context export-summary"');
     expect(html).toContain('aria-expanded="true"');
     expect(html).toContain('aria-label="Generation actions"');
+    expect(html).not.toContain('class="output-toolbar panel"');
     expect(html).not.toContain('<summary>Mode</summary>');
     expect(html).not.toContain('Density');
     expect(html).not.toContain('Comfortable');
