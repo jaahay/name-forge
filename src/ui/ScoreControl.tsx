@@ -34,10 +34,10 @@ export function ScoreControl({ control, value, onChange, onRandomize }: ScoreCon
           <button
             type="button"
             className="anchor-button"
-            aria-label={`Randomize ${control.label}`}
-            title={`Randomize ${control.label}`}
+            aria-label={`Shuffle ${control.label}`}
+            title={`Shuffle ${control.label}`}
             onClick={() => onRandomize(control.key)}
-          >{'\u21bb Random'}</button>
+          >Shuffle</button>
         </span>
       </span>
       <input

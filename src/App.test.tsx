@@ -3,7 +3,7 @@ import { renderToString } from 'react-dom/server';
 import App from './App';
 
 describe('App', () => {
-  it('renders the fiction cast mode shell with top-level mode navigation, grouped controls, inline selected details, export controls, and project chrome', () => {
+  it('renders the fiction cast mode shell with top-level mode navigation, grouped controls, selected-name inspector, export controls, and project chrome', () => {
     const html = renderToString(<App />);
 
     const expectedCopy = [
@@ -38,14 +38,15 @@ describe('App', () => {
       'Choose a role mix to reveal optional slot-by-slot overrides.',
       'Rarity distribution',
       'Novelty value',
-      'Randomize Novelty',
+      'Shuffle Novelty',
       'Generation seed',
-      'Randomize sliders',
-      'Randomize seed',
+      'Reroll names',
+      'Shuffle feel',
       'Generate',
       'Generated from',
-      'View details',
+      'Inspect',
       'Selected',
+      'Selected name',
       'Details',
       'Texture',
       'Fit',
@@ -75,12 +76,19 @@ describe('App', () => {
 
     expect(html).toContain('aria-label="Naming modes"');
     expect(html).toContain('class="mode-tab active"');
-    expect(html).toContain('class="name-grid has-selection"');
-    expect(html).toContain('class="name-inline-detail"');
+    expect(html).toContain('class="name-grid"');
+    expect(html).toContain('class="selected-name-panel panel"');
+    expect(html).toContain('class="name-detail-grid"');
     expect(html).toContain('class="generation-context export-summary"');
-    expect(html).toContain('aria-expanded="true"');
+    expect(html).toContain('aria-pressed="true"');
     expect(html).toContain('aria-label="Generation actions"');
     expect(html).not.toContain('class="output-toolbar panel"');
+    expect(html).not.toContain('class="name-grid has-selection"');
+    expect(html).not.toContain('class="name-inline-detail"');
+    expect(html).not.toContain('aria-expanded="true"');
+    expect(html).not.toContain('Randomize sliders');
+    expect(html).not.toContain('Randomize seed');
+    expect(html).not.toContain('Randomize Novelty');
     expect(html).not.toContain('<summary>Basics</summary>');
     expect(html).not.toContain('<summary>Fiction</summary>');
     expect(html).not.toContain('<summary>Name tuning</summary>');

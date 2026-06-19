@@ -6,7 +6,7 @@ import type { CastRole, CastRolePresetKind, GeneratedEnsemble, GenerationSetting
 import type { NamingModeConfig } from './modes';
 import { scoreControls, type ControlKey } from './presentation';
 import { ScoreControl } from './ScoreControl';
-import { NameCard } from './NameCard';
+import { NameCard, NameInspector } from './NameCard';
 
 interface GeneratorViewProps {
   mode: NamingModeConfig;
@@ -188,19 +188,20 @@ export function GeneratorView({
 
           <div className="actions" aria-label="Generation actions">
             <button type="submit">Generate</button>
-            <button type="button" className="secondary" onClick={onRandomizeSliders}>Randomize sliders</button>
-            <button type="button" className="secondary" onClick={onRandomizeSeed}>Randomize seed</button>
+            <button type="button" className="secondary" onClick={onRandomizeSeed}>Reroll names</button>
+            <button type="button" className="secondary" onClick={onRandomizeSliders}>Shuffle feel</button>
           </div>
         </form>
 
         <section className="output" aria-live="polite">
           {selectedName ? (
             <div className="results-layout">
-              <div className="name-grid has-selection" aria-label="Generated names">
+              <div className="name-grid" aria-label="Generated names">
                 {ensemble.names.map((name) => (
                   <NameCard key={name.id} name={name} isSelected={name.id === selectedNameKey} onSelect={setSelectedNameId} />
                 ))}
               </div>
+              <NameInspector name={selectedName} />
             </div>
           ) : (
             <div className="empty-state panel">Generate names to fill this cast.</div>
