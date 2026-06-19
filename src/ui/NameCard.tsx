@@ -23,15 +23,6 @@ function labelFor(value: string): string {
     .join(' ');
 }
 
-function variantList(name: GeneratedName) {
-  if (name.variants.length === 0) return null;
-  return (
-    <ul className="variants compact-variants" aria-label={`${name.name} alternate spellings`}>
-      {name.variants.map((variant) => <li key={`${name.id}-${variant.value}`}><span>{variant.value}</span></li>)}
-    </ul>
-  );
-}
-
 function NameCardHeader({ name }: NameCardHeaderProps) {
   const rarity = rarityPresentation[name.silhouette.rarityBand];
 
@@ -39,7 +30,6 @@ function NameCardHeader({ name }: NameCardHeaderProps) {
     <div className="name-card-header">
       <div className="name-card-title-block">
         <h2 className={`name-card-title ${rarity.className}`}>{name.name}</h2>
-        {variantList(name)}
       </div>
       <div className="name-card-meta" aria-label={`${name.silhouette.syllableCount} syllables`}>
         <span>{name.silhouette.syllableCount} syllables</span>
@@ -96,6 +86,15 @@ export function NameInspector({ name }: NameInspectorProps) {
           </section>
         ) : null}
 
+        {name.variants.length > 0 ? (
+          <section className="detail-block">
+            <h3>Spellings</h3>
+            <ul className="variants detail-variants" aria-label={`${name.name} alternate spellings`}>
+              {name.variants.map((variant) => <li key={`${name.id}-${variant.value}`}><span>{variant.value}</span></li>)}
+            </ul>
+          </section>
+        ) : null}
+
         {name.roleInfluence ? (
           <section className="detail-block">
             <h3>Role cue</h3>
@@ -120,7 +119,6 @@ export function NameCard({ name, isSelected, onSelect }: NameCardProps) {
         onClick={() => onSelect(name.id)}
       >
         <NameCardHeader name={name} />
-        {isSelected ? <span className="selection-cue">Selected</span> : null}
       </button>
     </article>
   );
