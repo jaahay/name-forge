@@ -90,10 +90,10 @@ export function GeneratorView({
       <section className="hero panel app-header">
         <div>
           <div className="brand-lockup" aria-label="Name Forge">
-            <span className="brand-mark" aria-hidden="true">NF</span>
+            <span className="brand-mark" aria-hidden="true"><span className="brand-sigil" /></span>
           </div>
           <h1>{modeTitle}</h1>
-          <p className="hero-copy">{mode.heroCopy}</p>
+          <p className="hero-copy">Roll fantasy names, tune the feel, and keep the cast that fits.</p>
         </div>
         <div className="hero-stats" aria-label="Generation summary">
           <span>{ensemble.names.length} names</span>
