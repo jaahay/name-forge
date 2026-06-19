@@ -14,9 +14,10 @@ describe('App', () => {
       'Cast',
       'Changelog',
       'About',
-      'Basics',
-      'Fiction',
-      'Name tuning',
+      'Cast setup',
+      'Story roles',
+      'Name feel',
+      'Run options',
       'Cast size',
       'Decrease cast size',
       'Increase cast size',
@@ -38,6 +39,7 @@ describe('App', () => {
       'Rarity distribution',
       'Novelty value',
       'Randomize Novelty',
+      'Generation seed',
       'Randomize sliders',
       'Randomize seed',
       'Generate',
@@ -55,9 +57,10 @@ describe('App', () => {
       'Show Markdown preview',
     ];
     const collapsedControlSectionSummaries = [
-      'Basics',
-      'Fiction',
-      'Name tuning',
+      'Cast setup',
+      'Story roles',
+      'Name feel',
+      'Run options',
     ];
 
     expect(html).toMatch(/Name Forge \/ .*Fiction cast.* mode/);
@@ -74,8 +77,13 @@ describe('App', () => {
     expect(html).toContain('class="mode-tab active"');
     expect(html).toContain('class="name-grid has-selection"');
     expect(html).toContain('class="name-inline-detail"');
+    expect(html).toContain('class="generation-context export-summary"');
     expect(html).toContain('aria-expanded="true"');
     expect(html).toContain('aria-label="Generation actions"');
+    expect(html).not.toContain('class="output-toolbar panel"');
+    expect(html).not.toContain('<summary>Basics</summary>');
+    expect(html).not.toContain('<summary>Fiction</summary>');
+    expect(html).not.toContain('<summary>Name tuning</summary>');
     expect(html).not.toContain('<summary>Mode</summary>');
     expect(html).not.toContain('Density');
     expect(html).not.toContain('Comfortable');

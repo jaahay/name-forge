@@ -97,7 +97,7 @@ export function GeneratorView({
       <section className="workspace">
         <form className="controls panel" onSubmit={onRegenerate}>
           <details className="control-section">
-            <summary>Basics</summary>
+            <summary>Cast setup</summary>
             <div className="control-section-body">
               <label>
                 <span>{mode.shortLabel} size</span>
@@ -119,15 +119,11 @@ export function GeneratorView({
                   {formatOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                 </select>
               </label>
-              <label className="seed-control">
-                <span>Seed</span>
-                <input value={settings.seed} onChange={(event) => onUpdateSetting('seed', event.target.value)} />
-              </label>
             </div>
           </details>
 
           <details className="control-section">
-            <summary>Fiction</summary>
+            <summary>Story roles</summary>
             <div className="control-section-body">
               <label>
                 <span>Cast role mix</span>
@@ -166,7 +162,7 @@ export function GeneratorView({
           </details>
 
           <details className="control-section">
-            <summary>Name tuning</summary>
+            <summary>Name feel</summary>
             <div className="control-section-body">
               <label>
                 <span>Rarity distribution</span>
@@ -180,6 +176,16 @@ export function GeneratorView({
             </div>
           </details>
 
+          <details className="control-section">
+            <summary>Run options</summary>
+            <div className="control-section-body">
+              <label className="seed-control">
+                <span>Generation seed</span>
+                <input value={settings.seed} onChange={(event) => onUpdateSetting('seed', event.target.value)} />
+              </label>
+            </div>
+          </details>
+
           <div className="actions" aria-label="Generation actions">
             <button type="submit">Generate</button>
             <button type="button" className="secondary" onClick={onRandomizeSliders}>Randomize sliders</button>
@@ -188,16 +194,6 @@ export function GeneratorView({
         </form>
 
         <section className="output" aria-live="polite">
-          <div className="output-toolbar panel">
-            <div className="generation-context" aria-label="Generated from settings">
-              <span>Generated from</span>
-              <strong>{selectedStylePack?.label ?? 'Selected style'}</strong>
-              <span>{selectedFormat?.label ?? 'Selected format'}</span>
-              <span>{castSize} requested names</span>
-              <span>{selectedRoleInfluence?.label ?? 'Off'} role influence</span>
-            </div>
-          </div>
-
           {selectedName ? (
             <div className="results-layout">
               <div className="name-grid has-selection" aria-label="Generated names">
@@ -222,6 +218,13 @@ export function GeneratorView({
                 <button type="button" className="secondary" onClick={() => copyExport(jsonExport)}>Copy JSON</button>
                 <button type="button" className="secondary" onClick={() => copyExport(markdownExport)}>Copy Markdown</button>
               </div>
+            </div>
+            <div className="generation-context export-summary" aria-label="Generated from settings">
+              <span>Generated from</span>
+              <strong>{selectedStylePack?.label ?? 'Selected style'}</strong>
+              <span>{selectedFormat?.label ?? 'Selected format'}</span>
+              <span>{castSize} requested names</span>
+              <span>{selectedRoleInfluence?.label ?? 'Off'} role influence</span>
             </div>
             <details className="export-preview">
               <summary>Show Markdown preview</summary>
