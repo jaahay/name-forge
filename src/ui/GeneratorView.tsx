@@ -42,6 +42,13 @@ function clampCastSize(value: number): number {
   return Math.max(1, Math.min(24, Math.round(value)));
 }
 
+function titleCaseLabel(value: string): string {
+  return value
+    .split(' ')
+    .map((part) => `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
+    .join(' ');
+}
+
 function updateSlotRole(currentRoles: GenerationSettings['slotRoleOverrides'], index: number, role: CastRole | ''): GenerationSettings['slotRoleOverrides'] {
   const nextRoles = { ...(currentRoles ?? {}) };
   if (role === '') {
@@ -72,6 +79,7 @@ export function GeneratorView({
   const selectedRoleInfluence = roleInfluenceOptions.find((option) => option.value === (settings.roleInfluence ?? 'off'));
   const selectedName = ensemble.names.find((name) => name.id === selectedNameId) ?? ensemble.names[0];
   const selectedNameKey = selectedName?.id ?? '';
+  const modeTitle = titleCaseLabel(mode.label);
 
   function updateCastSize(value: number) {
     onUpdateSetting('castSize', clampCastSize(value));
@@ -81,8 +89,10 @@ export function GeneratorView({
     <>
       <section className="hero panel app-header">
         <div>
-          <p className="eyebrow">Name Forge / {mode.label} mode</p>
-          <h1>{mode.label}</h1>
+          <div className="brand-lockup" aria-label="Name Forge">
+            <span className="brand-mark" aria-hidden="true">NF</span>
+          </div>
+          <h1>{modeTitle}</h1>
           <p className="hero-copy">{mode.heroCopy}</p>
         </div>
         <div className="hero-stats" aria-label="Generation summary">
@@ -194,9 +204,8 @@ export function GeneratorView({
         <section className="output" aria-live="polite">
           {selectedName ? (
             <div className="results-layout">
-              <section className="roster-panel panel" aria-label="Cast roster">
-                <p className="eyebrow roster-label">Cast roster</p>
-                <div className="name-grid" aria-label="Generated names">
+              <section className="roster-panel panel" aria-label="Name roster">
+                <div className="name-grid" aria-label="Name tiles">
                   {ensemble.names.map((name) => (
                     <NameCard key={name.id} name={name} isSelected={name.id === selectedNameKey} onSelect={setSelectedNameId} />
                   ))}
@@ -208,23 +217,17 @@ export function GeneratorView({
             <div className="empty-state panel">Generate names to fill this cast.</div>
           )}
 
-          <section className="save-panel panel" aria-labelledby="save-heading">
-            <div className="save-heading">
-              <div>
-                <p className="eyebrow">Save</p>
-                <h2 id="save-heading">Save cast</h2>
-              </div>
-              <div className="export-actions" aria-label="Cast save actions">
-                <a className="export-link" download="name-forge-cast.json" href={exportHref('application/json', jsonExport)}>JSON</a>
-                <a className="export-link" download="name-forge-cast.md" href={exportHref('text/markdown', markdownExport)}>Markdown</a>
-                <button type="button" className="secondary" onClick={() => copyExport(jsonExport)}>Copy JSON</button>
-                <button type="button" className="secondary" onClick={() => copyExport(markdownExport)}>Copy Markdown</button>
-              </div>
+          <section className="save-panel panel" aria-label="Save or copy cast">
+            <div className="save-group" aria-label="Save files">
+              <span className="save-group-label">Save</span>
+              <a className="export-link" download="name-forge-cast.json" href={exportHref('application/json', jsonExport)}>JSON</a>
+              <a className="export-link" download="name-forge-cast.md" href={exportHref('text/markdown', markdownExport)}>Markdown</a>
             </div>
-            <details className="export-preview">
-              <summary>Preview Markdown</summary>
-              <textarea value={markdownExport} readOnly rows={8} aria-label="Markdown export preview" />
-            </details>
+            <div className="save-group" aria-label="Copy cast">
+              <span className="save-group-label">Copy</span>
+              <button type="button" className="secondary" aria-label="Copy JSON" onClick={() => copyExport(jsonExport)}>JSON</button>
+              <button type="button" className="secondary" aria-label="Copy Markdown" onClick={() => copyExport(markdownExport)}>Markdown</button>
+            </div>
           </section>
         </section>
       </section>
