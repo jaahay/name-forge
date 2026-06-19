@@ -47,10 +47,8 @@ describe('App', () => {
       'Generated names',
       'Pick a tile to inspect fit, construction, and role signals.',
       'Generated from',
-      'Inspect',
-      'In inspector',
+      'Selected',
       'Selection',
-      'Profile',
       'Texture',
       'Fit scores',
       'Construction',
@@ -89,13 +87,17 @@ describe('App', () => {
     expect(html).toContain('class="inspector-summary"');
     expect(html).toContain('class="name-detail-grid"');
     expect(html).toContain('class="generation-context export-summary"');
+    expect(html).toContain('class="selection-cue"');
     expect(html).toContain('aria-pressed="true"');
     expect(html).toContain('aria-label="Generation actions"');
     expect(html).not.toContain('class="output-toolbar panel"');
     expect(html).not.toContain('class="name-grid has-selection"');
     expect(html).not.toContain('class="name-inline-detail"');
+    expect(html).not.toContain('class="collapse-cue"');
     expect(html).not.toContain('aria-expanded="true"');
     expect(html).not.toContain('Names that are random, usable, and cast-aware.');
+    expect(html).not.toContain('In inspector');
+    expect(html).not.toContain('Profile');
     expect(html).not.toContain('Randomize sliders');
     expect(html).not.toContain('Randomize seed');
     expect(html).not.toContain('Randomize Novelty');
