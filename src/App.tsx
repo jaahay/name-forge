@@ -53,11 +53,17 @@ export default function App() {
   return (
     <main className="app-shell">
       <nav className="app-tabs" aria-label="Primary">
-        <div className="mode-tabs" aria-label="Naming modes">
-          <button type="button" className="mode-tab" disabled>Product</button>
-          <button type="button" className="mode-tab" disabled>NPC</button>
-          <button type="button" className="mode-tab" disabled>Pen name</button>
-          <button type="button" className={currentView === 'generator' ? 'mode-tab active' : 'mode-tab'} onClick={() => setCurrentView('generator')}>Cast</button>
+        <div className="nav-primary">
+          <div className="nav-brand" aria-label="Name Forge">
+            <span className="brand-mark" aria-hidden="true"><span className="brand-sigil" /></span>
+          </div>
+          <span className="nav-divider" aria-hidden="true" />
+          <div className="mode-tabs" aria-label="Naming modes">
+            <button type="button" className="mode-tab" disabled>Product</button>
+            <button type="button" className="mode-tab" disabled>NPC</button>
+            <button type="button" className="mode-tab" disabled>Pen name</button>
+            <button type="button" className={currentView === 'generator' ? 'mode-tab active' : 'mode-tab'} onClick={() => setCurrentView('generator')}>Cast</button>
+          </div>
         </div>
         <div className="utility-tabs" aria-label="Project links">
           <button type="button" className={currentView === 'changelog' ? 'tab-button active' : 'tab-button'} onClick={() => setCurrentView('changelog')}>Changelog</button>
