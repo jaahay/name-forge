@@ -97,7 +97,7 @@ export function GeneratorView({
       <section className="workspace">
         <form className="controls panel" onSubmit={onRegenerate}>
           <details className="control-section">
-            <summary>Basics</summary>
+            <summary>Cast setup</summary>
             <div className="control-section-body">
               <label>
                 <span>{mode.shortLabel} size</span>
@@ -119,15 +119,11 @@ export function GeneratorView({
                   {formatOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                 </select>
               </label>
-              <label className="seed-control">
-                <span>Seed</span>
-                <input value={settings.seed} onChange={(event) => onUpdateSetting('seed', event.target.value)} />
-              </label>
             </div>
           </details>
 
           <details className="control-section">
-            <summary>Fiction</summary>
+            <summary>Story roles</summary>
             <div className="control-section-body">
               <label>
                 <span>Cast role mix</span>
@@ -166,7 +162,7 @@ export function GeneratorView({
           </details>
 
           <details className="control-section">
-            <summary>Name tuning</summary>
+            <summary>Name feel</summary>
             <div className="control-section-body">
               <label>
                 <span>Rarity distribution</span>
@@ -177,6 +173,16 @@ export function GeneratorView({
               {scoreControls.map((control) => (
                 <ScoreControl key={control.key} control={control} value={Number(settings[control.key])} onChange={(key, value) => onUpdateSetting(key, value)} onRandomize={onRandomizeSlider} />
               ))}
+            </div>
+          </details>
+
+          <details className="control-section">
+            <summary>Run options</summary>
+            <div className="control-section-body">
+              <label className="seed-control">
+                <span>Generation seed</span>
+                <input value={settings.seed} onChange={(event) => onUpdateSetting('seed', event.target.value)} />
+              </label>
             </div>
           </details>
 
