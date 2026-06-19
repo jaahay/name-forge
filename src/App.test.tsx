@@ -45,11 +45,12 @@ describe('App', () => {
       'Generate',
       'Generated from',
       'Inspect',
-      'Selected',
-      'Selected name',
-      'Details',
+      'In inspector',
+      'Selection',
+      'Profile',
       'Texture',
-      'Fit',
+      'Fit scores',
+      'Construction',
       'Export cast',
       'JSON',
       'Markdown',
@@ -78,6 +79,8 @@ describe('App', () => {
     expect(html).toContain('class="mode-tab active"');
     expect(html).toContain('class="name-grid"');
     expect(html).toContain('class="selected-name-panel panel"');
+    expect(html).toContain('class="selected-name-chips"');
+    expect(html).toContain('class="inspector-summary"');
     expect(html).toContain('class="name-detail-grid"');
     expect(html).toContain('class="generation-context export-summary"');
     expect(html).toContain('aria-pressed="true"');
