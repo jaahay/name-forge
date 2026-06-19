@@ -6,6 +6,7 @@ The architecture goal is not to build a generic abstraction before the product e
 
 Related docs:
 
+- [`product-brief.md`](product-brief.md): product thesis, mode strategy, candidate modes, and recommended sequencing.
 - [`product-requirements.md`](product-requirements.md): original requirements and historical build-order scaffold.
 - [`product-architecture.md`](product-architecture.md): product-level mode strategy.
 - [`phase-one-closeout.md`](phase-one-closeout.md): Phase One completion and replacement tracking model.
@@ -89,9 +90,13 @@ src/
     score.ts              UI score formatting and visual class helpers
 ```
 
-## Mode boundary
+## Mode system
+
+Name Forge should be treated as a mode-based product, not a collection of unrelated generators. A mode defines the naming job being performed. Shared primitives provide the reusable generation, scoring, comparison, export, and provenance machinery beneath that job.
 
 The app currently exposes one mode: **Fiction cast**.
+
+### Current mode config
 
 `src/ui/modes.ts` owns the current mode config:
 
@@ -103,6 +108,47 @@ The app currently exposes one mode: **Fiction cast**.
 - user-facing description for the first `What are you naming?` selector
 
 This boundary keeps fiction-cast defaults and presentation out of `App.tsx` without pretending future modes are fully designed. The next mode should extend this seam only after its workflow is concrete.
+
+### What belongs in a mode
+
+Mode-level code may own:
+
+- product vocabulary
+- default settings
+- control grouping and labels
+- mode-specific result headings
+- export headings and export vocabulary
+- scoring emphasis and fit explanation copy
+- user-facing result-card presentation choices
+
+### What does not belong in a mode
+
+Mode-level code should not fork core mechanics unnecessarily. The following should remain shared until a real second mode proves otherwise:
+
+- seeded random generation
+- style-pack lookup and provider registry contracts
+- silhouette construction
+- candidate generation
+- decomposed scoring primitives
+- set/list comparison pressure
+- spelling variant relationships
+- provenance structure
+- JSON/Markdown serialization mechanics where the shape is not mode-specific
+
+### Adding a future mode
+
+A future mode should be added only when it has a clear user job, output contract, and validation target. Do not add placeholder modes just to populate the selector.
+
+Before adding a second active mode, answer:
+
+1. What user job does this mode perform?
+2. What controls are required on day one?
+3. What result-card shape is useful for scanning output?
+4. Which shared primitives does it reuse?
+5. Which assumptions from Fiction cast must not leak into it?
+6. What fixture or smoke test proves the mode boundary works?
+
+The first second mode should likely be close to Fiction cast, such as Game NPC, because it can stress the mode boundary without requiring a wholly different engine.
 
 ## Shared engine primitives
 
@@ -234,6 +280,8 @@ Unit tests should prioritize deterministic engine contracts:
 - registry resolves built-in style packs and source descriptors
 
 UI smoke tests should verify shell-level contracts such as mode boundary copy, visible controls, grouped sections, compact nested cards, compact export affordances, and the absence of obsolete public copy.
+
+When smoke tests assert React server-rendered HTML, avoid requiring adjacent JSX text to appear as one contiguous string. React SSR may insert comment separators between adjacent text nodes. Prefer separate text assertions, normalized HTML, or regex assertions for composed text.
 
 ## MVP readiness checklist
 
