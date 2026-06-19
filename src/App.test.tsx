@@ -3,21 +3,20 @@ import { renderToString } from 'react-dom/server';
 import App from './App';
 
 describe('App', () => {
-  it('renders the fiction cast mode shell with grouped controls, compact result browsing, selected details, export controls, and project chrome', () => {
+  it('renders the fiction cast mode shell with top-level mode navigation, grouped controls, inline selected details, export controls, and project chrome', () => {
     const html = renderToString(<App />);
 
     const expectedCopy = [
       'Name Forge',
-      'Generator',
+      'Product',
+      'NPC',
+      'Pen name',
+      'Cast',
       'Changelog',
       'About',
-      'Mode',
-      'What are you naming?',
-      'Fiction cast',
-      'Build a coherent-but-distinct ensemble of fictional character names.',
       'Basics',
       'Fiction',
-      'Rarity',
+      'Name tuning',
       'Cast size',
       'Decrease cast size',
       'Increase cast size',
@@ -36,19 +35,15 @@ describe('App', () => {
       'Role influence is opt-in.',
       'sound patterns',
       'Choose a role mix to reveal optional slot-by-slot overrides.',
+      'Rarity distribution',
       'Novelty value',
       'Randomize Novelty',
       'Randomize sliders',
       'Randomize seed',
-      'Generate cast',
-      'Ensemble balance',
-      'Density',
-      'Compact',
-      'Comfortable',
+      'Generate',
       'Generated from',
       'View details',
       'Selected',
-      'Selected name',
       'Details',
       'Texture',
       'Fit',
@@ -60,10 +55,9 @@ describe('App', () => {
       'Show Markdown preview',
     ];
     const collapsedControlSectionSummaries = [
-      'Mode',
       'Basics',
       'Fiction',
-      'Rarity &amp; scoring',
+      'Name tuning',
     ];
 
     expect(html).toMatch(/Name Forge \/ .*Fiction cast.* mode/);
@@ -76,11 +70,15 @@ describe('App', () => {
       expect(html).toMatch(new RegExp(`<details class="control-section"><summary>${summary}</summary>`));
     }
 
-    expect(html).toContain('class="results-layout density-compact"');
-    expect(html).toContain('aria-label="Generated names"');
-    expect(html).toContain('class="name-detail-panel panel');
+    expect(html).toContain('aria-label="Naming modes"');
+    expect(html).toContain('class="mode-tab active"');
+    expect(html).toContain('class="name-grid has-selection"');
+    expect(html).toContain('class="name-inline-detail"');
+    expect(html).toContain('aria-expanded="true"');
     expect(html).toContain('aria-label="Generation actions"');
-    expect(html).toContain('aria-label="Result layout controls"');
+    expect(html).not.toContain('<summary>Mode</summary>');
+    expect(html).not.toContain('Density');
+    expect(html).not.toContain('Comfortable');
     expect(html).not.toContain('<details class="control-section" open');
   });
 });
