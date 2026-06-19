@@ -81,10 +81,10 @@ export function GeneratorView({
 
   return (
     <>
-      <section className="hero panel">
+      <section className="hero panel app-header">
         <div>
           <p className="eyebrow">Name Forge / {mode.label} mode</p>
-          <h1>{mode.heroTitle}</h1>
+          <h1>{mode.label}</h1>
           <p className="hero-copy">{mode.heroCopy}</p>
         </div>
         <div className="hero-stats" aria-label="Generation summary">
@@ -94,7 +94,7 @@ export function GeneratorView({
         </div>
       </section>
 
-      <section className="workspace">
+      <section className="workspace workbench">
         <form className="controls panel" onSubmit={onRegenerate}>
           <details className="control-section">
             <summary>Cast setup</summary>
@@ -196,11 +196,20 @@ export function GeneratorView({
         <section className="output" aria-live="polite">
           {selectedName ? (
             <div className="results-layout">
-              <div className="name-grid" aria-label="Generated names">
-                {ensemble.names.map((name) => (
-                  <NameCard key={name.id} name={name} isSelected={name.id === selectedNameKey} onSelect={setSelectedNameId} />
-                ))}
-              </div>
+              <section className="roster-panel panel" aria-labelledby="roster-heading">
+                <header className="roster-heading">
+                  <div>
+                    <p className="eyebrow">Roster</p>
+                    <h2 id="roster-heading">Generated names</h2>
+                  </div>
+                  <p>Pick a tile to inspect fit, construction, and role signals.</p>
+                </header>
+                <div className="name-grid" aria-label="Generated names">
+                  {ensemble.names.map((name) => (
+                    <NameCard key={name.id} name={name} isSelected={name.id === selectedNameKey} onSelect={setSelectedNameId} />
+                  ))}
+                </div>
+              </section>
               <NameInspector name={selectedName} />
             </div>
           ) : (
