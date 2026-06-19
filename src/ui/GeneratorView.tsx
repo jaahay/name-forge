@@ -6,7 +6,7 @@ import type { CastRole, CastRolePresetKind, GeneratedEnsemble, GenerationSetting
 import type { NamingModeConfig } from './modes';
 import { scoreControls, type ControlKey } from './presentation';
 import { ScoreControl } from './ScoreControl';
-import { NameCard, NameDetailPanel, type ResultsDensity } from './NameCard';
+import { NameCard } from './NameCard';
 
 interface GeneratorViewProps {
   mode: NamingModeConfig;
@@ -27,11 +27,6 @@ const formatOptions: Array<{ value: NameFormatKind; label: string }> = [
   { value: 'initials-family', label: 'Initials + family' },
   { value: 'title-name', label: 'Title + name' },
   { value: 'epithet-place', label: 'Epithet/place-style' },
-];
-
-const densityOptions: Array<{ value: ResultsDensity; label: string }> = [
-  { value: 'compact', label: 'Compact' },
-  { value: 'comfortable', label: 'Comfortable' },
 ];
 
 function exportHref(mimeType: string, value: string): string {
@@ -69,7 +64,6 @@ export function GeneratorView({
   onRandomizeSlider,
 }: GeneratorViewProps) {
   const [selectedNameId, setSelectedNameId] = useState(ensemble.names[0]?.id ?? '');
-  const [resultsDensity, setResultsDensity] = useState<ResultsDensity>('compact');
   const jsonExport = serializeCastAsJson(ensemble);
   const markdownExport = serializeCastAsMarkdown(ensemble);
   const castSize = clampCastSize(settings.castSize);
@@ -102,19 +96,6 @@ export function GeneratorView({
 
       <section className="workspace">
         <form className="controls panel" onSubmit={onRegenerate}>
-          <details className="control-section">
-            <summary>Mode</summary>
-            <div className="control-section-body">
-              <label>
-                <span>What are you naming?</span>
-                <select value={mode.id} aria-label="Naming mode" disabled>
-                  <option value={mode.id}>{mode.label}</option>
-                </select>
-                <small>{mode.description}</small>
-              </label>
-            </div>
-          </details>
-
           <details className="control-section">
             <summary>Basics</summary>
             <div className="control-section-body">
@@ -185,7 +166,7 @@ export function GeneratorView({
           </details>
 
           <details className="control-section">
-            <summary>Rarity & scoring</summary>
+            <summary>Name tuning</summary>
             <div className="control-section-body">
               <label>
                 <span>Rarity distribution</span>
@@ -200,7 +181,7 @@ export function GeneratorView({
           </details>
 
           <div className="actions" aria-label="Generation actions">
-            <button type="submit">{mode.generateLabel}</button>
+            <button type="submit">Generate</button>
             <button type="button" className="secondary" onClick={onRandomizeSliders}>Randomize sliders</button>
             <button type="button" className="secondary" onClick={onRandomizeSeed}>Randomize seed</button>
           </div>
@@ -208,18 +189,6 @@ export function GeneratorView({
 
         <section className="output" aria-live="polite">
           <div className="output-toolbar panel">
-            <div className="ensemble-note">
-              <h2>{mode.outputHeading}</h2>
-              <p>{ensemble.diagnostics.summary}</p>
-            </div>
-            <div className="output-tools" aria-label="Result layout controls">
-              <span>Density</span>
-              {densityOptions.map((option) => (
-                <button key={option.value} type="button" className={resultsDensity === option.value ? 'density-button active' : 'density-button'} aria-pressed={resultsDensity === option.value} onClick={() => setResultsDensity(option.value)}>
-                  {option.label}
-                </button>
-              ))}
-            </div>
             <div className="generation-context" aria-label="Generated from settings">
               <span>Generated from</span>
               <strong>{selectedStylePack?.label ?? 'Selected style'}</strong>
@@ -230,13 +199,12 @@ export function GeneratorView({
           </div>
 
           {selectedName ? (
-            <div className={`results-layout density-${resultsDensity}`}>
-              <div className="name-grid" aria-label="Generated names">
+            <div className="results-layout">
+              <div className="name-grid has-selection" aria-label="Generated names">
                 {ensemble.names.map((name) => (
-                  <NameCard key={name.id} name={name} density={resultsDensity} isSelected={name.id === selectedNameKey} onSelect={setSelectedNameId} />
+                  <NameCard key={name.id} name={name} isSelected={name.id === selectedNameKey} onSelect={setSelectedNameId} />
                 ))}
               </div>
-              <NameDetailPanel name={selectedName} />
             </div>
           ) : (
             <div className="empty-state panel">Generate names to fill this cast.</div>
