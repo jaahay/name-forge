@@ -66,7 +66,7 @@ export function NameInspector({ name }: NameInspectorProps) {
     <aside className="selected-name-panel panel" aria-labelledby="selected-name-heading">
       <header className="selected-name-heading">
         <div>
-          <p className="eyebrow">Selection</p>
+          <p className="eyebrow">Selected name</p>
           <h2 id="selected-name-heading" className={`name-card-title ${rarity.className}`}>{name.name}</h2>
         </div>
         <ul className="selected-name-chips" aria-label="Selected name snapshot">
@@ -79,12 +79,12 @@ export function NameInspector({ name }: NameInspectorProps) {
       <ul className="inspector-summary" aria-label={`${name.name} summary`}>
         <li><span>Format</span><strong>{formatLabel}</strong></li>
         <li><span>Texture</span><strong>{textureLabel}</strong></li>
-        <li><span>Influence</span><strong>{roleInfluenceLabel}</strong></li>
+        <li><span>Role cue</span><strong>{roleInfluenceLabel}</strong></li>
       </ul>
 
       <div className="name-detail-grid" aria-label={`Selected details for ${name.name}`}>
-        <section className="detail-block" aria-label={`${name.name} fit score breakdown`}>
-          <h3>Fit scores</h3>
+        <section className="detail-block" aria-label={`${name.name} check breakdown`}>
+          <h3>Checks</h3>
           <dl className="score-list detail-score-list">
             {scorePresentation.map((score) => <div key={`${name.id}-${score.key}`}><dt>{score.label}</dt><dd>{formatScore(name.scores[score.key])}</dd></div>)}
           </dl>
@@ -92,7 +92,7 @@ export function NameInspector({ name }: NameInspectorProps) {
 
         {identity ? (
           <section className="detail-block">
-            <h3>Construction</h3>
+            <h3>Name parts</h3>
             <ul className="variants detail-variants">
               {identity.parts.map((part) => <li key={part.id}><span>{part.value}</span><em>{part.role}</em></li>)}
             </ul>
@@ -101,7 +101,7 @@ export function NameInspector({ name }: NameInspectorProps) {
 
         {name.roleInfluence ? (
           <section className="detail-block">
-            <h3>Role influence</h3>
+            <h3>Role cue</h3>
             <p className="section-note">{name.roleInfluence.label} nudged this result at {name.roleInfluence.level} strength: {name.roleInfluence.effects.join(', ')}.</p>
           </section>
         ) : null}
