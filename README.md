@@ -6,6 +6,7 @@ The current app is explicitly the first **Fiction cast** mode of a broader rando
 
 ## Product docs
 
+- [`docs/product-brief.md`](docs/product-brief.md) summarizes the product thesis, mode strategy, candidate future modes, and recommended next slices.
 - [`docs/product-requirements.md`](docs/product-requirements.md) contains the canonical product requirements converted from the original PRD.
 - [`docs/architecture.md`](docs/architecture.md) describes the engine boundaries, registry model, scoring layer, silhouette model, role and rarity planning, export layer, and ensemble design.
 - [`docs/product-architecture.md`](docs/product-architecture.md) describes the multi-mode product direction and positions fiction cast generation as the first serious mode.
