@@ -1,4 +1,4 @@
-import type { FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { serializeCastAsJson, serializeCastAsMarkdown } from '../engine/export';
 import { rarityDistributionOptions } from '../engine/rarity';
 import { castRoleOptions, castRolePresetOptions, roleInfluenceOptions } from '../engine/roles';
@@ -30,7 +30,7 @@ const formatOptions: Array<{ value: NameFormatKind; label: string }> = [
 ];
 
 function exportHref(mimeType: string, value: string): string {
-  return `data:${mimeType};charset=utf-8,${encodeURIComponent(value)}`;
+  return 'data:' + mimeType + ';charset=utf-8,' + encodeURIComponent(value);
 }
 
 function copyExport(value: string) {
@@ -63,12 +63,17 @@ export function GeneratorView({
   onRandomizeSliders,
   onRandomizeSlider,
 }: GeneratorViewProps) {
+  const [selectedNameId, setSelectedNameId] = useState(ensemble.names[0]?.id ?? '');
   const jsonExport = serializeCastAsJson(ensemble);
   const markdownExport = serializeCastAsMarkdown(ensemble);
   const castSize = clampCastSize(settings.castSize);
   const slotRoleCount = Math.max(0, Math.min(castSize, 8));
   const hasRoleMix = (settings.rolePreset ?? 'none') !== 'none';
   const selectedRoleInfluence = roleInfluenceOptions.find((option) => option.value === (settings.roleInfluence ?? 'off'));
+  const selectedStylePack = stylePacks.find((pack) => pack.id === settings.stylePackId);
+  const selectedFormat = formatOptions.find((option) => option.value === (settings.nameFormat ?? 'given-only'));
+  const selectedName = ensemble.names.find((name) => name.id === selectedNameId) ?? ensemble.names[0];
+  const selectedNameKey = selectedName?.id ?? '';
 
   function updateCastSize(value: number) {
     onUpdateSetting('castSize', clampCastSize(value));
@@ -91,20 +96,7 @@ export function GeneratorView({
 
       <section className="workspace">
         <form className="controls panel" onSubmit={onRegenerate}>
-          <details className="control-section" open>
-            <summary>Mode</summary>
-            <div className="control-section-body">
-              <label>
-                <span>What are you naming?</span>
-                <select value={mode.id} aria-label="Naming mode" disabled>
-                  <option value={mode.id}>{mode.label}</option>
-                </select>
-                <small>{mode.description}</small>
-              </label>
-            </div>
-          </details>
-
-          <details className="control-section" open>
+          <details className="control-section">
             <summary>Basics</summary>
             <div className="control-section-body">
               <label>
@@ -134,7 +126,7 @@ export function GeneratorView({
             </div>
           </details>
 
-          <details className="control-section" open>
+          <details className="control-section">
             <summary>Fiction</summary>
             <div className="control-section-body">
               <label>
@@ -158,10 +150,7 @@ export function GeneratorView({
                     {Array.from({ length: slotRoleCount }, (_, index) => (
                       <label key={`slot-role-${index + 1}`}>
                         <span>Slot {index + 1}</span>
-                        <select
-                          value={settings.slotRoleOverrides?.[index] ?? ''}
-                          onChange={(event) => onUpdateSetting('slotRoleOverrides', updateSlotRole(settings.slotRoleOverrides, index, event.target.value as CastRole | ''))}
-                        >
+                        <select value={settings.slotRoleOverrides?.[index] ?? ''} onChange={(event) => onUpdateSetting('slotRoleOverrides', updateSlotRole(settings.slotRoleOverrides, index, event.target.value as CastRole | ''))}>
                           <option value="">Use role mix</option>
                           {castRoleOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                         </select>
@@ -177,7 +166,7 @@ export function GeneratorView({
           </details>
 
           <details className="control-section">
-            <summary>Rarity & scoring</summary>
+            <summary>Name tuning</summary>
             <div className="control-section-body">
               <label>
                 <span>Rarity distribution</span>
@@ -186,19 +175,13 @@ export function GeneratorView({
                 </select>
               </label>
               {scoreControls.map((control) => (
-                <ScoreControl
-                  key={control.key}
-                  control={control}
-                  value={Number(settings[control.key])}
-                  onChange={(key, value) => onUpdateSetting(key, value)}
-                  onRandomize={onRandomizeSlider}
-                />
+                <ScoreControl key={control.key} control={control} value={Number(settings[control.key])} onChange={(key, value) => onUpdateSetting(key, value)} onRandomize={onRandomizeSlider} />
               ))}
             </div>
           </details>
 
-          <div className="actions">
-            <button type="submit">{mode.generateLabel}</button>
+          <div className="actions" aria-label="Generation actions">
+            <button type="submit">Generate</button>
             <button type="button" className="secondary" onClick={onRandomizeSliders}>Randomize sliders</button>
             <button type="button" className="secondary" onClick={onRandomizeSeed}>Randomize seed</button>
           </div>
@@ -206,15 +189,26 @@ export function GeneratorView({
 
         <section className="output" aria-live="polite">
           <div className="output-toolbar panel">
-            <div className="ensemble-note">
-              <h2>{mode.outputHeading}</h2>
-              <p>{ensemble.diagnostics.summary}</p>
+            <div className="generation-context" aria-label="Generated from settings">
+              <span>Generated from</span>
+              <strong>{selectedStylePack?.label ?? 'Selected style'}</strong>
+              <span>{selectedFormat?.label ?? 'Selected format'}</span>
+              <span>{castSize} requested names</span>
+              <span>{selectedRoleInfluence?.label ?? 'Off'} role influence</span>
             </div>
           </div>
 
-          <div className="name-grid">
-            {ensemble.names.map((name) => <NameCard key={name.id} name={name} />)}
-          </div>
+          {selectedName ? (
+            <div className="results-layout">
+              <div className="name-grid has-selection" aria-label="Generated names">
+                {ensemble.names.map((name) => (
+                  <NameCard key={name.id} name={name} isSelected={name.id === selectedNameKey} onSelect={setSelectedNameId} />
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="empty-state panel">Generate names to fill this cast.</div>
+          )}
 
           <section className="export-panel panel" aria-labelledby="export-heading">
             <div className="export-heading">

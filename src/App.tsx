@@ -53,10 +53,17 @@ export default function App() {
   return (
     <main className="app-shell">
       <nav className="app-tabs" aria-label="Primary">
-        <button type="button" className={currentView === 'generator' ? 'tab-button active' : 'tab-button'} onClick={() => setCurrentView('generator')}>Generator</button>
-        <button type="button" className={currentView === 'changelog' ? 'tab-button active' : 'tab-button'} onClick={() => setCurrentView('changelog')}>Changelog</button>
-        <button type="button" className={currentView === 'about' ? 'tab-button active' : 'tab-button'} onClick={() => setCurrentView('about')}>About</button>
-        <a className="tab-link" href={sourceUrl} target="_blank" rel="noreferrer">Source</a>
+        <div className="mode-tabs" aria-label="Naming modes">
+          <button type="button" className="mode-tab" disabled>Product</button>
+          <button type="button" className="mode-tab" disabled>NPC</button>
+          <button type="button" className="mode-tab" disabled>Pen name</button>
+          <button type="button" className={currentView === 'generator' ? 'mode-tab active' : 'mode-tab'} onClick={() => setCurrentView('generator')}>Cast</button>
+        </div>
+        <div className="utility-tabs" aria-label="Project links">
+          <button type="button" className={currentView === 'changelog' ? 'tab-button active' : 'tab-button'} onClick={() => setCurrentView('changelog')}>Changelog</button>
+          <button type="button" className={currentView === 'about' ? 'tab-button active' : 'tab-button'} onClick={() => setCurrentView('about')}>About</button>
+          <a className="tab-link" href={sourceUrl} target="_blank" rel="noreferrer">Source</a>
+        </div>
       </nav>
 
       {currentView === 'generator' ? (
