@@ -3,7 +3,7 @@ import { renderToString } from 'react-dom/server';
 import App from './App';
 
 describe('App', () => {
-  it('renders the fiction cast mode shell with grouped controls, card details, export controls, and project chrome', () => {
+  it('renders the fiction cast mode shell with grouped controls, compact result browsing, selected details, export controls, and project chrome', () => {
     const html = renderToString(<App />);
 
     const expectedCopy = [
@@ -42,16 +42,22 @@ describe('App', () => {
       'Randomize seed',
       'Generate cast',
       'Ensemble balance',
+      'Density',
+      'Compact',
+      'Comfortable',
+      'Generated from',
+      'View details',
+      'Selected',
+      'Selected name',
+      'Details',
+      'Texture',
+      'Fit',
       'Export cast',
       'JSON',
       'Markdown',
       'Copy JSON',
       'Copy Markdown',
       'Show Markdown preview',
-      'Open',
-      'Details',
-      'Texture',
-      'Fit',
     ];
     const collapsedControlSectionSummaries = [
       'Mode',
@@ -70,6 +76,11 @@ describe('App', () => {
       expect(html).toMatch(new RegExp(`<details class="control-section"><summary>${summary}</summary>`));
     }
 
+    expect(html).toContain('class="results-layout density-compact"');
+    expect(html).toContain('aria-label="Generated names"');
+    expect(html).toContain('class="name-detail-panel panel');
+    expect(html).toContain('aria-label="Generation actions"');
+    expect(html).toContain('aria-label="Result layout controls"');
     expect(html).not.toContain('<details class="control-section" open');
   });
 });
