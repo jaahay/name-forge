@@ -80,8 +80,8 @@ export function NameInspector({ name }: NameInspectorProps) {
       </ul>
 
       <div className="name-detail-grid" aria-label={`Selected details for ${name.name}`}>
-        <section className="detail-block" aria-label={`${name.name} check breakdown`}>
-          <h3>Checks</h3>
+        <section className="detail-block" aria-label={`${name.name} read breakdown`}>
+          <h3>Read</h3>
           <dl className="score-list detail-score-list">
             {scorePresentation.map((score) => <div key={`${name.id}-${score.key}`}><dt>{score.label}</dt><dd>{formatScore(name.scores[score.key])}</dd></div>)}
           </dl>
