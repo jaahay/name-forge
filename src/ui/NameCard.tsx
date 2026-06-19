@@ -83,17 +83,6 @@ export function NameInspector({ name }: NameInspectorProps) {
       </ul>
 
       <div className="name-detail-grid" aria-label={`Selected details for ${name.name}`}>
-        <section className="detail-block primary-detail" aria-label={`${name.name} profile`}>
-          <h3>Profile</h3>
-          <ul className="metadata compact-metadata detail-metadata">
-            <li><span>Role</span><strong>{roleLabel}</strong></li>
-            <li><span>Influence</span><strong>{roleInfluenceLabel}</strong></li>
-            <li><span>Texture</span><strong>{textureLabel}</strong></li>
-            <li><span>Format</span><strong>{formatLabel}</strong></li>
-            <li><span>Rarity</span><strong className={rarity.className}>{rarity.label}</strong></li>
-          </ul>
-        </section>
-
         <section className="detail-block" aria-label={`${name.name} fit score breakdown`}>
           <h3>Fit scores</h3>
           <dl className="score-list detail-score-list">
@@ -134,7 +123,7 @@ export function NameCard({ name, isSelected, onSelect }: NameCardProps) {
         onClick={() => onSelect(name.id)}
       >
         <NameCardHeader name={name} />
-        <span className="collapse-cue">{isSelected ? 'In inspector' : 'Inspect'}</span>
+        {isSelected ? <span className="selection-cue">Selected</span> : null}
       </button>
     </article>
   );
