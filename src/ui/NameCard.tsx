@@ -66,7 +66,7 @@ export function NameInspector({ name }: NameInspectorProps) {
     <aside className="selected-name-panel panel" aria-labelledby="selected-name-heading">
       <header className="selected-name-heading">
         <h2 id="selected-name-heading" className={`name-card-title ${rarity.className}`}>{name.name}</h2>
-        <ul className="selected-name-chips" aria-label="Selected name snapshot">
+        <ul className="selected-name-chips" aria-label="Name snapshot">
           <li>{rarity.label}</li>
           <li>{roleLabel}</li>
           <li>{name.silhouette.syllableCount} syllables</li>
