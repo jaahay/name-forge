@@ -80,6 +80,7 @@ export function GeneratorView({
   const selectedName = ensemble.names.find((name) => name.id === selectedNameId) ?? ensemble.names[0];
   const selectedNameKey = selectedName?.id ?? '';
   const modeTitle = titleCaseLabel(mode.label);
+  const castSizeLabel = `${mode.shortLabel} size`;
 
   function updateCastSize(value: number) {
     onUpdateSetting('castSize', clampCastSize(value));
@@ -108,7 +109,7 @@ export function GeneratorView({
             <summary>Cast setup</summary>
             <div className="control-section-body">
               <label>
-                <span>{mode.shortLabel} size</span>
+                <span>{castSizeLabel}</span>
                 <div className="cast-size-control">
                   <button type="button" className="stepper-button" onClick={() => updateCastSize(castSize - 1)} aria-label="Decrease cast size">-</button>
                   <input type="number" min="1" max="24" value={castSize} onChange={(event) => updateCastSize(Number(event.target.value))} />
