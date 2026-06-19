@@ -70,8 +70,6 @@ export function GeneratorView({
   const slotRoleCount = Math.max(0, Math.min(castSize, 8));
   const hasRoleMix = (settings.rolePreset ?? 'none') !== 'none';
   const selectedRoleInfluence = roleInfluenceOptions.find((option) => option.value === (settings.roleInfluence ?? 'off'));
-  const selectedStylePack = stylePacks.find((pack) => pack.id === settings.stylePackId);
-  const selectedFormat = formatOptions.find((option) => option.value === (settings.nameFormat ?? 'given-only'));
   const selectedName = ensemble.names.find((name) => name.id === selectedNameId) ?? ensemble.names[0];
   const selectedNameKey = selectedName?.id ?? '';
 
@@ -196,14 +194,8 @@ export function GeneratorView({
         <section className="output" aria-live="polite">
           {selectedName ? (
             <div className="results-layout">
-              <section className="roster-panel panel" aria-labelledby="roster-heading">
-                <header className="roster-heading">
-                  <div>
-                    <p className="eyebrow">Cast roster</p>
-                    <h2 id="roster-heading">Names on deck</h2>
-                  </div>
-                  <p>Choose a name to review checks, parts, and table-readiness.</p>
-                </header>
+              <section className="roster-panel panel" aria-label="Cast roster">
+                <p className="eyebrow roster-label">Cast roster</p>
                 <div className="name-grid" aria-label="Generated names">
                   {ensemble.names.map((name) => (
                     <NameCard key={name.id} name={name} isSelected={name.id === selectedNameKey} onSelect={setSelectedNameId} />
@@ -228,13 +220,6 @@ export function GeneratorView({
                 <button type="button" className="secondary" onClick={() => copyExport(jsonExport)}>Copy JSON</button>
                 <button type="button" className="secondary" onClick={() => copyExport(markdownExport)}>Copy Markdown</button>
               </div>
-            </div>
-            <div className="generation-context export-summary" aria-label="Roll notes">
-              <span>Roll notes</span>
-              <strong>{selectedStylePack?.label ?? 'Selected style'}</strong>
-              <span>{selectedFormat?.label ?? 'Selected format'}</span>
-              <span>{castSize} requested names</span>
-              <span>{selectedRoleInfluence?.label ?? 'Off'} role influence</span>
             </div>
             <details className="export-preview">
               <summary>Preview Markdown</summary>
