@@ -3,17 +3,19 @@ import { renderToString } from 'react-dom/server';
 import App from './App';
 
 describe('App', () => {
-  it('renders the fiction cast workbench with compact header, roster, selected-name inspector, save controls, and project chrome', () => {
+  it('renders the fiction cast workbench with brand mark, compact header, roster, inspector, save/copy controls, and project chrome', () => {
     const html = renderToString(<App />);
 
     const expectedCopy = [
       'Name Forge',
+      'NF',
       'Product',
       'NPC',
       'Pen name',
       'Cast',
       'Changelog',
       'About',
+      'Fiction Cast',
       'Cast setup',
       'Story roles',
       'Name feel',
@@ -43,18 +45,16 @@ describe('App', () => {
       'Reroll names',
       'Shuffle feel',
       'Generate',
-      'Cast roster',
       'Selected',
-      'Selected name',
       'Texture',
       'Checks',
       'Name parts',
-      'Save cast',
+      'Save',
+      'Copy',
       'JSON',
       'Markdown',
       'Copy JSON',
       'Copy Markdown',
-      'Preview Markdown',
     ];
     const collapsedControlSectionSummaries = [
       'Cast setup',
@@ -62,8 +62,6 @@ describe('App', () => {
       'Name feel',
       'Run options',
     ];
-
-    expect(html).toMatch(/Name Forge \/ .*Fiction cast.* mode/);
 
     for (const expected of expectedCopy) {
       expect(html).toContain(expected);
@@ -74,9 +72,11 @@ describe('App', () => {
     }
 
     expect(html).toContain('class="hero panel app-header"');
+    expect(html).toContain('class="brand-mark"');
     expect(html).toContain('class="workspace workbench"');
     expect(html).toContain('class="roster-panel panel"');
     expect(html).toContain('class="save-panel panel"');
+    expect(html).toContain('class="save-group"');
     expect(html).toContain('aria-label="Naming modes"');
     expect(html).toContain('class="mode-tab active"');
     expect(html).toContain('class="name-grid"');
@@ -93,17 +93,23 @@ describe('App', () => {
     expect(html).not.toContain('class="collapse-cue"');
     expect(html).not.toContain('class="generation-context export-summary"');
     expect(html).not.toContain('aria-expanded="true"');
+    expect(html).not.toContain('Name Forge /');
+    expect(html).not.toContain('Fiction cast mode');
     expect(html).not.toContain('Names that are random, usable, and cast-aware.');
     expect(html).not.toContain('Generated names');
     expect(html).not.toContain('Pick a tile');
+    expect(html).not.toContain('Cast roster');
+    expect(html).not.toContain('Selected name');
     expect(html).not.toContain('Generated from');
     expect(html).not.toContain('Roll notes');
+    expect(html).not.toContain('Save cast');
+    expect(html).not.toContain('Preview Markdown');
+    expect(html).not.toContain('Show Markdown preview');
     expect(html).not.toContain('In inspector');
     expect(html).not.toContain('Profile');
     expect(html).not.toContain('Construction');
     expect(html).not.toContain('Fit scores');
     expect(html).not.toContain('Export cast');
-    expect(html).not.toContain('Show Markdown preview');
     expect(html).not.toContain('Randomize sliders');
     expect(html).not.toContain('Randomize seed');
     expect(html).not.toContain('Randomize Novelty');
