@@ -132,14 +132,14 @@ h1, h2, h3, p { margin-top: 0; }
 .provenance { display: grid; margin-top: 0.55rem; }
 .provenance li { display: grid; gap: 0.2rem; border-left: 2px solid rgba(240, 184, 95, 0.55); padding-left: 0.65rem; color: #baa98c; font-size: 0.82rem; }
 .provenance strong { color: #f4ddae; }
-.export-panel { display: grid; gap: 0.78rem; padding: 0.95rem 1.05rem; }
-.export-heading { display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap; }
-.export-heading h2 { margin-bottom: 0; font-size: 1.08rem; }
-.export-heading .eyebrow { margin-bottom: 0.18rem; }
+.save-panel { display: grid; gap: 0.7rem; border-color: rgba(255, 255, 255, 0.08); padding: 0.72rem 0.85rem; background: rgba(255, 255, 255, 0.035); box-shadow: none; }
+.save-heading { display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.save-heading h2 { margin-bottom: 0; font-size: 1rem; }
+.save-heading .eyebrow { margin-bottom: 0.12rem; }
 .export-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: flex-end; }
-.export-link { border: 1px solid rgba(240, 184, 95, 0.26); border-radius: 999px; padding: 0.66rem 0.88rem; color: #f8d99f; background: rgba(240, 184, 95, 0.08); font-size: 0.78rem; font-weight: 900; letter-spacing: 0.06em; text-decoration: none; text-transform: uppercase; }
+.export-link { border: 1px solid rgba(240, 184, 95, 0.26); border-radius: 999px; padding: 0.62rem 0.82rem; color: #f8d99f; background: rgba(240, 184, 95, 0.08); font-size: 0.76rem; font-weight: 900; letter-spacing: 0.06em; text-decoration: none; text-transform: uppercase; }
 .export-link:hover { border-color: rgba(240, 184, 95, 0.5); color: #1a130b; background: #f0b85f; }
-.export-preview { border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 0.2rem; color: #dacdb7; font-size: 0.86rem; font-weight: 700; }
+.export-preview { border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 0.2rem; color: #dacdb7; font-size: 0.84rem; font-weight: 700; }
 .export-preview textarea { margin-top: 0.6rem; }
 .changelog, .about { display: grid; gap: 1rem; padding: clamp(1.4rem, 4vw, 3rem); }
 .changelog-heading, .about-heading { display: flex; justify-content: space-between; gap: 1.5rem; align-items: end; }
@@ -160,6 +160,6 @@ h1, h2, h3, p { margin-top: 0; }
 .site-footer a:hover { text-decoration: underline; }
 @media (max-width: 1180px) { .results-layout { grid-template-columns: 1fr; } .selected-name-panel { position: static; } .name-detail-grid { grid-template-columns: minmax(0, 1fr) minmax(220px, 0.8fr); } .detail-metadata { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 900px) { .hero, .workspace { grid-template-columns: 1fr; } .controls { position: static; max-height: none; } .actions { position: static; margin: 0; background: transparent; } .changelog-heading, .about-heading { display: grid; } .export-actions { justify-content: flex-start; } }
-@media (max-width: 720px) { .name-detail-grid, .detail-score-list { grid-template-columns: 1fr; } .app-tabs, .roster-heading { display: grid; justify-content: stretch; } .utility-tabs { justify-content: flex-start; } .hero-stats { justify-content: flex-start; min-width: 0; } }
-@media (max-width: 640px) { .slider-heading, .slider-tools, .name-card-header, .selected-name-heading { display: grid; justify-content: stretch; } .slider-value { width: 100%; } .export-heading { align-items: stretch; } .generation-context { display: grid; } .name-card-meta { max-width: none; justify-content: flex-start; } }
+@media (max-width: 720px) { .name-detail-grid, .detail-score-list { grid-template-columns: 1fr; } .app-tabs, .roster-heading, .save-heading { display: grid; justify-content: stretch; } .utility-tabs { justify-content: flex-start; } .hero-stats { justify-content: flex-start; min-width: 0; } }
+@media (max-width: 640px) { .slider-heading, .slider-tools, .name-card-header, .selected-name-heading { display: grid; justify-content: stretch; } .slider-value { width: 100%; } .generation-context { display: grid; } .name-card-meta { max-width: none; justify-content: flex-start; } }
 @media (max-width: 520px) { .score-list, .detail-metadata, .inspector-summary { grid-template-columns: 1fr; } .site-footer { flex-direction: column; } }
