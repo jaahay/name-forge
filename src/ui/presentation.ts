@@ -45,12 +45,21 @@ export const rarityPresentation: Record<RarityBand, { label: string; className: 
 
 export const changelogEntries = [
   {
+    title: 'Fiction cast mode boundary',
+    summary: 'Makes the current generator explicitly operate as the first Name Forge mode while preserving shared engine primitives.',
+    changes: [
+      'Added a mode boundary for the active Fiction cast workflow and moved its defaults and presentation copy into a mode config.',
+      'Added a disabled "What are you naming?" mode selector to establish the product shape before adding additional modes.',
+      'Adjusted CI so it runs at merge-readiness signals instead of every branch update.',
+    ],
+  },
+  {
     title: 'Fiction workflow layout',
     summary: 'Restructures the generator around cast setup, fiction controls, compact browsing cards, and late-stage export.',
     changes: [
       'Moved export below the generated cards and collapsed the preview behind an explicit toggle.',
       'Grouped controls into Basics, Fiction, and Rarity & scoring sections with slot overrides hidden until a role mix is selected.',
-      'Made collapsed result cards the default browsing surface, with nested Details and Diagnostics sections inside each opened card.',
+      'Made collapsed result cards the default browsing surface, with nested Details and Fit sections inside each opened card.',
     ],
   },
   {

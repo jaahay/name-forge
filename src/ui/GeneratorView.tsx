@@ -3,11 +3,13 @@ import { serializeCastAsJson, serializeCastAsMarkdown } from '../engine/export';
 import { rarityDistributionOptions } from '../engine/rarity';
 import { castRoleOptions, castRolePresetOptions, roleInfluenceOptions } from '../engine/roles';
 import type { CastRole, CastRolePresetKind, GeneratedEnsemble, GenerationSettings, NameFormatKind, RarityDistributionPresetKind, RoleInfluenceLevel, StylePackSummary } from '../engine/types';
+import type { NamingModeConfig } from './modes';
 import { scoreControls, type ControlKey } from './presentation';
 import { ScoreControl } from './ScoreControl';
 import { NameCard } from './NameCard';
 
 interface GeneratorViewProps {
+  mode: NamingModeConfig;
   stylePacks: StylePackSummary[];
   settings: GenerationSettings;
   ensemble: GeneratedEnsemble;
@@ -51,6 +53,7 @@ function updateSlotRole(currentRoles: GenerationSettings['slotRoleOverrides'], i
 }
 
 export function GeneratorView({
+  mode,
   stylePacks,
   settings,
   ensemble,
@@ -75,12 +78,9 @@ export function GeneratorView({
     <>
       <section className="hero panel">
         <div>
-          <p className="eyebrow">Name Forge</p>
-          <h1>Names that are random, usable, and cast-aware.</h1>
-          <p className="hero-copy">
-            Generate a balanced ensemble by shaping name silhouettes first, scoring overall fit,
-            suggesting spelling variants, and preserving source traces for every result.
-          </p>
+          <p className="eyebrow">Name Forge / {mode.label} mode</p>
+          <h1>{mode.heroTitle}</h1>
+          <p className="hero-copy">{mode.heroCopy}</p>
         </div>
         <div className="hero-stats" aria-label="Generation summary">
           <span>{ensemble.names.length} names</span>
@@ -92,10 +92,23 @@ export function GeneratorView({
       <section className="workspace">
         <form className="controls panel" onSubmit={onRegenerate}>
           <details className="control-section" open>
+            <summary>Mode</summary>
+            <div className="control-section-body">
+              <label>
+                <span>What are you naming?</span>
+                <select value={mode.id} aria-label="Naming mode" disabled>
+                  <option value={mode.id}>{mode.label}</option>
+                </select>
+                <small>{mode.description}</small>
+              </label>
+            </div>
+          </details>
+
+          <details className="control-section" open>
             <summary>Basics</summary>
             <div className="control-section-body">
               <label>
-                <span>Cast size</span>
+                <span>{mode.shortLabel} size</span>
                 <div className="cast-size-control">
                   <button type="button" className="stepper-button" onClick={() => updateCastSize(castSize - 1)} aria-label="Decrease cast size">-</button>
                   <input type="number" min="1" max="24" value={castSize} onChange={(event) => updateCastSize(Number(event.target.value))} />
@@ -185,7 +198,7 @@ export function GeneratorView({
           </details>
 
           <div className="actions">
-            <button type="submit">Generate cast</button>
+            <button type="submit">{mode.generateLabel}</button>
             <button type="button" className="secondary" onClick={onRandomizeSliders}>Randomize sliders</button>
             <button type="button" className="secondary" onClick={onRandomizeSeed}>Randomize seed</button>
           </div>
@@ -194,7 +207,7 @@ export function GeneratorView({
         <section className="output" aria-live="polite">
           <div className="output-toolbar panel">
             <div className="ensemble-note">
-              <h2>Ensemble balance</h2>
+              <h2>{mode.outputHeading}</h2>
               <p>{ensemble.diagnostics.summary}</p>
             </div>
           </div>
@@ -207,7 +220,7 @@ export function GeneratorView({
             <div className="export-heading">
               <div>
                 <p className="eyebrow">Export</p>
-                <h2 id="export-heading">Export cast</h2>
+                <h2 id="export-heading">{mode.exportHeading}</h2>
               </div>
               <div className="export-actions" aria-label="Cast export actions">
                 <a className="export-link" download="name-forge-cast.json" href={exportHref('application/json', jsonExport)}>JSON</a>
