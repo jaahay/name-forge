@@ -64,17 +64,27 @@ export function NameInspector({ name }: NameInspectorProps) {
 
   return (
     <aside className="selected-name-panel panel" aria-labelledby="selected-name-heading">
-      <div className="selected-name-heading">
+      <header className="selected-name-heading">
         <div>
-          <p className="eyebrow">Selected name</p>
+          <p className="eyebrow">Selection</p>
           <h2 id="selected-name-heading" className={`name-card-title ${rarity.className}`}>{name.name}</h2>
         </div>
-        <span>{name.silhouette.syllableCount} syllables</span>
-      </div>
+        <ul className="selected-name-chips" aria-label="Selected name snapshot">
+          <li>{rarity.label}</li>
+          <li>{roleLabel}</li>
+          <li>{name.silhouette.syllableCount} syllables</li>
+        </ul>
+      </header>
+
+      <ul className="inspector-summary" aria-label={`${name.name} summary`}>
+        <li><span>Format</span><strong>{formatLabel}</strong></li>
+        <li><span>Texture</span><strong>{textureLabel}</strong></li>
+        <li><span>Influence</span><strong>{roleInfluenceLabel}</strong></li>
+      </ul>
 
       <div className="name-detail-grid" aria-label={`Selected details for ${name.name}`}>
-        <section className="detail-block" aria-label={`${name.name} details`}>
-          <h3>Details</h3>
+        <section className="detail-block primary-detail" aria-label={`${name.name} profile`}>
+          <h3>Profile</h3>
           <ul className="metadata compact-metadata detail-metadata">
             <li><span>Role</span><strong>{roleLabel}</strong></li>
             <li><span>Influence</span><strong>{roleInfluenceLabel}</strong></li>
@@ -85,7 +95,7 @@ export function NameInspector({ name }: NameInspectorProps) {
         </section>
 
         <section className="detail-block" aria-label={`${name.name} fit score breakdown`}>
-          <h3>Fit</h3>
+          <h3>Fit scores</h3>
           <dl className="score-list detail-score-list">
             {scorePresentation.map((score) => <div key={`${name.id}-${score.key}`}><dt>{score.label}</dt><dd>{formatScore(name.scores[score.key])}</dd></div>)}
           </dl>
@@ -93,7 +103,7 @@ export function NameInspector({ name }: NameInspectorProps) {
 
         {identity ? (
           <section className="detail-block">
-            <h3>Name parts</h3>
+            <h3>Construction</h3>
             <ul className="variants detail-variants">
               {identity.parts.map((part) => <li key={part.id}><span>{part.value}</span><em>{part.role}</em></li>)}
             </ul>
@@ -124,7 +134,7 @@ export function NameCard({ name, isSelected, onSelect }: NameCardProps) {
         onClick={() => onSelect(name.id)}
       >
         <NameCardHeader name={name} />
-        <span className="collapse-cue">{isSelected ? 'Selected' : 'Inspect'}</span>
+        <span className="collapse-cue">{isSelected ? 'In inspector' : 'Inspect'}</span>
       </button>
     </article>
   );
