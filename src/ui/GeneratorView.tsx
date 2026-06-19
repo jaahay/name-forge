@@ -199,10 +199,10 @@ export function GeneratorView({
               <section className="roster-panel panel" aria-labelledby="roster-heading">
                 <header className="roster-heading">
                   <div>
-                    <p className="eyebrow">Roster</p>
-                    <h2 id="roster-heading">Generated names</h2>
+                    <p className="eyebrow">Cast roster</p>
+                    <h2 id="roster-heading">Names on deck</h2>
                   </div>
-                  <p>Pick a tile to inspect fit, construction, and role signals.</p>
+                  <p>Choose a name to review checks, parts, and table-readiness.</p>
                 </header>
                 <div className="name-grid" aria-label="Generated names">
                   {ensemble.names.map((name) => (
@@ -216,28 +216,28 @@ export function GeneratorView({
             <div className="empty-state panel">Generate names to fill this cast.</div>
           )}
 
-          <section className="export-panel panel" aria-labelledby="export-heading">
-            <div className="export-heading">
+          <section className="save-panel panel" aria-labelledby="save-heading">
+            <div className="save-heading">
               <div>
-                <p className="eyebrow">Export</p>
-                <h2 id="export-heading">{mode.exportHeading}</h2>
+                <p className="eyebrow">Save</p>
+                <h2 id="save-heading">Save cast</h2>
               </div>
-              <div className="export-actions" aria-label="Cast export actions">
+              <div className="export-actions" aria-label="Cast save actions">
                 <a className="export-link" download="name-forge-cast.json" href={exportHref('application/json', jsonExport)}>JSON</a>
                 <a className="export-link" download="name-forge-cast.md" href={exportHref('text/markdown', markdownExport)}>Markdown</a>
                 <button type="button" className="secondary" onClick={() => copyExport(jsonExport)}>Copy JSON</button>
                 <button type="button" className="secondary" onClick={() => copyExport(markdownExport)}>Copy Markdown</button>
               </div>
             </div>
-            <div className="generation-context export-summary" aria-label="Generated from settings">
-              <span>Generated from</span>
+            <div className="generation-context export-summary" aria-label="Roll notes">
+              <span>Roll notes</span>
               <strong>{selectedStylePack?.label ?? 'Selected style'}</strong>
               <span>{selectedFormat?.label ?? 'Selected format'}</span>
               <span>{castSize} requested names</span>
               <span>{selectedRoleInfluence?.label ?? 'Off'} role influence</span>
             </div>
             <details className="export-preview">
-              <summary>Show Markdown preview</summary>
+              <summary>Preview Markdown</summary>
               <textarea value={markdownExport} readOnly rows={8} aria-label="Markdown export preview" />
             </details>
           </section>
