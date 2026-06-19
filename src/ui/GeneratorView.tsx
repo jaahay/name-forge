@@ -91,7 +91,7 @@ export function GeneratorView({
 
       <section className="workspace">
         <form className="controls panel" onSubmit={onRegenerate}>
-          <details className="control-section" open>
+          <details className="control-section">
             <summary>Mode</summary>
             <div className="control-section-body">
               <label>
@@ -104,7 +104,7 @@ export function GeneratorView({
             </div>
           </details>
 
-          <details className="control-section" open>
+          <details className="control-section">
             <summary>Basics</summary>
             <div className="control-section-body">
               <label>
@@ -134,7 +134,7 @@ export function GeneratorView({
             </div>
           </details>
 
-          <details className="control-section" open>
+          <details className="control-section">
             <summary>Fiction</summary>
             <div className="control-section-body">
               <label>
