@@ -8,7 +8,6 @@ describe('App', () => {
 
     const expectedCopy = [
       'Name Forge',
-      'NF',
       'Product',
       'NPC',
       'Pen name',
@@ -16,6 +15,7 @@ describe('App', () => {
       'Changelog',
       'About',
       'Fiction Cast',
+      'Roll fantasy names, tune the feel, and keep the cast that fits.',
       'Cast setup',
       'Story roles',
       'Name feel',
@@ -73,6 +73,7 @@ describe('App', () => {
 
     expect(html).toContain('class="hero panel app-header"');
     expect(html).toContain('class="brand-mark"');
+    expect(html).toContain('class="brand-sigil"');
     expect(html).toContain('class="workspace workbench"');
     expect(html).toContain('class="roster-panel panel"');
     expect(html).toContain('class="save-panel panel"');
@@ -80,6 +81,7 @@ describe('App', () => {
     expect(html).toContain('aria-label="Naming modes"');
     expect(html).toContain('class="mode-tab active"');
     expect(html).toContain('class="name-grid"');
+    expect(html).toContain('aria-label="Name tiles"');
     expect(html).toContain('class="selected-name-panel panel"');
     expect(html).toContain('class="selected-name-chips"');
     expect(html).toContain('class="inspector-summary"');
@@ -96,6 +98,7 @@ describe('App', () => {
     expect(html).not.toContain('Name Forge /');
     expect(html).not.toContain('Fiction cast mode');
     expect(html).not.toContain('Names that are random, usable, and cast-aware.');
+    expect(html).not.toContain('NF');
     expect(html).not.toContain('Generated names');
     expect(html).not.toContain('Pick a tile');
     expect(html).not.toContain('Cast roster');
