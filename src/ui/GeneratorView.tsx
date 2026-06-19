@@ -188,16 +188,6 @@ export function GeneratorView({
         </form>
 
         <section className="output" aria-live="polite">
-          <div className="output-toolbar panel">
-            <div className="generation-context" aria-label="Generated from settings">
-              <span>Generated from</span>
-              <strong>{selectedStylePack?.label ?? 'Selected style'}</strong>
-              <span>{selectedFormat?.label ?? 'Selected format'}</span>
-              <span>{castSize} requested names</span>
-              <span>{selectedRoleInfluence?.label ?? 'Off'} role influence</span>
-            </div>
-          </div>
-
           {selectedName ? (
             <div className="results-layout">
               <div className="name-grid has-selection" aria-label="Generated names">
@@ -222,6 +212,13 @@ export function GeneratorView({
                 <button type="button" className="secondary" onClick={() => copyExport(jsonExport)}>Copy JSON</button>
                 <button type="button" className="secondary" onClick={() => copyExport(markdownExport)}>Copy Markdown</button>
               </div>
+            </div>
+            <div className="generation-context export-summary" aria-label="Generated from settings">
+              <span>Generated from</span>
+              <strong>{selectedStylePack?.label ?? 'Selected style'}</strong>
+              <span>{selectedFormat?.label ?? 'Selected format'}</span>
+              <span>{castSize} requested names</span>
+              <span>{selectedRoleInfluence?.label ?? 'Off'} role influence</span>
             </div>
             <details className="export-preview">
               <summary>Show Markdown preview</summary>
