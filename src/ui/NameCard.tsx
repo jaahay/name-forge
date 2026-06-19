@@ -2,20 +2,17 @@ import type { GeneratedName } from '../engine/types';
 import { rarityPresentation, scorePresentation } from './presentation';
 import { formatScore, textureClassName } from './score';
 
-export type ResultsDensity = 'compact' | 'comfortable';
-
 interface NameCardHeaderProps {
   name: GeneratedName;
 }
 
 interface NameCardProps {
   name: GeneratedName;
-  density: ResultsDensity;
   isSelected: boolean;
   onSelect: (id: string) => void;
 }
 
-interface NameDetailPanelProps {
+interface NameInlineDetailsProps {
   name: GeneratedName;
 }
 
@@ -36,10 +33,12 @@ function variantList(name: GeneratedName) {
 }
 
 function NameCardHeader({ name }: NameCardHeaderProps) {
+  const rarity = rarityPresentation[name.silhouette.rarityBand];
+
   return (
     <div className="name-card-header">
       <div className="name-card-title-block">
-        <h2 className="name-card-title">{name.name}</h2>
+        <h2 className={`name-card-title ${rarity.className}`}>{name.name}</h2>
         {variantList(name)}
       </div>
       <div className="name-card-meta" aria-label={`${name.silhouette.syllableCount} syllables`}>
@@ -60,46 +59,11 @@ function metadataFor(name: GeneratedName) {
   return { formatLabel, identity, rarity, roleInfluenceLabel, roleLabel, textureLabel };
 }
 
-export function NameCard({ name, density, isSelected, onSelect }: NameCardProps) {
-  const densityClassName = `name-card panel ${textureClassName(name.silhouette.texture)} density-${density}${isSelected ? ' selected' : ''}`;
-
-  return (
-    <article
-      className={densityClassName}
-      role="button"
-      tabIndex={0}
-      aria-pressed={isSelected}
-      aria-label={`View details for ${name.name}`}
-      onClick={() => onSelect(name.id)}
-      onKeyDown={(event) => {
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault();
-          onSelect(name.id);
-        }
-      }}
-    >
-      <div className="name-card-summary">
-        <NameCardHeader name={name} />
-        <span className="collapse-cue">{isSelected ? 'Selected' : 'View details'}</span>
-      </div>
-    </article>
-  );
-}
-
-export function NameDetailPanel({ name }: NameDetailPanelProps) {
+function NameInlineDetails({ name }: NameInlineDetailsProps) {
   const { formatLabel, identity, rarity, roleInfluenceLabel, roleLabel, textureLabel } = metadataFor(name);
-  const detailClassName = `name-detail-panel panel ${textureClassName(name.silhouette.texture)}`;
 
   return (
-    <aside className={detailClassName} aria-label={`Selected name details for ${name.name}`}>
-      <div className="name-detail-heading">
-        <div>
-          <p className="eyebrow">Selected name</p>
-          <h2>{name.name}</h2>
-        </div>
-        <span>{name.silhouette.syllableCount} syllables</span>
-      </div>
-
+    <div className="name-inline-detail" aria-label={`Selected details for ${name.name}`}>
       <section className="detail-block" aria-label={`${name.name} details`}>
         <h3>Details</h3>
         <ul className="metadata compact-metadata detail-metadata">
@@ -133,6 +97,26 @@ export function NameDetailPanel({ name }: NameDetailPanelProps) {
           <p className="section-note">{name.roleInfluence.label} nudged this result at {name.roleInfluence.level} strength: {name.roleInfluence.effects.join(', ')}.</p>
         </section>
       ) : null}
-    </aside>
+    </div>
+  );
+}
+
+export function NameCard({ name, isSelected, onSelect }: NameCardProps) {
+  const cardClassName = `name-card panel ${textureClassName(name.silhouette.texture)}${isSelected ? ' selected' : ''}`;
+
+  return (
+    <article className={cardClassName}>
+      <button
+        type="button"
+        className="name-card-button"
+        aria-expanded={isSelected}
+        aria-label={`View details for ${name.name}`}
+        onClick={() => onSelect(name.id)}
+      >
+        <NameCardHeader name={name} />
+        <span className="collapse-cue">{isSelected ? 'Selected' : 'View details'}</span>
+      </button>
+      {isSelected ? <NameInlineDetails name={name} /> : null}
+    </article>
   );
 }
