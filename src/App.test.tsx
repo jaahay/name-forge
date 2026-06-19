@@ -3,7 +3,7 @@ import { renderToString } from 'react-dom/server';
 import App from './App';
 
 describe('App', () => {
-  it('renders the fiction cast mode shell with top-level mode navigation, grouped controls, selected-name inspector, export controls, and project chrome', () => {
+  it('renders the fiction cast workbench with compact header, roster, selected-name inspector, export controls, and project chrome', () => {
     const html = renderToString(<App />);
 
     const expectedCopy = [
@@ -43,6 +43,9 @@ describe('App', () => {
       'Reroll names',
       'Shuffle feel',
       'Generate',
+      'Roster',
+      'Generated names',
+      'Pick a tile to inspect fit, construction, and role signals.',
       'Generated from',
       'Inspect',
       'In inspector',
@@ -75,6 +78,9 @@ describe('App', () => {
       expect(html).toMatch(new RegExp(`<details class="control-section"><summary>${summary}</summary>`));
     }
 
+    expect(html).toContain('class="hero panel app-header"');
+    expect(html).toContain('class="workspace workbench"');
+    expect(html).toContain('class="roster-panel panel"');
     expect(html).toContain('aria-label="Naming modes"');
     expect(html).toContain('class="mode-tab active"');
     expect(html).toContain('class="name-grid"');
@@ -89,6 +95,7 @@ describe('App', () => {
     expect(html).not.toContain('class="name-grid has-selection"');
     expect(html).not.toContain('class="name-inline-detail"');
     expect(html).not.toContain('aria-expanded="true"');
+    expect(html).not.toContain('Names that are random, usable, and cast-aware.');
     expect(html).not.toContain('Randomize sliders');
     expect(html).not.toContain('Randomize seed');
     expect(html).not.toContain('Randomize Novelty');
