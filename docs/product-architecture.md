@@ -2,7 +2,9 @@
 
 Name Forge should remain one product: a random-name workbench. Its first serious mode is **Fiction cast**, but the product should not collapse into only a fiction-cast generator.
 
-The product should support multiple naming modes that share core generation, scoring, comparison, export, and provenance primitives while giving each mode its own controls, vocabulary, and result presentation.
+The product should support multiple naming modes that share core generation, scoring, comparison, export, and provenance primitives while giving each mode its own controls, vocabulary, result presentation, and validation criteria.
+
+See [`product-brief.md`](product-brief.md) for the strategy-level thesis and recommended sequencing.
 
 ## Product language
 
@@ -12,7 +14,7 @@ Use **engine** only when discussing implementation internals.
 
 Examples:
 
-- UI: `Fiction cast mode`, `Brand / product mode`, `Place mode`.
+- UI: `Fiction cast mode`, `Game NPC mode`, `Pen name mode`, `Product / codename mode`, `Place mode`.
 - Code/docs: mode configs, shared engine primitives, and mode-specific presentation.
 
 The useful top-level product prompt is:
@@ -74,17 +76,73 @@ Current result presentation:
 
 Fiction cast mode is allowed to be fiction-specific. Its role controls, cast language, slot overrides, and cast export should not be watered down merely to look generic.
 
+## Mode taxonomy
+
+Candidate modes are planning surfaces, not implementation commitments. Each mode should have a user job, control model, result contract, and validation posture before it becomes active.
+
+| Mode | Primary user job | Result contract | Shared primitives stressed | Suggested maturity |
+| --- | --- | --- | --- | --- |
+| Fiction cast | Name a coherent cast of fictional characters. | Cast list, role metadata, Details/Fit, JSON/Markdown export. | Silhouettes, ensemble balance, role influence, variants, provenance. | Active MVP. |
+| Game NPC | Generate usable names quickly for tabletop, videogame, or interactive-fiction prep. | Names with role/faction/species hints, compact hook, fast reroll. | Briefs, role profiles, compact export, lock/regenerate. | Best first second mode. |
+| Pen name | Generate pseudonyms for authors, creators, or public identity work. | Names with genre/market fit, memorability, privacy/risk notes. | Briefs, style fit, scoring, screening metadata. | Later non-fiction validation mode. |
+| Product / codename | Name products, projects, features, prototypes, or launches. | Names with rationale, tone fit, risk/collision notes, shortlist export. | Briefs, constraints, memorability, availability-looking variants. | Later product-work mode. |
+| Place / toponym | Generate towns, regions, planets, rivers, institutions, and map-region systems. | Place names with type, morphology, and regional texture. | Style packs, morphology, set coherence, provenance. | Later worldbuilding mode. |
+| Set / taxonomy | Name coherent groups: spells, ships, factions, tiers, AI agents, menu items, design tokens. | Named set with shared theme, hierarchy, or relation metadata. | Comparison pressure, shared affixes/themes, export. | Later set-work mode. |
+
 ## Candidate future modes
 
 These are product directions, not implementation commitments for the current slice.
 
-### Brand / product
+### Game / NPC quick names
 
-Names for products, apps, companies, tools, features, or services.
+A faster sibling of Fiction cast mode for prep or live play.
 
 Primary job:
 
-> Help me find names that are memorable, pronounceable, tone-appropriate, and usable in a market context.
+> Give me usable names quickly with minimal configuration.
+
+Likely controls:
+
+- Species, faction, class, role, or region
+- Quantity
+- Familiarity
+- Pronounceability
+- One-click reroll per slot
+- Optional compact hook
+- Compact result cards
+
+Why it is a good first second mode:
+
+- It reuses many Fiction cast primitives.
+- It has a different workflow: speed and low configuration matter more than deep ensemble browsing.
+- It can validate whether result presentation and controls are genuinely mode-specific.
+
+### Pen name
+
+Names for authors, creators, newsletters, artists, or pseudonymous public work.
+
+Primary job:
+
+> Help me choose a pseudonym that fits the market and carries the right amount of identity signal.
+
+Likely controls:
+
+- Genre, market, or platform context
+- Public vs private posture
+- Realistic vs stylized
+- Initials preference
+- Tone
+- Memorability
+- Spelling risk
+- Optional risk notes
+
+### Product / codename
+
+Names for products, apps, companies, tools, features, services, or internal initiatives.
+
+Primary job:
+
+> Help me find names that are memorable, pronounceable, tone-appropriate, and usable in a market or team context.
 
 Likely controls:
 
@@ -97,23 +155,6 @@ Likely controls:
 - Spelling risk
 - Distinctiveness
 - Optional later availability checks
-
-### Project codename
-
-Internal project names that are memorable without being too precious.
-
-Primary job:
-
-> Help me name a project in a way that is readable, low-risk, and easy for a team to use.
-
-Likely controls:
-
-- Theme pool: mythology, birds, minerals, weather, cities, etc.
-- Seriousness
-- Obscurity
-- Length
-- Team readability
-- Embarrassment or loaded-term risk
 
 ### Place / toponym
 
@@ -149,22 +190,6 @@ Likely controls:
 - Platform flavor
 - Availability-looking variants
 
-### Game / NPC quick names
-
-A faster sibling of Fiction cast mode for prep or live play.
-
-Primary job:
-
-> Give me usable names quickly with minimal configuration.
-
-Likely controls:
-
-- Species, faction, class, or region
-- Quantity
-- Familiarity
-- One-click reroll per slot
-- Compact result cards
-
 ### Set / taxonomy naming
 
 Names for coherent groups of related things.
@@ -183,6 +208,37 @@ Likely controls:
 - Hierarchy or tiering
 - Prefix or suffix consistency
 - Set-level export
+
+## Mode maturity model
+
+Track mode work with explicit maturity levels instead of phases.
+
+| Level | Meaning | Evidence |
+| --- | --- | --- |
+| Concept | The user job is named but not implemented. | Brief description, target user, candidate controls. |
+| Prototype | The mode can generate something but may borrow generic UI. | Basic config, manual exploration, known gaps. |
+| Usable | The mode has coherent controls, results, and export for its job. | Smoke tests, deterministic fixtures, docs. |
+| Polished | Iteration tools and explanations make the mode workbench-like. | Lock/reroll, brief support, strong result cards, validated copy. |
+| Stable | The mode has durable contracts and can guide future modes. | Exact tests, mature docs, low churn in config/result shape. |
+
+Fiction cast is currently between **Usable** and **Polished**. Lock/regenerate and brief support are the most direct path toward Polished.
+
+## Shared primitive maturity model
+
+Track shared primitives separately from modes.
+
+| Primitive | Current role | Maturity question |
+| --- | --- | --- |
+| Seeded random generation | Reproducibility base. | Does every mode expose or preserve reproducibility appropriately? |
+| Silhouettes | Pre-spelling shape contract. | Can non-fiction modes use or adapt silhouettes without fiction assumptions? |
+| Style packs | Soft-coded language feel. | Can users eventually create/import packs safely? |
+| Scoring / Fit | Ranking and explanation. | Are mode-specific scoring priorities explicit? |
+| Ensemble/list comparison | Diversity and coherence pressure. | Can it support lists beyond casts? |
+| Role influence | Optional mode-specific nudge layer. | Can profiles be explained and edited without magic? |
+| Variants | Alternative spellings and related names. | Are variant relationships clear across modes? |
+| Provenance | Explanation and reproducibility. | Does every output explain why it exists? |
+| Export | Handoff format. | Can export shapes vary by mode while reusing mechanics? |
+| Briefs | User intent capture. | Not implemented yet; likely next cross-mode primitive. |
 
 ## Mode boundary direction
 
@@ -222,6 +278,7 @@ The future interface may grow toward controls, result presentation, mode-specifi
 - Variants
 - Provenance
 - Export mechanics
+- Future naming briefs
 
 ### Fiction cast responsibilities
 
