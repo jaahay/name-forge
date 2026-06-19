@@ -11,7 +11,6 @@ describe('App', () => {
       'Generator',
       'Changelog',
       'About',
-      'Name Forge / Fiction cast mode',
       'Mode',
       'What are you naming?',
       'Fiction cast',
@@ -54,6 +53,8 @@ describe('App', () => {
       'Texture',
       'Fit',
     ];
+
+    expect(html).toMatch(/Name Forge \/ .*Fiction cast.* mode/);
 
     for (const expected of expectedCopy) {
       expect(html).toContain(expected);
