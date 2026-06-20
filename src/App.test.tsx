@@ -3,7 +3,7 @@ import { renderToString } from 'react-dom/server';
 import App from './App';
 
 describe('App', () => {
-  it('renders the fiction cast workbench with nav sigil, compact header, roster, inspector, save/copy controls, and project chrome', () => {
+  it('renders the fiction cast workbench with nav sigil, compact header, roster, inspector, save menu, and project chrome', () => {
     const html = renderToString(<App />);
 
     const expectedCopy = [
@@ -43,13 +43,14 @@ describe('App', () => {
       'Shuffle Novelty',
       'Generation seed',
       'New seed',
-      'Shuffle feel',
+      'New feel',
       'Generate',
       'Texture',
       'Read',
       'Name parts',
       'Spellings',
       'Syrethaenn',
+      'Save / copy',
       'Save',
       'Copy',
       'JSON',
@@ -80,7 +81,8 @@ describe('App', () => {
     expect(html).toContain('class="brand-sigil"');
     expect(html).toContain('class="workspace workbench"');
     expect(html).toContain('class="roster-panel panel"');
-    expect(html).toContain('class="save-panel panel"');
+    expect(html).toContain('class="save-menu panel"');
+    expect(html).toContain('class="save-menu-content"');
     expect(html).toContain('class="save-group"');
     expect(html).toContain('aria-label="Naming modes"');
     expect(html).toContain('class="mode-tab active"');
@@ -93,6 +95,7 @@ describe('App', () => {
     expect(html).toContain('aria-pressed="true"');
     expect(html).toContain('aria-label="Generation actions"');
     expect(html).not.toContain('class="brand-lockup"');
+    expect(html).not.toContain('class="save-panel panel"');
     expect(html).not.toContain('class="output-toolbar panel"');
     expect(html).not.toContain('class="name-grid has-selection"');
     expect(html).not.toContain('class="name-inline-detail"');
@@ -121,6 +124,7 @@ describe('App', () => {
     expect(html).not.toContain('Fit scores');
     expect(html).not.toContain('Export cast');
     expect(html).not.toContain('Reroll names');
+    expect(html).not.toContain('Shuffle feel');
     expect(html).not.toContain('Randomize sliders');
     expect(html).not.toContain('Randomize seed');
     expect(html).not.toContain('Randomize Novelty');
