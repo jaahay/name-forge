@@ -90,9 +90,6 @@ export function GeneratorView({
     <>
       <section className="hero panel app-header">
         <div>
-          <div className="brand-lockup" aria-label="Name Forge">
-            <span className="brand-mark" aria-hidden="true"><span className="brand-sigil" /></span>
-          </div>
           <h1>{modeTitle}</h1>
           <p className="hero-copy">Roll fantasy names, tune the feel, and keep the cast that fits.</p>
         </div>
@@ -197,7 +194,7 @@ export function GeneratorView({
 
           <div className="actions" aria-label="Generation actions">
             <button type="submit">Generate</button>
-            <button type="button" className="secondary" onClick={onRandomizeSeed}>Reroll names</button>
+            <button type="button" className="secondary" onClick={onRandomizeSeed}>New seed</button>
             <button type="button" className="secondary" onClick={onRandomizeSliders}>Shuffle feel</button>
           </div>
         </form>
