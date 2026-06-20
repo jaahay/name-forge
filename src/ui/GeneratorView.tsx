@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, type FormEvent, type KeyboardEvent } from 'react';
 import { serializeCastAsJson, serializeCastAsMarkdown } from '../engine/export';
 import { rarityDistributionOptions } from '../engine/rarity';
 import { castRoleOptions, castRolePresetOptions, roleInfluenceOptions } from '../engine/roles';
@@ -16,8 +16,8 @@ interface GeneratorViewProps {
   ensemble: GeneratedEnsemble;
   lockedNameIds: Set<string>;
   onUpdateSetting: <K extends keyof GenerationSettings>(key: K, value: GenerationSettings[K]) => void;
-  onRegenerate: (event?: FormEvent) => void;
-  onRandomizeSeed: () => void;
+  onGenerate: (event?: FormEvent) => void;
+  onCommitSettings: () => void;
   onRandomizeSliders: () => void;
   onRandomizeSlider: (key: ControlKey) => void;
   onToggleLockedName: (id: string) => void;
@@ -70,8 +70,8 @@ export function GeneratorView({
   ensemble,
   lockedNameIds,
   onUpdateSetting,
-  onRegenerate,
-  onRandomizeSeed,
+  onGenerate,
+  onCommitSettings,
   onRandomizeSliders,
   onRandomizeSlider,
   onToggleLockedName,
@@ -105,12 +105,18 @@ export function GeneratorView({
 
   function submitGeneration(event?: FormEvent) {
     collapseSelection();
-    onRegenerate(event);
+    onGenerate(event);
   }
 
-  function randomizeSeed() {
+  function commitSeed() {
     collapseSelection();
-    onRandomizeSeed();
+    onCommitSettings();
+  }
+
+  function commitSeedOnEnter(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key !== 'Enter') return;
+    event.preventDefault();
+    event.currentTarget.blur();
   }
 
   function randomizeSliders() {
@@ -242,21 +248,16 @@ export function GeneratorView({
             <div className="control-section-body">
               <label className="seed-control">
                 <span>Generation seed</span>
-                <input value={settings.seed} onChange={(event) => onUpdateSetting('seed', event.target.value)} />
+                <input value={settings.seed} onChange={(event) => onUpdateSetting('seed', event.target.value)} onBlur={commitSeed} onKeyDown={commitSeedOnEnter} />
               </label>
-              {hasLockedNames ? (
-                <div className="lock-run-options" aria-label="Locked name run options">
-                  <p className="section-note">{lockedCount} locked name{lockedCount === 1 ? '' : 's'} will stay fixed while unlocked slots regenerate.</p>
-                  <button type="submit" className="secondary">Regenerate unlocked</button>
-                  <button type="button" className="secondary" onClick={onClearLockedNames}>Clear locks</button>
-                </div>
-              ) : null}
             </div>
           </details>
 
           <div className="actions" aria-label="Generation actions">
+            {hasLockedNames ? (
+              <p className="lock-status">{lockedCount} locked. Generate keeps locked names and rerolls the rest. <button type="button" className="anchor-button" onClick={onClearLockedNames}>Clear</button></p>
+            ) : null}
             <button type="submit">Generate</button>
-            <button type="button" className="secondary" onClick={randomizeSeed}>New seed</button>
             <button type="button" className="secondary" onClick={randomizeSliders}>New feel</button>
           </div>
         </form>
