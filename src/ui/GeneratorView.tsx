@@ -1,4 +1,4 @@
-import { useState, type FormEvent, type KeyboardEvent } from 'react';
+import { useEffect, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { serializeCastAsJson, serializeCastAsMarkdown } from '../engine/export';
 import { rarityDistributionOptions } from '../engine/rarity';
 import { castRoleOptions, castRolePresetOptions, roleInfluenceOptions } from '../engine/roles';
@@ -72,6 +72,15 @@ function EmptyInspector() {
   );
 }
 
+function resolveSelectedNameId(previousSelectedId: string, ensemble: GeneratedEnsemble, lockedNameIds: Set<string>): string {
+  if (previousSelectedId && ensemble.names.some((name) => name.id === previousSelectedId)) {
+    return previousSelectedId;
+  }
+
+  const firstLocked = ensemble.names.find((name) => lockedNameIds.has(name.id));
+  return firstLocked?.id ?? ensemble.names[0]?.id ?? '';
+}
+
 export function GeneratorView({
   mode,
   stylePacks,
@@ -93,32 +102,33 @@ export function GeneratorView({
   const slotRoleCount = Math.max(0, Math.min(castSize, 8));
   const hasRoleMix = (settings.rolePreset ?? 'none') !== 'none';
   const selectedRoleInfluence = roleInfluenceOptions.find((option) => option.value === (settings.roleInfluence ?? 'off'));
-  const selectedName = ensemble.names.find((name) => name.id === selectedNameId);
-  const selectedNameKey = selectedName?.id ?? '';
   const modeTitle = titleCaseLabel(mode.label);
   const castSizeLabel = `${mode.shortLabel} size`;
   const lockedCount = lockedNameIds.size;
   const hasLockedNames = lockedCount > 0;
+  const resolvedSelectedNameId = resolveSelectedNameId(selectedNameId, ensemble, lockedNameIds);
+  const selectedName = ensemble.names.find((name) => name.id === resolvedSelectedNameId);
+  const selectedNameKey = selectedName?.id ?? '';
+
+  useEffect(() => {
+    if (selectedNameId !== resolvedSelectedNameId) {
+      setSelectedNameId(resolvedSelectedNameId);
+    }
+  }, [resolvedSelectedNameId, selectedNameId]);
 
   function updateCastSize(value: number) {
     onUpdateSetting('castSize', clampCastSize(value));
   }
 
-  function toggleSelectedName(id: string) {
-    setSelectedNameId((currentId) => (currentId === id ? '' : id));
-  }
-
-  function collapseSelection() {
-    setSelectedNameId('');
+  function selectName(id: string) {
+    setSelectedNameId(id);
   }
 
   function submitGeneration(event?: FormEvent) {
-    collapseSelection();
     onGenerate(event);
   }
 
   function commitSeed() {
-    collapseSelection();
     onCommitSettings();
   }
 
@@ -129,12 +139,10 @@ export function GeneratorView({
   }
 
   function randomizeSliders() {
-    collapseSelection();
     onRandomizeSliders();
   }
 
   function randomizeSlider(key: ControlKey) {
-    collapseSelection();
     onRandomizeSlider(key);
   }
 
@@ -147,7 +155,7 @@ export function GeneratorView({
             name={name}
             isSelected={name.id === selectedNameKey}
             isLocked={lockedNameIds.has(name.id)}
-            onSelect={toggleSelectedName}
+            onSelect={selectName}
             onToggleLocked={onToggleLockedName}
           />
         ))}
@@ -155,7 +163,7 @@ export function GeneratorView({
     </section>
   );
 
-  const inspector = selectedName ? <NameInspector name={selectedName} onDismiss={() => setSelectedNameId('')} /> : <EmptyInspector />;
+  const inspector = selectedName ? <NameInspector name={selectedName} /> : <EmptyInspector />;
 
   return (
     <>
@@ -239,7 +247,7 @@ export function GeneratorView({
             </div>
           </details>
 
-          <details className="control-section">
+          <details className="control-section" open>
             <summary>Name feel</summary>
             <div className="control-section-body">
               <label>
@@ -265,11 +273,11 @@ export function GeneratorView({
           </details>
 
           <div className="actions" aria-label="Generation actions">
+            <button type="submit">Generate</button>
+            <button type="button" className="secondary" onClick={randomizeSliders}>Reroll feel</button>
             {hasLockedNames ? (
               <p className="lock-status">{lockedCount} locked. Generate keeps locked names and rerolls the rest. <button type="button" className="anchor-button" onClick={onClearLockedNames}>Clear</button></p>
             ) : null}
-            <button type="submit">Generate</button>
-            <button type="button" className="secondary" onClick={randomizeSliders}>New feel</button>
           </div>
         </form>
 
