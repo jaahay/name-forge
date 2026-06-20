@@ -54,9 +54,12 @@ export function NameInspector({ name, onDismiss }: NameInspectorProps) {
   const { formatLabel, identity, rarity, roleInfluenceLabel, roleLabel, textureLabel } = metadataFor(name);
 
   return (
-    <aside className="selected-name-panel panel" aria-labelledby="selected-name-heading" onClick={onDismiss}>
+    <aside className="selected-name-panel panel" aria-labelledby="selected-name-heading">
       <header className="selected-name-heading">
-        <h2 id="selected-name-heading" className={`name-card-title ${rarity.className}`}>{name.name}</h2>
+        <div className="name-card-header">
+          <h2 id="selected-name-heading" className={`name-card-title ${rarity.className}`}>{name.name}</h2>
+          <button type="button" className="anchor-button" aria-label="Close detail pane" onClick={onDismiss}>Close</button>
+        </div>
         <ul className="selected-name-chips" aria-label="Name snapshot">
           <li>{rarity.label}</li>
           <li>{roleLabel}</li>
