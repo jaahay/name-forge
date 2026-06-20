@@ -9,7 +9,9 @@ interface NameCardHeaderProps {
 interface NameCardProps {
   name: GeneratedName;
   isSelected: boolean;
+  isLocked: boolean;
   onSelect: (id: string) => void;
+  onToggleLocked: (id: string) => void;
 }
 
 interface NameInspectorProps {
@@ -110,8 +112,8 @@ export function NameInspector({ name, onDismiss }: NameInspectorProps) {
   );
 }
 
-export function NameCard({ name, isSelected, onSelect }: NameCardProps) {
-  const cardClassName = `name-card panel ${textureClassName(name.silhouette.texture)}${isSelected ? ' selected' : ''}`;
+export function NameCard({ name, isSelected, isLocked, onSelect, onToggleLocked }: NameCardProps) {
+  const cardClassName = `name-card panel ${textureClassName(name.silhouette.texture)}${isSelected ? ' selected' : ''}${isLocked ? ' locked' : ''}`;
 
   return (
     <article className={cardClassName} aria-current={isSelected ? 'true' : undefined}>
@@ -123,6 +125,15 @@ export function NameCard({ name, isSelected, onSelect }: NameCardProps) {
         onClick={() => onSelect(name.id)}
       >
         <NameCardHeader name={name} />
+      </button>
+      <button
+        type="button"
+        className="anchor-button lock-toggle"
+        aria-pressed={isLocked}
+        aria-label={`${isLocked ? 'Unlock' : 'Lock'} ${name.name}`}
+        onClick={() => onToggleLocked(name.id)}
+      >
+        {isLocked ? 'Locked' : 'Lock'}
       </button>
     </article>
   );

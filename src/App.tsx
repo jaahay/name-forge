@@ -1,7 +1,7 @@
-import { FormEvent, useMemo, useState } from 'react';
+import { FormEvent, useState } from 'react';
 import { createDefaultRegistry } from './engine/registry';
-import { generateEnsemble } from './engine/ensemble';
-import type { GenerationSettings } from './engine/types';
+import { generateEnsemble, type LockedNameSlot } from './engine/ensemble';
+import type { GeneratedEnsemble, GenerationSettings } from './engine/types';
 import { AboutView } from './ui/AboutView';
 import { ChangelogView } from './ui/ChangelogView';
 import { GeneratorView } from './ui/GeneratorView';
@@ -13,41 +13,74 @@ const registry = createDefaultRegistry();
 const stylePacks = registry.listStylePacks();
 const activeMode = fictionCastMode;
 const initialSettings = activeMode.defaultSettings(stylePacks[0]?.id ?? 'british-literary-fantasy');
+const initialEnsemble = generateEnsemble(initialSettings, registry);
 const authorSiteUrl = 'https://jameshay.org/';
 const sourceUrl = 'https://github.com/jaahay/name-forge';
 const commitHistoryUrl = `${sourceUrl}/commits/main/`;
+
+function lockedSlotsFor(ensemble: GeneratedEnsemble, lockedNameIds: Set<string>): LockedNameSlot[] {
+  return ensemble.names.flatMap((name, index) => (lockedNameIds.has(name.id) ? [{ index, name }] : []));
+}
+
+function retainedLockIds(ensemble: GeneratedEnsemble, lockedNameIds: Set<string>): Set<string> {
+  const visibleIds = new Set(ensemble.names.map((name) => name.id));
+  return new Set([...lockedNameIds].filter((id) => visibleIds.has(id)));
+}
 
 export default function App() {
   const [currentView, setCurrentView] = useState<AppView>('generator');
   const [settings, setSettings] = useState<GenerationSettings>(initialSettings);
   const [committedSettings, setCommittedSettings] = useState<GenerationSettings>(initialSettings);
-  const ensemble = useMemo(() => generateEnsemble(committedSettings, registry), [committedSettings]);
+  const [ensemble, setEnsemble] = useState<GeneratedEnsemble>(initialEnsemble);
+  const [lockedNameIds, setLockedNameIds] = useState<Set<string>>(() => new Set());
 
   function updateSetting<K extends keyof GenerationSettings>(key: K, value: GenerationSettings[K]) {
     setSettings((current) => ({ ...current, [key]: value }));
   }
 
+  function commitGeneration(nextSettings: GenerationSettings, nextLockedNameIds = lockedNameIds) {
+    const nextEnsemble = generateEnsemble(nextSettings, registry, lockedSlotsFor(ensemble, nextLockedNameIds));
+    setCommittedSettings(nextSettings);
+    setEnsemble(nextEnsemble);
+    setLockedNameIds(retainedLockIds(nextEnsemble, nextLockedNameIds));
+  }
+
   function regenerate(event?: FormEvent) {
     event?.preventDefault();
-    setCommittedSettings(settings);
+    commitGeneration(settings);
   }
 
   function randomizeSeed() {
     const nextSeed = `name-forge-${Math.random().toString(36).slice(2, 10)}`;
-    setSettings((current) => ({ ...current, seed: nextSeed }));
-    setCommittedSettings((current) => ({ ...current, seed: nextSeed }));
+    const nextSettings = { ...settings, seed: nextSeed };
+    setSettings(nextSettings);
+    commitGeneration(nextSettings);
   }
 
   function randomizeSliders() {
     const randomizedSettings = randomizeScoreSettings(settings);
     setSettings(randomizedSettings);
-    setCommittedSettings(randomizedSettings);
+    commitGeneration(randomizedSettings);
   }
 
   function randomizeSlider(key: ControlKey) {
     const nextValue = randomScore();
-    setSettings((current) => ({ ...current, [key]: nextValue }));
-    setCommittedSettings((current) => ({ ...current, [key]: nextValue }));
+    const nextSettings = { ...settings, [key]: nextValue };
+    setSettings(nextSettings);
+    commitGeneration(nextSettings);
+  }
+
+  function toggleLockedName(id: string) {
+    setLockedNameIds((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function clearLockedNames() {
+    setLockedNameIds(new Set());
   }
 
   return (
@@ -77,12 +110,16 @@ export default function App() {
           mode={activeMode}
           stylePacks={stylePacks}
           settings={settings}
+          committedSettings={committedSettings}
           ensemble={ensemble}
+          lockedNameIds={lockedNameIds}
           onUpdateSetting={updateSetting}
           onRegenerate={regenerate}
           onRandomizeSeed={randomizeSeed}
           onRandomizeSliders={randomizeSliders}
           onRandomizeSlider={randomizeSlider}
+          onToggleLockedName={toggleLockedName}
+          onClearLockedNames={clearLockedNames}
         />
       ) : currentView === 'changelog' ? (
         <ChangelogView commitHistoryUrl={commitHistoryUrl} />

@@ -47,4 +47,21 @@ describe('generateEnsemble role and rarity controls', () => {
 
     expect(ensemble.names.map((name) => name.silhouette.rarityBand)).toEqual(['common', 'uncommon', 'rare', 'epic', 'legendary']);
   });
+
+  it('preserves locked names in their slots while rerolling unlocked names', () => {
+    const registry = createDefaultRegistry();
+    const first = generateEnsemble({ ...baseSettings, castSize: 4, seed: 'locked-before' }, registry);
+    const lockedName = first.names[1];
+    const next = generateEnsemble(
+      { ...baseSettings, castSize: 4, seed: 'locked-after' },
+      registry,
+      [{ index: 1, name: lockedName }],
+    );
+
+    expect(next.names).toHaveLength(4);
+    expect(next.names[1]).toEqual(lockedName);
+    expect(next.names[0].name).not.toEqual(first.names[0].name);
+    expect(next.names[2].name).not.toEqual(first.names[2].name);
+    expect(next.diagnostics.summary).toContain('cast');
+  });
 });

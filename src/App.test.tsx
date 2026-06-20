@@ -7,7 +7,7 @@ function stripExportDataUrls(html: string): string {
 }
 
 describe('App', () => {
-  it('renders the fiction cast workbench with nav sigil, compact header, closed detail pane, roster, export menu, and project chrome', () => {
+  it('renders the fiction cast workbench with nav sigil, compact header, closed detail pane, roster, export menu, lock controls, and project chrome', () => {
     const html = stripExportDataUrls(renderToString(<App />));
 
     const expectedCopy = [
@@ -49,6 +49,7 @@ describe('App', () => {
       'New seed',
       'New feel',
       'Generate',
+      'Lock',
       'Export',
       'Save',
       'Copy',
@@ -89,6 +90,8 @@ describe('App', () => {
     expect(html).toContain('class="name-grid"');
     expect(html).toContain('aria-label="Name tiles"');
     expect(html).toContain('aria-label="Generation actions"');
+    expect(html).toContain('class="anchor-button lock-toggle"');
+    expect(html).toContain('aria-label="Lock ');
     expect(html).not.toContain('class="brand-lockup"');
     expect(html).not.toContain('class="save-panel panel"');
     expect(html).not.toContain('class="output-toolbar panel"');
@@ -133,6 +136,9 @@ describe('App', () => {
     expect(html).not.toContain('Randomize sliders');
     expect(html).not.toContain('Randomize seed');
     expect(html).not.toContain('Randomize Novelty');
+    expect(html).not.toContain('Regenerate unlocked');
+    expect(html).not.toContain('Clear locks');
+    expect(html).not.toContain('Locked</button>');
     expect(html).not.toContain('<summary>Basics</summary>');
     expect(html).not.toContain('<summary>Fiction</summary>');
     expect(html).not.toContain('<summary>Name tuning</summary>');

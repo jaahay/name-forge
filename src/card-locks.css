@@ -1,0 +1,14 @@
+.lock-toggle {
+  justify-self: start;
+  margin: 0 0.88rem 0.82rem;
+  padding: 0.34rem 0.58rem;
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.lock-toggle[aria-pressed='true'] {
+  border-color: rgba(240, 184, 95, 0.52);
+  color: #1a130b;
+  background: #f0b85f;
+}
