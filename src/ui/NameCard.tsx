@@ -14,6 +14,7 @@ interface NameCardProps {
 
 interface NameInspectorProps {
   name: GeneratedName;
+  onDismiss: () => void;
 }
 
 function labelFor(value: string): string {
@@ -49,13 +50,16 @@ function metadataFor(name: GeneratedName) {
   return { formatLabel, identity, rarity, roleInfluenceLabel, roleLabel, textureLabel };
 }
 
-export function NameInspector({ name }: NameInspectorProps) {
+export function NameInspector({ name, onDismiss }: NameInspectorProps) {
   const { formatLabel, identity, rarity, roleInfluenceLabel, roleLabel, textureLabel } = metadataFor(name);
 
   return (
     <aside className="selected-name-panel panel" aria-labelledby="selected-name-heading">
       <header className="selected-name-heading">
-        <h2 id="selected-name-heading" className={`name-card-title ${rarity.className}`}>{name.name}</h2>
+        <div className="name-card-header">
+          <h2 id="selected-name-heading" className={`name-card-title ${rarity.className}`}>{name.name}</h2>
+          <button type="button" className="anchor-button" aria-label="Close detail pane" onClick={onDismiss}>Close</button>
+        </div>
         <ul className="selected-name-chips" aria-label="Name snapshot">
           <li>{rarity.label}</li>
           <li>{roleLabel}</li>

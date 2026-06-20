@@ -70,14 +70,14 @@ export function GeneratorView({
   onRandomizeSliders,
   onRandomizeSlider,
 }: GeneratorViewProps) {
-  const [selectedNameId, setSelectedNameId] = useState(ensemble.names[0]?.id ?? '');
+  const [selectedNameId, setSelectedNameId] = useState('');
   const jsonExport = serializeCastAsJson(ensemble);
   const markdownExport = serializeCastAsMarkdown(ensemble);
   const castSize = clampCastSize(settings.castSize);
   const slotRoleCount = Math.max(0, Math.min(castSize, 8));
   const hasRoleMix = (settings.rolePreset ?? 'none') !== 'none';
   const selectedRoleInfluence = roleInfluenceOptions.find((option) => option.value === (settings.roleInfluence ?? 'off'));
-  const selectedName = ensemble.names.find((name) => name.id === selectedNameId) ?? ensemble.names[0];
+  const selectedName = ensemble.names.find((name) => name.id === selectedNameId);
   const selectedNameKey = selectedName?.id ?? '';
   const modeTitle = titleCaseLabel(mode.label);
   const castSizeLabel = `${mode.shortLabel} size`;
@@ -85,6 +85,20 @@ export function GeneratorView({
   function updateCastSize(value: number) {
     onUpdateSetting('castSize', clampCastSize(value));
   }
+
+  function toggleSelectedName(id: string) {
+    setSelectedNameId((currentId) => (currentId === id ? '' : id));
+  }
+
+  const roster = (
+    <section className="roster-panel panel" aria-label="Name roster">
+      <div className="name-grid" aria-label="Name tiles">
+        {ensemble.names.map((name) => (
+          <NameCard key={name.id} name={name} isSelected={name.id === selectedNameKey} onSelect={toggleSelectedName} />
+        ))}
+      </div>
+    </section>
+  );
 
   return (
     <>
@@ -200,17 +214,13 @@ export function GeneratorView({
         </form>
 
         <section className="output" aria-live="polite">
-          {selectedName ? (
-            <div className="results-layout">
-              <section className="roster-panel panel" aria-label="Name roster">
-                <div className="name-grid" aria-label="Name tiles">
-                  {ensemble.names.map((name) => (
-                    <NameCard key={name.id} name={name} isSelected={name.id === selectedNameKey} onSelect={setSelectedNameId} />
-                  ))}
-                </div>
-              </section>
-              <NameInspector name={selectedName} />
-            </div>
+          {ensemble.names.length > 0 ? (
+            selectedName ? (
+              <div className="results-layout">
+                {roster}
+                <NameInspector name={selectedName} onDismiss={() => setSelectedNameId('')} />
+              </div>
+            ) : roster
           ) : (
             <div className="empty-state panel">Generate names to fill this cast.</div>
           )}
