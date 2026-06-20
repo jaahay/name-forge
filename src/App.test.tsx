@@ -3,7 +3,7 @@ import { renderToString } from 'react-dom/server';
 import App from './App';
 
 describe('App', () => {
-  it('renders the fiction cast workbench with nav sigil, compact header, roster, inspector, export menu, and project chrome', () => {
+  it('renders the fiction cast workbench with nav sigil, compact header, closed detail pane, roster, export menu, and project chrome', () => {
     const html = renderToString(<App />);
 
     const expectedCopy = [
@@ -45,11 +45,6 @@ describe('App', () => {
       'New seed',
       'New feel',
       'Generate',
-      'Texture',
-      'Read',
-      'Name parts',
-      'Spellings',
-      'Syrethaenn',
       'Export',
       'Save',
       'Copy',
@@ -89,15 +84,16 @@ describe('App', () => {
     expect(html).toContain('class="mode-tab active"');
     expect(html).toContain('class="name-grid"');
     expect(html).toContain('aria-label="Name tiles"');
-    expect(html).toContain('class="selected-name-panel panel"');
-    expect(html).toContain('class="selected-name-chips"');
-    expect(html).toContain('class="inspector-summary"');
-    expect(html).toContain('class="name-detail-grid"');
-    expect(html).toContain('aria-pressed="true"');
     expect(html).toContain('aria-label="Generation actions"');
     expect(html).not.toContain('class="brand-lockup"');
     expect(html).not.toContain('class="save-panel panel"');
     expect(html).not.toContain('class="output-toolbar panel"');
+    expect(html).not.toContain('class="results-layout"');
+    expect(html).not.toContain('class="selected-name-panel panel"');
+    expect(html).not.toContain('class="selected-name-chips"');
+    expect(html).not.toContain('class="inspector-summary"');
+    expect(html).not.toContain('class="name-detail-grid"');
+    expect(html).not.toContain('aria-pressed="true"');
     expect(html).not.toContain('class="name-grid has-selection"');
     expect(html).not.toContain('class="name-inline-detail"');
     expect(html).not.toContain('class="collapse-cue"');
@@ -121,6 +117,10 @@ describe('App', () => {
     expect(html).not.toContain('Show Markdown preview');
     expect(html).not.toContain('In inspector');
     expect(html).not.toContain('Profile');
+    expect(html).not.toContain('Read</h3>');
+    expect(html).not.toContain('Name parts');
+    expect(html).not.toContain('Spellings');
+    expect(html).not.toContain('Syrethaenn');
     expect(html).not.toContain('Checks');
     expect(html).not.toContain('Construction');
     expect(html).not.toContain('Fit scores');
