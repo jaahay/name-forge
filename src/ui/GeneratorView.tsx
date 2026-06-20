@@ -42,6 +42,13 @@ function clampCastSize(value: number): number {
   return Math.max(1, Math.min(24, Math.round(value)));
 }
 
+function titleCaseLabel(value: string): string {
+  return value
+    .split(' ')
+    .map((part) => `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
+    .join(' ');
+}
+
 function updateSlotRole(currentRoles: GenerationSettings['slotRoleOverrides'], index: number, role: CastRole | ''): GenerationSettings['slotRoleOverrides'] {
   const nextRoles = { ...(currentRoles ?? {}) };
   if (role === '') {
@@ -70,10 +77,10 @@ export function GeneratorView({
   const slotRoleCount = Math.max(0, Math.min(castSize, 8));
   const hasRoleMix = (settings.rolePreset ?? 'none') !== 'none';
   const selectedRoleInfluence = roleInfluenceOptions.find((option) => option.value === (settings.roleInfluence ?? 'off'));
-  const selectedStylePack = stylePacks.find((pack) => pack.id === settings.stylePackId);
-  const selectedFormat = formatOptions.find((option) => option.value === (settings.nameFormat ?? 'given-only'));
   const selectedName = ensemble.names.find((name) => name.id === selectedNameId) ?? ensemble.names[0];
   const selectedNameKey = selectedName?.id ?? '';
+  const modeTitle = titleCaseLabel(mode.label);
+  const castSizeLabel = `${mode.shortLabel} size`;
 
   function updateCastSize(value: number) {
     onUpdateSetting('castSize', clampCastSize(value));
@@ -81,11 +88,10 @@ export function GeneratorView({
 
   return (
     <>
-      <section className="hero panel">
+      <section className="hero panel app-header">
         <div>
-          <p className="eyebrow">Name Forge / {mode.label} mode</p>
-          <h1>{mode.heroTitle}</h1>
-          <p className="hero-copy">{mode.heroCopy}</p>
+          <h1>{modeTitle}</h1>
+          <p className="hero-copy">Roll fantasy names, tune the feel, and keep the cast that fits.</p>
         </div>
         <div className="hero-stats" aria-label="Generation summary">
           <span>{ensemble.names.length} names</span>
@@ -94,13 +100,13 @@ export function GeneratorView({
         </div>
       </section>
 
-      <section className="workspace">
+      <section className="workspace workbench">
         <form className="controls panel" onSubmit={onRegenerate}>
           <details className="control-section">
             <summary>Cast setup</summary>
             <div className="control-section-body">
               <label>
-                <span>{mode.shortLabel} size</span>
+                <span>{castSizeLabel}</span>
                 <div className="cast-size-control">
                   <button type="button" className="stepper-button" onClick={() => updateCastSize(castSize - 1)} aria-label="Decrease cast size">-</button>
                   <input type="number" min="1" max="24" value={castSize} onChange={(event) => updateCastSize(Number(event.target.value))} />
@@ -188,50 +194,42 @@ export function GeneratorView({
 
           <div className="actions" aria-label="Generation actions">
             <button type="submit">Generate</button>
-            <button type="button" className="secondary" onClick={onRandomizeSeed}>Reroll names</button>
-            <button type="button" className="secondary" onClick={onRandomizeSliders}>Shuffle feel</button>
+            <button type="button" className="secondary" onClick={onRandomizeSeed}>New seed</button>
+            <button type="button" className="secondary" onClick={onRandomizeSliders}>New feel</button>
           </div>
         </form>
 
         <section className="output" aria-live="polite">
           {selectedName ? (
             <div className="results-layout">
-              <div className="name-grid" aria-label="Generated names">
-                {ensemble.names.map((name) => (
-                  <NameCard key={name.id} name={name} isSelected={name.id === selectedNameKey} onSelect={setSelectedNameId} />
-                ))}
-              </div>
+              <section className="roster-panel panel" aria-label="Name roster">
+                <div className="name-grid" aria-label="Name tiles">
+                  {ensemble.names.map((name) => (
+                    <NameCard key={name.id} name={name} isSelected={name.id === selectedNameKey} onSelect={setSelectedNameId} />
+                  ))}
+                </div>
+              </section>
               <NameInspector name={selectedName} />
             </div>
           ) : (
             <div className="empty-state panel">Generate names to fill this cast.</div>
           )}
 
-          <section className="export-panel panel" aria-labelledby="export-heading">
-            <div className="export-heading">
-              <div>
-                <p className="eyebrow">Export</p>
-                <h2 id="export-heading">{mode.exportHeading}</h2>
-              </div>
-              <div className="export-actions" aria-label="Cast export actions">
+          <details className="save-menu panel">
+            <summary>Save / copy</summary>
+            <div className="save-menu-content" aria-label="Save or copy cast">
+              <div className="save-group" aria-label="Save files">
+                <span className="save-group-label">Save</span>
                 <a className="export-link" download="name-forge-cast.json" href={exportHref('application/json', jsonExport)}>JSON</a>
                 <a className="export-link" download="name-forge-cast.md" href={exportHref('text/markdown', markdownExport)}>Markdown</a>
-                <button type="button" className="secondary" onClick={() => copyExport(jsonExport)}>Copy JSON</button>
-                <button type="button" className="secondary" onClick={() => copyExport(markdownExport)}>Copy Markdown</button>
+              </div>
+              <div className="save-group" aria-label="Copy cast">
+                <span className="save-group-label">Copy</span>
+                <button type="button" className="secondary" aria-label="Copy JSON" onClick={() => copyExport(jsonExport)}>JSON</button>
+                <button type="button" className="secondary" aria-label="Copy Markdown" onClick={() => copyExport(markdownExport)}>Markdown</button>
               </div>
             </div>
-            <div className="generation-context export-summary" aria-label="Generated from settings">
-              <span>Generated from</span>
-              <strong>{selectedStylePack?.label ?? 'Selected style'}</strong>
-              <span>{selectedFormat?.label ?? 'Selected format'}</span>
-              <span>{castSize} requested names</span>
-              <span>{selectedRoleInfluence?.label ?? 'Off'} role influence</span>
-            </div>
-            <details className="export-preview">
-              <summary>Show Markdown preview</summary>
-              <textarea value={markdownExport} readOnly rows={8} aria-label="Markdown export preview" />
-            </details>
-          </section>
+          </details>
         </section>
       </section>
     </>
