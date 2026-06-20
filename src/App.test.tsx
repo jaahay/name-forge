@@ -7,7 +7,7 @@ function stripExportDataUrls(html: string): string {
 }
 
 describe('App', () => {
-  it('renders the fiction cast workbench with nav sigil, compact header, closed detail pane, roster, export menu, lock controls, and project chrome', () => {
+  it('renders the fiction cast workbench with nav sigil, compact header, inspector rail, roster, export menu, lock controls, and project chrome', () => {
     const html = stripExportDataUrls(renderToString(<App />));
 
     const expectedCopy = [
@@ -46,9 +46,10 @@ describe('App', () => {
       'Novelty value',
       'Shuffle Novelty',
       'Generation seed',
-      'New seed',
       'New feel',
       'Generate',
+      'Inspect',
+      'Select a name to view fit, parts, spellings, and construction cues.',
       'Lock',
       'Export',
       'Save',
@@ -81,6 +82,9 @@ describe('App', () => {
     expect(html).toContain('class="brand-sigil"');
     expect(html).toContain('class="workspace workbench"');
     expect(html).toContain('class="roster-panel panel"');
+    expect(html).toContain('class="results-layout inspector-rail-layout"');
+    expect(html).toContain('class="inspector-empty-panel panel"');
+    expect(html).toContain('aria-label="Name inspector"');
     expect(html).toContain('class="save-menu panel"');
     expect(html).toContain('class="save-menu-content"');
     expect(html).toContain('aria-label="Export cast"');
@@ -95,7 +99,6 @@ describe('App', () => {
     expect(html).not.toContain('class="brand-lockup"');
     expect(html).not.toContain('class="save-panel panel"');
     expect(html).not.toContain('class="output-toolbar panel"');
-    expect(html).not.toContain('class="results-layout"');
     expect(html).not.toContain('class="selected-name-panel panel"');
     expect(html).not.toContain('class="selected-name-chips"');
     expect(html).not.toContain('class="inspector-summary"');
@@ -134,6 +137,7 @@ describe('App', () => {
     expect(html).not.toContain('Reroll names');
     expect(html).not.toContain('Shuffle feel');
     expect(html).not.toContain('Randomize sliders');
+    expect(html).not.toContain('New seed');
     expect(html).not.toContain('Randomize seed');
     expect(html).not.toContain('Randomize Novelty');
     expect(html).not.toContain('Regenerate unlocked');

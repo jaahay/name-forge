@@ -18,6 +18,10 @@ const authorSiteUrl = 'https://jameshay.org/';
 const sourceUrl = 'https://github.com/jaahay/name-forge';
 const commitHistoryUrl = `${sourceUrl}/commits/main/`;
 
+function createRandomSeed(): string {
+  return `name-forge-${Math.random().toString(36).slice(2, 10)}`;
+}
+
 function lockedSlotsFor(ensemble: GeneratedEnsemble, lockedNameIds: Set<string>): LockedNameSlot[] {
   return ensemble.names.flatMap((name, index) => (lockedNameIds.has(name.id) ? [{ index, name }] : []));
 }
@@ -45,16 +49,15 @@ export default function App() {
     setLockedNameIds(retainedLockIds(nextEnsemble, nextLockedNameIds));
   }
 
-  function regenerate(event?: FormEvent) {
+  function generate(event?: FormEvent) {
     event?.preventDefault();
-    commitGeneration(settings);
-  }
-
-  function randomizeSeed() {
-    const nextSeed = `name-forge-${Math.random().toString(36).slice(2, 10)}`;
-    const nextSettings = { ...settings, seed: nextSeed };
+    const nextSettings = { ...settings, seed: createRandomSeed() };
     setSettings(nextSettings);
     commitGeneration(nextSettings);
+  }
+
+  function commitCurrentSettings() {
+    commitGeneration(settings);
   }
 
   function randomizeSliders() {
@@ -114,8 +117,8 @@ export default function App() {
           ensemble={ensemble}
           lockedNameIds={lockedNameIds}
           onUpdateSetting={updateSetting}
-          onRegenerate={regenerate}
-          onRandomizeSeed={randomizeSeed}
+          onGenerate={generate}
+          onCommitSettings={commitCurrentSettings}
           onRandomizeSliders={randomizeSliders}
           onRandomizeSlider={randomizeSlider}
           onToggleLockedName={toggleLockedName}

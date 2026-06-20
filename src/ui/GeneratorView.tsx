@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, type FormEvent, type KeyboardEvent } from 'react';
 import { serializeCastAsJson, serializeCastAsMarkdown } from '../engine/export';
 import { rarityDistributionOptions } from '../engine/rarity';
 import { castRoleOptions, castRolePresetOptions, roleInfluenceOptions } from '../engine/roles';
@@ -16,8 +16,8 @@ interface GeneratorViewProps {
   ensemble: GeneratedEnsemble;
   lockedNameIds: Set<string>;
   onUpdateSetting: <K extends keyof GenerationSettings>(key: K, value: GenerationSettings[K]) => void;
-  onRegenerate: (event?: FormEvent) => void;
-  onRandomizeSeed: () => void;
+  onGenerate: (event?: FormEvent) => void;
+  onCommitSettings: () => void;
   onRandomizeSliders: () => void;
   onRandomizeSlider: (key: ControlKey) => void;
   onToggleLockedName: (id: string) => void;
@@ -63,6 +63,15 @@ function updateSlotRole(currentRoles: GenerationSettings['slotRoleOverrides'], i
   return nextRoles;
 }
 
+function EmptyInspector() {
+  return (
+    <aside className="inspector-empty-panel panel" aria-label="Name inspector">
+      <h2>Inspect</h2>
+      <p>Select a name to view fit, parts, spellings, and construction cues.</p>
+    </aside>
+  );
+}
+
 export function GeneratorView({
   mode,
   stylePacks,
@@ -70,8 +79,8 @@ export function GeneratorView({
   ensemble,
   lockedNameIds,
   onUpdateSetting,
-  onRegenerate,
-  onRandomizeSeed,
+  onGenerate,
+  onCommitSettings,
   onRandomizeSliders,
   onRandomizeSlider,
   onToggleLockedName,
@@ -99,6 +108,36 @@ export function GeneratorView({
     setSelectedNameId((currentId) => (currentId === id ? '' : id));
   }
 
+  function collapseSelection() {
+    setSelectedNameId('');
+  }
+
+  function submitGeneration(event?: FormEvent) {
+    collapseSelection();
+    onGenerate(event);
+  }
+
+  function commitSeed() {
+    collapseSelection();
+    onCommitSettings();
+  }
+
+  function commitSeedOnEnter(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key !== 'Enter') return;
+    event.preventDefault();
+    event.currentTarget.blur();
+  }
+
+  function randomizeSliders() {
+    collapseSelection();
+    onRandomizeSliders();
+  }
+
+  function randomizeSlider(key: ControlKey) {
+    collapseSelection();
+    onRandomizeSlider(key);
+  }
+
   const roster = (
     <section className="roster-panel panel" aria-label="Name roster">
       <div className="name-grid" aria-label="Name tiles">
@@ -116,6 +155,8 @@ export function GeneratorView({
     </section>
   );
 
+  const inspector = selectedName ? <NameInspector name={selectedName} onDismiss={() => setSelectedNameId('')} /> : <EmptyInspector />;
+
   return (
     <>
       <section className="hero panel app-header">
@@ -132,7 +173,7 @@ export function GeneratorView({
       </section>
 
       <section className="workspace workbench">
-        <form className="controls panel" onSubmit={onRegenerate}>
+        <form className="controls panel" onSubmit={submitGeneration}>
           <details className="control-section">
             <summary>Cast setup</summary>
             <div className="control-section-body">
@@ -208,7 +249,7 @@ export function GeneratorView({
                 </select>
               </label>
               {scoreControls.map((control) => (
-                <ScoreControl key={control.key} control={control} value={Number(settings[control.key])} onChange={(key, value) => onUpdateSetting(key, value)} onRandomize={onRandomizeSlider} />
+                <ScoreControl key={control.key} control={control} value={Number(settings[control.key])} onChange={(key, value) => onUpdateSetting(key, value)} onRandomize={randomizeSlider} />
               ))}
             </div>
           </details>
@@ -218,27 +259,26 @@ export function GeneratorView({
             <div className="control-section-body">
               <label className="seed-control">
                 <span>Generation seed</span>
-                <input value={settings.seed} onChange={(event) => onUpdateSetting('seed', event.target.value)} />
+                <input value={settings.seed} onChange={(event) => onUpdateSetting('seed', event.target.value)} onBlur={commitSeed} onKeyDown={commitSeedOnEnter} />
               </label>
             </div>
           </details>
 
           <div className="actions" aria-label="Generation actions">
-            <button type="submit">{hasLockedNames ? 'Regenerate unlocked' : 'Generate'}</button>
-            <button type="button" className="secondary" onClick={onRandomizeSeed}>New seed</button>
-            <button type="button" className="secondary" onClick={onRandomizeSliders}>New feel</button>
-            {hasLockedNames ? <button type="button" className="secondary" onClick={onClearLockedNames}>Clear locks</button> : null}
+            {hasLockedNames ? (
+              <p className="lock-status">{lockedCount} locked. Generate keeps locked names and rerolls the rest. <button type="button" className="anchor-button" onClick={onClearLockedNames}>Clear</button></p>
+            ) : null}
+            <button type="submit">Generate</button>
+            <button type="button" className="secondary" onClick={randomizeSliders}>New feel</button>
           </div>
         </form>
 
         <section className="output" aria-live="polite">
           {ensemble.names.length > 0 ? (
-            selectedName ? (
-              <div className="results-layout">
-                {roster}
-                <NameInspector name={selectedName} onDismiss={() => setSelectedNameId('')} />
-              </div>
-            ) : roster
+            <div className="results-layout inspector-rail-layout">
+              {roster}
+              {inspector}
+            </div>
           ) : (
             <div className="empty-state panel">Generate names to fill this cast.</div>
           )}
