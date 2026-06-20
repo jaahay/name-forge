@@ -216,8 +216,8 @@ export function GeneratorView({
           )}
 
           <details className="save-menu panel">
-            <summary>Save / copy</summary>
-            <div className="save-menu-content" aria-label="Save or copy cast">
+            <summary>Export</summary>
+            <div className="save-menu-content" aria-label="Export cast">
               <div className="save-group" aria-label="Save files">
                 <span className="save-group-label">Save</span>
                 <a className="export-link" download="name-forge-cast.json" href={exportHref('application/json', jsonExport)}>JSON</a>
