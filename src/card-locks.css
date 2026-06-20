@@ -12,3 +12,28 @@
   color: #1a130b;
   background: #f0b85f;
 }
+
+.lock-run-options {
+  display: grid;
+  gap: 0.52rem;
+}
+
+.lock-run-options button.secondary {
+  width: 100%;
+  box-shadow: none;
+}
+
+.selected-name-panel {
+  animation: selected-panel-enter 220ms ease-out;
+}
+
+@keyframes selected-panel-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.35rem) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
