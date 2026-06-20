@@ -25,17 +25,45 @@
   padding: 0.24rem 0.42rem;
 }
 
-.selected-name-panel {
-  animation: selected-panel-enter 220ms ease-out;
+.inspector-rail-layout {
+  align-items: start;
 }
 
-@keyframes selected-panel-enter {
+.inspector-empty-panel {
+  min-height: 15rem;
+  display: grid;
+  align-content: center;
+  gap: 0.45rem;
+  color: #9f8f76;
+  border-style: dashed;
+}
+
+.inspector-empty-panel h2 {
+  margin: 0;
+  color: #d6c5a8;
+  font-size: 0.86rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.inspector-empty-panel p {
+  margin: 0;
+  max-width: 16rem;
+  font-size: 0.86rem;
+  line-height: 1.55;
+}
+
+.selected-name-panel {
+  animation: selected-panel-content-enter 160ms ease-out;
+}
+
+@keyframes selected-panel-content-enter {
   from {
     opacity: 0;
-    transform: translateY(0.35rem) scale(0.985);
+    transform: translateY(0.25rem);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
   }
 }
