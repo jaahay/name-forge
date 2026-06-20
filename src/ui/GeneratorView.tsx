@@ -13,11 +13,14 @@ interface GeneratorViewProps {
   stylePacks: StylePackSummary[];
   settings: GenerationSettings;
   ensemble: GeneratedEnsemble;
+  lockedNameIds: Set<string>;
   onUpdateSetting: <K extends keyof GenerationSettings>(key: K, value: GenerationSettings[K]) => void;
   onRegenerate: (event?: FormEvent) => void;
   onRandomizeSeed: () => void;
   onRandomizeSliders: () => void;
   onRandomizeSlider: (key: ControlKey) => void;
+  onToggleLockedName: (id: string) => void;
+  onClearLockedNames: () => void;
 }
 
 const formatOptions: Array<{ value: NameFormatKind; label: string }> = [
@@ -64,11 +67,14 @@ export function GeneratorView({
   stylePacks,
   settings,
   ensemble,
+  lockedNameIds,
   onUpdateSetting,
   onRegenerate,
   onRandomizeSeed,
   onRandomizeSliders,
   onRandomizeSlider,
+  onToggleLockedName,
+  onClearLockedNames,
 }: GeneratorViewProps) {
   const [selectedNameId, setSelectedNameId] = useState('');
   const jsonExport = serializeCastAsJson(ensemble);
@@ -81,6 +87,8 @@ export function GeneratorView({
   const selectedNameKey = selectedName?.id ?? '';
   const modeTitle = titleCaseLabel(mode.label);
   const castSizeLabel = `${mode.shortLabel} size`;
+  const lockedCount = lockedNameIds.size;
+  const hasLockedNames = lockedCount > 0;
 
   function updateCastSize(value: number) {
     onUpdateSetting('castSize', clampCastSize(value));
@@ -94,7 +102,14 @@ export function GeneratorView({
     <section className="roster-panel panel" aria-label="Name roster">
       <div className="name-grid" aria-label="Name tiles">
         {ensemble.names.map((name) => (
-          <NameCard key={name.id} name={name} isSelected={name.id === selectedNameKey} onSelect={toggleSelectedName} />
+          <NameCard
+            key={name.id}
+            name={name}
+            isSelected={name.id === selectedNameKey}
+            isLocked={lockedNameIds.has(name.id)}
+            onSelect={toggleSelectedName}
+            onToggleLocked={onToggleLockedName}
+          />
         ))}
       </div>
     </section>
@@ -111,6 +126,7 @@ export function GeneratorView({
           <span>{ensemble.names.length} names</span>
           <span>{ensemble.diagnostics.repeatedInitials} repeated initials</span>
           <span>{ensemble.diagnostics.repeatedEndings} repeated endings</span>
+          {hasLockedNames ? <span>{lockedCount} locked</span> : null}
         </div>
       </section>
 
@@ -207,9 +223,10 @@ export function GeneratorView({
           </details>
 
           <div className="actions" aria-label="Generation actions">
-            <button type="submit">Generate</button>
+            <button type="submit">{hasLockedNames ? 'Regenerate unlocked' : 'Generate'}</button>
             <button type="button" className="secondary" onClick={onRandomizeSeed}>New seed</button>
             <button type="button" className="secondary" onClick={onRandomizeSliders}>New feel</button>
+            {hasLockedNames ? <button type="button" className="secondary" onClick={onClearLockedNames}>Clear locks</button> : null}
           </div>
         </form>
 
