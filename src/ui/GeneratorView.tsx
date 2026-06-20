@@ -99,6 +99,30 @@ export function GeneratorView({
     setSelectedNameId((currentId) => (currentId === id ? '' : id));
   }
 
+  function collapseSelection() {
+    setSelectedNameId('');
+  }
+
+  function submitGeneration(event?: FormEvent) {
+    collapseSelection();
+    onRegenerate(event);
+  }
+
+  function randomizeSeed() {
+    collapseSelection();
+    onRandomizeSeed();
+  }
+
+  function randomizeSliders() {
+    collapseSelection();
+    onRandomizeSliders();
+  }
+
+  function randomizeSlider(key: ControlKey) {
+    collapseSelection();
+    onRandomizeSlider(key);
+  }
+
   const roster = (
     <section className="roster-panel panel" aria-label="Name roster">
       <div className="name-grid" aria-label="Name tiles">
@@ -132,7 +156,7 @@ export function GeneratorView({
       </section>
 
       <section className="workspace workbench">
-        <form className="controls panel" onSubmit={onRegenerate}>
+        <form className="controls panel" onSubmit={submitGeneration}>
           <details className="control-section">
             <summary>Cast setup</summary>
             <div className="control-section-body">
@@ -208,7 +232,7 @@ export function GeneratorView({
                 </select>
               </label>
               {scoreControls.map((control) => (
-                <ScoreControl key={control.key} control={control} value={Number(settings[control.key])} onChange={(key, value) => onUpdateSetting(key, value)} onRandomize={onRandomizeSlider} />
+                <ScoreControl key={control.key} control={control} value={Number(settings[control.key])} onChange={(key, value) => onUpdateSetting(key, value)} onRandomize={randomizeSlider} />
               ))}
             </div>
           </details>
@@ -220,14 +244,20 @@ export function GeneratorView({
                 <span>Generation seed</span>
                 <input value={settings.seed} onChange={(event) => onUpdateSetting('seed', event.target.value)} />
               </label>
+              {hasLockedNames ? (
+                <div className="lock-run-options" aria-label="Locked name run options">
+                  <p className="section-note">{lockedCount} locked name{lockedCount === 1 ? '' : 's'} will stay fixed while unlocked slots regenerate.</p>
+                  <button type="submit" className="secondary">Regenerate unlocked</button>
+                  <button type="button" className="secondary" onClick={onClearLockedNames}>Clear locks</button>
+                </div>
+              ) : null}
             </div>
           </details>
 
           <div className="actions" aria-label="Generation actions">
-            <button type="submit">{hasLockedNames ? 'Regenerate unlocked' : 'Generate'}</button>
-            <button type="button" className="secondary" onClick={onRandomizeSeed}>New seed</button>
-            <button type="button" className="secondary" onClick={onRandomizeSliders}>New feel</button>
-            {hasLockedNames ? <button type="button" className="secondary" onClick={onClearLockedNames}>Clear locks</button> : null}
+            <button type="submit">Generate</button>
+            <button type="button" className="secondary" onClick={randomizeSeed}>New seed</button>
+            <button type="button" className="secondary" onClick={randomizeSliders}>New feel</button>
           </div>
         </form>
 
