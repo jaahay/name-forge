@@ -13,14 +13,16 @@
   background: #f0b85f;
 }
 
-.lock-run-options {
-  display: grid;
-  gap: 0.52rem;
+.lock-status {
+  flex: 1 1 100%;
+  margin: 0;
+  color: #d6c5a8;
+  font-size: 0.74rem;
 }
 
-.lock-run-options button.secondary {
-  width: 100%;
-  box-shadow: none;
+.lock-status .anchor-button {
+  margin-left: 0.35rem;
+  padding: 0.24rem 0.42rem;
 }
 
 .selected-name-panel {
