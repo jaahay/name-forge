@@ -7,6 +7,8 @@ import { combineOverallFit } from './scoring';
 import type { CastRoleAssignment, GeneratedEnsemble, GeneratedName, GenerationSettings, NameSilhouette } from './types';
 import type { SourceRegistry } from './registry';
 
+export interface LockedNameSlot { index: number; name: GeneratedName; }
+
 function endingKey(name: string): string { const normalized = name.toLowerCase(); return normalized.slice(Math.max(0, normalized.length - 2)); }
 function cadenceKey(name: GeneratedName): string { return `${name.silhouette.stressPattern}:${name.silhouette.syllableCount}:${name.silhouette.rhythm}`; }
 function countRepeated(values: string[]): number { const seen = new Set<string>(); let repeated = 0; for (const value of values) { if (seen.has(value)) repeated += 1; seen.add(value); } return repeated; }
@@ -45,12 +47,39 @@ function withNameIdentity(candidate: GeneratedName, settings: GenerationSettings
   };
 }
 
-export function generateEnsemble(settings: GenerationSettings, registry: SourceRegistry): GeneratedEnsemble {
+function diagnosticsFor(selected: GeneratedName[], castSize: number): GeneratedEnsemble['diagnostics'] {
+  const repeatedInitials = countRepeated(selected.map((name) => name.name.charAt(0).toLowerCase()));
+  const repeatedEndings = countRepeated(selected.map((name) => endingKey(name.name)));
+  const repeatedCadences = countRepeated(selected.map(cadenceKey));
+  const repeatedRarityBands = countRepeated(selected.map((name) => name.silhouette.rarityBand));
+  const noveltyScores = selected.map((name) => name.scores.novelty);
+  const noveltySpread = noveltyScores.length ? Math.max(...noveltyScores) - Math.min(...noveltyScores) : 0;
+  const summary = repeatedInitials === 0 && repeatedEndings === 0 && repeatedCadences <= Math.max(0, castSize - 5) ? 'The cast avoids repeated initials and repeated endings while varying cadence, rarity, and syllable count.' : `The cast keeps balance pressure active: ${repeatedInitials} repeated initial(s), ${repeatedEndings} repeated ending(s), ${repeatedCadences} repeated cadence(s), and ${Math.round(noveltySpread * 100)} points of novelty spread.`;
+  return { repeatedInitials, repeatedEndings, repeatedCadences, repeatedRarityBands, noveltySpread, summary };
+}
+
+function lockedSlotMap(lockedSlots: LockedNameSlot[] | undefined, castSize: number): Map<number, GeneratedName> {
+  const slots = new Map<number, GeneratedName>();
+  for (const locked of lockedSlots ?? []) {
+    if (locked.index >= 0 && locked.index < castSize) slots.set(locked.index, locked.name);
+  }
+  return slots;
+}
+
+export function generateEnsemble(settings: GenerationSettings, registry: SourceRegistry, lockedSlots?: LockedNameSlot[]): GeneratedEnsemble {
   const castSize = Math.round(clamp(settings.castSize, 1, 24));
   const safeSettings = { ...settings, castSize };
   const pack = registry.getStylePack(settings.stylePackId);
   const selected: GeneratedName[] = [];
+  const lockedNames = lockedSlotMap(lockedSlots, castSize);
+
   for (let index = 0; index < castSize; index += 1) {
+    const lockedName = lockedNames.get(index);
+    if (lockedName) {
+      selected.push(lockedName);
+      continue;
+    }
+
     const role = resolveCastRole(safeSettings, index);
     const influencedSettings = roleInfluencedSettings(safeSettings, role);
     const candidates = Array.from({ length: 16 }, (_, attempt) => {
@@ -62,12 +91,6 @@ export function generateEnsemble(settings: GenerationSettings, registry: SourceR
     candidates.sort((left, right) => right.scores.overallFit - left.scores.overallFit);
     selected.push(candidates[0]);
   }
-  const repeatedInitials = countRepeated(selected.map((name) => name.name.charAt(0).toLowerCase()));
-  const repeatedEndings = countRepeated(selected.map((name) => endingKey(name.name)));
-  const repeatedCadences = countRepeated(selected.map(cadenceKey));
-  const repeatedRarityBands = countRepeated(selected.map((name) => name.silhouette.rarityBand));
-  const noveltyScores = selected.map((name) => name.scores.novelty);
-  const noveltySpread = noveltyScores.length ? Math.max(...noveltyScores) - Math.min(...noveltyScores) : 0;
-  const summary = repeatedInitials === 0 && repeatedEndings === 0 && repeatedCadences <= Math.max(0, castSize - 5) ? 'The cast avoids repeated initials and repeated endings while varying cadence, rarity, and syllable count.' : `The cast keeps balance pressure active: ${repeatedInitials} repeated initial(s), ${repeatedEndings} repeated ending(s), ${repeatedCadences} repeated cadence(s), and ${Math.round(noveltySpread * 100)} points of novelty spread.`;
-  return { settings: safeSettings, sourcePack: { id: pack.id, label: pack.label, description: pack.description }, names: selected, diagnostics: { repeatedInitials, repeatedEndings, repeatedCadences, repeatedRarityBands, noveltySpread, summary } };
+
+  return { settings: safeSettings, sourcePack: { id: pack.id, label: pack.label, description: pack.description }, names: selected, diagnostics: diagnosticsFor(selected, castSize) };
 }
