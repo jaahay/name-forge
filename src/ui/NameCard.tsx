@@ -2,6 +2,8 @@ import type { GeneratedName } from '../engine/types';
 import { rarityPresentation, scorePresentation } from './presentation';
 import { formatScore, textureClassName } from './score';
 
+type NameDisplayLength = 'short' | 'medium' | 'long' | 'very-long';
+
 interface NameCardHeaderProps {
   name: GeneratedName;
 }
@@ -16,7 +18,6 @@ interface NameCardProps {
 
 interface NameInspectorProps {
   name: GeneratedName;
-  onDismiss: () => void;
 }
 
 function labelFor(value: string): string {
@@ -26,13 +27,43 @@ function labelFor(value: string): string {
     .join(' ');
 }
 
+function getNameDisplayLength(name: string): NameDisplayLength {
+  const length = name.length;
+  const words = name.trim().split(/\s+/).filter(Boolean).length;
+
+  if (length <= 18 && words <= 2) return 'short';
+  if (length <= 30 && words <= 3) return 'medium';
+  if (length <= 44 && words <= 5) return 'long';
+  return 'very-long';
+}
+
+function protectInitialBreaks(name: string): string {
+  return name.replace(/\b([A-Z])\.\s+/g, '$1.\u00A0');
+}
+
+function terminalCueFor(name: GeneratedName): string {
+  const lettersOnly = name.name.replace(/[^A-Za-z]+/g, '');
+  return (lettersOnly.slice(-3) || name.name.slice(-3)).toLowerCase();
+}
+
+function constructionCueFor(name: GeneratedName): string {
+  const opening = name.identity?.parts[0]?.value ?? name.name.trim().split(/\s+/)[0] ?? name.name;
+  const terminalCue = terminalCueFor(name);
+  const texture = labelFor(name.silhouette.texture).toLowerCase();
+  const rhythm = labelFor(name.silhouette.rhythm).toLowerCase();
+
+  return `${texture} opening around ${opening}; ${rhythm} rhythm; terminal ${terminalCue} ending.`;
+}
+
 function NameCardHeader({ name }: NameCardHeaderProps) {
   const rarity = rarityPresentation[name.silhouette.rarityBand];
+  const displayName = protectInitialBreaks(name.name);
+  const displayLength = getNameDisplayLength(name.name);
 
   return (
     <div className="name-card-header">
       <div className="name-card-title-block">
-        <h2 className={`name-card-title ${rarity.className}`}>{name.name}</h2>
+        <h2 className={`name-card-title ${rarity.className}`} data-name-length={displayLength}>{displayName}</h2>
       </div>
       <div className="name-card-meta" aria-label={`${name.silhouette.syllableCount} syllables`}>
         <span>{name.silhouette.syllableCount} syllables</span>
@@ -52,15 +83,17 @@ function metadataFor(name: GeneratedName) {
   return { formatLabel, identity, rarity, roleInfluenceLabel, roleLabel, textureLabel };
 }
 
-export function NameInspector({ name, onDismiss }: NameInspectorProps) {
+export function NameInspector({ name }: NameInspectorProps) {
   const { formatLabel, identity, rarity, roleInfluenceLabel, roleLabel, textureLabel } = metadataFor(name);
+  const displayName = protectInitialBreaks(name.name);
+  const displayLength = getNameDisplayLength(name.name);
 
   return (
     <aside className="selected-name-panel panel" aria-labelledby="selected-name-heading">
       <header className="selected-name-heading">
-        <div className="name-card-header">
-          <h2 id="selected-name-heading" className={`name-card-title ${rarity.className}`}>{name.name}</h2>
-          <button type="button" className="anchor-button" aria-label="Close detail pane" onClick={onDismiss}>Close</button>
+        <div className="selected-name-title-block">
+          <p className="eyebrow inspector-eyebrow">Inspect</p>
+          <h2 id="selected-name-heading" className={`name-card-title ${rarity.className}`} data-name-length={displayLength}>{displayName}</h2>
         </div>
         <ul className="selected-name-chips" aria-label="Name snapshot">
           <li>{rarity.label}</li>
@@ -107,16 +140,22 @@ export function NameInspector({ name, onDismiss }: NameInspectorProps) {
             <p className="section-note">{name.roleInfluence.label} nudged this result at {name.roleInfluence.level} strength: {name.roleInfluence.effects.join(', ')}.</p>
           </section>
         ) : null}
+
+        <section className="detail-block">
+          <h3>Construction cues</h3>
+          <p className="section-note">{constructionCueFor(name)}</p>
+        </section>
       </div>
     </aside>
   );
 }
 
 export function NameCard({ name, isSelected, isLocked, onSelect, onToggleLocked }: NameCardProps) {
+  const displayLength = getNameDisplayLength(name.name);
   const cardClassName = `name-card panel ${textureClassName(name.silhouette.texture)}${isSelected ? ' selected' : ''}${isLocked ? ' locked' : ''}`;
 
   return (
-    <article className={cardClassName} aria-current={isSelected ? 'true' : undefined}>
+    <article className={cardClassName} data-name-length={displayLength} aria-current={isSelected ? 'true' : undefined}>
       <button
         type="button"
         className="name-card-button"
