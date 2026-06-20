@@ -46,7 +46,6 @@ describe('App', () => {
       'Novelty value',
       'Shuffle Novelty',
       'Generation seed',
-      'New seed',
       'New feel',
       'Generate',
       'Lock',
@@ -134,6 +133,7 @@ describe('App', () => {
     expect(html).not.toContain('Reroll names');
     expect(html).not.toContain('Shuffle feel');
     expect(html).not.toContain('Randomize sliders');
+    expect(html).not.toContain('New seed');
     expect(html).not.toContain('Randomize seed');
     expect(html).not.toContain('Randomize Novelty');
     expect(html).not.toContain('Regenerate unlocked');
