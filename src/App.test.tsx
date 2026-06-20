@@ -2,9 +2,13 @@ import { describe, expect, it } from 'vitest';
 import { renderToString } from 'react-dom/server';
 import App from './App';
 
+function stripExportDataUrls(html: string): string {
+  return html.replace(/href="data:[^"]+"/g, 'href="[export data omitted]"');
+}
+
 describe('App', () => {
   it('renders the fiction cast workbench with nav sigil, compact header, closed detail pane, roster, export menu, and project chrome', () => {
-    const html = renderToString(<App />);
+    const html = stripExportDataUrls(renderToString(<App />));
 
     const expectedCopy = [
       'Name Forge',
