@@ -12,6 +12,7 @@ interface GeneratorViewProps {
   mode: NamingModeConfig;
   stylePacks: StylePackSummary[];
   settings: GenerationSettings;
+  committedSettings?: GenerationSettings;
   ensemble: GeneratedEnsemble;
   lockedNameIds: Set<string>;
   onUpdateSetting: <K extends keyof GenerationSettings>(key: K, value: GenerationSettings[K]) => void;
