@@ -195,7 +195,7 @@ export function GeneratorView({
           <div className="actions" aria-label="Generation actions">
             <button type="submit">Generate</button>
             <button type="button" className="secondary" onClick={onRandomizeSeed}>New seed</button>
-            <button type="button" className="secondary" onClick={onRandomizeSliders}>Shuffle feel</button>
+            <button type="button" className="secondary" onClick={onRandomizeSliders}>New feel</button>
           </div>
         </form>
 
@@ -215,18 +215,21 @@ export function GeneratorView({
             <div className="empty-state panel">Generate names to fill this cast.</div>
           )}
 
-          <section className="save-panel panel" aria-label="Save or copy cast">
-            <div className="save-group" aria-label="Save files">
-              <span className="save-group-label">Save</span>
-              <a className="export-link" download="name-forge-cast.json" href={exportHref('application/json', jsonExport)}>JSON</a>
-              <a className="export-link" download="name-forge-cast.md" href={exportHref('text/markdown', markdownExport)}>Markdown</a>
+          <details className="save-menu panel">
+            <summary>Save / copy</summary>
+            <div className="save-menu-content" aria-label="Save or copy cast">
+              <div className="save-group" aria-label="Save files">
+                <span className="save-group-label">Save</span>
+                <a className="export-link" download="name-forge-cast.json" href={exportHref('application/json', jsonExport)}>JSON</a>
+                <a className="export-link" download="name-forge-cast.md" href={exportHref('text/markdown', markdownExport)}>Markdown</a>
+              </div>
+              <div className="save-group" aria-label="Copy cast">
+                <span className="save-group-label">Copy</span>
+                <button type="button" className="secondary" aria-label="Copy JSON" onClick={() => copyExport(jsonExport)}>JSON</button>
+                <button type="button" className="secondary" aria-label="Copy Markdown" onClick={() => copyExport(markdownExport)}>Markdown</button>
+              </div>
             </div>
-            <div className="save-group" aria-label="Copy cast">
-              <span className="save-group-label">Copy</span>
-              <button type="button" className="secondary" aria-label="Copy JSON" onClick={() => copyExport(jsonExport)}>JSON</button>
-              <button type="button" className="secondary" aria-label="Copy Markdown" onClick={() => copyExport(markdownExport)}>Markdown</button>
-            </div>
-          </section>
+          </details>
         </section>
       </section>
     </>
