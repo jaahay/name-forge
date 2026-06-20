@@ -3,7 +3,7 @@ import { renderToString } from 'react-dom/server';
 import App from './App';
 
 describe('App', () => {
-  it('renders the fiction cast workbench with nav sigil, compact header, roster, inspector, save menu, and project chrome', () => {
+  it('renders the fiction cast workbench with nav sigil, compact header, roster, inspector, export menu, and project chrome', () => {
     const html = renderToString(<App />);
 
     const expectedCopy = [
@@ -50,7 +50,7 @@ describe('App', () => {
       'Name parts',
       'Spellings',
       'Syrethaenn',
-      'Save / copy',
+      'Export',
       'Save',
       'Copy',
       'JSON',
@@ -83,6 +83,7 @@ describe('App', () => {
     expect(html).toContain('class="roster-panel panel"');
     expect(html).toContain('class="save-menu panel"');
     expect(html).toContain('class="save-menu-content"');
+    expect(html).toContain('aria-label="Export cast"');
     expect(html).toContain('class="save-group"');
     expect(html).toContain('aria-label="Naming modes"');
     expect(html).toContain('class="mode-tab active"');
@@ -114,6 +115,7 @@ describe('App', () => {
     expect(html).not.toContain('Selected</span>');
     expect(html).not.toContain('Generated from');
     expect(html).not.toContain('Roll notes');
+    expect(html).not.toContain('Save / copy');
     expect(html).not.toContain('Save cast');
     expect(html).not.toContain('Preview Markdown');
     expect(html).not.toContain('Show Markdown preview');
@@ -122,7 +124,6 @@ describe('App', () => {
     expect(html).not.toContain('Checks');
     expect(html).not.toContain('Construction');
     expect(html).not.toContain('Fit scores');
-    expect(html).not.toContain('Export cast');
     expect(html).not.toContain('Reroll names');
     expect(html).not.toContain('Shuffle feel');
     expect(html).not.toContain('Randomize sliders');
