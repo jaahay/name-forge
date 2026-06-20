@@ -63,6 +63,15 @@ function updateSlotRole(currentRoles: GenerationSettings['slotRoleOverrides'], i
   return nextRoles;
 }
 
+function EmptyInspector() {
+  return (
+    <aside className="inspector-empty-panel panel" aria-label="Name inspector">
+      <h2>Inspect</h2>
+      <p>Select a name to view fit, parts, spellings, and construction cues.</p>
+    </aside>
+  );
+}
+
 export function GeneratorView({
   mode,
   stylePacks,
@@ -145,6 +154,8 @@ export function GeneratorView({
       </div>
     </section>
   );
+
+  const inspector = selectedName ? <NameInspector name={selectedName} onDismiss={() => setSelectedNameId('')} /> : <EmptyInspector />;
 
   return (
     <>
@@ -264,12 +275,10 @@ export function GeneratorView({
 
         <section className="output" aria-live="polite">
           {ensemble.names.length > 0 ? (
-            selectedName ? (
-              <div className="results-layout">
-                {roster}
-                <NameInspector name={selectedName} onDismiss={() => setSelectedNameId('')} />
-              </div>
-            ) : roster
+            <div className="results-layout inspector-rail-layout">
+              {roster}
+              {inspector}
+            </div>
           ) : (
             <div className="empty-state panel">Generate names to fill this cast.</div>
           )}
