@@ -19,6 +19,33 @@ export type CastRole = 'protagonist' | 'rival' | 'mentor' | 'sidekick' | 'guardi
 export type CastRolePresetKind = 'none' | 'classic-ensemble' | 'quest-party' | 'court-intrigue';
 export type RoleInfluenceLevel = 'off' | 'light' | 'strong';
 export type SlotRoleOverrides = Partial<Record<number, CastRole>>;
+export type ReadabilityDiagnosticSeverity = 'notice' | 'warning';
+export type ReadabilityDiagnosticScope = 'name' | 'cast';
+
+export interface NamingBrief {
+  useContext?: string;
+  toneWords?: string[];
+  desiredAssociations?: string[];
+  avoidList?: string[];
+  hardConstraints?: string[];
+  anchorExamples?: string[];
+  notes?: string;
+}
+
+export interface BriefInfluenceMetadata {
+  summary: string;
+  effects: string[];
+  matches: string[];
+  penalties: string[];
+}
+
+export interface ReadabilityDiagnostic {
+  id: string;
+  scope: ReadabilityDiagnosticScope;
+  severity: ReadabilityDiagnosticSeverity;
+  label: string;
+  detail: string;
+}
 
 export interface GenerationSettings {
   castSize: number;
@@ -34,6 +61,7 @@ export interface GenerationSettings {
   rolePreset?: CastRolePresetKind;
   roleInfluence?: RoleInfluenceLevel;
   slotRoleOverrides?: SlotRoleOverrides;
+  brief?: NamingBrief;
 }
 
 export interface WeightedValue<T = string> { value: T; weight: number; }
@@ -46,8 +74,8 @@ export interface NameVariant { value: string; kind: VariantKind; ruleId: string;
 export interface GeneratedNamePart { id: string; role: NamePartRole; value: string; sourceNameId: string; sourceName: string; provenance: ProvenanceNote[]; }
 export interface NameFormatRule { id: string; kind: Exclude<NameFormatKind, 'mixed'>; label: string; pattern: string; provenance: ProvenanceNote; }
 export interface NameIdentity { displayName: string; format: NameFormatRule; parts: GeneratedNamePart[]; provenance: ProvenanceNote[]; }
-export interface GeneratedName { id: string; name: string; silhouette: NameSilhouette; scores: NameScores; variants: NameVariant[]; provenance: ProvenanceNote[]; role?: CastRoleAssignment; roleInfluence?: RoleInfluenceMetadata; identity?: NameIdentity; }
-export interface EnsembleDiagnostics { repeatedInitials: number; repeatedEndings: number; repeatedCadences: number; repeatedRarityBands: number; noveltySpread: number; summary: string; }
+export interface GeneratedName { id: string; name: string; silhouette: NameSilhouette; scores: NameScores; variants: NameVariant[]; provenance: ProvenanceNote[]; role?: CastRoleAssignment; roleInfluence?: RoleInfluenceMetadata; briefInfluence?: BriefInfluenceMetadata; readabilityDiagnostics: ReadabilityDiagnostic[]; identity?: NameIdentity; }
+export interface EnsembleDiagnostics { repeatedInitials: number; repeatedEndings: number; repeatedCadences: number; repeatedRarityBands: number; noveltySpread: number; readabilityIssues: number; readabilityWarnings: number; readabilitySummary: string; readabilityDiagnostics: ReadabilityDiagnostic[]; summary: string; }
 export interface GeneratedEnsemble { settings: GenerationSettings; sourcePack: StylePackSummary; names: GeneratedName[]; diagnostics: EnsembleDiagnostics; }
 export interface SpellingVariantRule { id: string; label: string; from: string; to: string; maxApplications?: number; sourceKind: SourceKind; }
 export interface StylePackSummary { id: string; label: string; description: string; }

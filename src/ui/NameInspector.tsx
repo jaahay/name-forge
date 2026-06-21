@@ -22,6 +22,7 @@ export function NameInspector({ name }: NameInspectorProps) {
   const { formatLabel, identity, rarity, roleInfluenceLabel, roleLabel, textureLabel } = metadataFor(name);
   const displayName = protectInitialBreaks(name.name);
   const displayLength = getNameDisplayLength(name.name);
+  const readNotes = name.readabilityDiagnostics;
 
   return (
     <aside className="selected-name-panel panel" aria-labelledby="selected-name-heading">
@@ -61,6 +62,22 @@ export function NameInspector({ name }: NameInspectorProps) {
           </dl>
         </section>
 
+        <section className="detail-block">
+          <h3>Read notes</h3>
+          {readNotes.length > 0 ? (
+            <ul className="readability-list" aria-label={`${name.name} readability notes`}>
+              {readNotes.map((diagnostic) => (
+                <li key={`${name.id}-${diagnostic.id}`} className={`readability-note ${diagnostic.severity}`}>
+                  <strong>{diagnostic.label}</strong>
+                  <span>{diagnostic.detail}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="section-note">No deterministic read-friction notes. This is not a canonical pronunciation.</p>
+          )}
+        </section>
+
         {identity ? (
           <section className="detail-block">
             <h3>Name parts</h3>
@@ -76,6 +93,13 @@ export function NameInspector({ name }: NameInspectorProps) {
             <ul className="variants detail-variants" aria-label={`${name.name} alternate spellings`}>
               {name.variants.map((variant) => <li key={`${name.id}-${variant.value}`}><span>{variant.value}</span></li>)}
             </ul>
+          </section>
+        ) : null}
+
+        {name.briefInfluence ? (
+          <section className="detail-block">
+            <h3>Brief cue</h3>
+            <p className="section-note">{name.briefInfluence.summary} {name.briefInfluence.effects.join(' ')}</p>
           </section>
         ) : null}
 

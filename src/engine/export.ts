@@ -1,4 +1,5 @@
-import type { GeneratedEnsemble, GeneratedName, NameSilhouette, ProvenanceNote, RoleInfluenceMetadata } from './types';
+import { namingBriefSummary } from './brief';
+import type { BriefInfluenceMetadata, GeneratedEnsemble, GeneratedName, NameSilhouette, ProvenanceNote, ReadabilityDiagnostic, RoleInfluenceMetadata } from './types';
 
 export interface ExportedNamePart {
   role: string;
@@ -13,11 +14,27 @@ export interface ExportedRoleInfluence {
   effects: string[];
 }
 
+export interface ExportedBriefInfluence {
+  summary: BriefInfluenceMetadata['summary'];
+  effects: string[];
+  matches: string[];
+  penalties: string[];
+}
+
+export interface ExportedReadabilityDiagnostic {
+  id: string;
+  severity: ReadabilityDiagnostic['severity'];
+  label: string;
+  detail: string;
+}
+
 export interface ExportedName {
   id: string;
   name: string;
   role?: string;
   roleInfluence?: ExportedRoleInfluence;
+  briefInfluence?: ExportedBriefInfluence;
+  readabilityDiagnostics: ExportedReadabilityDiagnostic[];
   score: number;
   scores: GeneratedName['scores'];
   silhouette: Pick<NameSilhouette, 'syllableCount' | 'stressPattern' | 'rhythm' | 'rarityBand' | 'texture' | 'targetNovelty' | 'targetLength'>;
@@ -34,6 +51,8 @@ export interface CastExportPayload {
   generatedBy: 'Name Forge';
   seed: string;
   settings: GeneratedEnsemble['settings'];
+  namingBrief?: GeneratedEnsemble['settings']['brief'];
+  namingBriefSummary?: string;
   sourcePack: GeneratedEnsemble['sourcePack'];
   diagnostics: GeneratedEnsemble['diagnostics'];
   names: ExportedName[];
@@ -65,6 +84,35 @@ function exportRoleInfluence(influence: RoleInfluenceMetadata | undefined): Expo
   };
 }
 
+function exportBriefInfluence(influence: BriefInfluenceMetadata | undefined): ExportedBriefInfluence | undefined {
+  if (!influence) return undefined;
+  return {
+    summary: influence.summary,
+    effects: influence.effects,
+    matches: influence.matches,
+    penalties: influence.penalties,
+  };
+}
+
+function exportReadabilityDiagnostics(diagnostics: ReadabilityDiagnostic[]): ExportedReadabilityDiagnostic[] {
+  return diagnostics.map((diagnostic) => ({
+    id: diagnostic.id,
+    severity: diagnostic.severity,
+    label: diagnostic.label,
+    detail: diagnostic.detail,
+  }));
+}
+
+function diagnosticText(diagnostics: ExportedReadabilityDiagnostic[]): string {
+  if (diagnostics.length === 0) return 'None';
+  return diagnostics.map((diagnostic) => `${diagnostic.label}: ${diagnostic.detail}`).join('; ');
+}
+
+function briefInfluenceText(influence: ExportedBriefInfluence | undefined): string {
+  if (!influence) return 'No direct brief influence';
+  return `${influence.summary} ${influence.effects.join(' ')}`;
+}
+
 function exportName(name: GeneratedName, seed: string): ExportedName {
   const identity = name.identity;
   return {
@@ -72,6 +120,8 @@ function exportName(name: GeneratedName, seed: string): ExportedName {
     name: name.name,
     role: name.role?.label,
     roleInfluence: exportRoleInfluence(name.roleInfluence),
+    briefInfluence: exportBriefInfluence(name.briefInfluence),
+    readabilityDiagnostics: exportReadabilityDiagnostics(name.readabilityDiagnostics),
     score: name.scores.overallFit,
     scores: name.scores,
     silhouette: {
@@ -97,16 +147,19 @@ function exportName(name: GeneratedName, seed: string): ExportedName {
     })),
     provenance: uniqueProvenanceLabels(name.provenance),
     seed,
-    warnings: [],
+    warnings: name.readabilityDiagnostics.filter((diagnostic) => diagnostic.severity === 'warning').map((diagnostic) => diagnostic.label),
   };
 }
 
 export function createCastExportPayload(ensemble: GeneratedEnsemble): CastExportPayload {
+  const briefSummary = namingBriefSummary(ensemble.settings.brief);
   return {
     exportVersion: 'name-forge.cast.v1',
     generatedBy: 'Name Forge',
     seed: ensemble.settings.seed,
     settings: ensemble.settings,
+    namingBrief: ensemble.settings.brief,
+    namingBriefSummary: briefSummary,
     sourcePack: ensemble.sourcePack,
     diagnostics: ensemble.diagnostics,
     names: ensemble.names.map((name) => exportName(name, ensemble.settings.seed)),
@@ -118,6 +171,7 @@ export function serializeCastAsJson(ensemble: GeneratedEnsemble): string {
 }
 
 export function serializeCastAsMarkdown(ensemble: GeneratedEnsemble): string {
+  const briefSummary = namingBriefSummary(ensemble.settings.brief);
   const lines = [
     '# Name Forge Cast Export',
     '',
@@ -125,12 +179,20 @@ export function serializeCastAsMarkdown(ensemble: GeneratedEnsemble): string {
     `Style pack: ${ensemble.sourcePack.label}`,
     `Cast size: ${ensemble.names.length}`,
     `Role influence: ${ensemble.settings.roleInfluence ?? 'off'}`,
+  ];
+
+  if (briefSummary) {
+    lines.push(`Naming brief: ${briefSummary}`);
+  }
+
+  lines.push(
     '',
     '## Ensemble balance',
     '',
     ensemble.diagnostics.summary,
+    ensemble.diagnostics.readabilitySummary,
     '',
-  ];
+  );
 
   ensemble.names.forEach((name, index) => {
     const exported = exportName(name, ensemble.settings.seed);
@@ -150,13 +212,15 @@ export function serializeCastAsMarkdown(ensemble: GeneratedEnsemble): string {
       '',
       `- Role: ${exported.role ?? 'Unassigned'}`,
       `- Role influence: ${roleInfluenceText}`,
+      `- Brief influence: ${briefInfluenceText(exported.briefInfluence)}`,
       `- Overall fit: ${scoreLabel(exported.score)}`,
       `- Format: ${exported.format}`,
       `- Parts: ${partText}`,
       `- Silhouette: ${silhouetteSummary(name.silhouette)}`,
+      `- Readability notes: ${diagnosticText(exported.readabilityDiagnostics)}`,
       `- Variants: ${variantText}`,
       `- Provenance: ${provenanceText}`,
-      '- Warnings: none',
+      `- Warnings: ${exported.warnings.length > 0 ? exported.warnings.join(', ') : 'none'}`,
       '',
     );
   });

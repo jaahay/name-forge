@@ -24,6 +24,8 @@ function castHealthFor(ensemble: GeneratedEnsemble, lockedNameIds: Set<string>):
   const initialIssueCount = ensemble.diagnostics.repeatedInitials;
   const endingIssueCount = ensemble.diagnostics.repeatedEndings;
   const cadenceIssueCount = ensemble.diagnostics.repeatedCadences;
+  const readIssueCount = ensemble.diagnostics.readabilityIssues;
+  const readWarningCount = ensemble.diagnostics.readabilityWarnings;
   const lockedCount = lockedNameIds.size;
 
   return [
@@ -52,6 +54,12 @@ function castHealthFor(ensemble: GeneratedEnsemble, lockedNameIds: Set<string>):
       detail: cadenceIssueCount <= 1 ? 'Cadences vary enough to keep names distinct.' : `${cadenceIssueCount} cadence repeats may make the cast feel samey.`,
     },
     {
+      id: 'readability',
+      tone: readWarningCount === 0 ? 'good' : 'warn',
+      label: readWarningCount === 0 ? 'Read notes clear' : 'Readability friction',
+      detail: readIssueCount === 0 ? 'No deterministic read-friction notes across this cast.' : ensemble.diagnostics.readabilitySummary,
+    },
+    {
       id: 'locks',
       tone: 'good',
       label: lockedCount > 0 ? `${lockedCount} locked` : 'No locks yet',
@@ -67,7 +75,7 @@ export function CastHealthPanel({ ensemble, lockedNameIds }: CastHealthPanelProp
     <section className="cast-health" aria-label="Cast health">
       <div className="cast-health-heading">
         <h2>Cast health</h2>
-        <p>Table-read checks for spotlight, sound overlap, and roster memory.</p>
+        <p>Table-read checks for spotlight, sound overlap, readability, and roster memory.</p>
       </div>
       <ul className="cast-health-list">
         {healthItems.map((item) => (

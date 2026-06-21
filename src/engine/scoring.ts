@@ -1,4 +1,5 @@
 import type { GenerationSettings, NameScores, NameSilhouette, RoleInfluenceMetadata, ScoreKey, StylePack } from './types';
+import { briefFitScore, hasNamingBriefContent } from './brief';
 import { clamp, lerp } from './random';
 import { getRolePreferenceProfile } from './roles';
 
@@ -39,7 +40,7 @@ function settingWeightedScoreWeights(settings?: GenerationSettings): Record<Scor
     novelty: lerp(0.05, 0.19, settings.novelty),
     culturalAnchoring: lerp(0.05, 0.19, settings.culturalAnchoring),
     orthographicNaturalness: lerp(0.2, 0.06, settings.orthographicWeirdness),
-    styleFit: 0.1,
+    styleFit: hasNamingBriefContent(settings.brief) ? 0.14 : 0.1,
     silhouetteFit: 0.08,
     ensembleFit: lerp(0.04, 0.11, settings.memorability),
     roleFit: roleFitWeight,
@@ -64,7 +65,8 @@ export function scoreName(name: string, silhouette: NameSilhouette, pack: StyleP
   const novelty = clamp(0.22 + silhouette.targetNovelty * 0.45 + rareFragments * 0.18);
   const culturalAnchoring = culturalAnchorScore(name, pack);
   const orthographicNaturalness = clamp(0.92 - (containsForbiddenFragment(name, pack) ? 0.42 : 0) - Math.max(0, consonantRun - 2) * 0.1 - rareFragments * 0.04);
-  const styleFit = styleFitScore(name, pack);
+  const baseStyleFit = styleFitScore(name, pack);
+  const styleFit = hasNamingBriefContent(settings.brief) ? clamp(baseStyleFit * 0.74 + briefFitScore(name, settings) * 0.26) : baseStyleFit;
   const silhouetteFit = silhouetteFitScore(name, silhouette);
   const ensembleFit = 0.72;
   const roleFit = roleFitScore(name, silhouette, silhouette.roleInfluence);

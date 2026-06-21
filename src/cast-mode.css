@@ -22,6 +22,24 @@
   line-height: 1.38;
 }
 
+.brief-controls textarea {
+  width: 100%;
+  min-height: 5rem;
+  resize: vertical;
+  border: 1px solid var(--border);
+  border-radius: 0.65rem;
+  padding: 0.7rem 0.78rem;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.05);
+  font: inherit;
+  line-height: 1.35;
+}
+
+.brief-controls input::placeholder,
+.brief-controls textarea::placeholder {
+  color: rgba(247, 240, 227, 0.42);
+}
+
 /* Roster and Cast Health */
 .roster-panel {
   display: grid;
@@ -228,6 +246,35 @@
 
 .detail-block .section-note strong {
   color: #f8d99f;
+}
+
+.readability-list {
+  display: grid;
+  gap: 0.52rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.readability-note {
+  display: grid;
+  gap: 0.18rem;
+  padding: 0.58rem 0.64rem;
+  border: 1px solid rgba(240, 184, 95, 0.16);
+  border-radius: 0.72rem;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.readability-note strong {
+  color: var(--text);
+}
+
+.readability-note.warning {
+  border-color: rgba(255, 173, 74, 0.32);
+  background: rgba(255, 173, 74, 0.08);
 }
 
 /* Chrome and responsive overrides */

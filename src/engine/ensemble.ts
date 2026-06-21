@@ -1,4 +1,5 @@
 import { createSeededRandom, clamp } from './random';
+import { castReadabilityDiagnostics, diagnoseNameReadability, readabilitySummary } from './diagnostics';
 import { createNameSilhouette } from './silhouettes';
 import { generateNameFromSilhouette } from './generator';
 import { createNameIdentity, requiresSupportingName, resolveMaterializedFormatKind } from './identity';
@@ -43,6 +44,7 @@ function withNameIdentity(candidate: GeneratedName, settings: GenerationSettings
     id: `name-${index + 1}-${safeDisplaySlug}`,
     name: identity.displayName,
     identity,
+    readabilityDiagnostics: diagnoseNameReadability(identity.displayName),
     provenance: [...candidate.provenance, identity.format.provenance],
   };
 }
@@ -54,8 +56,11 @@ function diagnosticsFor(selected: GeneratedName[], castSize: number): GeneratedE
   const repeatedRarityBands = countRepeated(selected.map((name) => name.silhouette.rarityBand));
   const noveltyScores = selected.map((name) => name.scores.novelty);
   const noveltySpread = noveltyScores.length ? Math.max(...noveltyScores) - Math.min(...noveltyScores) : 0;
+  const readabilityDiagnostics = castReadabilityDiagnostics(selected);
+  const readabilityIssues = selected.reduce((sum, name) => sum + name.readabilityDiagnostics.length, 0);
+  const readabilityWarnings = selected.reduce((sum, name) => sum + name.readabilityDiagnostics.filter((diagnostic) => diagnostic.severity === 'warning').length, 0);
   const summary = repeatedInitials === 0 && repeatedEndings === 0 && repeatedCadences <= Math.max(0, castSize - 5) ? 'The cast avoids repeated initials and repeated endings while varying cadence, rarity, and syllable count.' : `The cast keeps balance pressure active: ${repeatedInitials} repeated initial(s), ${repeatedEndings} repeated ending(s), ${repeatedCadences} repeated cadence(s), and ${Math.round(noveltySpread * 100)} points of novelty spread.`;
-  return { repeatedInitials, repeatedEndings, repeatedCadences, repeatedRarityBands, noveltySpread, summary };
+  return { repeatedInitials, repeatedEndings, repeatedCadences, repeatedRarityBands, noveltySpread, readabilityIssues, readabilityWarnings, readabilitySummary: readabilitySummary(selected), readabilityDiagnostics, summary };
 }
 
 function lockedSlotMap(lockedSlots: LockedNameSlot[] | undefined, castSize: number): Map<number, GeneratedName> {

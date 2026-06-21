@@ -7,7 +7,7 @@ function stripExportDataUrls(html: string): string {
 }
 
 describe('App', () => {
-  it('renders the fiction cast workbench with nav sigil, compact header, selected inspector rail, roster, export menu, lock controls, and project chrome', () => {
+  it('renders the fiction cast workbench with nav sigil, compact header, selected inspector rail, roster, export menu, lock controls, brief controls, and project chrome', () => {
     const html = stripExportDataUrls(renderToString(<App />));
 
     const expectedCopy = [
@@ -22,6 +22,7 @@ describe('App', () => {
       'Roll fantasy names, tune the feel, and keep the cast that fits.',
       'Cast setup',
       'Story roles',
+      'Naming brief',
       'Name feel',
       'Run options',
       'Cast size',
@@ -42,6 +43,14 @@ describe('App', () => {
       'Role influence is opt-in.',
       'sound patterns',
       'Choose a role mix to reveal optional slot-by-slot overrides.',
+      'Use context',
+      'Tone words',
+      'Desired associations',
+      'Avoid list',
+      'Hard constraints',
+      'Anchor examples',
+      'Brief notes',
+      'Briefs guide seeded generation and scoring.',
       'Rarity distribution',
       'Novelty value',
       'Shuffle Novelty',
@@ -55,6 +64,7 @@ describe('App', () => {
       'Spotlight budget',
       'initial',
       'ending',
+      'Read notes',
       'Export',
       'Save',
       'Copy',
@@ -71,6 +81,7 @@ describe('App', () => {
     const collapsedControlSectionSummaries = [
       'Cast setup',
       'Story roles',
+      'Naming brief',
       'Run options',
     ];
 
