@@ -23,10 +23,10 @@ export const stylePacks: StylePack[] = [{
   },
   listedVariants: { Aveline: ['Avelyn', 'Avelina'], Elowen: ['Elowyn', 'Elowenn'], Merryn: ['Meryn', 'Merren'], Oswin: ['Oswyn', 'Ossian'], Rowena: ['Rowenna', 'Roena'], Tamsin: ['Tamsyn', 'Tamzin'], Theobald: ['Theobold', 'Tybalt'], Wystan: ['Wistan', 'Wysten'] },
   variantRules: [
-    { id: 'terminal-a-to-ia', label: 'Terminal -a to -ia', from: 'a$', to: 'ia', maxApplications: 1, sourceKind: 'style-pack' },
-    { id: 'i-to-y', label: 'Medial i to y', from: 'i', to: 'y', maxApplications: 1, sourceKind: 'algorithm' },
-    { id: 'single-n-to-double-n', label: 'Double terminal n', from: 'n$', to: 'nn', maxApplications: 1, sourceKind: 'algorithm' },
-    { id: 'v-to-viv', label: 'Romance-style v expansion', from: '^v', to: 'viv', maxApplications: 1, sourceKind: 'algorithm' },
-    { id: 'y-to-i', label: 'Medial y to i', from: 'y', to: 'i', maxApplications: 1, sourceKind: 'algorithm' },
+    { id: 'terminal-a-to-ia', label: 'Terminal -a to -ia', from: 'a$', to: 'ia', maxApplications: 1, sourceKind: 'style-pack', relationship: 'orthographic_variant', confidence: 'medium' },
+    { id: 'i-to-y', label: 'Medial i to y', from: 'i', to: 'y', maxApplications: 1, sourceKind: 'algorithm', relationship: 'orthographic_variant', confidence: 'medium' },
+    { id: 'single-n-to-double-n', label: 'Double terminal n', from: 'n$', to: 'nn', maxApplications: 1, sourceKind: 'algorithm', relationship: 'creative_respelling', confidence: 'medium' },
+    { id: 'v-to-viv', label: 'Romance-style v expansion', from: '^v', to: 'viv', maxApplications: 1, sourceKind: 'algorithm', relationship: 'creative_respelling', confidence: 'medium' },
+    { id: 'y-to-i', label: 'Medial y to i', from: 'y', to: 'i', maxApplications: 1, sourceKind: 'algorithm', relationship: 'orthographic_variant', confidence: 'medium' },
   ],
 }];

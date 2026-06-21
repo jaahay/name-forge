@@ -1,5 +1,5 @@
 import { namingBriefSummary } from './brief';
-import type { BriefInfluenceMetadata, GeneratedEnsemble, GeneratedName, NameSilhouette, ProvenanceNote, ReadabilityDiagnostic, RoleInfluenceMetadata } from './types';
+import type { BriefInfluenceMetadata, GeneratedEnsemble, GeneratedName, NameSilhouette, NameVariant, ProvenanceNote, ReadabilityDiagnostic, RoleInfluenceMetadata } from './types';
 
 export interface ExportedNamePart {
   role: string;
@@ -28,6 +28,19 @@ export interface ExportedReadabilityDiagnostic {
   detail: string;
 }
 
+export interface ExportedNameVariant {
+  value: string;
+  kind: NameVariant['kind'];
+  relationship: NameVariant['relationship'];
+  confidence: NameVariant['confidence'];
+  generated: boolean;
+  ruleId: string;
+  sourceId: string;
+  sourceKind: NameVariant['source']['kind'];
+  sourceLabel: string;
+  locale?: string;
+}
+
 export interface ExportedName {
   id: string;
   name: string;
@@ -40,7 +53,7 @@ export interface ExportedName {
   silhouette: Pick<NameSilhouette, 'syllableCount' | 'stressPattern' | 'rhythm' | 'rarityBand' | 'texture' | 'targetNovelty' | 'targetLength'>;
   format: string;
   parts: ExportedNamePart[];
-  variants: Array<{ value: string; kind: string; ruleId: string; sourceId: string }>;
+  variants: ExportedNameVariant[];
   provenance: string[];
   seed: string;
   warnings: string[];
@@ -103,6 +116,21 @@ function exportReadabilityDiagnostics(diagnostics: ReadabilityDiagnostic[]): Exp
   }));
 }
 
+function exportVariants(variants: NameVariant[]): ExportedNameVariant[] {
+  return variants.map((variant) => ({
+    value: variant.value,
+    kind: variant.kind,
+    relationship: variant.relationship,
+    confidence: variant.confidence,
+    generated: variant.generated,
+    ruleId: variant.ruleId,
+    sourceId: variant.source.id,
+    sourceKind: variant.source.kind,
+    sourceLabel: variant.source.label,
+    locale: variant.locale,
+  }));
+}
+
 function diagnosticText(diagnostics: ExportedReadabilityDiagnostic[]): string {
   if (diagnostics.length === 0) return 'None';
   return diagnostics.map((diagnostic) => `${diagnostic.label}: ${diagnostic.detail}`).join('; ');
@@ -111,6 +139,15 @@ function diagnosticText(diagnostics: ExportedReadabilityDiagnostic[]): string {
 function briefInfluenceText(influence: ExportedBriefInfluence | undefined): string {
   if (!influence) return 'No direct brief influence';
   return `${influence.summary} ${influence.effects.join(' ')}`;
+}
+
+function relationshipLabel(relationship: ExportedNameVariant['relationship']): string {
+  return relationship.replace(/_/g, ' ');
+}
+
+function variantText(variants: ExportedNameVariant[]): string {
+  if (variants.length === 0) return 'None';
+  return variants.map((variant) => `${variant.value} (${relationshipLabel(variant.relationship)}, ${variant.confidence} confidence, ${variant.generated ? 'generated' : 'listed'}, ${variant.sourceId})`).join(', ');
 }
 
 function exportName(name: GeneratedName, seed: string): ExportedName {
@@ -139,12 +176,7 @@ function exportName(name: GeneratedName, seed: string): ExportedName {
       value: part.value,
       sourceName: part.sourceName,
     })) ?? [],
-    variants: name.variants.map((variant) => ({
-      value: variant.value,
-      kind: variant.kind,
-      ruleId: variant.ruleId,
-      sourceId: variant.provenance.sourceId,
-    })),
+    variants: exportVariants(name.variants),
     provenance: uniqueProvenanceLabels(name.provenance),
     seed,
     warnings: name.readabilityDiagnostics.filter((diagnostic) => diagnostic.severity === 'warning').map((diagnostic) => diagnostic.label),
@@ -196,9 +228,6 @@ export function serializeCastAsMarkdown(ensemble: GeneratedEnsemble): string {
 
   ensemble.names.forEach((name, index) => {
     const exported = exportName(name, ensemble.settings.seed);
-    const variantText = exported.variants.length > 0
-      ? exported.variants.map((variant) => `${variant.value} (${variant.kind}, ${variant.sourceId})`).join(', ')
-      : 'None';
     const partText = exported.parts.length > 0
       ? exported.parts.map((part) => `${part.role}: ${part.value}`).join('; ')
       : 'Single generated name';
@@ -218,7 +247,7 @@ export function serializeCastAsMarkdown(ensemble: GeneratedEnsemble): string {
       `- Parts: ${partText}`,
       `- Silhouette: ${silhouetteSummary(name.silhouette)}`,
       `- Readability notes: ${diagnosticText(exported.readabilityDiagnostics)}`,
-      `- Variants: ${variantText}`,
+      `- Variants: ${variantText(exported.variants)}`,
       `- Provenance: ${provenanceText}`,
       `- Warnings: ${exported.warnings.length > 0 ? exported.warnings.join(', ') : 'none'}`,
       '',
