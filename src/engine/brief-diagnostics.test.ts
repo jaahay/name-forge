@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { briefFitScore, evaluateBriefInfluence } from './brief';
 import { generateEnsemble } from './ensemble';
 import { createDefaultRegistry } from './registry';
 import { diagnoseNameReadability } from './diagnostics';
@@ -54,11 +55,12 @@ describe('briefed generation', () => {
     expect(second.names.some((name) => name.briefInfluence)).toBe(true);
   });
 
-  it('changes brief influence when avoid-list input changes', () => {
-    const withoutAvoid = generateEnsemble(baseSettings({ seed: 'avoid-test', brief: { desiredAssociations: ['stone'] } }), registry);
-    const withAvoid = generateEnsemble(baseSettings({ seed: 'avoid-test', brief: { desiredAssociations: ['stone'], avoidList: [withoutAvoid.names[0].name] } }), registry);
+  it('penalizes direct avoid-list matches deterministically', () => {
+    const neutral = baseSettings({ brief: { desiredAssociations: ['stone'] } });
+    const avoid = baseSettings({ brief: { desiredAssociations: ['stone'], avoidList: ['stone'] } });
 
-    expect(withAvoid.names.some((name) => name.briefInfluence?.penalties.length)).toBe(true);
+    expect(evaluateBriefInfluence('Stonehaven', avoid)?.penalties).toContain('stone');
+    expect(briefFitScore('Stonehaven', avoid)).toBeLessThan(briefFitScore('Stonehaven', neutral));
   });
 });
 
