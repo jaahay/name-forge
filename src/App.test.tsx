@@ -57,6 +57,8 @@ describe('App', () => {
       'Markdown',
       'Copy JSON',
       'Copy Markdown',
+      'Rarity cue',
+      'narrative tier, not a quality score',
       'Read',
       'Name parts',
       'Construction cues',
@@ -90,6 +92,9 @@ describe('App', () => {
     expect(html).toContain('class="inspector-summary"');
     expect(html).toContain('class="name-detail-grid"');
     expect(html).toContain('aria-pressed="true"');
+    expect(html).toContain('class="rarity-chip');
+    expect(html).toContain('data-rarity="');
+    expect(html).toContain('rarity, ');
     expect(html).toContain('class="save-menu panel"');
     expect(html).toContain('class="save-menu-content"');
     expect(html).toContain('aria-label="Export cast"');
