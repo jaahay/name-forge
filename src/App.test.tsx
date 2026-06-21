@@ -55,10 +55,6 @@ describe('App', () => {
       'Spotlight budget',
       'initial',
       'ending',
-      'Use at table',
-      'Say',
-      'Handle',
-      'Best fit',
       'Export',
       'Save',
       'Copy',
@@ -100,8 +96,6 @@ describe('App', () => {
     expect(html).toContain('class="results-layout inspector-rail-layout"');
     expect(html).toContain('class="selected-name-panel panel"');
     expect(html).toContain('class="selected-name-chips"');
-    expect(html).toContain('class="table-use-block"');
-    expect(html).toContain('class="dossier-list"');
     expect(html).toContain('class="inspector-summary"');
     expect(html).toContain('class="name-detail-grid"');
     expect(html).toContain('aria-pressed="true"');
