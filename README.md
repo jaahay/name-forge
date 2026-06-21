@@ -1,13 +1,13 @@
 # Name Forge
 
-Name Forge is a Vite + TypeScript + React MVP for generating plausible fictional character names with deterministic randomness, ensemble balancing, name silhouettes, role-aware cast metadata, optional role influence, rarity distribution controls, spelling variants, scoring, export, and provenance.
+Name Forge is a Vite + TypeScript + React MVP for generating plausible fictional character names with deterministic randomness, ensemble balancing, name silhouettes, role-aware cast metadata, optional role influence, rarity distribution controls, naming briefs, deterministic readability diagnostics, spelling variants, scoring, export, and provenance.
 
-The current app is explicitly the first **Fiction cast** mode of a broader random-name workbench. Future modes should share generation, scoring, comparison, export, and provenance primitives while providing their own controls and result presentation.
+The current app is explicitly the first **Fiction cast** mode of a broader random-name workbench. Future modes should share generation, scoring, comparison, brief, diagnostics, export, and provenance primitives while providing their own controls and result presentation.
 
 ## Product docs
 
 - [`docs/product-brief.md`](docs/product-brief.md) summarizes the product thesis, mode strategy, candidate future modes, and recommended next slices.
-- [`docs/current-product-scope.md`](docs/current-product-scope.md) records the current scope lens, including the next major feature decision.
+- [`docs/current-product-scope.md`](docs/current-product-scope.md) records the current scope lens, shipped capability baseline, and next feature requirements.
 - [`docs/product-requirements.md`](docs/product-requirements.md) contains the canonical product requirements converted from the original PRD.
 - [`docs/architecture.md`](docs/architecture.md) describes the engine boundaries, registry model, scoring layer, silhouette model, role and rarity planning, export layer, ensemble design, and current UI decomposition.
 - [`docs/product-architecture.md`](docs/product-architecture.md) describes the multi-mode product direction and positions Fiction cast generation as the first serious mode.
@@ -15,27 +15,34 @@ The current app is explicitly the first **Fiction cast** mode of a broader rando
 ## MVP capabilities
 
 - Single-page React UI organized around a visible Fiction cast mode boundary, cast setup, fiction controls, rarity and scoring controls, result browsing, inspection, and export.
-- Controls for cast size, seed, style preset, name format, cast role mix, slot role overrides, role influence, rarity distribution, novelty, pronounceability, memorability, cultural anchoring, and orthographic weirdness.
+- Controls for cast size, seed, style preset, name format, cast role mix, slot role overrides, role influence, naming brief, rarity distribution, novelty, pronounceability, memorability, cultural anchoring, and orthographic weirdness.
 - Compact result cards for scanning generated names, with lock/select affordances and length-aware rendering.
-- Persistent Inspect panel for selected-name detail: rarity cue, construction cues, score readout, name parts, alternate spellings, and role influence cue.
-- Cast Health panel for deterministic roster checks such as spotlight balance, repeated initials/endings, cadence overlap, and lock status.
+- Persistent Inspect panel for selected-name detail: rarity cue, construction cues, score readout, name parts, alternate spellings, brief influence, readability notes, and role influence cue.
+- Cast Health panel for deterministic roster checks such as spotlight balance, repeated initials/endings, cadence overlap, readability notes, and lock status.
 - Deterministic seeded randomness for repeatable casts.
 - First-class `NameSilhouette` generation before exact letters exist.
 - Simple phonotactic generation from data-shaped style packs.
 - Cast-level balancing to reduce repeated initials, repeated endings, repeated cadence, and rarity-band clustering.
 - Explicit role metadata for fiction cast slots while keeping role influence opt-in so baseline generation stays role-neutral.
-- Plausibility scoring across pronounceability, memorability, novelty, cultural anchoring, orthographic naturalness, style fit, silhouette fit, ensemble fit, and role fit.
+- Naming Brief fields for use context, tone words, desired associations, avoid list, hard constraints, anchor examples, and notes.
+- Deterministic readability diagnostics for long reads, dense letter clusters, repeated letters, and possible visual misreads, without claiming canonical pronunciation.
+- Plausibility scoring across pronounceability, memorability, novelty, cultural anchoring, orthographic naturalness, style fit, silhouette fit, ensemble fit, role fit, and brief fit signals.
 - Spelling variants marked as listed alternates or generated spellings.
-- JSON and Markdown cast export with role, rarity, score, identity, silhouette, variant, role influence, and provenance metadata.
+- JSON and Markdown cast export with role, rarity, score, identity, silhouette, variant, role influence, brief influence, readability diagnostics, and provenance metadata.
 - Source/provider registry abstraction with provenance-bearing outputs.
 
-## Current next major feature
+## Current next feature requirements
 
-The next major feature should be **briefed generation with pronounceability diagnostics**.
+The briefed-generation and readability-diagnostics slice is now part of the Fiction cast baseline. The next forward-looking requirements should strengthen trust, source contracts, and mode readiness before adding a second active mode.
 
-That means adding a reusable Naming Brief primitive and deterministic readability/pronounceability diagnostics before pursuing baby-name generation, IPA output, audio, or pronunciation dictionaries.
+Recommended next slices:
 
-See [`docs/current-product-scope.md`](docs/current-product-scope.md) for the rationale and implementation-ticket breakdown.
+1. **Variant relationship metadata**: extend spelling variants with relationship type, confidence, source metadata, optional locale, and explicit generated/listed provenance.
+2. **Source descriptor and pack validation**: define the future provider/source descriptor contract, add license/locale metadata where applicable, and validate built-in style packs before accepting user-loaded packs.
+3. **Warning and collision scaffolding**: add cautious common-word collision, known-name distance, and warning metadata without demographic inference or external databases.
+4. **Game NPC mode discovery**: keep Game NPC as the first candidate second mode, but only after Fiction cast contracts and shared primitives are stable.
+
+See [`docs/current-product-scope.md`](docs/current-product-scope.md) for sequencing and non-goals.
 
 ## CI and validation
 
@@ -69,6 +76,8 @@ src/
   data/
     stylePacks.ts
   engine/
+    brief.ts
+    diagnostics.ts
     ensemble.ts
     export.ts
     identity.ts
