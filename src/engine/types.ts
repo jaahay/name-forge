@@ -26,6 +26,9 @@ export type NameVariantRelationship =
   | 'alias';
 export type NameVariantConfidence = 'low' | 'medium' | 'high';
 export type SourceKind = 'style-pack' | 'algorithm' | 'listed-source' | 'remote-pack';
+export type SourceDescriptorKind = 'built-in-bundle' | 'local-file' | 'http' | 'api' | 'package' | 'user-pack';
+export type SourceOriginKind = 'bundled' | 'file' | 'url' | 'api' | 'package';
+export type SourceValidationSeverity = 'error' | 'warning';
 export type NameFormatKind = 'given-only' | 'given-family' | 'initials-family' | 'title-name' | 'epithet-place' | 'mixed';
 export type NamePartRole = 'given' | 'family' | 'initial' | 'title' | 'epithet' | 'place';
 export type CastRole = 'protagonist' | 'rival' | 'mentor' | 'sidekick' | 'guardian' | 'outsider' | 'villain' | 'wildcard';
@@ -60,6 +63,11 @@ export interface ReadabilityDiagnostic {
   detail: string;
 }
 
+export interface DataSourceOrigin { kind: SourceOriginKind; value: string; }
+export interface DataSourceDescriptor { id: string; label: string; kind: SourceDescriptorKind; version: string; origin: DataSourceOrigin; sourceNotes: string; trustNotes: string; }
+export interface SourceValidationIssue { severity: SourceValidationSeverity; path: string; message: string; }
+export interface StylePackValidationResult { packId: string; valid: boolean; issues: SourceValidationIssue[]; }
+
 export interface GenerationSettings {
   castSize: number;
   novelty: number;
@@ -92,6 +100,6 @@ export interface GeneratedName { id: string; name: string; silhouette: NameSilho
 export interface EnsembleDiagnostics { repeatedInitials: number; repeatedEndings: number; repeatedCadences: number; repeatedRarityBands: number; noveltySpread: number; readabilityIssues: number; readabilityWarnings: number; readabilitySummary: string; readabilityDiagnostics: ReadabilityDiagnostic[]; summary: string; }
 export interface GeneratedEnsemble { settings: GenerationSettings; sourcePack: StylePackSummary; names: GeneratedName[]; diagnostics: EnsembleDiagnostics; }
 export interface SpellingVariantRule { id: string; label: string; from: string; to: string; maxApplications?: number; sourceKind: SourceKind; relationship?: NameVariantRelationship; confidence?: NameVariantConfidence; }
-export interface StylePackSummary { id: string; label: string; description: string; }
+export interface StylePackSummary { id: string; label: string; description: string; source: DataSourceDescriptor; }
 export interface StylePack extends StylePackSummary { version: string; localeHint: string; culturalAnchors: string[]; phonotactics: { onsets: Array<WeightedValue>; nuclei: Array<WeightedValue>; codas: Array<WeightedValue>; preferredEndings: Array<WeightedValue>; rareGraphemes: string[]; forbiddenFragments: string[]; }; silhouetteBias: { syllableCounts: Array<WeightedValue<number>>; textures: Array<WeightedValue<NameTexture>>; rarityBands: Array<WeightedValue<RarityBand>>; }; listedVariants: Record<string, string[]>; variantRules: SpellingVariantRule[]; provenance: ProvenanceNote; }
-export interface NameSourceProvider { id: string; label: string; kind: SourceKind; listStylePacks(): StylePackSummary[]; getStylePack(id: string): StylePack | undefined; }
+export interface NameSourceProvider { id: string; label: string; kind: SourceKind; source: DataSourceDescriptor; listStylePacks(): StylePackSummary[]; getStylePack(id: string): StylePack | undefined; validateStylePack(id: string): StylePackValidationResult | undefined; }
