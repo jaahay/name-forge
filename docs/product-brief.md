@@ -4,7 +4,9 @@
 
 Name Forge is a random-name workbench for generating names that are not only novel, but usable, explainable, reproducible, and tuned to a specific naming job.
 
-The product should not be understood as a single fantasy-name generator. Fiction cast is the first serious mode because it exercises many of the hardest shared primitives: seeded generation, style anchoring, silhouette planning, ensemble balance, role metadata, optional role influence, Fit scoring, variants, provenance, and export.
+The product should not be understood as a single fantasy-name generator. Fiction cast is the first serious mode because it exercises many of the hardest shared primitives: seeded generation, style anchoring, silhouette planning, ensemble balance, role metadata, optional role influence, Fit scoring, variants, provenance, inspection, and export.
+
+See [`current-product-scope.md`](current-product-scope.md) for the current scope lens and next major feature decision.
 
 ## Who it serves
 
@@ -46,18 +48,19 @@ Current strengths:
 - rarity distribution controls
 - role presets and slot overrides
 - optional role influence
-- compact result cards
-- Details and Fit sections
+- compact result cards for scan/select/lock
+- persistent Inspect panel for selected-name detail
+- Cast Health checks for roster-level coherence
 - JSON and Markdown cast export
 - provenance-bearing generated names and variants
 
 Current gaps:
 
-- no lock/regenerate workflow for individual names
 - no explicit naming brief or constraints layer
 - no custom style pack creation/import
 - no second active mode to stress-test the mode boundary
 - limited user-facing explanation of how role influence changes results
+- pronounceability exists as a scoring/control axis, but there are no explicit readability diagnostics yet
 
 ## Candidate future modes
 
@@ -65,7 +68,7 @@ These modes are product directions, not commitments to build all of them now.
 
 | Mode | User job | Likely output | Shared primitives stressed |
 | --- | --- | --- | --- |
-| Fiction cast | Name a coherent ensemble of fictional characters. | Cast, roles, Details, Fit, export. | Silhouettes, ensemble balance, role influence, variants, provenance. |
+| Fiction cast | Name a coherent ensemble of fictional characters. | Cast, roles, Inspect, Cast Health, Fit, export. | Silhouettes, ensemble balance, role influence, variants, provenance. |
 | Game NPC | Generate usable names quickly for play/session prep. | Name, role, faction/species, compact hook. | Briefs, role influence, fast reroll, compact export. |
 | Pen name | Evaluate pseudonyms for authors or creators. | Name, market fit, memorability, privacy/risk notes. | Briefs, scoring, style fit, screening. |
 | Product / codename | Name products, projects, features, prototypes, or internal initiatives. | Name, rationale, tone fit, collision/risk notes. | Briefs, constraints, memorability, availability-looking variants. |
@@ -79,23 +82,15 @@ These modes are product directions, not commitments to build all of them now.
 3. **Promote shared primitives deliberately.** A primitive should become shared because at least two modes need it or because it clearly belongs below mode presentation.
 4. **Avoid genericizing the current mode.** Fiction cast should keep cast language, role controls, and cast export where they improve the mode.
 5. **Prefer iteration tools before expansion.** Lock/regenerate and brief/constraints work will make every future mode stronger.
+6. **Separate pronounceability from pronunciation.** Speakability scoring and diagnostics are near-term; IPA, audio, and dictionary-backed pronunciation are later artifacts.
 
 ## Recommended next product slices
 
-### 1. Lock and regenerate individual names
+### 1. Naming brief + pronounceability diagnostics
 
-Make Fiction cast more workbench-like by letting users preserve good names and reroll weak names.
+This is the recommended next major feature.
 
-Potential capabilities:
-
-- lock one or more generated names
-- regenerate unlocked names only
-- reroll one card while preserving cast size
-- preserve export shape for the final cast
-
-### 2. Naming brief primitive
-
-Add a reusable brief layer that captures user intent beyond sliders.
+Add a reusable brief layer that captures user intent beyond sliders, then use it to strengthen Fiction cast first.
 
 Potential fields:
 
@@ -105,10 +100,19 @@ Potential fields:
 - tone words
 - domain or genre
 - hard constraints
+- optional anchor examples
+
+Pair the brief with deterministic readability/pronounceability diagnostics:
+
+- length friction
+- dense consonant or vowel clusters
+- repeated sound/letter overlap across the cast
+- awkward endings or likely misreadings
+- broad speakability notes without canonical pronunciation claims
 
 This primitive should be designed so Fiction cast can use it first, then Game NPC, Pen name, and Product/codename modes can reuse it later.
 
-### 3. Role influence v2
+### 2. Role influence v2
 
 Make role influence more legible.
 
@@ -116,12 +120,14 @@ Potential capabilities:
 
 - show what each role profile nudges
 - preview role influence before generation
-- explain role-fit differences in Details/Fit
+- explain role-fit differences in Inspect/Fit
 - keep Off as the default baseline
 
-### 4. First second mode: Game NPC
+### 3. First second mode: Game NPC
 
-Game NPC is the best first second mode because it is close enough to Fiction cast to reuse the engine, but different enough to validate mode-specific controls and outputs.
+Game NPC remains the best first second mode because it is close enough to Fiction cast to reuse the engine, but different enough to validate mode-specific controls and outputs.
+
+It should follow the brief primitive rather than precede it.
 
 ## Product non-goals for the next few slices
 
@@ -130,3 +136,5 @@ Game NPC is the best first second mode because it is close enough to Fiction cas
 - Do not make Fiction cast generic at the cost of product quality.
 - Do not add external availability checks before local generation, scoring, and iteration are strong.
 - Do not treat the old Phase One model as an active roadmap.
+- Do not make baby-name generation the next major feature.
+- Do not add IPA, audio, or pronunciation dictionaries before deterministic pronounceability diagnostics exist.
