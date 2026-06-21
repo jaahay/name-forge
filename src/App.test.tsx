@@ -7,7 +7,7 @@ function stripExportDataUrls(html: string): string {
 }
 
 describe('App', () => {
-  it('renders the fiction cast workbench with nav sigil, compact header, inspector rail, roster, export menu, lock controls, and project chrome', () => {
+  it('renders the fiction cast workbench with nav sigil, compact header, selected inspector rail, roster, export menu, lock controls, and project chrome', () => {
     const html = stripExportDataUrls(renderToString(<App />));
 
     const expectedCopy = [
@@ -46,11 +46,15 @@ describe('App', () => {
       'Novelty value',
       'Shuffle Novelty',
       'Generation seed',
-      'New feel',
+      'Reroll feel',
       'Generate',
       'Inspect',
-      'Select a name to view fit, parts, spellings, and construction cues.',
       'Lock',
+      'Cast health',
+      'Table-read checks',
+      'Spotlight budget',
+      'initial',
+      'ending',
       'Export',
       'Save',
       'Copy',
@@ -58,11 +62,15 @@ describe('App', () => {
       'Markdown',
       'Copy JSON',
       'Copy Markdown',
+      'Rarity cue',
+      'narrative tier, not a quality score',
+      'Read',
+      'Name parts',
+      'Construction cues',
     ];
     const collapsedControlSectionSummaries = [
       'Cast setup',
       'Story roles',
-      'Name feel',
       'Run options',
     ];
 
@@ -74,6 +82,7 @@ describe('App', () => {
       expect(html).toMatch(new RegExp(`<details class="control-section"><summary>${summary}</summary>`));
     }
 
+    expect(html).toMatch(/<details class="control-section" open(?:="")?><summary>Name feel<\/summary>/);
     expect(html).toContain('class="hero panel app-header"');
     expect(html).toContain('class="nav-primary"');
     expect(html).toContain('class="nav-brand"');
@@ -82,9 +91,17 @@ describe('App', () => {
     expect(html).toContain('class="brand-sigil"');
     expect(html).toContain('class="workspace workbench"');
     expect(html).toContain('class="roster-panel panel"');
+    expect(html).toContain('class="cast-health"');
+    expect(html).toContain('class="cast-health-list"');
     expect(html).toContain('class="results-layout inspector-rail-layout"');
-    expect(html).toContain('class="inspector-empty-panel panel"');
-    expect(html).toContain('aria-label="Name inspector"');
+    expect(html).toContain('class="selected-name-panel panel"');
+    expect(html).toContain('class="selected-name-chips"');
+    expect(html).toContain('class="inspector-summary"');
+    expect(html).toContain('class="name-detail-grid"');
+    expect(html).toContain('aria-pressed="true"');
+    expect(html).toContain('class="rarity-chip');
+    expect(html).toContain('data-rarity="');
+    expect(html).toContain('rarity, ');
     expect(html).toContain('class="save-menu panel"');
     expect(html).toContain('class="save-menu-content"');
     expect(html).toContain('aria-label="Export cast"');
@@ -99,11 +116,7 @@ describe('App', () => {
     expect(html).not.toContain('class="brand-lockup"');
     expect(html).not.toContain('class="save-panel panel"');
     expect(html).not.toContain('class="output-toolbar panel"');
-    expect(html).not.toContain('class="selected-name-panel panel"');
-    expect(html).not.toContain('class="selected-name-chips"');
-    expect(html).not.toContain('class="inspector-summary"');
-    expect(html).not.toContain('class="name-detail-grid"');
-    expect(html).not.toContain('aria-pressed="true"');
+    expect(html).not.toContain('class="inspector-empty-panel panel"');
     expect(html).not.toContain('class="name-grid has-selection"');
     expect(html).not.toContain('class="name-inline-detail"');
     expect(html).not.toContain('class="collapse-cue"');
@@ -127,12 +140,7 @@ describe('App', () => {
     expect(html).not.toContain('Show Markdown preview');
     expect(html).not.toContain('In inspector');
     expect(html).not.toContain('Profile');
-    expect(html).not.toContain('Read</h3>');
-    expect(html).not.toContain('Name parts');
-    expect(html).not.toContain('Spellings');
-    expect(html).not.toContain('Syrethaenn');
     expect(html).not.toContain('Checks');
-    expect(html).not.toContain('Construction');
     expect(html).not.toContain('Fit scores');
     expect(html).not.toContain('Reroll names');
     expect(html).not.toContain('Shuffle feel');
@@ -149,6 +157,5 @@ describe('App', () => {
     expect(html).not.toContain('<summary>Mode</summary>');
     expect(html).not.toContain('Density');
     expect(html).not.toContain('Comfortable');
-    expect(html).not.toContain('<details class="control-section" open');
   });
 });
