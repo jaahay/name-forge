@@ -7,6 +7,7 @@ The architecture goal is not to build a generic abstraction before the product e
 Related docs:
 
 - [`product-brief.md`](product-brief.md): product thesis, mode strategy, candidate modes, and recommended sequencing.
+- [`current-product-scope.md`](current-product-scope.md): active scope lens and next major feature decision.
 - [`product-requirements.md`](product-requirements.md): original requirements and historical build-order scaffold.
 - [`product-architecture.md`](product-architecture.md): product-level mode strategy.
 - [`phase-one-closeout.md`](phase-one-closeout.md): Phase One completion and replacement tracking model.
@@ -31,11 +32,12 @@ The important split is:
 1. **Controlled stochasticity**: random generation is deterministic by seed and constrained by explicit settings.
 2. **Silhouette before spelling**: shape the intended name before exact letters are chosen.
 3. **Ensemble-aware selection**: the first serious output is a cast, so repeated initials, endings, cadence, and rarity clusters matter.
-4. **Mode-aware UX, shared primitives**: Fiction cast can have role mix, slot overrides, and cast export without making those concepts global product assumptions.
+4. **Mode-aware UX, shared primitives**: Fiction cast can have role mix, slot overrides, cast health, and cast export without making those concepts global product assumptions.
 5. **Hard-code mechanisms, not linguistic knowledge**: code owns schemas, algorithms, scoring, normalization, and provenance contracts; packs/providers own language-feel data.
 6. **Generated primary names**: style packs guide generation; they are not copied as the primary output path.
 7. **Provenance-bearing output**: every result should explain source, seed, style, role/rarity shaping, variant relationship, and scoring signals.
 8. **Small abstraction first**: introduce seams only as needed. The current mode boundary is a lightweight config, not a full plugin framework.
+9. **Pronounceability before pronunciation**: scoring and deterministic readability diagnostics may ship before text pronunciation, IPA, or audio artifacts.
 
 ## Runtime pipeline
 
@@ -62,8 +64,11 @@ Each step should remain testable as TypeScript. UI code renders controls and res
 ```text
 src/
   App.tsx                 UI shell, active mode selection, and interaction state
+  App.test.tsx            SSR smoke coverage for shell-level UI contracts
   main.tsx                Vite/React entrypoint
-  styles.css              Presentation only
+  styles.css              Global presentation
+  card-locks.css          Lock-control presentation
+  cast-mode.css           Fiction Cast feature styling
   data/
     stylePacks.ts         Built-in soft-coded style packs
   engine/
@@ -81,10 +86,13 @@ src/
     variants.ts           Spelling variant generation and provenance
   ui/
     AboutView.tsx         Product explanation copy
+    CastHealth.tsx        Deterministic roster-level checks and display
     ChangelogView.tsx     In-app changelog rendering
-    GeneratorView.tsx     Mode-aware generation controls, result grid, and export surface
+    GeneratorView.tsx     Mode-aware controls, roster/inspector layout, selection state, and export surface
     modes.ts              Current mode config, defaults, labels, and presentation copy
-    NameCard.tsx          Compact card summary plus nested Details and Fit sections
+    NameCard.tsx          Compact selectable/lockable generated-name tile
+    NameInspector.tsx     Selected-name detail surface
+    namePresentation.ts   Shared name display, length, rarity, and construction-cue helpers
     ScoreControl.tsx      Numeric and slider score control rendering
     presentation.ts       UI labels, score labels, rarity labels, and changelog entries
     score.ts              UI score formatting and visual class helpers
@@ -119,7 +127,7 @@ Mode-level code may own:
 - mode-specific result headings
 - export headings and export vocabulary
 - scoring emphasis and fit explanation copy
-- user-facing result-card presentation choices
+- user-facing result-card and inspector presentation choices
 
 ### What does not belong in a mode
 
@@ -165,6 +173,7 @@ These should remain reusable across future modes:
 - spelling variants
 - provenance entries
 - JSON/Markdown export mechanics
+- future naming briefs
 
 Fiction-specific concepts can use these primitives, but should not silently redefine them globally.
 
@@ -218,6 +227,20 @@ Candidate scoring exposes decomposed signals for pronounceability, memorability,
 
 The UI should expose scores as **Fit** rather than as diagnostics. Diagnostics is an implementation/debugging posture; Fit is the product concept users are evaluating.
 
+## Pronounceability and pronunciation boundary
+
+Pronounceability is currently a scoring/control axis. It means the product can judge and explain whether a name appears speakable, readable, and usable in context.
+
+Pronunciation is a stronger artifact. Text pronunciation hints, IPA, audio, and dictionary-backed pronunciation should remain deferred until the product has:
+
+- explicit locale assumptions
+- phoneme inventory strategy
+- confidence labels
+- provider/source provenance
+- clear non-canonical wording for invented names
+
+The next near-term architecture step is not IPA. It is deterministic pronounceability/readability diagnostics that can later feed pronunciation artifacts.
+
 ## Ensemble balancing
 
 Ensemble generation should produce more candidates than needed, then choose a cast that avoids obvious repetition. The balancing layer penalizes repeated initials, repeated endings, duplicate cadence, too many names in the same rarity band, and excessive orthographic weirdness across the cast.
@@ -246,13 +269,18 @@ The provenance contract is product-critical because it keeps generated primary n
 
 ## UI contract
 
-The MVP UI exposes one single-page Fiction cast generation mode with progressive sections for Mode, Basics, Fiction, and Rarity & scoring.
+The MVP UI exposes one single-page Fiction cast generation mode with progressive controls for Cast setup, Story roles, Name feel, and Run options.
 
 The core controls are mode, cast size, seed, style preset, name format, cast role mix, role influence, slot role overrides, rarity distribution, novelty, pronounceability, memorability, cultural anchoring, and orthographic weirdness.
 
-Each collapsed output card prioritizes quick browsing: generated name, syllable count, and alternate spellings only when alternates exist. Opening a card reveals nested **Details** and **Fit** sections for role, texture, format, rarity, name parts, role influence, and compact score metadata.
+The current result model is:
 
-The export surface stays late in the flow and supports JSON and Markdown without making raw export text dominate the generated cast.
+- **NameCard**: compact scan/select/lock tile for the generated name, rarity, and syllable count.
+- **NameInspector**: persistent selected-name detail surface for rarity cue, construction cues, score readout, name parts, spellings, and role influence cue.
+- **CastHealth**: roster-level comparison surface for spotlight budget, repeated initials/endings, cadence overlap, and lock status.
+- **Export**: late-flow JSON and Markdown handoff without making raw export text dominate the generated cast.
+
+Do not return to nested Details/Fit sections inside every card unless the interaction model changes again. The current design keeps cards readable and moves detail into Inspect.
 
 ## CI and merge-readiness
 
@@ -278,8 +306,10 @@ Unit tests should prioritize deterministic engine contracts:
 - rarity distribution presets resolve deterministically
 - variants are generated and labeled correctly
 - registry resolves built-in style packs and source descriptors
+- future brief settings preserve deterministic output when seed and settings are fixed
+- future pronounceability diagnostics are deterministic and provider-free until pronunciation artifacts are intentionally introduced
 
-UI smoke tests should verify shell-level contracts such as mode boundary copy, visible controls, grouped sections, compact nested cards, compact export affordances, and the absence of obsolete public copy.
+UI smoke tests should verify shell-level contracts such as mode boundary copy, visible controls, grouped sections, compact name cards, persistent Inspect, Cast Health, compact export affordances, and the absence of obsolete public copy.
 
 When smoke tests assert React server-rendered HTML, avoid requiring adjacent JSX text to appear as one contiguous string. React SSR may insert comment separators between adjacent text nodes. Prefer separate text assertions, normalized HTML, or regex assertions for composed text.
 
