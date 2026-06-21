@@ -1,9 +1,20 @@
-import type { StylePack } from '../engine/types';
+import type { DataSourceDescriptor, StylePack } from '../engine/types';
+
+const builtInStylePackSource: DataSourceDescriptor = {
+  id: 'built-in-style-packs@0.1.0',
+  label: 'Built-in style packs',
+  kind: 'built-in-bundle',
+  version: '0.1.0',
+  origin: { kind: 'bundled', value: 'src/data/stylePacks.ts' },
+  sourceNotes: 'Bundled fictionalized starter pack data maintained with the application.',
+  trustNotes: 'No remote loading or external name database dependency; safe for deterministic offline generation.',
+};
 
 export const stylePacks: StylePack[] = [{
   id: 'british-literary-fantasy',
   label: 'British literary fantasy',
   description: 'A soft-coded starter pack for bookish, folktale-adjacent names with fictionalized British literary texture.',
+  source: builtInStylePackSource,
   version: '0.1.0',
   localeHint: 'fictional-en-GB-literary',
   culturalAnchors: ['Albion', 'Arthurian romance', 'Victorian novels', 'border ballads'],
