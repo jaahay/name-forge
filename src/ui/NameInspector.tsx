@@ -1,4 +1,4 @@
-import type { GeneratedName } from '../engine/types';
+import type { GeneratedName, NameVariant } from '../engine/types';
 import { rarityPresentation, scorePresentation } from './presentation';
 import { formatScore } from './score';
 import { constructionCueFor, getNameDisplayLength, labelFor, protectInitialBreaks, rarityCueFor } from './namePresentation';
@@ -16,6 +16,15 @@ function metadataFor(name: GeneratedName) {
   const formatLabel = identity ? identity.format.label : `${labelFor(name.silhouette.rhythm)} rhythm`;
 
   return { formatLabel, identity, rarity, roleInfluenceLabel, roleLabel, textureLabel };
+}
+
+function variantRelationshipLabel(variant: NameVariant): string {
+  return variant.relationship.replaceAll('_', ' ');
+}
+
+function variantMetadataLabel(variant: NameVariant): string {
+  const generatedLabel = variant.generated ? 'generated' : 'listed';
+  return `${variantRelationshipLabel(variant)}; ${variant.confidence} confidence; ${generatedLabel}; ${variant.source.label}`;
 }
 
 export function NameInspector({ name }: NameInspectorProps) {
@@ -91,7 +100,7 @@ export function NameInspector({ name }: NameInspectorProps) {
           <section className="detail-block">
             <h3>Spellings</h3>
             <ul className="variants detail-variants" aria-label={`${name.name} alternate spellings`}>
-              {name.variants.map((variant) => <li key={`${name.id}-${variant.value}`}><span>{variant.value}</span></li>)}
+              {name.variants.map((variant) => <li key={`${name.id}-${variant.value}`}><span>{variant.value}</span><em>{variantMetadataLabel(variant)}</em></li>)}
             </ul>
           </section>
         ) : null}
