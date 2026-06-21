@@ -1,6 +1,6 @@
 # Current product scope
 
-This document records the current working interpretation of the product requirements after the Fiction cast interaction pass, UI decomposition, and stylesheet consolidation work.
+This document records the current working interpretation of the product requirements after the Fiction cast interaction pass, UI decomposition, stylesheet consolidation work, and brief/readability diagnostics slice.
 
 The original [`product-requirements.md`](product-requirements.md) remains the historical/canonical requirements source. This document is the active scope lens for deciding what to build next.
 
@@ -18,6 +18,25 @@ For Fiction cast, that means:
 
 The product should remain a generator and evaluation workbench, not a writing assistant that invents character hooks by default.
 
+## Current shipped baseline
+
+Fiction cast now includes the previously recommended briefed-generation and deterministic readability diagnostics slice.
+
+Current baseline capabilities include:
+
+- deterministic seeded cast generation
+- style-pack selection
+- cast size, name format, role mix, slot override, role influence, rarity, and scoring controls
+- lock/select iteration affordances
+- Naming Brief fields for use context, tone words, desired associations, avoid list, hard constraints, anchor examples, and notes
+- deterministic brief influence metadata that can affect generation/scoring without replacing sliders
+- deterministic readability notes for length friction, dense consonant/vowel clusters, repeated letters, and visual misreads
+- Cast Health readability summaries
+- Inspect-panel surfacing for brief influence and readability notes
+- JSON and Markdown export of brief and diagnostics metadata
+
+The next scope decisions should treat Naming Brief and readability diagnostics as shipped primitives, not future work.
+
 ## Pronounceability vs pronunciation
 
 The docs intentionally separate these terms:
@@ -25,7 +44,7 @@ The docs intentionally separate these terms:
 | Concept | Current status | Product meaning |
 | --- | --- | --- |
 | Pronounceability | MVP scoring/control axis | Does the generated name look and sound speakable enough? |
-| Readability diagnostics | Good next slice | Explain likely friction such as length, clusters, repeated sounds, or awkward endings. |
+| Readability diagnostics | Shipped deterministic primitive | Explain likely friction such as length, clusters, repeated letters, or visual misreads. |
 | Pronunciation hints | Deferred | Optional approximate reading guidance, clearly non-canonical. |
 | IPA / phoneme output | Later | Requires locale assumptions, phoneme inventories, confidence labels, and provider strategy. |
 | Audio / TTS | Later | Selected-name artifact, not default output for every generated candidate. |
@@ -34,76 +53,87 @@ The active rule is:
 
 > Name Forge may score and explain pronounceability now. It should not claim canonical pronunciation yet.
 
-## Next major feature decision
+## Next feature requirements
 
-The next major feature should be **briefed generation with pronounceability diagnostics**.
+The next major work should strengthen trust and source contracts before adding broader product surfaces.
 
-It should not be baby-name generation, IPA output, or audio.
+### 1. Variant relationship metadata
 
-### Why not baby names next?
+Spelling variants should become more explicit and more source-aware.
 
-Baby names are a distinct real-world naming product. They carry higher user stakes and stronger demographic, cultural, religious, class, nationality, gender, and family-history implications. A serious baby-name mode would require stronger data provenance, source licensing, cultural-pack boundaries, frequency data, and bias/risk posture than the current Fiction cast workbench needs.
+Required capabilities:
 
-Baby-name work should stay deferred until Name Forge has stronger source and risk infrastructure.
-
-### Why not IPA next?
-
-IPA is an artifact, not a mode. It depends on locale assumptions, phoneme inventories, dictionaries/providers, invented-name fallback rules, and confidence labeling. If IPA arrives too early, the product may imply precision it does not have.
-
-IPA should follow a narrower layer of pronounceability/readability diagnostics.
-
-### Recommended feature slice
-
-Add a reusable **Naming Brief** primitive and pair it with non-canonical pronounceability/readability diagnostics.
-
-Candidate capabilities:
-
-- Capture use context, tone words, desired associations, avoid list, hard constraints, and optional anchor examples.
-- Use brief fields to influence generation and scoring without replacing sliders.
-- Surface readability/pronounceability diagnostics in Inspect and Cast Health.
-- Keep diagnostics explicit: speakable/readable guidance, not canonical pronunciation.
-- Include brief and diagnostics in JSON/Markdown export.
-
-Non-goals:
-
-- no baby-name mode
-- no IPA output
-- no audio/TTS
-- no pronunciation dictionaries
-- no claim of canonical pronunciation for invented names
+- Add a relationship field such as `same_pronunciation`, `near_pronunciation`, `orthographic_variant`, `regional_variant`, `historical_variant`, `transliteration`, `cognate`, `diminutive`, `nickname`, `creative_respelling`, or `alias`.
+- Add confidence metadata for each variant.
+- Preserve whether a variant is listed, curated, generated, or later externally sourced.
+- Include source and optional locale metadata.
+- Keep generated rewrite-rule variants clearly distinct from listed alternates.
+- Include the richer variant metadata in Inspect, JSON export, and Markdown export.
 
 Validation target:
 
-- Same seed + same settings + same brief reproduces the same cast.
-- Brief changes produce explainable output or score changes.
-- Diagnostics are deterministic and testable without external data.
-- Fiction cast remains the active mode; the brief is designed as a reusable primitive for future modes.
+- Existing generated variants map deterministically to relationship and confidence metadata.
+- Listed and generated variants are distinguishable in code, UI, and export.
+- No variant is presented as externally validated unless its source/provenance supports that claim.
 
-## Implementation tickets to cut when ready
+### 2. Source descriptor and pack validation
 
-The major work should be split into actual tickets, not a broad planning issue.
+The registry should move from MVP provider lookup toward the future source descriptor contract without adding remote-provider behavior yet.
 
-Suggested tickets:
+Required capabilities:
 
-1. **Define Naming Brief domain model**
-   - Add `NamingBrief` type.
-   - Add fields for use context, tone words, desired associations, avoid list, hard constraints, and anchors.
-   - Keep it mode-agnostic.
+- Define a typed `DataSourceDescriptor` or equivalent contract for built-in, file, HTTP, API, package, and custom/user-pack sources.
+- Add source fields for license, locale, priority, enabled-by-default status, and cache policy where applicable.
+- Attach license/locale/source metadata to built-in style packs when available.
+- Add deterministic validation for built-in style-pack shape.
+- Keep remote/API providers and user-uploaded packs deferred until validation exists.
 
-2. **Add Fiction cast brief controls**
-   - Add progressive UI for brief input.
-   - Preserve existing sliders and presets.
-   - Export brief metadata.
+Validation target:
 
-3. **Apply brief to scoring/generation**
-   - Use brief fields as deterministic scoring and candidate-selection signals.
-   - Preserve seed reproducibility.
-   - Add tests for stable brief behavior.
+- Built-in packs validate at startup or in tests.
+- Registry descriptors can represent future local/user, remote, package, and API sources without changing generation semantics.
+- No external network or paid provider is required for this slice.
 
-4. **Add pronounceability/readability diagnostics**
-   - Add deterministic diagnostics for length, clusters, repeated sound/letter friction, and awkward endings.
-   - Surface diagnostics in Inspect and Cast Health.
-   - Avoid phonetic certainty or IPA.
+### 3. Warning and collision scaffolding
 
-5. **Document brief and diagnostics behavior**
-   - Update product docs, architecture docs, README, and export contract notes.
+Warnings should become a typed product surface before stronger cultural or demographic features are attempted.
+
+Required capabilities:
+
+- Add a cautious warning model for generated names.
+- Add first-pass common-word collision and known-name/anchor-distance signals using local deterministic data only.
+- Include warnings in Inspect and export only when present.
+- Avoid demographic inference, cultural certainty, or external search.
+- Keep warning language scoped as screening guidance, not truth.
+
+Validation target:
+
+- Warning generation is deterministic for the same seed/settings/output.
+- No warning requires an external database.
+- Warning text is cautious and does not imply demographic classification.
+
+### 4. Game NPC mode discovery
+
+Game NPC remains the likely first second mode, but it should follow trust/source-contract hardening.
+
+Requirements before implementation:
+
+- Fiction cast contracts are stable enough that Game NPC can reuse shared primitives rather than forking them.
+- The mode boundary can support a faster workflow with different controls/result presentation.
+- The first Game NPC slice has a concrete user job, output contract, validation target, and smoke test.
+
+## Explicit non-goals for the next few slices
+
+- No baby-name mode.
+- No IPA output.
+- No audio/TTS.
+- No pronunciation dictionaries.
+- No claim of canonical pronunciation for invented names.
+- No external demographic inference.
+- No remote/API provider integration before source descriptors and validation exist.
+- No broad plugin framework.
+- No selectable placeholder modes.
+
+## Issue hygiene baseline
+
+Active planning should use one canonical issue per coherent slice. Duplicate exploration issues should be closed in favor of the canonical issue, and completed brief/readability issues should stay closed through the merged implementation PR.
