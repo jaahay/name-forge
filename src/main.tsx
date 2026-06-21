@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App';
 import './styles.css';
 import './card-locks.css';
-import './cast-interaction.css';
+import './cast-mode.css';
 
 const root = document.getElementById('root');
 
