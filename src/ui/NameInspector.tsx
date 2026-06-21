@@ -19,7 +19,7 @@ function metadataFor(name: GeneratedName) {
 }
 
 function variantRelationshipLabel(variant: NameVariant): string {
-  return variant.relationship.replaceAll('_', ' ');
+  return variant.relationship.replace(/_/g, ' ');
 }
 
 function variantMetadataLabel(variant: NameVariant): string {
