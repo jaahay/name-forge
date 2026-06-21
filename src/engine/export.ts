@@ -141,9 +141,13 @@ function briefInfluenceText(influence: ExportedBriefInfluence | undefined): stri
   return `${influence.summary} ${influence.effects.join(' ')}`;
 }
 
+function relationshipLabel(relationship: ExportedNameVariant['relationship']): string {
+  return relationship.replace(/_/g, ' ');
+}
+
 function variantText(variants: ExportedNameVariant[]): string {
   if (variants.length === 0) return 'None';
-  return variants.map((variant) => `${variant.value} (${variant.relationship.replaceAll('_', ' ')}, ${variant.confidence} confidence, ${variant.generated ? 'generated' : 'listed'}, ${variant.sourceId})`).join(', ');
+  return variants.map((variant) => `${variant.value} (${relationshipLabel(variant.relationship)}, ${variant.confidence} confidence, ${variant.generated ? 'generated' : 'listed'}, ${variant.sourceId})`).join(', ');
 }
 
 function exportName(name: GeneratedName, seed: string): ExportedName {
