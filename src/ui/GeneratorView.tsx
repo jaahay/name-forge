@@ -2,11 +2,13 @@ import { useEffect, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { serializeCastAsJson, serializeCastAsMarkdown } from '../engine/export';
 import { rarityDistributionOptions } from '../engine/rarity';
 import { castRoleOptions, castRolePresetOptions, roleInfluenceOptions } from '../engine/roles';
-import type { CastRole, CastRolePresetKind, GeneratedEnsemble, GenerationSettings, NameFormatKind, RarityBand, RarityDistributionPresetKind, RoleInfluenceLevel, StylePackSummary } from '../engine/types';
+import type { CastRole, CastRolePresetKind, GeneratedEnsemble, GenerationSettings, NameFormatKind, RarityDistributionPresetKind, RoleInfluenceLevel, StylePackSummary } from '../engine/types';
+import { CastHealthPanel } from './CastHealth';
 import type { NamingModeConfig } from './modes';
+import { NameCard } from './NameCard';
+import { NameInspector } from './NameInspector';
 import { scoreControls, type ControlKey } from './presentation';
 import { ScoreControl } from './ScoreControl';
-import { NameCard, NameInspector } from './NameCard';
 
 interface GeneratorViewProps {
   mode: NamingModeConfig;
@@ -23,17 +25,6 @@ interface GeneratorViewProps {
   onToggleLockedName: (id: string) => void;
   onClearLockedNames: () => void;
 }
-
-type CastHealthTone = 'good' | 'warn';
-
-interface CastHealthItem {
-  id: string;
-  tone: CastHealthTone;
-  label: string;
-  detail: string;
-}
-
-const spotlightRarityBands: RarityBand[] = ['rare', 'epic', 'legendary'];
 
 const formatOptions: Array<{ value: NameFormatKind; label: string }> = [
   { value: 'mixed', label: 'Mixed cast formats' },
@@ -90,73 +81,6 @@ function resolveSelectedNameId(previousSelectedId: string, ensemble: GeneratedEn
 
   const firstLocked = ensemble.names.find((name) => lockedNameIds.has(name.id));
   return firstLocked?.id ?? ensemble.names[0]?.id ?? '';
-}
-
-function castHealthFor(ensemble: GeneratedEnsemble, lockedNameIds: Set<string>): CastHealthItem[] {
-  const names = ensemble.names;
-  const spotlightCount = names.filter((name) => spotlightRarityBands.includes(name.silhouette.rarityBand)).length;
-  const groundedCount = names.length - spotlightCount;
-  const spotlightBudget = Math.max(1, Math.ceil(names.length * 0.33));
-  const initialIssueCount = ensemble.diagnostics.repeatedInitials;
-  const endingIssueCount = ensemble.diagnostics.repeatedEndings;
-  const cadenceIssueCount = ensemble.diagnostics.repeatedCadences;
-  const lockedCount = lockedNameIds.size;
-
-  const items: CastHealthItem[] = [
-    {
-      id: 'spotlight-budget',
-      tone: spotlightCount <= spotlightBudget ? 'good' : 'warn',
-      label: spotlightCount <= spotlightBudget ? 'Spotlight budget held' : 'Spotlight budget crowded',
-      detail: `${groundedCount} grounded names and ${spotlightCount} rare+ names; aim for ${spotlightBudget} or fewer spotlight names in this cast.`,
-    },
-    {
-      id: 'initials',
-      tone: initialIssueCount === 0 ? 'good' : 'warn',
-      label: initialIssueCount === 0 ? 'Distinct initials' : 'Repeated initials',
-      detail: initialIssueCount === 0 ? 'First-letter scan is clean across the roster.' : `${initialIssueCount} initial pattern${initialIssueCount === 1 ? '' : 's'} may blur at the table.`,
-    },
-    {
-      id: 'endings',
-      tone: endingIssueCount === 0 ? 'good' : 'warn',
-      label: endingIssueCount === 0 ? 'Distinct endings' : 'Repeated endings',
-      detail: endingIssueCount === 0 ? 'Terminal sounds are separated enough for table recall.' : `${endingIssueCount} ending pattern${endingIssueCount === 1 ? '' : 's'} repeat across the cast.`,
-    },
-    {
-      id: 'cadence',
-      tone: cadenceIssueCount <= 1 ? 'good' : 'warn',
-      label: cadenceIssueCount <= 1 ? 'Rhythm variety' : 'Cadence cluster',
-      detail: cadenceIssueCount <= 1 ? 'Cadences vary enough to keep names distinct.' : `${cadenceIssueCount} cadence repeats may make the cast feel samey.`,
-    },
-    {
-      id: 'locks',
-      tone: 'good',
-      label: lockedCount > 0 ? `${lockedCount} locked` : 'No locks yet',
-      detail: lockedCount > 0 ? 'Generate will preserve locked keepers and replace the rest.' : 'Lock keepers before rerolling to build a stronger final roster.',
-    },
-  ];
-
-  return items;
-}
-
-function CastHealthPanel({ ensemble, lockedNameIds }: { ensemble: GeneratedEnsemble; lockedNameIds: Set<string> }) {
-  const healthItems = castHealthFor(ensemble, lockedNameIds);
-
-  return (
-    <section className="cast-health" aria-label="Cast health">
-      <div className="cast-health-heading">
-        <h2>Cast health</h2>
-        <p>Table-read checks for spotlight, sound overlap, and roster memory.</p>
-      </div>
-      <ul className="cast-health-list">
-        {healthItems.map((item) => (
-          <li key={item.id} className={`cast-health-item ${item.tone}`}>
-            <span className="cast-health-status" aria-hidden="true">{item.tone === 'good' ? '✓' : '⚠'}</span>
-            <span><strong>{item.label}</strong>{item.detail}</span>
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
 }
 
 export function GeneratorView({
