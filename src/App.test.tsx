@@ -50,6 +50,15 @@ describe('App', () => {
       'Generate',
       'Inspect',
       'Lock',
+      'Cast health',
+      'Table-read checks',
+      'Spotlight budget',
+      'initial',
+      'ending',
+      'Use at table',
+      'Say',
+      'Handle',
+      'Best fit',
       'Export',
       'Save',
       'Copy',
@@ -77,7 +86,7 @@ describe('App', () => {
       expect(html).toMatch(new RegExp(`<details class="control-section"><summary>${summary}</summary>`));
     }
 
-    expect(html).toMatch(/<details class="control-section" open=""><summary>Name feel<\/summary>/);
+    expect(html).toMatch(/<details class="control-section" open(?:="")?><summary>Name feel<\/summary>/);
     expect(html).toContain('class="hero panel app-header"');
     expect(html).toContain('class="nav-primary"');
     expect(html).toContain('class="nav-brand"');
@@ -86,9 +95,13 @@ describe('App', () => {
     expect(html).toContain('class="brand-sigil"');
     expect(html).toContain('class="workspace workbench"');
     expect(html).toContain('class="roster-panel panel"');
+    expect(html).toContain('class="cast-health"');
+    expect(html).toContain('class="cast-health-list"');
     expect(html).toContain('class="results-layout inspector-rail-layout"');
     expect(html).toContain('class="selected-name-panel panel"');
     expect(html).toContain('class="selected-name-chips"');
+    expect(html).toContain('class="table-use-block"');
+    expect(html).toContain('class="dossier-list"');
     expect(html).toContain('class="inspector-summary"');
     expect(html).toContain('class="name-detail-grid"');
     expect(html).toContain('aria-pressed="true"');
