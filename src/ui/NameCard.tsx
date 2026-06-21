@@ -46,6 +46,21 @@ function terminalCueFor(name: GeneratedName): string {
   return (lettersOnly.slice(-3) || name.name.slice(-3)).toLowerCase();
 }
 
+function rarityCueFor(rarityBand: GeneratedName['silhouette']['rarityBand']): string {
+  switch (rarityBand) {
+    case 'common':
+      return 'Grounded and table-ready; useful for guards, merchants, town records, and repeatable cultures.';
+    case 'uncommon':
+      return 'Distinctive without becoming plot-heavy; good for allies, rivals, named locals, and minor factions.';
+    case 'rare':
+      return 'Memorable and scene-forward; good for patrons, faction leaders, recurring villains, and marquee NPCs.';
+    case 'epic':
+      return 'Mythic or high-signal; good for ancient houses, boss-level NPCs, artifacts, and prophecy names.';
+    case 'legendary':
+      return 'Singular and campaign-defining; reserve for icons, lost empires, deities, or one-name legends.';
+  }
+}
+
 function constructionCueFor(name: GeneratedName): string {
   const opening = name.identity?.parts[0]?.value ?? name.name.trim().split(/\s+/)[0] ?? name.name;
   const terminalCue = terminalCueFor(name);
@@ -65,7 +80,8 @@ function NameCardHeader({ name }: NameCardHeaderProps) {
       <div className="name-card-title-block">
         <h2 className={`name-card-title ${rarity.className}`} data-name-length={displayLength}>{displayName}</h2>
       </div>
-      <div className="name-card-meta" aria-label={`${name.silhouette.syllableCount} syllables`}>
+      <div className="name-card-meta" aria-label={`${rarity.label} rarity, ${name.silhouette.syllableCount} syllables`}>
+        <span className={`rarity-chip ${rarity.className}`}>{rarity.label}</span>
         <span>{name.silhouette.syllableCount} syllables</span>
       </div>
     </div>
@@ -109,6 +125,11 @@ export function NameInspector({ name }: NameInspectorProps) {
       </ul>
 
       <div className="name-detail-grid" aria-label={`Selected details for ${name.name}`}>
+        <section className="detail-block">
+          <h3>Rarity cue</h3>
+          <p className="section-note"><strong>{rarity.label}</strong> is a narrative tier, not a quality score. {rarityCueFor(name.silhouette.rarityBand)}</p>
+        </section>
+
         <section className="detail-block" aria-label={`${name.name} read breakdown`}>
           <h3>Read</h3>
           <dl className="score-list detail-score-list">
@@ -155,7 +176,7 @@ export function NameCard({ name, isSelected, isLocked, onSelect, onToggleLocked 
   const cardClassName = `name-card panel ${textureClassName(name.silhouette.texture)}${isSelected ? ' selected' : ''}${isLocked ? ' locked' : ''}`;
 
   return (
-    <article className={cardClassName} data-name-length={displayLength} aria-current={isSelected ? 'true' : undefined}>
+    <article className={cardClassName} data-name-length={displayLength} data-rarity={name.silhouette.rarityBand} aria-current={isSelected ? 'true' : undefined}>
       <button
         type="button"
         className="name-card-button"
