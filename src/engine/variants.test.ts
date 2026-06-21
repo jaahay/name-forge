@@ -67,6 +67,7 @@ function fixtureEnsemble(): GeneratedEnsemble {
       id: pack.id,
       label: pack.label,
       description: pack.description,
+      source: pack.source,
     },
     names: [fixtureName()],
     diagnostics: {
@@ -126,6 +127,7 @@ describe('variant metadata', () => {
     const ensemble = fixtureEnsemble();
     const payload = createCastExportPayload(ensemble);
 
+    expect(payload.sourcePack.source).toEqual(pack.source);
     expect(payload.names[0].variants[0]).toEqual({
       value: 'Avelyn',
       kind: 'listed',
