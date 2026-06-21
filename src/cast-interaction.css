@@ -88,6 +88,18 @@
   outline-offset: 0.18rem;
 }
 
+.name-card-meta .rarity-chip {
+  color: #f7f0e3;
+  border-color: currentColor;
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.name-card-meta .rarity-chip.rarity-common { color: #ffffff; }
+.name-card-meta .rarity-chip.rarity-uncommon { color: #64ff4a; }
+.name-card-meta .rarity-chip.rarity-rare { color: #58adff; }
+.name-card-meta .rarity-chip.rarity-epic { color: #cf8bff; }
+.name-card-meta .rarity-chip.rarity-legendary { color: #ffad4a; }
+
 .inspector-empty-panel,
 .selected-name-panel {
   padding: 1.35rem;
@@ -129,6 +141,10 @@
 .detail-block:first-child {
   padding-top: 0;
   border-top: 0;
+}
+
+.detail-block .section-note strong {
+  color: #f8d99f;
 }
 
 .site-footer {
