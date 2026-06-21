@@ -205,38 +205,6 @@
   font-size: clamp(1.55rem, 2vw, 2.05rem);
 }
 
-.table-use-block {
-  padding: 0.85rem;
-  border: 1px solid rgba(240, 184, 95, 0.16);
-  border-radius: 1rem;
-  background: rgba(255, 255, 255, 0.035);
-}
-
-.dossier-list {
-  display: grid;
-  gap: 0.58rem;
-  margin: 0.62rem 0 0;
-}
-
-.dossier-list div {
-  display: grid;
-  gap: 0.16rem;
-}
-
-.dossier-list dt {
-  color: var(--muted);
-  font-size: 0.68rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.dossier-list dd {
-  margin: 0;
-  color: var(--text);
-  font-size: 0.86rem;
-  line-height: 1.35;
-}
-
 .name-detail-grid {
   gap: 0.95rem;
 }
@@ -246,12 +214,7 @@
   border-top: 1px solid rgba(240, 184, 95, 0.16);
 }
 
-.detail-block:first-child,
-.table-use-block {
-  padding-top: 0.85rem;
-}
-
-.name-detail-grid .detail-block:first-child {
+.detail-block:first-child {
   padding-top: 0;
   border-top: 0;
 }
