@@ -61,8 +61,47 @@ function rarityCueFor(rarityBand: GeneratedName['silhouette']['rarityBand']): st
   }
 }
 
+function bestFitFor(name: GeneratedName): string {
+  if (name.role?.label) {
+    return name.role.label;
+  }
+
+  switch (name.silhouette.rarityBand) {
+    case 'common':
+      return 'background NPC or local record';
+    case 'uncommon':
+      return 'named local, ally, or rival';
+    case 'rare':
+      return 'recurring NPC or faction face';
+    case 'epic':
+      return 'boss, ancient house, or artifact';
+    case 'legendary':
+      return 'campaign icon or one-name legend';
+  }
+}
+
+function handleFor(name: GeneratedName): string {
+  const identityHandle = name.identity?.parts.find((part) => part.role === 'given' || part.role === 'epithet')?.value;
+  if (identityHandle) return identityHandle;
+
+  const [firstReadableWord] = name.name
+    .replace(/[\u2018\u2019]/g, "'")
+    .split(/\s+/)
+    .map((word) => word.replace(/^[^A-Za-z]+|[^A-Za-z.'-]+$/g, ''))
+    .filter((word) => word.length > 1 && !word.endsWith('.'));
+
+  return firstReadableWord ?? name.name;
+}
+
+function tableReadCueFor(name: GeneratedName): string {
+  const handle = handleFor(name);
+  const rhythm = labelFor(name.silhouette.rhythm).toLowerCase();
+  const ending = terminalCueFor(name);
+  return `Use ${handle} at the table; read it with a ${rhythm} rhythm and a clear ${ending} ending.`;
+}
+
 function constructionCueFor(name: GeneratedName): string {
-  const opening = name.identity?.parts[0]?.value ?? name.name.trim().split(/\s+/)[0] ?? name.name;
+  const opening = name.identity?.parts?.[0]?.value ?? name.name.trim().split(/\s+/)[0] ?? name.name;
   const terminalCue = terminalCueFor(name);
   const texture = labelFor(name.silhouette.texture).toLowerCase();
   const rhythm = labelFor(name.silhouette.rhythm).toLowerCase();
@@ -103,6 +142,7 @@ export function NameInspector({ name }: NameInspectorProps) {
   const { formatLabel, identity, rarity, roleInfluenceLabel, roleLabel, textureLabel } = metadataFor(name);
   const displayName = protectInitialBreaks(name.name);
   const displayLength = getNameDisplayLength(name.name);
+  const handle = handleFor(name);
 
   return (
     <aside className="selected-name-panel panel" aria-labelledby="selected-name-heading">
@@ -118,6 +158,15 @@ export function NameInspector({ name }: NameInspectorProps) {
         </ul>
       </header>
 
+      <section className="detail-block table-use-block">
+        <h3>Use at table</h3>
+        <dl className="dossier-list" aria-label={`${name.name} table-use cues`}>
+          <div><dt>Say</dt><dd>{tableReadCueFor(name)}</dd></div>
+          <div><dt>Handle</dt><dd>{handle}</dd></div>
+          <div><dt>Best fit</dt><dd>{bestFitFor(name)}</dd></div>
+        </dl>
+      </section>
+
       <ul className="inspector-summary" aria-label={`${name.name} summary`}>
         <li><span>Format</span><strong>{formatLabel}</strong></li>
         <li><span>Texture</span><strong>{textureLabel}</strong></li>
@@ -128,6 +177,11 @@ export function NameInspector({ name }: NameInspectorProps) {
         <section className="detail-block">
           <h3>Rarity cue</h3>
           <p className="section-note"><strong>{rarity.label}</strong> is a narrative tier, not a quality score. {rarityCueFor(name.silhouette.rarityBand)}</p>
+        </section>
+
+        <section className="detail-block">
+          <h3>Construction cues</h3>
+          <p className="section-note">{constructionCueFor(name)}</p>
         </section>
 
         <section className="detail-block" aria-label={`${name.name} read breakdown`}>
@@ -161,11 +215,6 @@ export function NameInspector({ name }: NameInspectorProps) {
             <p className="section-note">{name.roleInfluence.label} nudged this result at {name.roleInfluence.level} strength: {name.roleInfluence.effects.join(', ')}.</p>
           </section>
         ) : null}
-
-        <section className="detail-block">
-          <h3>Construction cues</h3>
-          <p className="section-note">{constructionCueFor(name)}</p>
-        </section>
       </div>
     </aside>
   );
