@@ -4,7 +4,7 @@ Name Forge should remain one product: a random-name workbench. Its first serious
 
 The product should support multiple naming modes that share core generation, scoring, comparison, export, and provenance primitives while giving each mode its own controls, vocabulary, result presentation, and validation criteria.
 
-See [`product-brief.md`](product-brief.md) for the strategy-level thesis and recommended sequencing.
+See [`product-brief.md`](product-brief.md) for the strategy-level thesis and recommended sequencing. See [`current-product-scope.md`](current-product-scope.md) for the current next-feature decision.
 
 ## Product language
 
@@ -34,10 +34,11 @@ Style -> Constraints -> Generate -> Score -> Compare -> Export
 Each mode can tune the loop differently, but these shared product primitives should stay recognizable:
 
 - **Style**: source packs, texture, tone, domain, language feel, or theme pools.
-- **Constraints**: quantity, format, length, rarity, memorability, pronounceability, or mode-specific requirements.
+- **Constraints**: quantity, format, length, rarity, memorability, pronounceability, brief terms, or mode-specific requirements.
 - **Generate**: deterministic random candidate creation from a seed and settings.
 - **Score**: explainable quality signals for ranking and filtering names.
 - **Compare**: ensemble balance, duplicate pressure, similarity pressure, or list coherence.
+- **Inspect**: selected-name explanation, construction cues, scoring detail, and future diagnostics.
 - **Export**: JSON, Markdown, or mode-specific handoff formats.
 
 ## Current supported mode
@@ -68,13 +69,12 @@ Current controls:
 
 Current result presentation:
 
-- Compact browsing cards
-- Syllable and alternate-spelling hints while collapsed
-- Nested **Details** for role, texture, format, rarity, name parts, and provenance-style metadata
-- Nested **Fit** for score breakdowns
+- Compact browsing cards for scan/select/lock
+- Persistent Inspect panel for selected-name details
+- Cast Health panel for roster-level checks
 - JSON and Markdown cast export
 
-Fiction cast mode is allowed to be fiction-specific. Its role controls, cast language, slot overrides, and cast export should not be watered down merely to look generic.
+Fiction cast mode is allowed to be fiction-specific. Its role controls, cast language, slot overrides, inspection, cast health, and cast export should not be watered down merely to look generic.
 
 ## Mode taxonomy
 
@@ -82,7 +82,7 @@ Candidate modes are planning surfaces, not implementation commitments. Each mode
 
 | Mode | Primary user job | Result contract | Shared primitives stressed | Suggested maturity |
 | --- | --- | --- | --- | --- |
-| Fiction cast | Name a coherent cast of fictional characters. | Cast list, role metadata, Details/Fit, JSON/Markdown export. | Silhouettes, ensemble balance, role influence, variants, provenance. | Active MVP. |
+| Fiction cast | Name a coherent cast of fictional characters. | Cast list, role metadata, cards, Inspect, Cast Health, JSON/Markdown export. | Silhouettes, ensemble balance, role influence, variants, provenance. | Active MVP. |
 | Game NPC | Generate usable names quickly for tabletop, videogame, or interactive-fiction prep. | Names with role/faction/species hints, compact hook, fast reroll. | Briefs, role profiles, compact export, lock/regenerate. | Best first second mode. |
 | Pen name | Generate pseudonyms for authors, creators, or public identity work. | Names with genre/market fit, memorability, privacy/risk notes. | Briefs, style fit, scoring, screening metadata. | Later non-fiction validation mode. |
 | Product / codename | Name products, projects, features, prototypes, or launches. | Names with rationale, tone fit, risk/collision notes, shortlist export. | Briefs, constraints, memorability, availability-looking variants. | Later product-work mode. |
@@ -103,6 +103,7 @@ Primary job:
 
 Likely controls:
 
+- Brief or use context
 - Species, faction, class, role, or region
 - Quantity
 - Familiarity
@@ -209,6 +210,22 @@ Likely controls:
 - Prefix or suffix consistency
 - Set-level export
 
+## Explicitly deferred mode: baby names
+
+Baby names should not be the next major feature.
+
+Baby-name generation is a separate real-world naming product. It has higher stakes than fictional naming and requires stronger cultural, demographic, religious, family-history, source-licensing, frequency, and bias/risk infrastructure than Name Forge currently has.
+
+The product can eventually support real-world name work, but baby names should follow stronger provenance, source-pack, and bias controls.
+
+## Explicitly deferred artifact: IPA
+
+IPA output should not be the next major feature.
+
+IPA is not a naming mode. It is a pronunciation artifact that requires locale assumptions, phoneme inventories, dictionary/provider strategy, invented-name fallback rules, and confidence labels.
+
+Near-term work should focus on pronounceability/readability diagnostics rather than canonical pronunciation claims.
+
 ## Mode maturity model
 
 Track mode work with explicit maturity levels instead of phases.
@@ -221,7 +238,7 @@ Track mode work with explicit maturity levels instead of phases.
 | Polished | Iteration tools and explanations make the mode workbench-like. | Lock/reroll, brief support, strong result cards, validated copy. |
 | Stable | The mode has durable contracts and can guide future modes. | Exact tests, mature docs, low churn in config/result shape. |
 
-Fiction cast is currently between **Usable** and **Polished**. Lock/regenerate and brief support are the most direct path toward Polished.
+Fiction cast is currently between **Usable** and **Polished**. Naming brief support and pronounceability diagnostics are the most direct path toward Polished.
 
 ## Shared primitive maturity model
 
@@ -238,7 +255,8 @@ Track shared primitives separately from modes.
 | Variants | Alternative spellings and related names. | Are variant relationships clear across modes? |
 | Provenance | Explanation and reproducibility. | Does every output explain why it exists? |
 | Export | Handoff format. | Can export shapes vary by mode while reusing mechanics? |
-| Briefs | User intent capture. | Not implemented yet; likely next cross-mode primitive. |
+| Briefs | User intent capture. | Next major shared primitive. |
+| Pronounceability diagnostics | Readability/speakability explanation. | Can diagnostics stay deterministic and non-canonical before pronunciation artifacts exist? |
 
 ## Mode boundary direction
 
@@ -279,6 +297,7 @@ The future interface may grow toward controls, result presentation, mode-specifi
 - Provenance
 - Export mechanics
 - Future naming briefs
+- Future pronounceability diagnostics
 
 ### Fiction cast responsibilities
 
@@ -286,7 +305,9 @@ The future interface may grow toward controls, result presentation, mode-specifi
 - Role mix and slot overrides
 - Role influence
 - Cast size language
-- Ensemble-balance presentation
+- Name-card scanning behavior
+- Inspect presentation
+- Cast Health presentation
 - Cast-oriented JSON and Markdown copy
 - Result cards optimized for character-name scanning
 
@@ -299,6 +320,7 @@ Each future mode should own its own:
 - labels and vocabulary
 - scoring priorities
 - result card presentation
+- inspection presentation
 - export shape
 
 ## UX direction
@@ -317,8 +339,9 @@ Near-term implications:
 - Keep current fiction controls behind the Fiction cast mode boundary.
 - Use progressive disclosure for advanced mode-specific controls.
 - Keep baseline generation approachable.
-- Avoid making export or Fit metadata dominate the primary generation loop.
+- Avoid making export, Fit metadata, or diagnostics dominate the primary generation loop.
 - Let result-card presentation vary by mode and user intent later.
+- Keep cards scannable; move overflow explanation into Inspect or mode-specific detail surfaces.
 
 ## Tracking model after Phase One
 
@@ -338,9 +361,12 @@ See [`phase-one-closeout.md`](phase-one-closeout.md) for the Phase One retiremen
 - Do not create a full plugin framework.
 - Do not make Fiction cast generic at the cost of its product quality.
 - Do not let the old phase model drive current scope decisions.
+- Do not build baby-name generation next.
+- Do not add IPA/audio before deterministic pronounceability diagnostics exist.
 
 ## Related work
 
 - #36 introduced fiction-cast role and rarity controls.
 - #37 introduced optional role-specific naming influence.
 - #38 tracks the multi-mode product architecture direction.
+- #66 tracks the product decision on pronunciation as a requirement.
