@@ -31,6 +31,8 @@ export type SourceOriginKind = 'bundled' | 'file' | 'url' | 'api' | 'package';
 export type SourceTrustBoundary = 'bundled-offline' | 'local-user-file' | 'remote-service' | 'third-party-package' | 'user-authored';
 export type SourceCapability = 'style-packs' | 'phonotactics' | 'listed-variants' | 'variant-rules' | 'role-profiles';
 export type SourceValidationSeverity = 'error' | 'warning';
+export type StylePackDesignStatus = 'experimental' | 'starter' | 'stable';
+export type StylePackCompatibleMode = 'fiction-cast' | 'game-npc';
 export type NameFormatKind = 'given-only' | 'given-family' | 'initials-family' | 'title-name' | 'epithet-place' | 'mixed';
 export type NamePartRole = 'given' | 'family' | 'initial' | 'title' | 'epithet' | 'place';
 export type CastRole = 'protagonist' | 'rival' | 'mentor' | 'sidekick' | 'guardian' | 'outsider' | 'villain' | 'wildcard';
@@ -68,6 +70,7 @@ export interface ReadabilityDiagnostic {
 export interface DataSourceOrigin { kind: SourceOriginKind; value: string; }
 export interface DataSourceDescriptor { id: string; label: string; kind: SourceDescriptorKind; version: string; origin: DataSourceOrigin; trustBoundary: SourceTrustBoundary; capabilities: SourceCapability[]; sourceNotes: string; trustNotes: string; }
 export interface StylePackSourceDescriptor { descriptor: DataSourceDescriptor; packId: string; packVersion: string; sourcePath: string; licenseNotes: string; styleNotes: string; limitations: string[]; }
+export interface StylePackDesignMetadata { schemaVersion: 'name-forge.style-pack.v1'; status: StylePackDesignStatus; compatibleModes: StylePackCompatibleMode[]; intendedUse: string; designPrinciples: string[]; safetyNotes: string[]; }
 export interface SourceValidationIssue { severity: SourceValidationSeverity; path: string; message: string; }
 export interface StylePackValidationResult { packId: string; valid: boolean; issues: SourceValidationIssue[]; }
 
@@ -103,6 +106,6 @@ export interface GeneratedName { id: string; name: string; silhouette: NameSilho
 export interface EnsembleDiagnostics { repeatedInitials: number; repeatedEndings: number; repeatedCadences: number; repeatedRarityBands: number; noveltySpread: number; readabilityIssues: number; readabilityWarnings: number; readabilitySummary: string; readabilityDiagnostics: ReadabilityDiagnostic[]; summary: string; }
 export interface GeneratedEnsemble { settings: GenerationSettings; sourcePack: StylePackSummary; names: GeneratedName[]; diagnostics: EnsembleDiagnostics; }
 export interface SpellingVariantRule { id: string; label: string; from: string; to: string; maxApplications?: number; sourceKind: SourceKind; relationship?: NameVariantRelationship; confidence?: NameVariantConfidence; }
-export interface StylePackSummary { id: string; label: string; description: string; source: StylePackSourceDescriptor; }
+export interface StylePackSummary { id: string; label: string; description: string; source: StylePackSourceDescriptor; design: StylePackDesignMetadata; }
 export interface StylePack extends StylePackSummary { version: string; localeHint: string; culturalAnchors: string[]; phonotactics: { onsets: Array<WeightedValue>; nuclei: Array<WeightedValue>; codas: Array<WeightedValue>; preferredEndings: Array<WeightedValue>; rareGraphemes: string[]; forbiddenFragments: string[]; }; silhouetteBias: { syllableCounts: Array<WeightedValue<number>>; textures: Array<WeightedValue<NameTexture>>; rarityBands: Array<WeightedValue<RarityBand>>; }; listedVariants: Record<string, string[]>; variantRules: SpellingVariantRule[]; provenance: ProvenanceNote; }
 export interface NameSourceProvider { id: string; label: string; kind: SourceKind; source: DataSourceDescriptor; listStylePacks(): StylePackSummary[]; getStylePack(id: string): StylePack | undefined; validateStylePack(id: string): StylePackValidationResult | undefined; }
