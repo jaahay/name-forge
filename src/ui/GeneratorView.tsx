@@ -7,7 +7,7 @@ import { CastHealthPanel } from './CastHealth';
 import type { NamingModeConfig } from './modes';
 import { NameCard } from './NameCard';
 import { NameInspector } from './NameInspector';
-import { scoreControls, type ControlKey } from './presentation';
+import { advancedScoreControls, primaryScoreControls, type ControlKey } from './presentation';
 import { ScoreControl } from './ScoreControl';
 
 interface GeneratorViewProps {
@@ -227,7 +227,7 @@ export function GeneratorView({
                 </div>
               </label>
               <label>
-                <span>Style preset</span>
+                <span>Style pack</span>
                 <select value={settings.stylePackId} onChange={(event) => onUpdateSetting('stylePackId', event.target.value)}>
                   {stylePacks.map((pack) => <option key={pack.id} value={pack.id}>{pack.label}</option>)}
                 </select>
@@ -316,17 +316,26 @@ export function GeneratorView({
           </details>
 
           <details className="control-section" open>
-            <summary>Name feel</summary>
+            <summary>Feel</summary>
             <div className="control-section-body">
               <label>
-                <span>Rarity distribution</span>
+                <span>Cast variety</span>
                 <select value={settings.rarityDistribution ?? 'style-pack'} onChange={(event) => onUpdateSetting('rarityDistribution', event.target.value as RarityDistributionPresetKind)}>
                   {rarityDistributionOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                 </select>
               </label>
-              {scoreControls.map((control) => (
+              {primaryScoreControls.map((control) => (
                 <ScoreControl key={control.key} control={control} value={Number(settings[control.key])} onChange={(key, value) => onUpdateSetting(key, value)} onRandomize={randomizeSlider} />
               ))}
+              <details className="slot-overrides">
+                <summary>Advanced tuning</summary>
+                <div className="control-section-body">
+                  <p className="section-note">These controls still shape scoring, but they stay secondary to style pack, story role, cast variety, rarity, and readability.</p>
+                  {advancedScoreControls.map((control) => (
+                    <ScoreControl key={control.key} control={control} value={Number(settings[control.key])} onChange={(key, value) => onUpdateSetting(key, value)} onRandomize={randomizeSlider} />
+                  ))}
+                </div>
+              </details>
             </div>
           </details>
 
@@ -342,7 +351,7 @@ export function GeneratorView({
 
           <div className="actions" aria-label="Generation actions">
             <button type="submit">Generate</button>
-            <button type="button" className="secondary" onClick={randomizeSliders}>Reroll feel</button>
+            <button type="button" className="secondary" onClick={randomizeSliders}>Shuffle feel</button>
             {hasLockedNames ? (
               <p className="lock-status">{lockedCount} locked. Generate keeps locked names and rerolls the rest. <button type="button" className="anchor-button" onClick={onClearLockedNames}>Clear</button></p>
             ) : null}
