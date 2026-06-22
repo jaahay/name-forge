@@ -18,7 +18,7 @@ function brokenPack(overrides: Partial<StylePack>): StylePack {
 }
 
 describe('style pack validation', () => {
-  it('accepts the built-in style pack and preserves provider, pack source, and design metadata', () => {
+  it('accepts the built-in style pack and preserves source, asset, and style metadata', () => {
     const result = validateStylePack(pack);
 
     expect(result.packId).toBe('british-literary-fantasy');
@@ -26,21 +26,24 @@ describe('style pack validation', () => {
     expect(result.issues).toEqual([]);
 
     expect(pack.source).toEqual({
-      descriptor: {
+      source: {
         id: 'built-in-style-packs@0.1.0',
         label: 'Built-in style packs',
-        kind: 'built-in-bundle',
+        channel: 'built-in',
         version: '0.1.0',
-        origin: { kind: 'bundled', value: 'src/data/stylePacks.ts' },
-        trustBoundary: 'bundled-offline',
-        capabilities: ['style-packs', 'phonotactics', 'listed-variants', 'variant-rules'],
+        assetKinds: ['style-pack', 'phonotactics', 'listed-variants', 'variant-rules'],
+        license: 'project-local',
+        locale: 'fictional-en-GB-literary',
+        enabledByDefault: true,
+        priority: 100,
+        cachePolicy: 'none',
         sourceNotes: 'Bundled fictionalized starter pack data maintained with the application.',
         trustNotes: 'No remote loading or external name database dependency; safe for deterministic offline generation.',
       },
+      assetKind: 'style-pack',
       packId: 'british-literary-fantasy',
       packVersion: '0.1.0',
       sourcePath: 'src/data/stylePacks.ts#british-literary-fantasy',
-      licenseNotes: 'Project-local fictionalized style data; no external corpus attribution required.',
       styleNotes: 'Bookish, folktale-adjacent, British-literary texture for fictional character naming.',
       limitations: [
         'Fictionalized style guidance, not a real-world cultural or etymological authority.',
@@ -48,42 +51,33 @@ describe('style pack validation', () => {
       ],
     });
 
-    expect(pack.design).toEqual({
-      schemaVersion: 'name-forge.style-pack.v1',
-      status: 'starter',
-      compatibleModes: ['fiction-cast'],
-      intendedUse: 'Generate literary-fantasy character names with soft British-adjacent texture for fiction casts.',
-      designPrinciples: [
-        'Prefer readable names that can be spoken aloud on first sight.',
-        'Blend soft consonants, liquid textures, and bookish endings rather than copying real-world names directly.',
-        'Keep rarity tunable through weights instead of hard-coding a single exoticness level.',
-      ],
-      safetyNotes: [
-        'Do not present outputs as culturally authentic British names.',
-        'Do not infer real ethnicity, nationality, or ancestry from this fictionalized pack.',
-      ],
+    expect(pack.style).toEqual({
+      schemaVersion: 'name-forge.style.v1',
+      label: 'British literary fantasy',
+      summary: 'Bookish, folktale-adjacent, softly literary fantasy naming texture.',
+      tags: ['fictional', 'literary', 'fantasy', 'folktale-adjacent', 'soft'],
     });
   });
 
-  it('reports exact contract errors for malformed source, design, and variant metadata', () => {
+  it('reports exact contract errors for malformed source, style, and variant metadata', () => {
     const result = validateStylePack(brokenPack({
       source: {
         ...pack.source,
-        descriptor: {
-          ...pack.source.descriptor,
+        source: {
+          ...pack.source.source,
           id: '',
-          kind: 'http',
-          origin: { kind: 'url', value: '' },
-          capabilities: [],
+          channel: 'remote-http',
+          assetKinds: [],
+          license: '',
+          priority: Number.NaN,
         },
         packId: 'wrong-pack-id',
         limitations: [],
       },
-      design: {
-        ...pack.design,
-        compatibleModes: [],
-        intendedUse: '',
-        designPrinciples: [],
+      style: {
+        ...pack.style,
+        summary: '',
+        tags: [],
       },
       phonotactics: {
         ...pack.phonotactics,
@@ -101,14 +95,14 @@ describe('style pack validation', () => {
     expect(result.packId).toBe('british-literary-fantasy');
     expect(result.valid).toBe(false);
     expect(result.issues).toEqual([
-      { severity: 'error', path: 'source.descriptor.id', message: 'Source descriptor id is required.' },
-      { severity: 'error', path: 'source.descriptor.origin', message: 'Source descriptor origin is required.' },
-      { severity: 'error', path: 'source.descriptor.capabilities', message: 'At least one source capability is required.' },
+      { severity: 'error', path: 'source.source.id', message: 'Source descriptor id is required.' },
+      { severity: 'error', path: 'source.source.assetKinds', message: 'At least one source asset kind is required.' },
+      { severity: 'error', path: 'source.source.license', message: 'Source license is required.' },
+      { severity: 'error', path: 'source.source.priority', message: 'Source priority must be a finite number.' },
       { severity: 'error', path: 'source.limitations', message: 'String array must not be empty.' },
       { severity: 'error', path: 'source.packId', message: 'Style pack source packId must match the pack id.' },
-      { severity: 'error', path: 'design.intendedUse', message: 'Style pack intended use is required.' },
-      { severity: 'error', path: 'design.compatibleModes', message: 'At least one compatible mode is required.' },
-      { severity: 'error', path: 'design.designPrinciples', message: 'String array must not be empty.' },
+      { severity: 'error', path: 'style.summary', message: 'Style descriptor summary is required.' },
+      { severity: 'error', path: 'style.tags', message: 'String array must not be empty.' },
       { severity: 'error', path: 'phonotactics.nuclei', message: 'Weighted values must not be empty.' },
       { severity: 'error', path: 'variantRules.0.maxApplications', message: 'Variant rule maxApplications must be a positive integer.' },
     ]);
@@ -121,7 +115,7 @@ describe('style pack validation', () => {
 
     expect(summaries).toHaveLength(1);
     expect(summaries[0].source).toEqual(pack.source);
-    expect(summaries[0].design).toEqual(pack.design);
+    expect(summaries[0].style).toEqual(pack.style);
     expect(result).toEqual({ packId: 'british-literary-fantasy', valid: true, issues: [] });
   });
 });
