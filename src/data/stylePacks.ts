@@ -1,9 +1,42 @@
-import type { StylePack } from '../engine/types';
+import type { SourceDescriptor, StylePack } from '../engine/types';
+
+const builtInStylePackSource: SourceDescriptor = {
+  id: 'built-in-style-packs@0.1.0',
+  label: 'Built-in style packs',
+  channel: 'built-in',
+  version: '0.1.0',
+  assetKinds: ['style-pack', 'phonotactics', 'listed-variants', 'variant-rules'],
+  license: 'project-local',
+  locale: 'fictional-en-GB-literary',
+  enabledByDefault: true,
+  priority: 100,
+  cachePolicy: 'none',
+  sourceNotes: 'Bundled fictionalized starter pack data maintained with the application.',
+  trustNotes: 'No remote loading or external name database dependency; safe for deterministic offline generation.',
+};
 
 export const stylePacks: StylePack[] = [{
   id: 'british-literary-fantasy',
   label: 'British literary fantasy',
   description: 'A soft-coded starter pack for bookish, folktale-adjacent names with fictionalized British literary texture.',
+  source: {
+    source: builtInStylePackSource,
+    assetKind: 'style-pack',
+    packId: 'british-literary-fantasy',
+    packVersion: '0.1.0',
+    sourcePath: 'src/data/stylePacks.ts#british-literary-fantasy',
+    styleNotes: 'Bookish, folktale-adjacent, British-literary texture for fictional character naming.',
+    limitations: [
+      'Fictionalized style guidance, not a real-world cultural or etymological authority.',
+      'Bundled starter data only; it should not be treated as exhaustive coverage of British naming traditions.',
+    ],
+  },
+  style: {
+    schemaVersion: 'name-forge.style.v1',
+    label: 'British literary fantasy',
+    summary: 'Bookish, folktale-adjacent, softly literary fantasy naming texture.',
+    tags: ['fictional', 'literary', 'fantasy', 'folktale-adjacent', 'soft'],
+  },
   version: '0.1.0',
   localeHint: 'fictional-en-GB-literary',
   culturalAnchors: ['Albion', 'Arthurian romance', 'Victorian novels', 'border ballads'],
