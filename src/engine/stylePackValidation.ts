@@ -1,10 +1,7 @@
-import type { DataSourceDescriptor, NameVariantConfidence, NameVariantRelationship, SourceCapability, SourceDescriptorKind, SourceKind, SourceTrustBoundary, SourceValidationIssue, StylePack, StylePackCompatibleMode, StylePackDesignStatus, StylePackSourceDescriptor, StylePackValidationResult, WeightedValue } from './types';
+import type { AssetKind, NameVariantConfidence, NameVariantRelationship, SourceChannel, SourceDescriptor, SourceKind, SourceValidationIssue, StyleDescriptor, StylePack, StylePackSourceDescriptor, StylePackValidationResult, WeightedValue } from './types';
 
-const sourceDescriptorKinds: SourceDescriptorKind[] = ['built-in-bundle', 'local-file', 'http', 'api', 'package', 'user-pack'];
-const sourceTrustBoundaries: SourceTrustBoundary[] = ['bundled-offline', 'local-user-file', 'remote-service', 'third-party-package', 'user-authored'];
-const sourceCapabilities: SourceCapability[] = ['style-packs', 'phonotactics', 'listed-variants', 'variant-rules', 'role-profiles'];
-const stylePackDesignStatuses: StylePackDesignStatus[] = ['experimental', 'starter', 'stable'];
-const stylePackCompatibleModes: StylePackCompatibleMode[] = ['fiction-cast', 'game-npc'];
+const sourceChannels: SourceChannel[] = ['built-in', 'user-authored', 'local-file', 'package', 'remote-http', 'remote-api'];
+const assetKinds: AssetKind[] = ['style-pack', 'phonotactics', 'listed-variants', 'variant-rules', 'role-profiles', 'pronunciation-lexicon', 'ipa-rules', 'name-list'];
 const sourceKinds: SourceKind[] = ['style-pack', 'algorithm', 'listed-source', 'remote-pack'];
 const variantRelationships: NameVariantRelationship[] = [
   'same_pronunciation',
@@ -29,20 +26,25 @@ function hasText(value: string | undefined): boolean {
   return typeof value === 'string' && value.trim().length > 0;
 }
 
-function validateDescriptor(source: DataSourceDescriptor | undefined, path = 'source.descriptor'): SourceValidationIssue[] {
-  if (!source) return [issue(path, 'Style pack must declare a provider source descriptor.')];
+function validateSourceDescriptor(source: SourceDescriptor | undefined, path = 'source.source'): SourceValidationIssue[] {
+  if (!source) return [issue(path, 'Style pack must declare a source descriptor.')];
 
   const issues: SourceValidationIssue[] = [];
   if (!hasText(source.id)) issues.push(issue(`${path}.id`, 'Source descriptor id is required.'));
   if (!hasText(source.label)) issues.push(issue(`${path}.label`, 'Source descriptor label is required.'));
-  if (!sourceDescriptorKinds.includes(source.kind)) issues.push(issue(`${path}.kind`, `Unsupported source descriptor kind: ${source.kind}.`));
+  if (!sourceChannels.includes(source.channel)) issues.push(issue(`${path}.channel`, `Unsupported source channel: ${source.channel}.`));
   if (!hasText(source.version)) issues.push(issue(`${path}.version`, 'Source descriptor version is required.'));
-  if (!source.origin || !hasText(source.origin.value)) issues.push(issue(`${path}.origin`, 'Source descriptor origin is required.'));
-  if (!sourceTrustBoundaries.includes(source.trustBoundary)) issues.push(issue(`${path}.trustBoundary`, `Unsupported trust boundary: ${source.trustBoundary}.`));
-  if (source.capabilities.length === 0) issues.push(issue(`${path}.capabilities`, 'At least one source capability is required.'));
-  source.capabilities.forEach((capability, index) => {
-    if (!sourceCapabilities.includes(capability)) issues.push(issue(`${path}.capabilities.${index}`, `Unsupported source capability: ${capability}.`));
-  });
+  if (!Array.isArray(source.assetKinds) || source.assetKinds.length === 0) {
+    issues.push(issue(`${path}.assetKinds`, 'At least one source asset kind is required.'));
+  } else {
+    source.assetKinds.forEach((assetKind, index) => {
+      if (!assetKinds.includes(assetKind)) issues.push(issue(`${path}.assetKinds.${index}`, `Unsupported asset kind: ${assetKind}.`));
+    });
+  }
+  if (!hasText(source.license)) issues.push(issue(`${path}.license`, 'Source license is required.'));
+  if (typeof source.enabledByDefault !== 'boolean') issues.push(issue(`${path}.enabledByDefault`, 'Source enabledByDefault must be a boolean.'));
+  if (!Number.isFinite(source.priority)) issues.push(issue(`${path}.priority`, 'Source priority must be a finite number.'));
+  if (!['none', 'session', 'persistent', 'external'].includes(source.cachePolicy)) issues.push(issue(`${path}.cachePolicy`, `Unsupported cache policy: ${source.cachePolicy}.`));
   if (!hasText(source.sourceNotes)) issues.push(issue(`${path}.sourceNotes`, 'Source notes are required.'));
   if (!hasText(source.trustNotes)) issues.push(issue(`${path}.trustNotes`, 'Trust notes are required.'));
   return issues;
@@ -52,11 +54,11 @@ function validateStylePackSource(source: StylePackSourceDescriptor | undefined, 
   if (!source) return [issue('source', 'Style pack must declare pack-level source metadata.')];
 
   const issues: SourceValidationIssue[] = [
-    ...validateDescriptor(source.descriptor),
+    ...validateSourceDescriptor(source.source),
+    ...(source.assetKind !== 'style-pack' ? [issue('source.assetKind', 'Style pack source assetKind must be style-pack.')] : []),
     ...(!hasText(source.packId) ? [issue('source.packId', 'Style pack source packId is required.')] : []),
     ...(!hasText(source.packVersion) ? [issue('source.packVersion', 'Style pack source packVersion is required.')] : []),
     ...(!hasText(source.sourcePath) ? [issue('source.sourcePath', 'Style pack source path is required.')] : []),
-    ...(!hasText(source.licenseNotes) ? [issue('source.licenseNotes', 'Style pack license notes are required.')] : []),
     ...(!hasText(source.styleNotes) ? [issue('source.styleNotes', 'Style pack style notes are required.')] : []),
     ...validateStringArray('source.limitations', source.limitations),
   ];
@@ -66,20 +68,14 @@ function validateStylePackSource(source: StylePackSourceDescriptor | undefined, 
   return issues;
 }
 
-function validateStylePackDesign(pack: StylePack): SourceValidationIssue[] {
-  const design = pack.design;
-  if (!design) return [issue('design', 'Style pack design manifest is required.')];
+function validateStyleDescriptor(style: StyleDescriptor | undefined): SourceValidationIssue[] {
+  if (!style) return [issue('style', 'Style descriptor is required.')];
 
   const issues: SourceValidationIssue[] = [];
-  if (design.schemaVersion !== 'name-forge.style-pack.v1') issues.push(issue('design.schemaVersion', 'Style pack schemaVersion must be name-forge.style-pack.v1.'));
-  if (!stylePackDesignStatuses.includes(design.status)) issues.push(issue('design.status', `Unsupported style pack status: ${design.status}.`));
-  if (!hasText(design.intendedUse)) issues.push(issue('design.intendedUse', 'Style pack intended use is required.'));
-  if (design.compatibleModes.length === 0) issues.push(issue('design.compatibleModes', 'At least one compatible mode is required.'));
-  design.compatibleModes.forEach((mode, index) => {
-    if (!stylePackCompatibleModes.includes(mode)) issues.push(issue(`design.compatibleModes.${index}`, `Unsupported compatible mode: ${mode}.`));
-  });
-  issues.push(...validateStringArray('design.designPrinciples', design.designPrinciples));
-  issues.push(...validateStringArray('design.safetyNotes', design.safetyNotes));
+  if (style.schemaVersion !== 'name-forge.style.v1') issues.push(issue('style.schemaVersion', 'Style descriptor schemaVersion must be name-forge.style.v1.'));
+  if (!hasText(style.label)) issues.push(issue('style.label', 'Style descriptor label is required.'));
+  if (!hasText(style.summary)) issues.push(issue('style.summary', 'Style descriptor summary is required.'));
+  issues.push(...validateStringArray('style.tags', style.tags));
   return issues;
 }
 
@@ -131,7 +127,7 @@ function validateVariantRules(pack: StylePack): SourceValidationIssue[] {
 export function validateStylePack(pack: StylePack): StylePackValidationResult {
   const issues: SourceValidationIssue[] = [
     ...validateStylePackSource(pack.source, pack),
-    ...validateStylePackDesign(pack),
+    ...validateStyleDescriptor(pack.style),
     ...(!hasText(pack.id) ? [issue('id', 'Style pack id is required.')] : []),
     ...(!hasText(pack.label) ? [issue('label', 'Style pack label is required.')] : []),
     ...(!hasText(pack.description) ? [issue('description', 'Style pack description is required.')] : []),
