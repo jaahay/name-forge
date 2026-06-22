@@ -18,7 +18,7 @@ function brokenPack(overrides: Partial<StylePack>): StylePack {
 }
 
 describe('style pack validation', () => {
-  it('accepts the built-in style pack and preserves provider and pack source metadata', () => {
+  it('accepts the built-in style pack and preserves provider, pack source, and design metadata', () => {
     const result = validateStylePack(pack);
 
     expect(result.packId).toBe('british-literary-fantasy');
@@ -47,9 +47,25 @@ describe('style pack validation', () => {
         'Bundled starter data only; it should not be treated as exhaustive coverage of British naming traditions.',
       ],
     });
+
+    expect(pack.design).toEqual({
+      schemaVersion: 'name-forge.style-pack.v1',
+      status: 'starter',
+      compatibleModes: ['fiction-cast'],
+      intendedUse: 'Generate literary-fantasy character names with soft British-adjacent texture for fiction casts.',
+      designPrinciples: [
+        'Prefer readable names that can be spoken aloud on first sight.',
+        'Blend soft consonants, liquid textures, and bookish endings rather than copying real-world names directly.',
+        'Keep rarity tunable through weights instead of hard-coding a single exoticness level.',
+      ],
+      safetyNotes: [
+        'Do not present outputs as culturally authentic British names.',
+        'Do not infer real ethnicity, nationality, or ancestry from this fictionalized pack.',
+      ],
+    });
   });
 
-  it('reports exact contract errors for malformed source and variant metadata', () => {
+  it('reports exact contract errors for malformed source, design, and variant metadata', () => {
     const result = validateStylePack(brokenPack({
       source: {
         ...pack.source,
@@ -62,6 +78,12 @@ describe('style pack validation', () => {
         },
         packId: 'wrong-pack-id',
         limitations: [],
+      },
+      design: {
+        ...pack.design,
+        compatibleModes: [],
+        intendedUse: '',
+        designPrinciples: [],
       },
       phonotactics: {
         ...pack.phonotactics,
@@ -84,6 +106,9 @@ describe('style pack validation', () => {
       { severity: 'error', path: 'source.descriptor.capabilities', message: 'At least one source capability is required.' },
       { severity: 'error', path: 'source.limitations', message: 'String array must not be empty.' },
       { severity: 'error', path: 'source.packId', message: 'Style pack source packId must match the pack id.' },
+      { severity: 'error', path: 'design.intendedUse', message: 'Style pack intended use is required.' },
+      { severity: 'error', path: 'design.compatibleModes', message: 'At least one compatible mode is required.' },
+      { severity: 'error', path: 'design.designPrinciples', message: 'String array must not be empty.' },
       { severity: 'error', path: 'phonotactics.nuclei', message: 'Weighted values must not be empty.' },
       { severity: 'error', path: 'variantRules.0.maxApplications', message: 'Variant rule maxApplications must be a positive integer.' },
     ]);
@@ -96,6 +121,7 @@ describe('style pack validation', () => {
 
     expect(summaries).toHaveLength(1);
     expect(summaries[0].source).toEqual(pack.source);
+    expect(summaries[0].design).toEqual(pack.design);
     expect(result).toEqual({ packId: 'british-literary-fantasy', valid: true, issues: [] });
   });
 });
