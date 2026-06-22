@@ -14,7 +14,7 @@ export const primaryScoreControls: Array<{
   label: string;
   help: string;
 }> = [
-  { key: 'novelty', label: 'Rarity', help: 'Higher values push names toward less familiar silhouettes, letter textures, and spellings.' },
+  { key: 'novelty', label: 'Rarity', help: 'Higher values push individual names toward less familiar shapes, textures, and spellings.' },
   { key: 'pronounceability', label: 'Readability', help: 'Higher values favor names that are easier to read aloud on first sight.' },
 ];
 
@@ -23,8 +23,8 @@ export const advancedScoreControls: Array<{
   label: string;
   help: string;
 }> = [
-  { key: 'memorability', label: 'Compactness', help: 'Higher values favor compact, distinctive names with clearer rhythm.' },
-  { key: 'culturalAnchoring', label: 'Style anchoring', help: 'Higher values keep names closer to the selected style pack anchors.' },
+  { key: 'memorability', label: 'Compactness', help: 'Higher values favor shorter, more rhythmically distinct names.' },
+  { key: 'culturalAnchoring', label: 'Style closeness', help: 'Higher values keep names closer to the selected style pack texture.' },
   { key: 'orthographicWeirdness', label: 'Spelling style', help: 'Higher values permit more stylized spellings while still scoring naturalness separately.' },
 ];
 
@@ -54,11 +54,11 @@ export const rarityPresentation: Record<RarityBand, { label: string; className: 
 export const changelogEntries = [
   {
     title: 'Control surface cleanup',
-    summary: 'Keeps the generator focused on style, role, rarity, and readability while moving lower-level scoring knobs into advanced tuning.',
+    summary: 'Keeps the generator focused on style pack, story role, cast variety, rarity, and readability while moving lower-level scoring knobs into advanced tuning.',
     changes: [
       'Renamed the main pack selector to Style pack so it no longer implies a user-facing preset system.',
-      'Promoted Rarity and Readability as the visible feel controls and tucked compactness, anchoring, and spelling style into Advanced tuning.',
-      'Kept the underlying engine controls intact so this is a presentation cleanup rather than a scoring-model rewrite.',
+      'Promoted Rarity and Readability as the visible feel controls while renaming the cast-level rarity distribution to Cast variety.',
+      'Tucked Compactness, Style closeness, and Spelling style into Advanced tuning without changing the underlying engine settings.',
     ],
   },
   {
