@@ -1,8 +1,10 @@
-import type { DataSourceDescriptor, NameVariantConfidence, NameVariantRelationship, SourceCapability, SourceDescriptorKind, SourceKind, SourceTrustBoundary, SourceValidationIssue, StylePack, StylePackSourceDescriptor, StylePackValidationResult, WeightedValue } from './types';
+import type { DataSourceDescriptor, NameVariantConfidence, NameVariantRelationship, SourceCapability, SourceDescriptorKind, SourceKind, SourceTrustBoundary, SourceValidationIssue, StylePack, StylePackCompatibleMode, StylePackDesignStatus, StylePackSourceDescriptor, StylePackValidationResult, WeightedValue } from './types';
 
 const sourceDescriptorKinds: SourceDescriptorKind[] = ['built-in-bundle', 'local-file', 'http', 'api', 'package', 'user-pack'];
 const sourceTrustBoundaries: SourceTrustBoundary[] = ['bundled-offline', 'local-user-file', 'remote-service', 'third-party-package', 'user-authored'];
 const sourceCapabilities: SourceCapability[] = ['style-packs', 'phonotactics', 'listed-variants', 'variant-rules', 'role-profiles'];
+const stylePackDesignStatuses: StylePackDesignStatus[] = ['experimental', 'starter', 'stable'];
+const stylePackCompatibleModes: StylePackCompatibleMode[] = ['fiction-cast', 'game-npc'];
 const sourceKinds: SourceKind[] = ['style-pack', 'algorithm', 'listed-source', 'remote-pack'];
 const variantRelationships: NameVariantRelationship[] = [
   'same_pronunciation',
@@ -64,6 +66,23 @@ function validateStylePackSource(source: StylePackSourceDescriptor | undefined, 
   return issues;
 }
 
+function validateStylePackDesign(pack: StylePack): SourceValidationIssue[] {
+  const design = pack.design;
+  if (!design) return [issue('design', 'Style pack design manifest is required.')];
+
+  const issues: SourceValidationIssue[] = [];
+  if (design.schemaVersion !== 'name-forge.style-pack.v1') issues.push(issue('design.schemaVersion', 'Style pack schemaVersion must be name-forge.style-pack.v1.'));
+  if (!stylePackDesignStatuses.includes(design.status)) issues.push(issue('design.status', `Unsupported style pack status: ${design.status}.`));
+  if (!hasText(design.intendedUse)) issues.push(issue('design.intendedUse', 'Style pack intended use is required.'));
+  if (design.compatibleModes.length === 0) issues.push(issue('design.compatibleModes', 'At least one compatible mode is required.'));
+  design.compatibleModes.forEach((mode, index) => {
+    if (!stylePackCompatibleModes.includes(mode)) issues.push(issue(`design.compatibleModes.${index}`, `Unsupported compatible mode: ${mode}.`));
+  });
+  issues.push(...validateStringArray('design.designPrinciples', design.designPrinciples));
+  issues.push(...validateStringArray('design.safetyNotes', design.safetyNotes));
+  return issues;
+}
+
 function validateWeightedValues(path: string, values: Array<WeightedValue<string | number>>): SourceValidationIssue[] {
   if (values.length === 0) return [issue(path, 'Weighted values must not be empty.')];
   return values.flatMap((entry, index) => {
@@ -112,6 +131,7 @@ function validateVariantRules(pack: StylePack): SourceValidationIssue[] {
 export function validateStylePack(pack: StylePack): StylePackValidationResult {
   const issues: SourceValidationIssue[] = [
     ...validateStylePackSource(pack.source, pack),
+    ...validateStylePackDesign(pack),
     ...(!hasText(pack.id) ? [issue('id', 'Style pack id is required.')] : []),
     ...(!hasText(pack.label) ? [issue('label', 'Style pack label is required.')] : []),
     ...(!hasText(pack.description) ? [issue('description', 'Style pack description is required.')] : []),
