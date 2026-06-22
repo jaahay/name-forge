@@ -97,5 +97,5 @@ export function generateEnsemble(settings: GenerationSettings, registry: SourceR
     selected.push(candidates[0]);
   }
 
-  return { settings: safeSettings, sourcePack: { id: pack.id, label: pack.label, description: pack.description, source: pack.source, design: pack.design }, names: selected, diagnostics: diagnosticsFor(selected, castSize) };
+  return { settings: safeSettings, sourcePack: { id: pack.id, label: pack.label, description: pack.description, source: pack.source, style: pack.style }, names: selected, diagnostics: diagnosticsFor(selected, castSize) };
 }
