@@ -319,7 +319,7 @@ export function GeneratorView({
             <summary>Feel</summary>
             <div className="control-section-body">
               <label>
-                <span>Rarity curve</span>
+                <span>Cast variety</span>
                 <select value={settings.rarityDistribution ?? 'style-pack'} onChange={(event) => onUpdateSetting('rarityDistribution', event.target.value as RarityDistributionPresetKind)}>
                   {rarityDistributionOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                 </select>
@@ -330,7 +330,7 @@ export function GeneratorView({
               <details className="slot-overrides">
                 <summary>Advanced tuning</summary>
                 <div className="control-section-body">
-                  <p className="section-note">These controls still shape scoring, but they are secondary to style pack, role, rarity, and readability.</p>
+                  <p className="section-note">These controls still shape scoring, but they stay secondary to style pack, story role, cast variety, rarity, and readability.</p>
                   {advancedScoreControls.map((control) => (
                     <ScoreControl key={control.key} control={control} value={Number(settings[control.key])} onChange={(key, value) => onUpdateSetting(key, value)} onRandomize={randomizeSlider} />
                   ))}
