@@ -28,6 +28,21 @@ export const stylePacks: StylePack[] = [{
       'Bundled starter data only; it should not be treated as exhaustive coverage of British naming traditions.',
     ],
   },
+  design: {
+    schemaVersion: 'name-forge.style-pack.v1',
+    status: 'starter',
+    compatibleModes: ['fiction-cast'],
+    intendedUse: 'Generate literary-fantasy character names with soft British-adjacent texture for fiction casts.',
+    designPrinciples: [
+      'Prefer readable names that can be spoken aloud on first sight.',
+      'Blend soft consonants, liquid textures, and bookish endings rather than copying real-world names directly.',
+      'Keep rarity tunable through weights instead of hard-coding a single exoticness level.',
+    ],
+    safetyNotes: [
+      'Do not present outputs as culturally authentic British names.',
+      'Do not infer real ethnicity, nationality, or ancestry from this fictionalized pack.',
+    ],
+  },
   version: '0.1.0',
   localeHint: 'fictional-en-GB-literary',
   culturalAnchors: ['Albion', 'Arthurian romance', 'Victorian novels', 'border ballads'],
