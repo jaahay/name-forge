@@ -9,7 +9,7 @@ import { NameInspector } from './NameInspector';
 import { advancedScoreControls, primaryScoreControls, type ControlKey } from './presentation';
 import { ScoreControl } from './ScoreControl';
 
-interface GeneratorViewProps { mode: NamingModeConfig; stylePacks: StylePackSummary[]; settings: GenerationSettings; ensemble: GeneratedEnsemble; lockedNameIds: Set<string>; onUpdateSetting: <K extends keyof GenerationSettings>(key: K, value: GenerationSettings[K]) => void; onGenerate: (event?: FormEvent) => void; onRandomizeSliders: () => void; onRandomizeSlider: (key: ControlKey) => void; onToggleLockedName: (id: string) => void; onClearLockedNames: () => void; }
+interface GeneratorViewProps { mode: NamingModeConfig; stylePacks: StylePackSummary[]; settings: GenerationSettings; committedSettings?: GenerationSettings; ensemble: GeneratedEnsemble; lockedNameIds: Set<string>; onUpdateSetting: <K extends keyof GenerationSettings>(key: K, value: GenerationSettings[K]) => void; onGenerate: (event?: FormEvent) => void; onCommitSettings: () => void; onRandomizeSliders: () => void; onRandomizeSlider: (key: ControlKey) => void; onToggleLockedName: (id: string) => void; onClearLockedNames: () => void; }
 
 const formatOptions: Array<{ value: NameFormatKind; label: string }> = [
   { value: 'mixed', label: 'Mixed cast formats' },
