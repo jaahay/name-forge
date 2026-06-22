@@ -18,7 +18,7 @@ function brokenPack(overrides: Partial<StylePack>): StylePack {
 }
 
 describe('style pack validation', () => {
-  it('accepts the built-in style pack and preserves source descriptor metadata', () => {
+  it('accepts the built-in style pack and preserves provider and pack source metadata', () => {
     const result = validateStylePack(pack);
 
     expect(result.packId).toBe('british-literary-fantasy');
@@ -26,13 +26,26 @@ describe('style pack validation', () => {
     expect(result.issues).toEqual([]);
 
     expect(pack.source).toEqual({
-      id: 'built-in-style-packs@0.1.0',
-      label: 'Built-in style packs',
-      kind: 'built-in-bundle',
-      version: '0.1.0',
-      origin: { kind: 'bundled', value: 'src/data/stylePacks.ts' },
-      sourceNotes: 'Bundled fictionalized starter pack data maintained with the application.',
-      trustNotes: 'No remote loading or external name database dependency; safe for deterministic offline generation.',
+      descriptor: {
+        id: 'built-in-style-packs@0.1.0',
+        label: 'Built-in style packs',
+        kind: 'built-in-bundle',
+        version: '0.1.0',
+        origin: { kind: 'bundled', value: 'src/data/stylePacks.ts' },
+        trustBoundary: 'bundled-offline',
+        capabilities: ['style-packs', 'phonotactics', 'listed-variants', 'variant-rules'],
+        sourceNotes: 'Bundled fictionalized starter pack data maintained with the application.',
+        trustNotes: 'No remote loading or external name database dependency; safe for deterministic offline generation.',
+      },
+      packId: 'british-literary-fantasy',
+      packVersion: '0.1.0',
+      sourcePath: 'src/data/stylePacks.ts#british-literary-fantasy',
+      licenseNotes: 'Project-local fictionalized style data; no external corpus attribution required.',
+      styleNotes: 'Bookish, folktale-adjacent, British-literary texture for fictional character naming.',
+      limitations: [
+        'Fictionalized style guidance, not a real-world cultural or etymological authority.',
+        'Bundled starter data only; it should not be treated as exhaustive coverage of British naming traditions.',
+      ],
     });
   });
 
@@ -40,9 +53,15 @@ describe('style pack validation', () => {
     const result = validateStylePack(brokenPack({
       source: {
         ...pack.source,
-        id: '',
-        kind: 'http' as const,
-        origin: { kind: 'url', value: '' },
+        descriptor: {
+          ...pack.source.descriptor,
+          id: '',
+          kind: 'http',
+          origin: { kind: 'url', value: '' },
+          capabilities: [],
+        },
+        packId: 'wrong-pack-id',
+        limitations: [],
       },
       phonotactics: {
         ...pack.phonotactics,
@@ -60,8 +79,11 @@ describe('style pack validation', () => {
     expect(result.packId).toBe('british-literary-fantasy');
     expect(result.valid).toBe(false);
     expect(result.issues).toEqual([
-      { severity: 'error', path: 'source.id', message: 'Source descriptor id is required.' },
-      { severity: 'error', path: 'source.origin', message: 'Source descriptor origin is required.' },
+      { severity: 'error', path: 'source.descriptor.id', message: 'Source descriptor id is required.' },
+      { severity: 'error', path: 'source.descriptor.origin', message: 'Source descriptor origin is required.' },
+      { severity: 'error', path: 'source.descriptor.capabilities', message: 'At least one source capability is required.' },
+      { severity: 'error', path: 'source.limitations', message: 'String array must not be empty.' },
+      { severity: 'error', path: 'source.packId', message: 'Style pack source packId must match the pack id.' },
       { severity: 'error', path: 'phonotactics.nuclei', message: 'Weighted values must not be empty.' },
       { severity: 'error', path: 'variantRules.0.maxApplications', message: 'Variant rule maxApplications must be a positive integer.' },
     ]);
