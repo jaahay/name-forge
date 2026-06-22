@@ -14,7 +14,6 @@ function metadataFor(name: GeneratedName) {
   const roleInfluenceLabel = name.roleInfluence ? `${name.roleInfluence.level} influence` : 'role-neutral';
   const textureLabel = `${labelFor(name.silhouette.texture)} texture`;
   const formatLabel = identity ? identity.format.label : `${labelFor(name.silhouette.rhythm)} rhythm`;
-
   return { formatLabel, identity, rarity, roleInfluenceLabel, roleLabel, textureLabel };
 }
 
@@ -102,13 +101,6 @@ export function NameInspector({ name }: NameInspectorProps) {
             <ul className="variants detail-variants" aria-label={`${name.name} alternate spellings`}>
               {name.variants.map((variant) => <li key={`${name.id}-${variant.value}`}><span>{variant.value}</span><em>{variantMetadataLabel(variant)}</em></li>)}
             </ul>
-          </section>
-        ) : null}
-
-        {name.briefInfluence ? (
-          <section className="detail-block">
-            <h3>Brief cue</h3>
-            <p className="section-note">{name.briefInfluence.summary} {name.briefInfluence.effects.join(' ')}</p>
           </section>
         ) : null}
 
