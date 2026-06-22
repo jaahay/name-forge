@@ -1,13 +1,16 @@
-import type { DataSourceDescriptor, StylePack } from '../engine/types';
+import type { SourceDescriptor, StylePack } from '../engine/types';
 
-const builtInStylePackProvider: DataSourceDescriptor = {
+const builtInStylePackSource: SourceDescriptor = {
   id: 'built-in-style-packs@0.1.0',
   label: 'Built-in style packs',
-  kind: 'built-in-bundle',
+  channel: 'built-in',
   version: '0.1.0',
-  origin: { kind: 'bundled', value: 'src/data/stylePacks.ts' },
-  trustBoundary: 'bundled-offline',
-  capabilities: ['style-packs', 'phonotactics', 'listed-variants', 'variant-rules'],
+  assetKinds: ['style-pack', 'phonotactics', 'listed-variants', 'variant-rules'],
+  license: 'project-local',
+  locale: 'fictional-en-GB-literary',
+  enabledByDefault: true,
+  priority: 100,
+  cachePolicy: 'none',
   sourceNotes: 'Bundled fictionalized starter pack data maintained with the application.',
   trustNotes: 'No remote loading or external name database dependency; safe for deterministic offline generation.',
 };
@@ -17,31 +20,22 @@ export const stylePacks: StylePack[] = [{
   label: 'British literary fantasy',
   description: 'A soft-coded starter pack for bookish, folktale-adjacent names with fictionalized British literary texture.',
   source: {
-    descriptor: builtInStylePackProvider,
+    source: builtInStylePackSource,
+    assetKind: 'style-pack',
     packId: 'british-literary-fantasy',
     packVersion: '0.1.0',
     sourcePath: 'src/data/stylePacks.ts#british-literary-fantasy',
-    licenseNotes: 'Project-local fictionalized style data; no external corpus attribution required.',
     styleNotes: 'Bookish, folktale-adjacent, British-literary texture for fictional character naming.',
     limitations: [
       'Fictionalized style guidance, not a real-world cultural or etymological authority.',
       'Bundled starter data only; it should not be treated as exhaustive coverage of British naming traditions.',
     ],
   },
-  design: {
-    schemaVersion: 'name-forge.style-pack.v1',
-    status: 'starter',
-    compatibleModes: ['fiction-cast'],
-    intendedUse: 'Generate literary-fantasy character names with soft British-adjacent texture for fiction casts.',
-    designPrinciples: [
-      'Prefer readable names that can be spoken aloud on first sight.',
-      'Blend soft consonants, liquid textures, and bookish endings rather than copying real-world names directly.',
-      'Keep rarity tunable through weights instead of hard-coding a single exoticness level.',
-    ],
-    safetyNotes: [
-      'Do not present outputs as culturally authentic British names.',
-      'Do not infer real ethnicity, nationality, or ancestry from this fictionalized pack.',
-    ],
+  style: {
+    schemaVersion: 'name-forge.style.v1',
+    label: 'British literary fantasy',
+    summary: 'Bookish, folktale-adjacent, softly literary fantasy naming texture.',
+    tags: ['fictional', 'literary', 'fantasy', 'folktale-adjacent', 'soft'],
   },
   version: '0.1.0',
   localeHint: 'fictional-en-GB-literary',
