@@ -1,13 +1,13 @@
 import { stylePacks } from '../data/stylePacks';
 import { validateStylePack } from './stylePackValidation';
-import type { DataSourceDescriptor, NameSourceProvider, StylePack, StylePackSummary, StylePackValidationResult } from './types';
+import type { NameSourceProvider, SourceDescriptor, StylePack, StylePackSummary, StylePackValidationResult } from './types';
 
 class BuiltInStylePackProvider implements NameSourceProvider {
   id = 'built-in-style-packs';
   label = 'Built-in style packs';
   kind = 'style-pack' as const;
-  source: DataSourceDescriptor = stylePacks[0].source.descriptor;
-  listStylePacks(): StylePackSummary[] { return stylePacks.map(({ id, label, description, source, design }) => ({ id, label, description, source, design })); }
+  source: SourceDescriptor = stylePacks[0].source.source;
+  listStylePacks(): StylePackSummary[] { return stylePacks.map(({ id, label, description, source, style }) => ({ id, label, description, source, style })); }
   getStylePack(id: string): StylePack | undefined { return stylePacks.find((pack) => pack.id === id); }
   validateStylePack(id: string): StylePackValidationResult | undefined { const pack = this.getStylePack(id); return pack ? validateStylePack(pack) : undefined; }
 }
