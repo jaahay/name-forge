@@ -1,11 +1,13 @@
 import type { DataSourceDescriptor, StylePack } from '../engine/types';
 
-const builtInStylePackSource: DataSourceDescriptor = {
+const builtInStylePackProvider: DataSourceDescriptor = {
   id: 'built-in-style-packs@0.1.0',
   label: 'Built-in style packs',
   kind: 'built-in-bundle',
   version: '0.1.0',
   origin: { kind: 'bundled', value: 'src/data/stylePacks.ts' },
+  trustBoundary: 'bundled-offline',
+  capabilities: ['style-packs', 'phonotactics', 'listed-variants', 'variant-rules'],
   sourceNotes: 'Bundled fictionalized starter pack data maintained with the application.',
   trustNotes: 'No remote loading or external name database dependency; safe for deterministic offline generation.',
 };
@@ -14,7 +16,18 @@ export const stylePacks: StylePack[] = [{
   id: 'british-literary-fantasy',
   label: 'British literary fantasy',
   description: 'A soft-coded starter pack for bookish, folktale-adjacent names with fictionalized British literary texture.',
-  source: builtInStylePackSource,
+  source: {
+    descriptor: builtInStylePackProvider,
+    packId: 'british-literary-fantasy',
+    packVersion: '0.1.0',
+    sourcePath: 'src/data/stylePacks.ts#british-literary-fantasy',
+    licenseNotes: 'Project-local fictionalized style data; no external corpus attribution required.',
+    styleNotes: 'Bookish, folktale-adjacent, British-literary texture for fictional character naming.',
+    limitations: [
+      'Fictionalized style guidance, not a real-world cultural or etymological authority.',
+      'Bundled starter data only; it should not be treated as exhaustive coverage of British naming traditions.',
+    ],
+  },
   version: '0.1.0',
   localeHint: 'fictional-en-GB-literary',
   culturalAnchors: ['Albion', 'Arthurian romance', 'Victorian novels', 'border ballads'],
