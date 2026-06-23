@@ -1,6 +1,6 @@
 # Current product scope
 
-This document records the current working interpretation of the product requirements after the Fiction cast interaction pass, UI decomposition, stylesheet consolidation work, and brief/readability diagnostics slice.
+This document records the current working interpretation of the product requirements after the Fiction cast interaction pass, UI decomposition, stylesheet consolidation work, readability diagnostics slice, and control-surface cleanup.
 
 The original [`product-requirements.md`](product-requirements.md) remains the historical/canonical requirements source. This document is the active scope lens for deciding what to build next.
 
@@ -20,7 +20,7 @@ The product should remain a generator and evaluation workbench, not a writing as
 
 ## Current shipped baseline
 
-Fiction cast now includes the previously recommended briefed-generation and deterministic readability diagnostics slice.
+Fiction cast now includes deterministic readability diagnostics and a simplified control surface.
 
 Current baseline capabilities include:
 
@@ -28,14 +28,12 @@ Current baseline capabilities include:
 - style-pack selection
 - cast size, name format, role mix, slot override, role influence, rarity, and scoring controls
 - lock/select iteration affordances
-- Naming Brief fields for use context, tone words, desired associations, avoid list, hard constraints, anchor examples, and notes
-- deterministic brief influence metadata that can affect generation/scoring without replacing sliders
 - deterministic readability notes for length friction, dense consonant/vowel clusters, repeated letters, and visual misreads
 - Cast Health readability summaries
-- Inspect-panel surfacing for brief influence and readability notes
-- JSON and Markdown export of brief and diagnostics metadata
+- Inspect-panel surfacing for readability notes and role influence
+- JSON and Markdown export of generated names, role metadata, diagnostics metadata, variants, scores, and provenance
 
-The next scope decisions should treat Naming Brief and readability diagnostics as shipped primitives, not future work.
+The next scope decisions should treat readability diagnostics, source descriptors, style pack validation, and richer variant metadata as shipped primitives or near-term hardening targets.
 
 ## Pronounceability vs pronunciation
 
@@ -101,7 +99,7 @@ Warnings should become a typed product surface before stronger cultural or demog
 Required capabilities:
 
 - Add a cautious warning model for generated names.
-- Add first-pass common-word collision and known-name/anchor-distance signals using local deterministic data only.
+- Add first-pass common-word collision and known-name distance signals using local deterministic data only.
 - Include warnings in Inspect and export only when present.
 - Avoid demographic inference, cultural certainty, or external search.
 - Keep warning language scoped as screening guidance, not truth.
@@ -136,4 +134,4 @@ Requirements before implementation:
 
 ## Issue hygiene baseline
 
-Active planning should use one canonical issue per coherent slice. Duplicate exploration issues should be closed in favor of the canonical issue, and completed brief/readability issues should stay closed through the merged implementation PR.
+Active planning should use one canonical issue per coherent slice. Duplicate exploration issues should be closed in favor of the canonical issue, and completed issues should stay closed through their merged implementation PR.
