@@ -1,7 +1,7 @@
-import type { SourceDescriptor, SourceValidationIssue, StylePackValidationResult } from './sourceTypes';
+import type { AssetDescriptor, SourceDescriptor, SourceValidationIssue, StylePackValidationResult } from './sourceTypes';
 import type { StyleDescriptor, StylePackSourceDescriptor } from './stylePackTypes';
 
-export type { AssetKind, CachePolicy, SourceChannel, SourceDescriptor, SourceValidationIssue, SourceValidationSeverity, StylePackValidationResult } from './sourceTypes';
+export type { AssetDescriptor, AssetKind, CachePolicy, SourceChannel, SourceDescriptor, SourceValidationIssue, SourceValidationSeverity, StylePackValidationResult } from './sourceTypes';
 export type { StyleDescriptor, StylePackSourceDescriptor } from './stylePackTypes';
 
 export type ScoreKey =
@@ -49,4 +49,4 @@ export interface GeneratedEnsemble { settings: GenerationSettings; sourcePack: S
 export interface SpellingVariantRule { id: string; label: string; from: string; to: string; maxApplications?: number; sourceKind: SourceKind; relationship?: NameVariantRelationship; confidence?: NameVariantConfidence; }
 export interface StylePackSummary { id: string; label: string; description: string; source: StylePackSourceDescriptor; style: StyleDescriptor; }
 export interface StylePack extends StylePackSummary { version: string; localeHint: string; culturalAnchors: string[]; phonotactics: { onsets: Array<WeightedValue>; nuclei: Array<WeightedValue>; codas: Array<WeightedValue>; preferredEndings: Array<WeightedValue>; rareGraphemes: string[]; forbiddenFragments: string[]; }; silhouetteBias: { syllableCounts: Array<WeightedValue<number>>; textures: Array<WeightedValue<NameTexture>>; rarityBands: Array<WeightedValue<RarityBand>>; }; listedVariants: Record<string, string[]>; variantRules: SpellingVariantRule[]; provenance: ProvenanceNote; }
-export interface NameSourceProvider { id: string; label: string; kind: SourceKind; source: SourceDescriptor; listStylePacks(): StylePackSummary[]; getStylePack(id: string): StylePack | undefined; validateStylePack(id: string): StylePackValidationResult | undefined; }
+export interface NameSourceProvider { id: string; label: string; kind: SourceKind; source: SourceDescriptor; listSources(): SourceDescriptor[]; listAssets(): AssetDescriptor[]; listStylePacks(): StylePackSummary[]; getStylePack(id: string): StylePack | undefined; validateStylePack(id: string): StylePackValidationResult | undefined; }
