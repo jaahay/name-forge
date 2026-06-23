@@ -84,10 +84,12 @@ function validateStylePackSource(source: StylePackSourceDescriptor | undefined, 
     ...validateStringArray('source.limitations', source.limitations),
   ];
 
-  if (source.asset.kind !== 'style-pack') issues.push(issue('source.asset.kind', 'Style pack asset kind must be style-pack.'));
-  if (source.asset.id !== pack.provenance.sourceId) issues.push(issue('source.asset.id', 'Style pack asset id must match provenance sourceId.'));
-  if (source.asset.version !== pack.version) issues.push(issue('source.asset.version', 'Style pack asset version must match the pack version.'));
-  if (source.asset.sourcePath !== source.sourcePath) issues.push(issue('source.asset.sourcePath', 'Style pack asset sourcePath must match the pack source path.'));
+  if (source.asset) {
+    if (source.asset.kind !== 'style-pack') issues.push(issue('source.asset.kind', 'Style pack asset kind must be style-pack.'));
+    if (source.asset.id !== pack.provenance.sourceId) issues.push(issue('source.asset.id', 'Style pack asset id must match provenance sourceId.'));
+    if (source.asset.version !== pack.version) issues.push(issue('source.asset.version', 'Style pack asset version must match the pack version.'));
+    if (source.asset.sourcePath !== source.sourcePath) issues.push(issue('source.asset.sourcePath', 'Style pack asset sourcePath must match the pack source path.'));
+  }
   if (source.packId !== pack.id) issues.push(issue('source.packId', 'Style pack source packId must match the pack id.'));
   if (source.packVersion !== pack.version) issues.push(issue('source.packVersion', 'Style pack source packVersion must match the pack version.'));
   return issues;
