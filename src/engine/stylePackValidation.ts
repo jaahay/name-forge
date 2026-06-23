@@ -1,4 +1,4 @@
-import type { AssetKind, NameVariantConfidence, NameVariantRelationship, SourceChannel, SourceDescriptor, SourceKind, SourceValidationIssue, StyleDescriptor, StylePack, StylePackSourceDescriptor, StylePackValidationResult, WeightedValue } from './types';
+import type { AssetDescriptor, AssetKind, NameVariantConfidence, NameVariantRelationship, SourceChannel, SourceDescriptor, SourceKind, SourceValidationIssue, StyleDescriptor, StylePack, StylePackSourceDescriptor, StylePackValidationResult, WeightedValue } from './types';
 
 const sourceChannels: SourceChannel[] = ['built-in', 'user-authored', 'local-file', 'package', 'remote-http', 'remote-api'];
 const assetKinds: AssetKind[] = ['style-pack', 'phonotactics', 'listed-variants', 'variant-rules', 'role-profiles', 'pronunciation-lexicon', 'ipa-rules', 'name-list'];
@@ -30,6 +30,7 @@ function validateSourceDescriptor(source: SourceDescriptor | undefined, path = '
   if (!source) return [issue(path, 'Style pack must declare a source descriptor.')];
 
   const issues: SourceValidationIssue[] = [];
+  if (source.schemaVersion !== 'name-forge.source.v1') issues.push(issue(`${path}.schemaVersion`, 'Source descriptor schemaVersion must be name-forge.source.v1.'));
   if (!hasText(source.id)) issues.push(issue(`${path}.id`, 'Source descriptor id is required.'));
   if (!hasText(source.label)) issues.push(issue(`${path}.label`, 'Source descriptor label is required.'));
   if (!sourceChannels.includes(source.channel)) issues.push(issue(`${path}.channel`, `Unsupported source channel: ${source.channel}.`));
@@ -50,11 +51,31 @@ function validateSourceDescriptor(source: SourceDescriptor | undefined, path = '
   return issues;
 }
 
+function validateAssetDescriptor(asset: AssetDescriptor | undefined, source: SourceDescriptor | undefined, path = 'source.asset'): SourceValidationIssue[] {
+  if (!asset) return [issue(path, 'Style pack must declare an asset descriptor.')];
+
+  const issues: SourceValidationIssue[] = [];
+  if (asset.schemaVersion !== 'name-forge.asset.v1') issues.push(issue(`${path}.schemaVersion`, 'Asset descriptor schemaVersion must be name-forge.asset.v1.'));
+  if (!hasText(asset.id)) issues.push(issue(`${path}.id`, 'Asset descriptor id is required.'));
+  if (!assetKinds.includes(asset.kind)) issues.push(issue(`${path}.kind`, `Unsupported asset kind: ${asset.kind}.`));
+  if (!hasText(asset.sourceId)) issues.push(issue(`${path}.sourceId`, 'Asset descriptor sourceId is required.'));
+  if (!hasText(asset.label)) issues.push(issue(`${path}.label`, 'Asset descriptor label is required.'));
+  if (!hasText(asset.version)) issues.push(issue(`${path}.version`, 'Asset descriptor version is required.'));
+  if (!hasText(asset.sourcePath)) issues.push(issue(`${path}.sourcePath`, 'Asset descriptor sourcePath is required.'));
+  if (!hasText(asset.license)) issues.push(issue(`${path}.license`, 'Asset descriptor license is required.'));
+  if (!hasText(asset.trustNotes)) issues.push(issue(`${path}.trustNotes`, 'Asset descriptor trust notes are required.'));
+  issues.push(...validateStringArray(`${path}.limitations`, asset.limitations));
+  if (source && asset.sourceId !== source.id) issues.push(issue(`${path}.sourceId`, 'Asset descriptor sourceId must match the source descriptor id.'));
+  if (source && !source.assetKinds.includes(asset.kind)) issues.push(issue(`${path}.kind`, 'Asset kind must be declared by the source descriptor.'));
+  return issues;
+}
+
 function validateStylePackSource(source: StylePackSourceDescriptor | undefined, pack: StylePack): SourceValidationIssue[] {
   if (!source) return [issue('source', 'Style pack must declare pack-level source metadata.')];
 
   const issues: SourceValidationIssue[] = [
     ...validateSourceDescriptor(source.source),
+    ...validateAssetDescriptor(source.asset, source.source),
     ...(source.assetKind !== 'style-pack' ? [issue('source.assetKind', 'Style pack source assetKind must be style-pack.')] : []),
     ...(!hasText(source.packId) ? [issue('source.packId', 'Style pack source packId is required.')] : []),
     ...(!hasText(source.packVersion) ? [issue('source.packVersion', 'Style pack source packVersion is required.')] : []),
@@ -63,6 +84,10 @@ function validateStylePackSource(source: StylePackSourceDescriptor | undefined, 
     ...validateStringArray('source.limitations', source.limitations),
   ];
 
+  if (source.asset.kind !== 'style-pack') issues.push(issue('source.asset.kind', 'Style pack asset kind must be style-pack.'));
+  if (source.asset.id !== pack.provenance.sourceId) issues.push(issue('source.asset.id', 'Style pack asset id must match provenance sourceId.'));
+  if (source.asset.version !== pack.version) issues.push(issue('source.asset.version', 'Style pack asset version must match the pack version.'));
+  if (source.asset.sourcePath !== source.sourcePath) issues.push(issue('source.asset.sourcePath', 'Style pack asset sourcePath must match the pack source path.'));
   if (source.packId !== pack.id) issues.push(issue('source.packId', 'Style pack source packId must match the pack id.'));
   if (source.packVersion !== pack.version) issues.push(issue('source.packVersion', 'Style pack source packVersion must match the pack version.'));
   return issues;
