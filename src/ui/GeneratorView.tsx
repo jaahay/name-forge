@@ -1,8 +1,8 @@
-import { useEffect, useState, type ChangeEvent, type FormEvent, type KeyboardEvent } from 'react';
+import { useEffect, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { serializeCastAsJson, serializeCastAsMarkdown } from '../engine/export';
 import { rarityDistributionOptions } from '../engine/rarity';
 import { castRoleOptions, castRolePresetOptions, roleInfluenceOptions } from '../engine/roles';
-import type { CastRole, CastRolePresetKind, GeneratedEnsemble, GenerationSettings, NameFormatKind, NamingBrief, RarityDistributionPresetKind, RoleInfluenceLevel, StylePackSummary } from '../engine/types';
+import type { CastRole, CastRolePresetKind, GeneratedEnsemble, GenerationSettings, NameFormatKind, RarityDistributionPresetKind, RoleInfluenceLevel, StylePackSummary } from '../engine/types';
 import { CastHealthPanel } from './CastHealth';
 import type { NamingModeConfig } from './modes';
 import { NameCard } from './NameCard';
@@ -55,22 +55,6 @@ function titleCaseLabel(value: string): string {
     .join(' ');
 }
 
-function toCommaText(values: string[] | undefined): string {
-  return values?.join(', ') ?? '';
-}
-
-function fromCommaText(value: string): string[] {
-  return value.split(',').map((part) => part.trim()).filter(Boolean);
-}
-
-function updateBriefField<K extends keyof Pick<NamingBrief, 'useContext' | 'notes'>>(currentBrief: NamingBrief | undefined, key: K, value: string): NamingBrief {
-  return { ...(currentBrief ?? {}), [key]: value };
-}
-
-function updateBriefList<K extends keyof Pick<NamingBrief, 'toneWords' | 'desiredAssociations' | 'avoidList' | 'hardConstraints' | 'anchorExamples'>>(currentBrief: NamingBrief | undefined, key: K, value: string): NamingBrief {
-  return { ...(currentBrief ?? {}), [key]: fromCommaText(value) };
-}
-
 function updateSlotRole(currentRoles: GenerationSettings['slotRoleOverrides'], index: number, role: CastRole | ''): GenerationSettings['slotRoleOverrides'] {
   const nextRoles = { ...(currentRoles ?? {}) };
   if (role === '') {
@@ -94,7 +78,6 @@ function resolveSelectedNameId(previousSelectedId: string, ensemble: GeneratedEn
   if (previousSelectedId && ensemble.names.some((name) => name.id === previousSelectedId)) {
     return previousSelectedId;
   }
-
   const firstLocked = ensemble.names.find((name) => lockedNameIds.has(name.id));
   return firstLocked?.id ?? ensemble.names[0]?.id ?? '';
 }
@@ -127,7 +110,6 @@ export function GeneratorView({
   const resolvedSelectedNameId = resolveSelectedNameId(selectedNameId, ensemble, lockedNameIds);
   const selectedName = ensemble.names.find((name) => name.id === resolvedSelectedNameId);
   const selectedNameKey = selectedName?.id ?? '';
-  const brief = settings.brief ?? {};
 
   useEffect(() => {
     if (selectedNameId !== resolvedSelectedNameId) {
@@ -137,18 +119,6 @@ export function GeneratorView({
 
   function updateCastSize(value: number) {
     onUpdateSetting('castSize', clampCastSize(value));
-  }
-
-  function updateBrief(value: NamingBrief) {
-    onUpdateSetting('brief', value);
-  }
-
-  function updateBriefTextField(key: keyof Pick<NamingBrief, 'useContext' | 'notes'>, value: string) {
-    updateBrief(updateBriefField(settings.brief, key, value));
-  }
-
-  function updateBriefCommaField(key: keyof Pick<NamingBrief, 'toneWords' | 'desiredAssociations' | 'avoidList' | 'hardConstraints' | 'anchorExamples'>, event: ChangeEvent<HTMLInputElement>) {
-    updateBrief(updateBriefList(settings.brief, key, event.target.value));
   }
 
   function selectName(id: string) {
@@ -277,41 +247,6 @@ export function GeneratorView({
               ) : (
                 <p className="section-note">Choose a role mix to reveal optional slot-by-slot overrides.</p>
               )}
-            </div>
-          </details>
-
-          <details className="control-section">
-            <summary>Naming brief</summary>
-            <div className="control-section-body brief-controls">
-              <label>
-                <span>Use context</span>
-                <input value={brief.useContext ?? ''} placeholder="e.g. frontier town rivals" onChange={(event) => updateBriefTextField('useContext', event.target.value)} />
-              </label>
-              <label>
-                <span>Tone words</span>
-                <input value={toCommaText(brief.toneWords)} placeholder="e.g. warm, eerie, noble" onChange={(event) => updateBriefCommaField('toneWords', event)} />
-              </label>
-              <label>
-                <span>Desired associations</span>
-                <input value={toCommaText(brief.desiredAssociations)} placeholder="e.g. moon, iron, marsh" onChange={(event) => updateBriefCommaField('desiredAssociations', event)} />
-              </label>
-              <label>
-                <span>Avoid list</span>
-                <input value={toCommaText(brief.avoidList)} placeholder="terms or sounds to avoid" onChange={(event) => updateBriefCommaField('avoidList', event)} />
-              </label>
-              <label>
-                <span>Hard constraints</span>
-                <input value={toCommaText(brief.hardConstraints)} placeholder="e.g. no apostrophes, short names" onChange={(event) => updateBriefCommaField('hardConstraints', event)} />
-              </label>
-              <label>
-                <span>Anchor examples</span>
-                <input value={toCommaText(brief.anchorExamples)} placeholder="names to echo, not copy" onChange={(event) => updateBriefCommaField('anchorExamples', event)} />
-              </label>
-              <label>
-                <span>Brief notes</span>
-                <textarea rows={3} value={brief.notes ?? ''} placeholder="Optional freeform guidance." onChange={(event) => updateBriefTextField('notes', event.target.value)} />
-              </label>
-              <p className="section-note">Briefs guide seeded generation and scoring. They do not guarantee exact terms, baby-name suitability, IPA, audio, or canonical pronunciation.</p>
             </div>
           </details>
 

@@ -1,8 +1,8 @@
 # Name Forge
 
-Name Forge is a Vite + TypeScript + React MVP for generating plausible fictional character names with deterministic randomness, ensemble balancing, name silhouettes, role-aware cast metadata, optional role influence, rarity distribution controls, naming briefs, deterministic readability diagnostics, spelling variants, scoring, export, and provenance.
+Name Forge is a Vite + TypeScript + React MVP for generating plausible fictional character names with deterministic randomness, ensemble balancing, name silhouettes, role-aware cast metadata, optional role influence, rarity distribution controls, deterministic readability diagnostics, spelling variants, scoring, export, and provenance.
 
-The current app is explicitly the first **Fiction cast** mode of a broader random-name workbench. Future modes should share generation, scoring, comparison, brief, diagnostics, export, and provenance primitives while providing their own controls and result presentation.
+The current app is explicitly the first **Fiction cast** mode of a broader random-name workbench. Future modes should share generation, scoring, comparison, diagnostics, export, and provenance primitives while providing their own controls and result presentation.
 
 ## Product docs
 
@@ -15,25 +15,24 @@ The current app is explicitly the first **Fiction cast** mode of a broader rando
 ## MVP capabilities
 
 - Single-page React UI organized around a visible Fiction cast mode boundary, cast setup, fiction controls, rarity and scoring controls, result browsing, inspection, and export.
-- Controls for cast size, seed, style preset, name format, cast role mix, slot role overrides, role influence, naming brief, rarity distribution, novelty, pronounceability, memorability, cultural anchoring, and orthographic weirdness.
+- Controls for cast size, seed, style pack, name format, cast role mix, slot role overrides, role influence, rarity distribution, novelty, pronounceability, memorability, cultural anchoring, and orthographic weirdness.
 - Compact result cards for scanning generated names, with lock/select affordances and length-aware rendering.
-- Persistent Inspect panel for selected-name detail: rarity cue, construction cues, score readout, name parts, alternate spellings, brief influence, readability notes, and role influence cue.
+- Persistent Inspect panel for selected-name detail: rarity cue, construction cues, score readout, name parts, alternate spellings, readability notes, and role influence cue.
 - Cast Health panel for deterministic roster checks such as spotlight balance, repeated initials/endings, cadence overlap, readability notes, and lock status.
 - Deterministic seeded randomness for repeatable casts.
 - First-class `NameSilhouette` generation before exact letters exist.
 - Simple phonotactic generation from data-shaped style packs.
 - Cast-level balancing to reduce repeated initials, repeated endings, repeated cadence, and rarity-band clustering.
 - Explicit role metadata for fiction cast slots while keeping role influence opt-in so baseline generation stays role-neutral.
-- Naming Brief fields for use context, tone words, desired associations, avoid list, hard constraints, anchor examples, and notes.
 - Deterministic readability diagnostics for long reads, dense letter clusters, repeated letters, and possible visual misreads, without claiming canonical pronunciation.
-- Plausibility scoring across pronounceability, memorability, novelty, cultural anchoring, orthographic naturalness, style fit, silhouette fit, ensemble fit, role fit, and brief fit signals.
+- Plausibility scoring across pronounceability, memorability, novelty, cultural anchoring, orthographic naturalness, style fit, silhouette fit, ensemble fit, and role fit signals.
 - Spelling variants marked as listed alternates or generated spellings.
-- JSON and Markdown cast export with role, rarity, score, identity, silhouette, variant, role influence, brief influence, readability diagnostics, and provenance metadata.
+- JSON and Markdown cast export with role, rarity, score, identity, silhouette, variant, role influence, readability diagnostics, and provenance metadata.
 - Source/provider registry abstraction with provenance-bearing outputs.
 
 ## Current next feature requirements
 
-The briefed-generation and readability-diagnostics slice is now part of the Fiction cast baseline. The next forward-looking requirements should strengthen trust, source contracts, and mode readiness before adding a second active mode.
+The readability-diagnostics slice is now part of the Fiction cast baseline. The next forward-looking requirements should strengthen trust, source contracts, and mode readiness before adding a second active mode.
 
 Recommended next slices:
 
@@ -76,7 +75,6 @@ src/
   data/
     stylePacks.ts
   engine/
-    brief.ts
     diagnostics.ts
     ensemble.ts
     export.ts

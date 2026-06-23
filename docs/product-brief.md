@@ -4,7 +4,7 @@
 
 Name Forge is a random-name workbench for generating names that are not only novel, but usable, explainable, reproducible, and tuned to a specific naming job.
 
-The product should not be understood as a single fantasy-name generator. Fiction cast is the first serious mode because it exercises many of the hardest shared primitives: seeded generation, style anchoring, silhouette planning, ensemble balance, role metadata, optional role influence, Naming Briefs, deterministic readability diagnostics, Fit scoring, variants, provenance, inspection, and export.
+The product should not be understood as a single fantasy-name generator. Fiction cast is the first serious mode because it exercises many of the hardest shared primitives: seeded generation, style anchoring, silhouette planning, ensemble balance, role metadata, optional role influence, deterministic readability diagnostics, Fit scoring, variants, provenance, inspection, and export.
 
 See [`current-product-scope.md`](current-product-scope.md) for the current scope lens and next feature requirements.
 
@@ -48,14 +48,12 @@ Current strengths:
 - rarity distribution controls
 - role presets and slot overrides
 - optional role influence
-- Naming Brief controls for context, tone, associations, avoid terms, constraints, anchors, and notes
-- deterministic brief influence metadata in generation, scoring, Inspect, and export
 - compact result cards for scan/select/lock
 - persistent Inspect panel for selected-name detail
 - deterministic readability notes surfaced in Inspect and Cast Health
 - Cast Health checks for roster-level coherence
 - JSON and Markdown cast export
-- provenance-bearing generated names, variants, brief influence, and diagnostics
+- provenance-bearing generated names, variants, role influence, and diagnostics
 
 Current gaps:
 
@@ -72,10 +70,10 @@ These modes are product directions, not commitments to build all of them now.
 
 | Mode | User job | Likely output | Shared primitives stressed |
 | --- | --- | --- | --- |
-| Fiction cast | Name a coherent ensemble of fictional characters. | Cast, roles, Inspect, Cast Health, Fit, export. | Silhouettes, ensemble balance, role influence, briefs, diagnostics, variants, provenance. |
-| Game NPC | Generate usable names quickly for play/session prep. | Name, role, faction/species, compact hook. | Briefs, role influence, fast reroll, compact export. |
-| Pen name | Evaluate pseudonyms for authors or creators. | Name, market fit, memorability, privacy/risk notes. | Briefs, scoring, style fit, screening. |
-| Product / codename | Name products, projects, features, prototypes, or internal initiatives. | Name, rationale, tone fit, collision/risk notes. | Briefs, constraints, memorability, availability-looking variants. |
+| Fiction cast | Name a coherent ensemble of fictional characters. | Cast, roles, Inspect, Cast Health, Fit, export. | Silhouettes, ensemble balance, role influence, diagnostics, variants, provenance. |
+| Game NPC | Generate usable names quickly for play/session prep. | Name, role, faction/species, compact hook. | Role influence, fast reroll, compact export. |
+| Pen name | Evaluate pseudonyms for authors or creators. | Name, market fit, memorability, privacy/risk notes. | Scoring, style fit, screening. |
+| Product / codename | Name products, projects, features, prototypes, or internal initiatives. | Name, rationale, tone fit, collision/risk notes. | Constraints, memorability, availability-looking variants. |
 | Place / toponym | Generate place names or regional naming systems. | Place name, type, morphology, regional texture. | Style packs, morphology, set coherence, provenance. |
 | Set / taxonomy | Name a coherent group of related items. | Named list with hierarchy or theme relationships. | Comparison pressure, shared affixes/themes, export. |
 
@@ -124,7 +122,7 @@ Warnings should be introduced as a cautious local screening surface.
 Potential capabilities:
 
 - common-word collision notes
-- known-name or anchor-distance warnings
+- known-name distance warnings
 - suspiciously dense similarity within a cast
 - explicit warning metadata in Inspect and export
 - no demographic inference, external search, or cultural certainty in this slice

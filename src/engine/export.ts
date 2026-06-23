@@ -1,154 +1,20 @@
-import { namingBriefSummary } from './brief';
-import type { BriefInfluenceMetadata, GeneratedEnsemble, GeneratedName, NameSilhouette, NameVariant, ProvenanceNote, ReadabilityDiagnostic, RoleInfluenceMetadata } from './types';
+import type { GeneratedEnsemble, GeneratedName, NameSilhouette, NameVariant, ProvenanceNote, ReadabilityDiagnostic, RoleInfluenceMetadata } from './types';
 
-export interface ExportedNamePart {
-  role: string;
-  value: string;
-  sourceName: string;
-}
+export interface ExportedNamePart { role: string; value: string; sourceName: string; }
+export interface ExportedRoleInfluence { level: RoleInfluenceMetadata['level']; profileId: string; label: string; effects: string[]; }
+export interface ExportedReadabilityDiagnostic { id: string; severity: ReadabilityDiagnostic['severity']; label: string; detail: string; }
+export interface ExportedNameVariant { value: string; kind: NameVariant['kind']; relationship: NameVariant['relationship']; confidence: NameVariant['confidence']; generated: boolean; ruleId: string; sourceId: string; sourceKind: NameVariant['source']['kind']; sourceLabel: string; locale?: string; }
+export interface ExportedName { id: string; name: string; role?: string; roleInfluence?: ExportedRoleInfluence; readabilityDiagnostics: ExportedReadabilityDiagnostic[]; score: number; scores: GeneratedName['scores']; silhouette: Pick<NameSilhouette, 'syllableCount' | 'stressPattern' | 'rhythm' | 'rarityBand' | 'texture' | 'targetNovelty' | 'targetLength'>; format: string; parts: ExportedNamePart[]; variants: ExportedNameVariant[]; provenance: string[]; seed: string; warnings: string[]; }
+export interface CastExportPayload { exportVersion: 'name-forge.cast.v1'; generatedBy: 'Name Forge'; seed: string; settings: GeneratedEnsemble['settings']; sourcePack: GeneratedEnsemble['sourcePack']; diagnostics: GeneratedEnsemble['diagnostics']; names: ExportedName[]; }
 
-export interface ExportedRoleInfluence {
-  level: RoleInfluenceMetadata['level'];
-  profileId: string;
-  label: string;
-  effects: string[];
-}
-
-export interface ExportedBriefInfluence {
-  summary: BriefInfluenceMetadata['summary'];
-  effects: string[];
-  matches: string[];
-  penalties: string[];
-}
-
-export interface ExportedReadabilityDiagnostic {
-  id: string;
-  severity: ReadabilityDiagnostic['severity'];
-  label: string;
-  detail: string;
-}
-
-export interface ExportedNameVariant {
-  value: string;
-  kind: NameVariant['kind'];
-  relationship: NameVariant['relationship'];
-  confidence: NameVariant['confidence'];
-  generated: boolean;
-  ruleId: string;
-  sourceId: string;
-  sourceKind: NameVariant['source']['kind'];
-  sourceLabel: string;
-  locale?: string;
-}
-
-export interface ExportedName {
-  id: string;
-  name: string;
-  role?: string;
-  roleInfluence?: ExportedRoleInfluence;
-  briefInfluence?: ExportedBriefInfluence;
-  readabilityDiagnostics: ExportedReadabilityDiagnostic[];
-  score: number;
-  scores: GeneratedName['scores'];
-  silhouette: Pick<NameSilhouette, 'syllableCount' | 'stressPattern' | 'rhythm' | 'rarityBand' | 'texture' | 'targetNovelty' | 'targetLength'>;
-  format: string;
-  parts: ExportedNamePart[];
-  variants: ExportedNameVariant[];
-  provenance: string[];
-  seed: string;
-  warnings: string[];
-}
-
-export interface CastExportPayload {
-  exportVersion: 'name-forge.cast.v1';
-  generatedBy: 'Name Forge';
-  seed: string;
-  settings: GeneratedEnsemble['settings'];
-  namingBrief?: GeneratedEnsemble['settings']['brief'];
-  namingBriefSummary?: string;
-  sourcePack: GeneratedEnsemble['sourcePack'];
-  diagnostics: GeneratedEnsemble['diagnostics'];
-  names: ExportedName[];
-}
-
-function uniqueProvenanceLabels(entries: ProvenanceNote[]): string[] {
-  const labels = new Set<string>();
-  for (const entry of entries) {
-    labels.add(`${entry.label} (${entry.sourceId})`);
-  }
-  return [...labels];
-}
-
-function silhouetteSummary(silhouette: NameSilhouette): string {
-  return `${silhouette.syllableCount} syllable ${silhouette.texture} ${silhouette.rarityBand} name with ${silhouette.rhythm} rhythm`;
-}
-
-function scoreLabel(value: number): string {
-  return value.toFixed(2);
-}
-
-function exportRoleInfluence(influence: RoleInfluenceMetadata | undefined): ExportedRoleInfluence | undefined {
-  if (!influence) return undefined;
-  return {
-    level: influence.level,
-    profileId: influence.profileId,
-    label: influence.label,
-    effects: influence.effects,
-  };
-}
-
-function exportBriefInfluence(influence: BriefInfluenceMetadata | undefined): ExportedBriefInfluence | undefined {
-  if (!influence) return undefined;
-  return {
-    summary: influence.summary,
-    effects: influence.effects,
-    matches: influence.matches,
-    penalties: influence.penalties,
-  };
-}
-
-function exportReadabilityDiagnostics(diagnostics: ReadabilityDiagnostic[]): ExportedReadabilityDiagnostic[] {
-  return diagnostics.map((diagnostic) => ({
-    id: diagnostic.id,
-    severity: diagnostic.severity,
-    label: diagnostic.label,
-    detail: diagnostic.detail,
-  }));
-}
-
-function exportVariants(variants: NameVariant[]): ExportedNameVariant[] {
-  return variants.map((variant) => ({
-    value: variant.value,
-    kind: variant.kind,
-    relationship: variant.relationship,
-    confidence: variant.confidence,
-    generated: variant.generated,
-    ruleId: variant.ruleId,
-    sourceId: variant.source.id,
-    sourceKind: variant.source.kind,
-    sourceLabel: variant.source.label,
-    locale: variant.locale,
-  }));
-}
-
-function diagnosticText(diagnostics: ExportedReadabilityDiagnostic[]): string {
-  if (diagnostics.length === 0) return 'None';
-  return diagnostics.map((diagnostic) => `${diagnostic.label}: ${diagnostic.detail}`).join('; ');
-}
-
-function briefInfluenceText(influence: ExportedBriefInfluence | undefined): string {
-  if (!influence) return 'No direct brief influence';
-  return `${influence.summary} ${influence.effects.join(' ')}`;
-}
-
-function relationshipLabel(relationship: ExportedNameVariant['relationship']): string {
-  return relationship.replace(/_/g, ' ');
-}
-
-function variantText(variants: ExportedNameVariant[]): string {
-  if (variants.length === 0) return 'None';
-  return variants.map((variant) => `${variant.value} (${relationshipLabel(variant.relationship)}, ${variant.confidence} confidence, ${variant.generated ? 'generated' : 'listed'}, ${variant.sourceId})`).join(', ');
-}
+function uniqueProvenanceLabels(entries: ProvenanceNote[]): string[] { return [...new Set(entries.map((entry) => entry.label + ' (' + entry.sourceId + ')'))]; }
+function exportRoleInfluence(influence: RoleInfluenceMetadata | undefined): ExportedRoleInfluence | undefined { return influence ? { level: influence.level, profileId: influence.profileId, label: influence.label, effects: influence.effects } : undefined; }
+function exportReadabilityDiagnostics(diagnostics: ReadabilityDiagnostic[]): ExportedReadabilityDiagnostic[] { return diagnostics.map((diagnostic) => ({ id: diagnostic.id, severity: diagnostic.severity, label: diagnostic.label, detail: diagnostic.detail })); }
+function exportVariants(variants: NameVariant[]): ExportedNameVariant[] { return variants.map((variant) => ({ value: variant.value, kind: variant.kind, relationship: variant.relationship, confidence: variant.confidence, generated: variant.generated, ruleId: variant.ruleId, sourceId: variant.source.id, sourceKind: variant.source.kind, sourceLabel: variant.source.label, locale: variant.locale })); }
+function diagnosticText(diagnostics: ExportedReadabilityDiagnostic[]): string { return diagnostics.length === 0 ? 'None' : diagnostics.map((diagnostic) => diagnostic.label + ': ' + diagnostic.detail).join('; '); }
+function relationshipLabel(relationship: ExportedNameVariant['relationship']): string { return relationship.replace(/_/g, ' '); }
+function variantText(variants: ExportedNameVariant[]): string { return variants.length === 0 ? 'None' : variants.map((variant) => variant.value + ' (' + relationshipLabel(variant.relationship) + ', ' + variant.confidence + ' confidence, ' + (variant.generated ? 'generated' : 'listed') + ', ' + variant.sourceId + ')').join(', '); }
+function silhouetteSummary(silhouette: NameSilhouette): string { return silhouette.syllableCount + ' syllable ' + silhouette.texture + ' ' + silhouette.rarityBand + ' name with ' + silhouette.rhythm + ' rhythm'; }
 
 function exportName(name: GeneratedName, seed: string): ExportedName {
   const identity = name.identity;
@@ -157,25 +23,12 @@ function exportName(name: GeneratedName, seed: string): ExportedName {
     name: name.name,
     role: name.role?.label,
     roleInfluence: exportRoleInfluence(name.roleInfluence),
-    briefInfluence: exportBriefInfluence(name.briefInfluence),
     readabilityDiagnostics: exportReadabilityDiagnostics(name.readabilityDiagnostics),
     score: name.scores.overallFit,
     scores: name.scores,
-    silhouette: {
-      syllableCount: name.silhouette.syllableCount,
-      stressPattern: name.silhouette.stressPattern,
-      rhythm: name.silhouette.rhythm,
-      rarityBand: name.silhouette.rarityBand,
-      texture: name.silhouette.texture,
-      targetNovelty: name.silhouette.targetNovelty,
-      targetLength: name.silhouette.targetLength,
-    },
+    silhouette: { syllableCount: name.silhouette.syllableCount, stressPattern: name.silhouette.stressPattern, rhythm: name.silhouette.rhythm, rarityBand: name.silhouette.rarityBand, texture: name.silhouette.texture, targetNovelty: name.silhouette.targetNovelty, targetLength: name.silhouette.targetLength },
     format: identity?.format.label ?? name.silhouette.rhythm,
-    parts: identity?.parts.map((part) => ({
-      role: part.role,
-      value: part.value,
-      sourceName: part.sourceName,
-    })) ?? [],
+    parts: identity?.parts.map((part) => ({ role: part.role, value: part.value, sourceName: part.sourceName })) ?? [],
     variants: exportVariants(name.variants),
     provenance: uniqueProvenanceLabels(name.provenance),
     seed,
@@ -184,75 +37,19 @@ function exportName(name: GeneratedName, seed: string): ExportedName {
 }
 
 export function createCastExportPayload(ensemble: GeneratedEnsemble): CastExportPayload {
-  const briefSummary = namingBriefSummary(ensemble.settings.brief);
-  return {
-    exportVersion: 'name-forge.cast.v1',
-    generatedBy: 'Name Forge',
-    seed: ensemble.settings.seed,
-    settings: ensemble.settings,
-    namingBrief: ensemble.settings.brief,
-    namingBriefSummary: briefSummary,
-    sourcePack: ensemble.sourcePack,
-    diagnostics: ensemble.diagnostics,
-    names: ensemble.names.map((name) => exportName(name, ensemble.settings.seed)),
-  };
+  return { exportVersion: 'name-forge.cast.v1', generatedBy: 'Name Forge', seed: ensemble.settings.seed, settings: ensemble.settings, sourcePack: ensemble.sourcePack, diagnostics: ensemble.diagnostics, names: ensemble.names.map((name) => exportName(name, ensemble.settings.seed)) };
 }
 
-export function serializeCastAsJson(ensemble: GeneratedEnsemble): string {
-  return `${JSON.stringify(createCastExportPayload(ensemble), null, 2)}\n`;
-}
+export function serializeCastAsJson(ensemble: GeneratedEnsemble): string { return JSON.stringify(createCastExportPayload(ensemble), null, 2) + '\n'; }
 
 export function serializeCastAsMarkdown(ensemble: GeneratedEnsemble): string {
-  const briefSummary = namingBriefSummary(ensemble.settings.brief);
-  const lines = [
-    '# Name Forge Cast Export',
-    '',
-    `Seed: \`${ensemble.settings.seed}\``,
-    `Style pack: ${ensemble.sourcePack.label}`,
-    `Cast size: ${ensemble.names.length}`,
-    `Role influence: ${ensemble.settings.roleInfluence ?? 'off'}`,
-  ];
-
-  if (briefSummary) {
-    lines.push(`Naming brief: ${briefSummary}`);
-  }
-
-  lines.push(
-    '',
-    '## Ensemble balance',
-    '',
-    ensemble.diagnostics.summary,
-    ensemble.diagnostics.readabilitySummary,
-    '',
-  );
-
+  const lines = ['# Name Forge Cast Export', '', 'Seed: `' + ensemble.settings.seed + '`', 'Style pack: ' + ensemble.sourcePack.label, 'Cast size: ' + ensemble.names.length, 'Role influence: ' + (ensemble.settings.roleInfluence ?? 'off'), '', '## Ensemble balance', '', ensemble.diagnostics.summary, ensemble.diagnostics.readabilitySummary, ''];
   ensemble.names.forEach((name, index) => {
     const exported = exportName(name, ensemble.settings.seed);
-    const partText = exported.parts.length > 0
-      ? exported.parts.map((part) => `${part.role}: ${part.value}`).join('; ')
-      : 'Single generated name';
+    const partText = exported.parts.length > 0 ? exported.parts.map((part) => part.role + ': ' + part.value).join('; ') : 'Single generated name';
     const provenanceText = exported.provenance.length > 0 ? exported.provenance.join('; ') : 'None';
-    const roleInfluenceText = exported.roleInfluence
-      ? `${exported.roleInfluence.label} (${exported.roleInfluence.level}; ${exported.roleInfluence.effects.join(', ')})`
-      : 'Off';
-
-    lines.push(
-      `## ${index + 1}. ${exported.name}`,
-      '',
-      `- Role: ${exported.role ?? 'Unassigned'}`,
-      `- Role influence: ${roleInfluenceText}`,
-      `- Brief influence: ${briefInfluenceText(exported.briefInfluence)}`,
-      `- Overall fit: ${scoreLabel(exported.score)}`,
-      `- Format: ${exported.format}`,
-      `- Parts: ${partText}`,
-      `- Silhouette: ${silhouetteSummary(name.silhouette)}`,
-      `- Readability notes: ${diagnosticText(exported.readabilityDiagnostics)}`,
-      `- Variants: ${variantText(exported.variants)}`,
-      `- Provenance: ${provenanceText}`,
-      `- Warnings: ${exported.warnings.length > 0 ? exported.warnings.join(', ') : 'none'}`,
-      '',
-    );
+    const roleInfluenceText = exported.roleInfluence ? exported.roleInfluence.label + ' (' + exported.roleInfluence.level + '; ' + exported.roleInfluence.effects.join(', ') + ')' : 'Off';
+    lines.push('## ' + (index + 1) + '. ' + exported.name, '', '- Role: ' + (exported.role ?? 'Unassigned'), '- Role influence: ' + roleInfluenceText, '- Overall fit: ' + exported.score.toFixed(2), '- Format: ' + exported.format, '- Parts: ' + partText, '- Silhouette: ' + silhouetteSummary(name.silhouette), '- Readability notes: ' + diagnosticText(exported.readabilityDiagnostics), '- Variants: ' + variantText(exported.variants), '- Provenance: ' + provenanceText, '- Warnings: ' + (exported.warnings.length > 0 ? exported.warnings.join(', ') : 'none'), '');
   });
-
-  return `${lines.join('\n').trimEnd()}\n`;
+  return lines.join('\n').trimEnd() + '\n';
 }
