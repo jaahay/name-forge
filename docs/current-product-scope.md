@@ -33,7 +33,7 @@ Current baseline capabilities include:
 - Inspect-panel surfacing for readability notes and role influence
 - JSON and Markdown export of generated names, role metadata, diagnostics metadata, variants, scores, and provenance
 
-The next scope decisions should treat readability diagnostics, source descriptors, style pack validation, and richer variant metadata as shipped primitives or near-term hardening targets.
+The next scope decisions should treat readability diagnostics, source descriptors, asset descriptors, style pack validation, and richer variant metadata as shipped primitives or near-term hardening targets.
 
 ## Pronounceability vs pronunciation
 
@@ -74,21 +74,23 @@ Validation target:
 - Listed and generated variants are distinguishable in code, UI, and export.
 - No variant is presented as externally validated unless its source/provenance supports that claim.
 
-### 2. Source descriptor and pack validation
+### 2. Source and asset contracts
 
-The registry should move from MVP provider lookup toward the future source descriptor contract without adding remote-provider behavior yet.
+The registry should move from MVP provider lookup toward explicit source and asset descriptor contracts without adding remote-provider behavior yet.
 
 Required capabilities:
 
-- Define a typed `DataSourceDescriptor` or equivalent contract for built-in, file, HTTP, API, package, and custom/user-pack sources.
+- Define typed source descriptors for built-in, file, HTTP, API, package, and custom/user-pack sources.
+- Define typed asset descriptors for concrete assets such as style packs, phonotactics, listed variants, variant rules, pronunciation lexicons, IPA rules, and name lists.
 - Add source fields for license, locale, priority, enabled-by-default status, and cache policy where applicable.
-- Attach license/locale/source metadata to built-in style packs when available.
-- Add deterministic validation for built-in style-pack shape.
+- Attach license/locale/source/asset metadata to built-in style packs.
+- Add deterministic validation for built-in source, asset, style-pack, phonotactic, and variant-rule shape.
 - Keep remote/API providers and user-uploaded packs deferred until validation exists.
 
 Validation target:
 
 - Built-in packs validate at startup or in tests.
+- Registry descriptors can list sources and concrete assets separately.
 - Registry descriptors can represent future local/user, remote, package, and API sources without changing generation semantics.
 - No external network or paid provider is required for this slice.
 
