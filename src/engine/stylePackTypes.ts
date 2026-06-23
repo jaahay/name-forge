@@ -1,4 +1,4 @@
-import type { SourceDescriptor } from './sourceTypes';
+import type { AssetDescriptor, SourceDescriptor } from './sourceTypes';
 
 export interface StyleDescriptor {
   schemaVersion: 'name-forge.style.v1';
@@ -9,6 +9,7 @@ export interface StyleDescriptor {
 
 export interface StylePackSourceDescriptor {
   source: SourceDescriptor;
+  asset: AssetDescriptor;
   assetKind: 'style-pack';
   packId: string;
   packVersion: string;
