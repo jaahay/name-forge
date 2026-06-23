@@ -1,6 +1,7 @@
-import type { SourceDescriptor, StylePack } from '../engine/types';
+import type { AssetDescriptor, SourceDescriptor, StylePack } from '../engine/types';
 
 const builtInStylePackSource: SourceDescriptor = {
+  schemaVersion: 'name-forge.source.v1',
   id: 'built-in-style-packs@0.1.0',
   label: 'Built-in style packs',
   channel: 'built-in',
@@ -15,21 +16,36 @@ const builtInStylePackSource: SourceDescriptor = {
   trustNotes: 'No remote loading or external name database dependency; safe for deterministic offline generation.',
 };
 
+const britishLiteraryFantasyAsset: AssetDescriptor = {
+  schemaVersion: 'name-forge.asset.v1',
+  id: 'british-literary-fantasy@0.1.0',
+  kind: 'style-pack',
+  sourceId: builtInStylePackSource.id,
+  label: 'British literary fantasy style pack',
+  version: '0.1.0',
+  sourcePath: 'src/data/stylePacks.ts#british-literary-fantasy',
+  license: 'project-local',
+  locale: 'fictional-en-GB-literary',
+  trustNotes: 'Fictionalized starter style data, not a real-world cultural or etymological authority.',
+  limitations: [
+    'Fictionalized style guidance, not a real-world cultural or etymological authority.',
+    'Bundled starter data only; it should not be treated as exhaustive coverage of British naming traditions.',
+  ],
+};
+
 export const stylePacks: StylePack[] = [{
   id: 'british-literary-fantasy',
   label: 'British literary fantasy',
   description: 'A soft-coded starter pack for bookish, folktale-adjacent names with fictionalized British literary texture.',
   source: {
     source: builtInStylePackSource,
+    asset: britishLiteraryFantasyAsset,
     assetKind: 'style-pack',
     packId: 'british-literary-fantasy',
     packVersion: '0.1.0',
-    sourcePath: 'src/data/stylePacks.ts#british-literary-fantasy',
+    sourcePath: britishLiteraryFantasyAsset.sourcePath,
     styleNotes: 'Bookish, folktale-adjacent, British-literary texture for fictional character naming.',
-    limitations: [
-      'Fictionalized style guidance, not a real-world cultural or etymological authority.',
-      'Bundled starter data only; it should not be treated as exhaustive coverage of British naming traditions.',
-    ],
+    limitations: britishLiteraryFantasyAsset.limitations,
   },
   style: {
     schemaVersion: 'name-forge.style.v1',
@@ -40,7 +56,7 @@ export const stylePacks: StylePack[] = [{
   version: '0.1.0',
   localeHint: 'fictional-en-GB-literary',
   culturalAnchors: ['Albion', 'Arthurian romance', 'Victorian novels', 'border ballads'],
-  provenance: { sourceId: 'british-literary-fantasy@0.1.0', sourceKind: 'style-pack', label: 'Style pack', detail: 'Local JSON-style pack with fictionalized phonotactics, weighted endings, spelling alternates, and style constraints.' },
+  provenance: { sourceId: britishLiteraryFantasyAsset.id, sourceKind: 'style-pack', label: 'Style pack', detail: 'Local JSON-style pack with fictionalized phonotactics, weighted endings, spelling alternates, and style constraints.' },
   phonotactics: {
     onsets: ['', 'b', 'br', 'c', 'cl', 'd', 'dr', 'f', 'g', 'gw', 'h', 'l', 'm', 'n', 'p', 'r', 's', 't', 'th', 'v', 'w', 'y'].map((value, index) => ({ value, weight: index === 0 ? 3 : 4 })),
     nuclei: ['a', 'ae', 'e', 'ea', 'i', 'ia', 'o', 'oo', 'u', 'y'].map((value) => ({ value, weight: value.length === 1 ? 6 : 2 })),
