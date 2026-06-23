@@ -28,7 +28,7 @@ The current app is explicitly the first **Fiction cast** mode of a broader rando
 - Plausibility scoring across pronounceability, memorability, novelty, cultural anchoring, orthographic naturalness, style fit, silhouette fit, ensemble fit, and role fit signals.
 - Spelling variants marked as listed alternates or generated spellings.
 - JSON and Markdown cast export with role, rarity, score, identity, silhouette, variant, role influence, readability diagnostics, and provenance metadata.
-- Source/provider registry abstraction with provenance-bearing outputs.
+- Source/provider registry abstraction with source and asset descriptors for provenance-bearing outputs.
 
 ## Current next feature requirements
 
@@ -37,7 +37,7 @@ The readability-diagnostics slice is now part of the Fiction cast baseline. The 
 Recommended next slices:
 
 1. **Variant relationship metadata**: extend spelling variants with relationship type, confidence, source metadata, optional locale, and explicit generated/listed provenance.
-2. **Source descriptor and pack validation**: define the future provider/source descriptor contract, add license/locale metadata where applicable, and validate built-in style packs before accepting user-loaded packs.
+2. **Source and asset contracts**: define source descriptors, concrete asset descriptors, license/locale/trust metadata, and deterministic validation for built-in style packs before accepting user-loaded packs.
 3. **Warning and collision scaffolding**: add cautious common-word collision, known-name distance, and warning metadata without demographic inference or external databases.
 4. **Game NPC mode discovery**: keep Game NPC as the first candidate second mode, but only after Fiction cast contracts and shared primitives are stable.
 
@@ -86,6 +86,8 @@ src/
     roles.ts
     scoring.ts
     silhouettes.ts
+    sourceTypes.ts
+    stylePackTypes.ts
     types.ts
     variants.ts
   ui/
