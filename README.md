@@ -86,6 +86,7 @@ src/
     roles.ts
     scoring.ts
     silhouettes.ts
+    styleCompiler.ts
     types.ts
     variants.ts
   ui/
