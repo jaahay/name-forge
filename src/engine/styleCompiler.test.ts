@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { compileStyle, type SoundProfile, type StyleInput } from './styleCompiler';
+import type { SoundProfile } from './soundProfile';
+import { compileStyle, type StyleInput } from './styleCompiler';
 
 describe('compileStyle', () => {
   it('compiles the default style input into a deterministic SoundProfile', () => {
@@ -38,11 +39,12 @@ describe('compileStyle', () => {
   });
 
   it('keeps user-facing style input ergonomic while compiling internal sound targets', () => {
-    const profile = compileStyle({
+    const input: StyleInput = {
       feel: 'lyrical',
       length: 'long',
       distinctiveness: 'distinctive',
-    });
+    };
+    const profile = compileStyle(input);
 
     expect(profile.id).toBe('sound-profile:fiction-cast:lyrical:long:distinctive');
     expect(profile.targets).toEqual({
