@@ -3,6 +3,7 @@ import type { StyleDescriptor, StylePackSourceDescriptor } from './stylePackType
 
 export type { AssetKind, CachePolicy, SourceChannel, SourceDescriptor, SourceValidationIssue, SourceValidationSeverity, StylePackValidationResult } from './sourceTypes';
 export type { StyleDescriptor, StylePackSourceDescriptor } from './stylePackTypes';
+export type { SoundProfile, StyleInput } from './styleCompiler';
 
 export type ScoreKey =
   | 'pronounceability'
