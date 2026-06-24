@@ -1,64 +1,28 @@
-type StyleJob = 'fiction-cast';
+import type { SoundProfile } from './soundProfile';
+
 type StyleFeel = 'balanced' | 'gentle' | 'strong' | 'lyrical';
-type StyleLength = 'short' | 'medium' | 'long';
+type StyleLength = SoundProfile['targets']['length'];
 type StyleDistinctiveness = 'familiar' | 'balanced' | 'distinctive';
-
-type SonicTexture = 'balanced' | 'soft' | 'crisp' | 'fluid';
-type SoundCadence = 'compact' | 'balanced' | 'open' | 'rolling';
-
-interface CompiledStyleSource {
-  readonly kind: 'style-input';
-  readonly job: StyleJob;
-  readonly compiler: 'name-forge:style-compiler@0.1.0';
-}
-
-interface SoundProfileTargets {
-  readonly length: StyleLength;
-  readonly syllableCount: {
-    readonly min: number;
-    readonly max: number;
-    readonly preferred: number;
-  };
-  readonly texture: SonicTexture;
-  readonly distinctiveness: number;
-  readonly cadences: readonly SoundCadence[];
-}
-
-interface SoundProfilePhonotactics {
-  readonly preferredSyllableShapes: readonly string[];
-  readonly onsetWeight: number;
-  readonly codaWeight: number;
-  readonly liquidWeight: number;
-  readonly glideWeight: number;
-  readonly clusterTolerance: number;
-}
+type NormalizedStyleInput = Required<StyleInput>;
+type SonicTexture = SoundProfile['targets']['texture'];
+type SoundCadence = SoundProfile['targets']['cadences'][number];
 
 export interface StyleInput {
-  readonly job?: StyleJob;
   readonly feel?: StyleFeel;
   readonly length?: StyleLength;
   readonly distinctiveness?: StyleDistinctiveness;
 }
 
-export interface SoundProfile {
-  readonly contract: 'SoundProfile';
-  readonly version: 1;
-  readonly id: string;
-  readonly source: CompiledStyleSource;
-  readonly targets: SoundProfileTargets;
-  readonly phonotactics: SoundProfilePhonotactics;
-}
-
-const COMPILER_ID = 'name-forge:style-compiler@0.1.0' as const;
+const COMPILER_ID: SoundProfile['source']['compiler'] = 'name-forge:style-compiler@0.1.0';
+const STYLE_JOB: SoundProfile['source']['job'] = 'fiction-cast';
 
 const DEFAULT_STYLE = {
-  job: 'fiction-cast',
   feel: 'balanced',
   length: 'medium',
   distinctiveness: 'balanced',
-} as const satisfies Required<StyleInput>;
+} as const satisfies NormalizedStyleInput;
 
-const syllableCounts: Record<StyleLength, SoundProfileTargets['syllableCount']> = {
+const syllableCounts: Record<StyleLength, SoundProfile['targets']['syllableCount']> = {
   short: { min: 1, max: 2, preferred: 1 },
   medium: { min: 2, max: 3, preferred: 2 },
   long: { min: 3, max: 4, preferred: 3 },
@@ -83,17 +47,16 @@ const cadencesByLength: Record<StyleLength, readonly SoundCadence[]> = {
   long: ['rolling', 'open'],
 };
 
-function normalizeStyleInput(input: StyleInput): Required<StyleInput> {
+function normalizeStyleInput(input: StyleInput): NormalizedStyleInput {
   return {
-    job: input.job ?? DEFAULT_STYLE.job,
     feel: input.feel ?? DEFAULT_STYLE.feel,
     length: input.length ?? DEFAULT_STYLE.length,
     distinctiveness: input.distinctiveness ?? DEFAULT_STYLE.distinctiveness,
   };
 }
 
-function compilePhonotactics(style: Required<StyleInput>): SoundProfilePhonotactics {
-  const base: SoundProfilePhonotactics = {
+function compilePhonotactics(style: NormalizedStyleInput): SoundProfile['phonotactics'] {
+  const base: SoundProfile['phonotactics'] = {
     preferredSyllableShapes: ['CV', 'CVC', 'CVL'],
     onsetWeight: 0.72,
     codaWeight: 0.46,
@@ -138,10 +101,10 @@ export function compileStyle(input: StyleInput = {}): SoundProfile {
   return {
     contract: 'SoundProfile',
     version: 1,
-    id: `sound-profile:${style.job}:${style.feel}:${style.length}:${style.distinctiveness}`,
+    id: `sound-profile:${STYLE_JOB}:${style.feel}:${style.length}:${style.distinctiveness}`,
     source: {
       kind: 'style-input',
-      job: style.job,
+      job: STYLE_JOB,
       compiler: COMPILER_ID,
     },
     targets: {
