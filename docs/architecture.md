@@ -107,9 +107,11 @@ Do not use an ERD or UML class diagram for this layer yet. The useful artifact i
 
 ## Starter sound segment inventory
 
-`src/engine/soundSegments.ts` owns the first hard-coded engine-local sound inventory. It is a built-in table of stable sound segment ids, display symbols, broad segment kinds, and syllable-role metadata. It is not a generic source system, user-import format, language pack, or pronunciation database.
+`src/engine/soundSegments.ts` owns the first hard-coded engine-local sound inventory. It is a built-in table of stable sound segment ids, display symbols, durable feature metadata, and syllable-role metadata. It is not a generic source system, user-import format, language pack, or pronunciation database.
 
-The term segment is intentional. It is broader than phoneme and avoids claiming a language-specific contrastive unit. The current symbols are transcription display symbols for generated fixtures, not verified pronunciation for any language, dialect, speaker, TTS provider, or external source.
+The term segment is intentional. It is broader than phoneme and avoids claiming a language-specific contrastive unit. The current inventory is broad enough to cover common English-oriented consonants, monophthong nuclei, and diphthong nuclei for upcoming generator work, but the symbols remain display transcription symbols for generated fixtures rather than verified pronunciation for any language, dialect, speaker, TTS provider, or external source.
+
+Segment metadata deliberately separates broad category from feature axes. Consonants carry manner, place, voicing, and sonority. Vowels carry monophthong or diphthong movement, vowel target metadata, and sonority. This keeps liquid, glide, nasal, obstruent, and vowel behavior available for generation without using those classes as the top-level segment category.
 
 ## Future sequence and adapter boundaries
 
@@ -253,7 +255,7 @@ The engine centers on these first-class types:
 
 - `StyleInput`: ergonomic user-facing style intent for this first compiler. It is not a generic mode selector and should not contain sound-engine internals.
 - `SoundProfile`: compiled internal phonotactic/prosodic profile contract consumed by later segment-sequence generation work.
-- `SoundSegment`: stable engine-local sound segment unit with a display transcription symbol and syllable-role metadata.
+- `SoundSegment`: stable engine-local sound segment unit with a display transcription symbol, feature metadata, and syllable-role metadata.
 - `GenerationSettings`: adjustable axes such as cast size, seed, style pack, name format, role preset, role influence, rarity distribution, novelty, pronounceability, memorability, cultural anchoring, and orthographic weirdness.
 - `ReadabilityDiagnostic`: non-canonical readability/speakability notes for names and casts.
 - `NameSilhouette`: the pre-spelling shape of one full name.
