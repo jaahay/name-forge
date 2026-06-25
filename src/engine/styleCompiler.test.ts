@@ -59,7 +59,7 @@ describe('compileStyle', () => {
       cadences: ['rolling', 'open'],
     });
     expect(profile.phonotactics).toEqual({
-      preferredSyllableShapes: ['CV', 'CVL', 'VCV'],
+      preferredSyllableShapes: ['CV', 'CVL', 'V'],
       onsetWeight: 0.72,
       codaWeight: 0.46,
       liquidWeight: 0.52,
