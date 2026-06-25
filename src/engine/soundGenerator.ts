@@ -76,10 +76,15 @@ function pickCadence(profile: SoundProfile, rng: SeededRandom): SoundProfileCade
 }
 
 function shapeWeight(shape: SupportedSyllableShape, profile: SoundProfile): number {
-  if (shape === 'V') return 0.35;
-  if (shape === 'CV') return 1.8;
-  if (shape === 'CVC') return 0.35 + profile.phonotactics.codaWeight * 2.5;
-  return 0.25 + profile.phonotactics.liquidWeight * 3;
+  const onsetPreference = shape.startsWith('C')
+    ? profile.phonotactics.onsetWeight
+    : 1 - profile.phonotactics.onsetWeight;
+  const onsetFactor = Math.max(0.1, onsetPreference);
+
+  if (shape === 'V') return 0.35 * onsetFactor;
+  if (shape === 'CV') return 1.8 * onsetFactor;
+  if (shape === 'CVC') return (0.35 + profile.phonotactics.codaWeight * 2.5) * onsetFactor;
+  return (0.25 + profile.phonotactics.liquidWeight * 3) * onsetFactor;
 }
 
 function pickSyllableShape(profile: SoundProfile, rng: SeededRandom): SupportedSyllableShape {
