@@ -82,7 +82,7 @@ function compilePhonotactics(style: NormalizedStyleInput): SoundProfile['phonota
   if (style.feel === 'lyrical') {
     return {
       ...base,
-      preferredSyllableShapes: ['CV', 'CVL', 'VCV'],
+      preferredSyllableShapes: ['CV', 'CVL', 'V'],
       liquidWeight: 0.52,
       glideWeight: 0.3,
       clusterTolerance: 0.18,
