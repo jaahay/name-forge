@@ -86,6 +86,7 @@ src/
     roles.ts
     scoring.ts
     silhouettes.ts
+    soundGenerator.ts
     soundProfile.ts
     soundSegments.ts
     styleCompiler.ts
