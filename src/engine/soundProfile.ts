@@ -1,24 +1,24 @@
-type StyleJob = 'fiction-cast';
-type StyleLength = 'short' | 'medium' | 'long';
-type SonicTexture = 'balanced' | 'soft' | 'crisp' | 'fluid';
-type SoundCadence = 'compact' | 'balanced' | 'open' | 'rolling';
+export type SoundProfileJob = 'fiction-cast';
+export type SoundProfileLength = 'short' | 'medium' | 'long';
+export type SoundProfileTexture = 'balanced' | 'soft' | 'crisp' | 'fluid';
+export type SoundProfileCadence = 'compact' | 'balanced' | 'open' | 'rolling';
 
 interface CompiledStyleSource {
   readonly kind: 'style-input';
-  readonly job: StyleJob;
+  readonly job: SoundProfileJob;
   readonly compiler: 'name-forge:style-compiler@0.1.0';
 }
 
 interface SoundProfileTargets {
-  readonly length: StyleLength;
+  readonly length: SoundProfileLength;
   readonly syllableCount: {
     readonly min: number;
     readonly max: number;
     readonly preferred: number;
   };
-  readonly texture: SonicTexture;
+  readonly texture: SoundProfileTexture;
   readonly distinctiveness: number;
-  readonly cadences: readonly SoundCadence[];
+  readonly cadences: readonly SoundProfileCadence[];
 }
 
 interface SoundProfilePhonotactics {
