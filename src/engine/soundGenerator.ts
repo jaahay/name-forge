@@ -36,6 +36,7 @@ export interface GeneratedSound {
 }
 
 const supportedSyllableShapes: readonly SupportedSyllableShape[] = ['V', 'CV', 'CVC', 'CVL'];
+const fallbackSyllableShapes: readonly SupportedSyllableShape[] = ['CV'];
 const allSegmentIds = Object.keys(starterSoundInventory) as SoundSegmentId[];
 
 function isSupportedSyllableShape(shape: string): shape is SupportedSyllableShape {
@@ -89,7 +90,8 @@ function shapeWeight(shape: SupportedSyllableShape, profile: SoundProfile): numb
 
 function pickSyllableShape(profile: SoundProfile, rng: SeededRandom): SupportedSyllableShape {
   const preferredShapes = profile.phonotactics.preferredSyllableShapes.filter(isSupportedSyllableShape);
-  const candidates = (preferredShapes.length > 0 ? preferredShapes : ['CV']).map((shape): WeightedValue<SupportedSyllableShape> => ({
+  const candidateShapes = preferredShapes.length > 0 ? preferredShapes : fallbackSyllableShapes;
+  const candidates = candidateShapes.map((shape): WeightedValue<SupportedSyllableShape> => ({
     value: shape,
     weight: shapeWeight(shape, profile),
   }));
