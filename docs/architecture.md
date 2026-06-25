@@ -51,7 +51,7 @@ StyleInput
   -> compileStyle(input)
   -> SoundProfile
   -> generateSound(profile, rng)
-  -> GeneratedSound
+  -> SoundCandidate
   -> SegmentSequence
 ```
 
@@ -110,7 +110,13 @@ Do not use an ERD or UML class diagram for this layer yet. The useful artifact i
 
 ## Starter sound segment inventory
 
-`src/engine/soundSegments.ts` owns the first hard-coded engine-local sound inventory. It is a built-in table of stable sound segment ids, display symbols, durable feature metadata, and syllable-role metadata. It is not a generic source system, user-import format, language pack, or pronunciation database.
+The first hard-coded engine-local sound inventory is split by concern:
+
+- `src/engine/soundSegmentTypes.ts` owns the segment type model.
+- `src/engine/starterSoundInventory.ts` owns the built-in starter inventory table and lookup.
+- `src/engine/soundSegments.ts` is the public facade for callers that need segment types, inventory, or lookup.
+
+The starter inventory is a built-in table of stable sound segment ids, display symbols, durable feature metadata, and syllable-role metadata. It is not a generic source system, user-import format, language pack, or pronunciation database.
 
 The term segment is intentional. It is broader than phoneme and avoids claiming a language-specific contrastive unit. The current inventory is broad enough to cover common English-oriented consonants, monophthong nuclei, and diphthong nuclei for upcoming generator work, but the symbols remain display transcription symbols for generated fixtures rather than verified pronunciation for any language, dialect, speaker, TTS provider, or external source.
 
@@ -118,7 +124,7 @@ Segment metadata deliberately separates broad category from feature axes. Conson
 
 ## Deterministic sound generation
 
-`src/engine/soundGenerator.ts` owns the first internal generator that consumes `SoundProfile` and `SeededRandom`. It returns `GeneratedSound`, whose durable payload is a flat `SegmentSequence` plus syllable spans for onset, nucleus, coda, shape, and display transcription rendering.
+`src/engine/soundGenerator.ts` owns the first internal generator that consumes `SoundProfile` and `SeededRandom`. It returns `SoundCandidate`, whose durable payload is a flat `SegmentSequence` plus syllable spans for onset, nucleus, coda, shape, and display transcription rendering.
 
 This generator is deterministic by seed and profile. It deliberately does not project spellings, alter the current app runtime, or claim canonical pronunciation. The generated transcription is a display/debug rendering of internal segments, not a user-facing pronunciation authority.
 
@@ -156,9 +162,11 @@ src/
     roles.ts              Cast role labels, presets, parsing, slot resolution, and role influence profiles
     scoring.ts            Candidate score and explanation signals
     silhouettes.ts        NameSilhouette construction and rarity/shape planning
-    soundGenerator.ts     Deterministic SoundProfile to GeneratedSound and SegmentSequence generation
+    soundGenerator.ts     Deterministic SoundProfile to SoundCandidate and SegmentSequence generation
     soundProfile.ts       SoundProfile contract and private compiled-profile subtypes
-    soundSegments.ts      Starter sound segment inventory and display transcription rendering
+    soundSegments.ts      Public facade for segment types, inventory, and lookup
+    soundSegmentTypes.ts  Sound segment type model
+    starterSoundInventory.ts  Starter sound segment inventory and lookup
     styleCompiler.ts      StyleInput and compileStyle boundary
     types.ts              Existing core domain types and contracts
     variants.ts           Spelling variant generation and provenance
@@ -268,7 +276,7 @@ The engine centers on these first-class types:
 - `SoundProfile`: compiled internal phonotactic/prosodic profile contract consumed by later segment-sequence generation work.
 - `SoundSegment`: stable engine-local sound segment unit with a display transcription symbol, feature metadata, and syllable-role metadata.
 - `SegmentSequence`: ordered pre-spelling segment list plus syllable spans over that list.
-- `GeneratedSound`: deterministic pre-spelling sound candidate derived from a `SoundProfile`, carrying cadence, sequence structure, and display transcription.
+- `SoundCandidate`: deterministic pre-spelling sound candidate derived from a `SoundProfile`, carrying cadence, sequence structure, and display transcription.
 - `GenerationSettings`: adjustable axes such as cast size, seed, style pack, name format, role preset, role influence, rarity distribution, novelty, pronounceability, memorability, cultural anchoring, and orthographic weirdness.
 - `ReadabilityDiagnostic`: non-canonical readability/speakability notes for names and casts.
 - `NameSilhouette`: the pre-spelling shape of one full name.
