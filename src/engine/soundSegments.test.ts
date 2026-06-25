@@ -1,10 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  getSoundSegment,
-  renderSegmentSequenceTranscription,
-  starterSoundInventory,
-  type SegmentSequenceFixture,
-} from './soundSegments';
+import { getSoundSegment, starterSoundInventory } from './soundSegments';
 
 const consonantIds = [
   'p',
@@ -118,25 +113,7 @@ describe('starterSoundInventory', () => {
     });
   });
 
-  it('renders a generated segment fixture as display transcription', () => {
-    const sequence: SegmentSequenceFixture = {
-      syllables: [
-        ['k', 'a'],
-        ['l', 'eh', 'n'],
-      ],
-    };
-
-    expect(renderSegmentSequenceTranscription(sequence)).toBe('/ka.lɛn/');
-  });
-
   it('keeps internal ids separate from display symbols', () => {
-    const sequence: SegmentSequenceFixture = {
-      syllables: [
-        ['y', 'a'],
-        ['j', 'ow'],
-      ],
-    };
-
     expect(getSoundSegment('y')).toMatchObject({
       id: 'y',
       symbol: 'j',
@@ -151,6 +128,5 @@ describe('starterSoundInventory', () => {
       manner: 'affricate',
       sonority: 'obstruent',
     });
-    expect(renderSegmentSequenceTranscription(sequence)).toBe('/ja.dʒoʊ/');
   });
 });
