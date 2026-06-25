@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getSoundSegment, starterSoundInventory } from './soundSegments';
+import { getSoundSegment, starterSoundInventory } from './starterSoundInventory';
 
 const consonantIds = [
   'p',
