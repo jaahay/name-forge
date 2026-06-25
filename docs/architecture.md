@@ -32,7 +32,7 @@ The important split is:
 ## Architectural principles
 
 1. **Controlled stochasticity**: random generation is deterministic by seed and constrained by explicit settings.
-2. **Sound structure before spelling**: style compilers produce a `SoundProfile`; future generator slices should produce a pre-spelling segment sequence before projecting viable spellings.
+2. **Sound structure before spelling**: style compilers produce a `SoundProfile`; generator slices produce a pre-spelling segment sequence before projecting viable spellings.
 3. **Silhouette before spelling**: shape the intended name before exact letters are chosen.
 4. **Ensemble-aware selection**: the first serious output is a cast, so repeated initials, endings, cadence, readability friction, and rarity clusters matter.
 5. **Mode-aware UX, shared primitives**: Fiction cast can have role mix, slot overrides, cast health, and cast export without making those concepts global product assumptions.
@@ -44,12 +44,15 @@ The important split is:
 
 ## Runtime pipeline
 
-The sound-first core is being introduced in scoped slices. The implemented compiler boundary is:
+The sound-first core is being introduced in scoped slices. The implemented sound-first internal boundary is:
 
 ```text
 StyleInput
   -> compileStyle(input)
   -> SoundProfile
+  -> generateSound(profile, rng)
+  -> GeneratedSound
+  -> SegmentSequence
 ```
 
 Future slices extend that boundary to:
@@ -72,7 +75,7 @@ flowchart LR
   E --> F[Generated names]
 ```
 
-The sequence layer is deliberately not called a single generated sound. A future `SegmentSequence` should represent one pre-spelling candidate form with syllable segmentation metadata, then project to one or more spellings.
+The sequence layer is deliberately not called a single generated sound. `SegmentSequence` represents one pre-spelling candidate form with syllable segmentation metadata, then later projects to one or more spellings.
 
 The current app runtime still uses the established Fiction cast pipeline until the later sequence generation and spelling slices are wired in:
 
@@ -113,9 +116,15 @@ The term segment is intentional. It is broader than phoneme and avoids claiming 
 
 Segment metadata deliberately separates broad category from feature axes. Consonants carry manner, place, voicing, and sonority. Vowels carry monophthong or diphthong movement, vowel target metadata, and sonority. This keeps liquid, glide, nasal, obstruent, and vowel behavior available for generation without using those classes as the top-level segment category.
 
+## Deterministic sound generation
+
+`src/engine/soundGenerator.ts` owns the first internal generator that consumes `SoundProfile` and `SeededRandom`. It returns `GeneratedSound`, whose durable payload is a flat `SegmentSequence` plus syllable spans for onset, nucleus, coda, shape, and display transcription rendering.
+
+This generator is deterministic by seed and profile. It deliberately does not project spellings, alter the current app runtime, or claim canonical pronunciation. The generated transcription is a display/debug rendering of internal segments, not a user-facing pronunciation authority.
+
 ## Future sequence and adapter boundaries
 
-A future `SegmentSequence` should represent one pre-spelling candidate form, not one sound and not one final name. Its likely source of truth is a flat ordered segment list, with syllable segmentation recorded as spans or structured metadata over that list. That avoids storing both a flat segment array and nested syllable arrays as competing authoritative representations.
+`SegmentSequence` represents one pre-spelling candidate form, not one sound and not one final name. Its source of truth is a flat ordered segment list, with syllable segmentation recorded as spans over that list. That avoids storing both a flat segment array and nested syllable arrays as competing authoritative representations.
 
 Syllable metadata should still matter. The future sequence model should be able to represent onset, nucleus, coda, stress, cadence, and pronounceability features, because those are useful for ensemble diversity and spelling projection.
 
@@ -147,6 +156,7 @@ src/
     roles.ts              Cast role labels, presets, parsing, slot resolution, and role influence profiles
     scoring.ts            Candidate score and explanation signals
     silhouettes.ts        NameSilhouette construction and rarity/shape planning
+    soundGenerator.ts     Deterministic SoundProfile to GeneratedSound and SegmentSequence generation
     soundProfile.ts       SoundProfile contract and private compiled-profile subtypes
     soundSegments.ts      Starter sound segment inventory and display transcription rendering
     styleCompiler.ts      StyleInput and compileStyle boundary
@@ -234,6 +244,7 @@ These should remain reusable across future modes:
 
 - `SoundProfile`
 - sound segment inventory
+- deterministic sound generation
 - seeded random utility
 - style pack and provider registry
 - `NameSilhouette`
@@ -256,6 +267,8 @@ The engine centers on these first-class types:
 - `StyleInput`: ergonomic user-facing style intent for this first compiler. It is not a generic mode selector and should not contain sound-engine internals.
 - `SoundProfile`: compiled internal phonotactic/prosodic profile contract consumed by later segment-sequence generation work.
 - `SoundSegment`: stable engine-local sound segment unit with a display transcription symbol, feature metadata, and syllable-role metadata.
+- `SegmentSequence`: ordered pre-spelling segment list plus syllable spans over that list.
+- `GeneratedSound`: deterministic pre-spelling sound candidate derived from a `SoundProfile`, carrying cadence, sequence structure, and display transcription.
 - `GenerationSettings`: adjustable axes such as cast size, seed, style pack, name format, role preset, role influence, rarity distribution, novelty, pronounceability, memorability, cultural anchoring, and orthographic weirdness.
 - `ReadabilityDiagnostic`: non-canonical readability/speakability notes for names and casts.
 - `NameSilhouette`: the pre-spelling shape of one full name.
