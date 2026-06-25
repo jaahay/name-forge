@@ -1,20 +1,17 @@
-import type { SoundProfile } from './soundProfile';
+import type { SoundProfile, SoundProfileCadence, SoundProfileJob, SoundProfileLength, SoundProfileTexture } from './soundProfile';
 
 type StyleFeel = 'balanced' | 'gentle' | 'strong' | 'lyrical';
-type StyleLength = SoundProfile['targets']['length'];
 type StyleDistinctiveness = 'familiar' | 'balanced' | 'distinctive';
 type NormalizedStyleInput = Required<StyleInput>;
-type SonicTexture = SoundProfile['targets']['texture'];
-type SoundCadence = SoundProfile['targets']['cadences'][number];
 
 export interface StyleInput {
   readonly feel?: StyleFeel;
-  readonly length?: StyleLength;
+  readonly length?: SoundProfileLength;
   readonly distinctiveness?: StyleDistinctiveness;
 }
 
 const COMPILER_ID: SoundProfile['source']['compiler'] = 'name-forge:style-compiler@0.1.0';
-const STYLE_JOB: SoundProfile['source']['job'] = 'fiction-cast';
+const STYLE_JOB: SoundProfileJob = 'fiction-cast';
 
 const DEFAULT_STYLE = {
   feel: 'balanced',
@@ -22,13 +19,13 @@ const DEFAULT_STYLE = {
   distinctiveness: 'balanced',
 } as const satisfies NormalizedStyleInput;
 
-const syllableCounts: Record<StyleLength, SoundProfile['targets']['syllableCount']> = {
+const syllableCounts: Record<SoundProfileLength, SoundProfile['targets']['syllableCount']> = {
   short: { min: 1, max: 2, preferred: 1 },
   medium: { min: 2, max: 3, preferred: 2 },
   long: { min: 3, max: 4, preferred: 3 },
 };
 
-const textureByFeel: Record<StyleFeel, SonicTexture> = {
+const textureByFeel: Record<StyleFeel, SoundProfileTexture> = {
   balanced: 'balanced',
   gentle: 'soft',
   strong: 'crisp',
@@ -41,7 +38,7 @@ const distinctivenessTargets: Record<StyleDistinctiveness, number> = {
   distinctive: 0.72,
 };
 
-const cadencesByLength: Record<StyleLength, readonly SoundCadence[]> = {
+const cadencesByLength: Record<SoundProfileLength, readonly SoundProfileCadence[]> = {
   short: ['compact', 'balanced'],
   medium: ['balanced', 'open'],
   long: ['rolling', 'open'],
