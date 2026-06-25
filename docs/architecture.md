@@ -16,7 +16,7 @@ Related docs:
 
 Name Forge works by combining controlled randomness with explicit product judgment:
 
-1. Compile ergonomic style input into `SoundProfile`, the single internal sound contract.
+1. Compile ergonomic style input into `SoundProfile`, the single internal style-to-sound contract.
 2. Generate candidate names from seeded randomness and soft-coded style data while the sound-first core is introduced in slices.
 3. Shape candidates through silhouettes, rarity planning, role metadata, and optional role influence.
 4. Score candidates with decomposed fit signals, including role fit where applicable.
@@ -32,7 +32,7 @@ The important split is:
 ## Architectural principles
 
 1. **Controlled stochasticity**: random generation is deterministic by seed and constrained by explicit settings.
-2. **Sound before spelling**: style compilers produce a `SoundProfile`; future generator slices should produce generated sound before projecting viable spellings.
+2. **Sound structure before spelling**: style compilers produce a `SoundProfile`; future generator slices should produce a pre-spelling syllable/phoneme sequence before projecting viable spellings.
 3. **Silhouette before spelling**: shape the intended name before exact letters are chosen.
 4. **Ensemble-aware selection**: the first serious output is a cast, so repeated initials, endings, cadence, readability friction, and rarity clusters matter.
 5. **Mode-aware UX, shared primitives**: Fiction cast can have role mix, slot overrides, cast health, and cast export without making those concepts global product assumptions.
@@ -55,22 +55,26 @@ StyleInput
 Future slices extend that boundary to:
 
 ```text
-Style input
-  -> style compiler
+StyleInput
+  -> compileStyle(input)
   -> SoundProfile
-  -> generated sound
-  -> viable spelling candidates
+  -> SyllableSequence candidate pool
+  -> SpellingCandidate pool
+  -> GeneratedName selection
 ```
 
 ```mermaid
 flowchart LR
   A[Mode-specific style input] --> B[Style compiler]
   B --> C[SoundProfile]
-  C --> D[Generated sound]
-  D --> E[Viable spelling candidates]
+  C --> D[SyllableSequence candidates]
+  D --> E[Spelling candidates]
+  E --> F[Generated names]
 ```
 
-The current app runtime still uses the established Fiction cast pipeline until the later sound generation and spelling slices are wired in:
+The sequence layer is deliberately not called a single generated sound. A candidate such as `ka-len` is a pre-spelling sequence of syllables and phoneme-like units; it can project to multiple spellings, such as `Kalen`, `Calen`, or `Kaelen`.
+
+The current app runtime still uses the established Fiction cast pipeline until the later sequence generation and spelling slices are wired in:
 
 ```text
 Active mode config
@@ -95,11 +99,19 @@ Each step should remain testable as TypeScript. UI code renders controls and res
 
 `StyleInput` captures ergonomic user intent for one naming job. It should describe how the name should feel to the user, not phonological implementation details or a generic mode selector. The first compiler input contains only broad style controls: feel, length, and distinctiveness.
 
-`compileStyle(input)` is the boundary that translates those user-facing controls into the internal `SoundProfile`. That means phonotactic weights, cadence preferences, syllable targets, and similar sound-generation details belong in the compiled profile, not in the user input.
+`compileStyle(input)` is the boundary that translates those user-facing controls into the internal `SoundProfile`. That means phonotactic weights, cadence preferences, syllable targets, and similar sequence-generation details belong in the compiled profile, not in the user input.
 
-`SoundProfile` is the single internal compiled engine contract for later sound generation work. Future compilers for other naming jobs may expose different ergonomic inputs, but they should compile into the same `SoundProfile` contract rather than teaching the generator about job-specific input shapes.
+`SoundProfile` is the single internal compiled engine contract for later syllable/phoneme sequence generation work. Future compilers for other naming jobs may expose different ergonomic inputs, but they should compile into the same `SoundProfile` contract rather than teaching the generator about job-specific input shapes.
 
-Do not use an ERD or UML class diagram for this layer yet. The useful artifact is the directional flow above: input intent is compiled into a sound contract, the generator consumes sound, and spellings are projections of that sound.
+Do not use an ERD or UML class diagram for this layer yet. The useful artifact is the directional flow above: input intent is compiled into a sound-structure contract, the generator produces pre-spelling sequences, and spelling candidates are projections of those sequences.
+
+## Future sequence and adapter boundaries
+
+A future `SyllableSequence` should represent one pre-spelling candidate form, not one sound and not one final name. Its likely source of truth is syllable grouping, with phoneme-like units nested inside syllables. A flat phoneme list can be derived from the syllables when needed instead of stored as a second authoritative representation.
+
+The default ensemble path should be pool-based: one `SoundProfile` can produce many `SyllableSequence` candidates, spelling projection can produce many spelling candidates, and the ensemble selector can score both sequence-level diversity and spelling-level readability before choosing the final cast.
+
+TTS and IPA-like rendering should remain adapters, not core generation behavior. A sequence can later be rendered to debug text, approximate IPA, SSML phoneme markup, plain TTS text, or provider-specific payloads, but those projections should not make the internal sequence model depend on one TTS provider, SSML alphabet, or canonical pronunciation claim.
 
 ## Module boundaries
 
@@ -230,7 +242,7 @@ Fiction-specific concepts can use these primitives, but should not silently rede
 The engine centers on these first-class types:
 
 - `StyleInput`: ergonomic user-facing style intent for this first compiler. It is not a generic mode selector and should not contain sound-engine internals.
-- `SoundProfile`: compiled internal engine contract consumed by later sound generation work.
+- `SoundProfile`: compiled internal engine contract consumed by later syllable/phoneme sequence generation work.
 - `GenerationSettings`: adjustable axes such as cast size, seed, style pack, name format, role preset, role influence, rarity distribution, novelty, pronounceability, memorability, cultural anchoring, and orthographic weirdness.
 - `ReadabilityDiagnostic`: non-canonical readability/speakability notes for names and casts.
 - `NameSilhouette`: the pre-spelling shape of one full name.
