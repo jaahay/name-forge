@@ -87,6 +87,7 @@ src/
     scoring.ts
     silhouettes.ts
     soundProfile.ts
+    soundSegments.ts
     styleCompiler.ts
     types.ts
     variants.ts
