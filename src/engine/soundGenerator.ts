@@ -4,7 +4,7 @@ import { getSoundSegment, starterSoundInventory, type SoundSegmentId, type Sonor
 import type { WeightedValue } from './types';
 
 export type SegmentSequenceContract = 'SegmentSequence';
-export type GeneratedSoundContract = 'GeneratedSound';
+export type SoundCandidateContract = 'SoundCandidate';
 export type SupportedSyllableShape = 'V' | 'CV' | 'CVC' | 'CVL';
 
 export interface SegmentSyllable {
@@ -25,8 +25,8 @@ export interface SegmentSequence {
   readonly syllables: readonly SegmentSyllable[];
 }
 
-export interface GeneratedSound {
-  readonly contract: GeneratedSoundContract;
+export interface SoundCandidate {
+  readonly contract: SoundCandidateContract;
   readonly version: 1;
   readonly id: string;
   readonly profileId: string;
@@ -221,7 +221,7 @@ export function renderSegmentSequenceTranscription(sequence: SegmentSequence): s
   return `/${syllables.join('.')}/`;
 }
 
-export function generateSound(profile: SoundProfile, rng: SeededRandom): GeneratedSound {
+export function generateSound(profile: SoundProfile, rng: SeededRandom): SoundCandidate {
   const syllableCount = pickSyllableCount(profile, rng);
   const cadence = pickCadence(profile, rng);
   const segments: SoundSegmentId[] = [];
@@ -243,9 +243,9 @@ export function generateSound(profile: SoundProfile, rng: SeededRandom): Generat
   const transcription = renderSegmentSequenceTranscription(sequence);
 
   return {
-    contract: 'GeneratedSound',
+    contract: 'SoundCandidate',
     version: 1,
-    id: `generated-sound:${profile.id}:${segmentKey}`,
+    id: `sound-candidate:${profile.id}:${segmentKey}`,
     profileId: profile.id,
     cadence,
     sequence,
