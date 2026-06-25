@@ -62,6 +62,14 @@ Style input
   -> viable spelling candidates
 ```
 
+```mermaid
+flowchart LR
+  A[Mode-specific style input] --> B[Style compiler]
+  B --> C[SoundProfile]
+  C --> D[Generated sound]
+  D --> E[Viable spelling candidates]
+```
+
 The current app runtime still uses the established Fiction cast pipeline until the later sound generation and spelling slices are wired in:
 
 ```text
@@ -82,6 +90,16 @@ Active mode config
 ```
 
 Each step should remain testable as TypeScript. UI code renders controls and results; it should not own generation behavior.
+
+## Style compiler contract
+
+`StyleInput` captures ergonomic user intent for one naming job. It should describe how the name should feel to the user, not phonological implementation details or a generic mode selector. The first compiler input contains only broad style controls: feel, length, and distinctiveness.
+
+`compileStyle(input)` is the boundary that translates those user-facing controls into the internal `SoundProfile`. That means phonotactic weights, cadence preferences, syllable targets, and similar sound-generation details belong in the compiled profile, not in the user input.
+
+`SoundProfile` is the single internal compiled engine contract for later sound generation work. Future compilers for other naming jobs may expose different ergonomic inputs, but they should compile into the same `SoundProfile` contract rather than teaching the generator about job-specific input shapes.
+
+Do not use an ERD or UML class diagram for this layer yet. The useful artifact is the directional flow above: input intent is compiled into a sound contract, the generator consumes sound, and spellings are projections of that sound.
 
 ## Module boundaries
 
@@ -107,8 +125,9 @@ src/
     roles.ts              Cast role labels, presets, parsing, slot resolution, and role influence profiles
     scoring.ts            Candidate score and explanation signals
     silhouettes.ts        NameSilhouette construction and rarity/shape planning
-    styleCompiler.ts      StyleInput, SoundProfile, and compileStyle boundary
-    types.ts              Core domain types and contracts
+    soundProfile.ts       SoundProfile contract and private compiled-profile subtypes
+    styleCompiler.ts      StyleInput and compileStyle boundary
+    types.ts              Existing core domain types and contracts
     variants.ts           Spelling variant generation and provenance
   ui/
     AboutView.tsx         Product explanation copy
@@ -158,7 +177,7 @@ Mode-level code may own:
 
 Mode-level code should not fork core mechanics unnecessarily. The following should remain shared until a real second mode proves otherwise:
 
-- ergonomic style input compilation into the shared `SoundProfile` contract
+- the shared `SoundProfile` contract produced by style compilers
 - seeded random generation
 - style-pack lookup and provider registry contracts
 - deterministic readability diagnostics
@@ -190,10 +209,7 @@ The first second mode should likely be close to Fiction cast, such as Game NPC, 
 
 These should remain reusable across future modes:
 
-- `StyleInput`
-- `compileStyle`
 - `SoundProfile`
-- `GenerationSettings`
 - seeded random utility
 - style pack and provider registry
 - `NameSilhouette`
@@ -213,7 +229,7 @@ Fiction-specific concepts can use these primitives, but should not silently rede
 
 The engine centers on these first-class types:
 
-- `StyleInput`: ergonomic user-facing style intent for the active naming job.
+- `StyleInput`: ergonomic user-facing style intent for this first compiler. It is not a generic mode selector and should not contain sound-engine internals.
 - `SoundProfile`: compiled internal engine contract consumed by later sound generation work.
 - `GenerationSettings`: adjustable axes such as cast size, seed, style pack, name format, role preset, role influence, rarity distribution, novelty, pronounceability, memorability, cultural anchoring, and orthographic weirdness.
 - `ReadabilityDiagnostic`: non-canonical readability/speakability notes for names and casts.
