@@ -16,12 +16,13 @@ Related docs:
 
 Name Forge works by combining controlled randomness with explicit product judgment:
 
-1. Generate candidate names from seeded randomness and soft-coded style data.
-2. Shape candidates through silhouettes, rarity planning, role metadata, and optional role influence.
-3. Score candidates with decomposed fit signals, including role fit where applicable.
-4. Select an ensemble that avoids obvious sameness.
-5. Attach deterministic readability diagnostics without claiming canonical pronunciation.
-6. Preserve provenance so generated names, listed alternates, rule-created variants, diagnostics, and future external-source results stay distinguishable.
+1. Compile ergonomic style input into `SoundProfile`, the internal phonotactic/prosodic profile contract.
+2. Generate candidate names from seeded randomness and soft-coded style data while the sound-first core is introduced in slices.
+3. Shape candidates through silhouettes, rarity planning, role metadata, and optional role influence.
+4. Score candidates with decomposed fit signals, including role fit where applicable.
+5. Select an ensemble that avoids obvious sameness.
+6. Attach deterministic readability diagnostics without claiming canonical pronunciation.
+7. Preserve provenance so generated names, listed alternates, rule-created variants, diagnostics, and future external-source results stay distinguishable.
 
 The important split is:
 
@@ -31,16 +32,49 @@ The important split is:
 ## Architectural principles
 
 1. **Controlled stochasticity**: random generation is deterministic by seed and constrained by explicit settings.
-2. **Silhouette before spelling**: shape the intended name before exact letters are chosen.
-3. **Ensemble-aware selection**: the first serious output is a cast, so repeated initials, endings, cadence, readability friction, and rarity clusters matter.
-4. **Mode-aware UX, shared primitives**: Fiction cast can have role mix, slot overrides, cast health, and cast export without making those concepts global product assumptions.
-5. **Hard-code mechanisms, not linguistic knowledge**: code owns schemas, algorithms, scoring, normalization, diagnostics, and provenance contracts; packs/providers own language-feel data.
-6. **Generated primary names**: style packs guide generation; they are not copied as the primary output path.
-7. **Provenance-bearing output**: every result should explain source, seed, style, role/rarity shaping, variant relationship, readability notes, and scoring signals.
-8. **Small abstraction first**: introduce seams only as needed. The current mode boundary is a lightweight config, not a full plugin framework.
-9. **Pronounceability before pronunciation**: scoring and deterministic readability diagnostics may ship before text pronunciation, IPA, or audio artifacts.
+2. **Sound structure before spelling**: style compilers produce a `SoundProfile`; future generator slices should produce a pre-spelling phoneme sequence before projecting viable spellings.
+3. **Silhouette before spelling**: shape the intended name before exact letters are chosen.
+4. **Ensemble-aware selection**: the first serious output is a cast, so repeated initials, endings, cadence, readability friction, and rarity clusters matter.
+5. **Mode-aware UX, shared primitives**: Fiction cast can have role mix, slot overrides, cast health, and cast export without making those concepts global product assumptions.
+6. **Hard-code mechanisms, not linguistic knowledge**: code owns schemas, algorithms, scoring, normalization, diagnostics, and provenance contracts; packs/providers own language-feel data.
+7. **Generated primary names**: style packs guide generation; they are not copied as the primary output path.
+8. **Provenance-bearing output**: every result should explain source, seed, style, role/rarity shaping, variant relationship, readability notes, and scoring signals.
+9. **Small abstraction first**: introduce seams only as needed. The current mode boundary is a lightweight config, not a full plugin framework.
+10. **Pronounceability before pronunciation**: scoring and deterministic readability diagnostics may ship before text pronunciation, IPA, or audio artifacts.
 
 ## Runtime pipeline
+
+The sound-first core is being introduced in scoped slices. The implemented compiler boundary is:
+
+```text
+StyleInput
+  -> compileStyle(input)
+  -> SoundProfile
+```
+
+Future slices extend that boundary to:
+
+```text
+StyleInput
+  -> compileStyle(input)
+  -> SoundProfile
+  -> PhonemeSequence candidate pool
+  -> SpellingCandidate pool
+  -> GeneratedName selection
+```
+
+```mermaid
+flowchart LR
+  A[Mode-specific style input] --> B[Style compiler]
+  B --> C[SoundProfile]
+  C --> D[PhonemeSequence candidates]
+  D --> E[Spelling candidates]
+  E --> F[Generated names]
+```
+
+The sequence layer is deliberately not called a single generated sound. A future `PhonemeSequence` should represent one pre-spelling candidate form with syllable segmentation metadata, then project to one or more spellings.
+
+The current app runtime still uses the established Fiction cast pipeline until the later sequence generation and spelling slices are wired in:
 
 ```text
 Active mode config
@@ -60,6 +94,26 @@ Active mode config
 ```
 
 Each step should remain testable as TypeScript. UI code renders controls and results; it should not own generation behavior.
+
+## Style compiler contract
+
+`StyleInput` captures ergonomic user intent for one naming job. It should describe how the name should feel to the user, not phonological implementation details or a generic mode selector. The first compiler input contains only broad style controls: feel, length, and distinctiveness.
+
+`compileStyle(input)` is the boundary that translates those user-facing controls into the internal `SoundProfile`. That means phonotactic weights, cadence preferences, syllable targets, and similar sequence-generation details belong in the compiled profile, not in the user input.
+
+`SoundProfile` is the single internal compiled engine contract for later phoneme-sequence generation work. The name is kept as the product contract for issue #87, but the type should be understood as a profile of phonotactic and prosodic preferences rather than one generated sound or one final name. Future compilers for other naming jobs may expose different ergonomic inputs, but they should compile into the same `SoundProfile` contract rather than teaching the generator about job-specific input shapes.
+
+Do not use an ERD or UML class diagram for this layer yet. The useful artifact is the directional flow above: input intent is compiled into a sound-structure contract, the generator produces pre-spelling phoneme sequences, and spelling candidates are projections of those sequences.
+
+## Future sequence and adapter boundaries
+
+A future `PhonemeSequence` should represent one pre-spelling candidate form, not one sound and not one final name. Its likely source of truth is a flat ordered phoneme list, with syllable segmentation recorded as spans or structured metadata over that list. That avoids storing both a flat phoneme array and nested syllable arrays as competing authoritative representations.
+
+Syllable metadata should still matter. The future sequence model should be able to represent onset, nucleus, coda, stress, cadence, and pronounceability features, because those are useful for ensemble diversity and spelling projection.
+
+The default ensemble path should be pool-based: one `SoundProfile` can produce many `PhonemeSequence` candidates, spelling projection can produce many spelling candidates, and the ensemble selector can score both sequence-level diversity and spelling-level readability before choosing the final cast.
+
+TTS and IPA-like rendering should remain adapters, not core generation behavior. A sequence can later be rendered to debug text, approximate IPA, SSML phoneme markup, plain TTS text, or provider-specific payloads, but those projections should not make the internal sequence model depend on one TTS provider, SSML alphabet, or canonical pronunciation claim.
 
 ## Module boundaries
 
@@ -85,7 +139,9 @@ src/
     roles.ts              Cast role labels, presets, parsing, slot resolution, and role influence profiles
     scoring.ts            Candidate score and explanation signals
     silhouettes.ts        NameSilhouette construction and rarity/shape planning
-    types.ts              Core domain types and contracts
+    soundProfile.ts       SoundProfile contract and private compiled-profile subtypes
+    styleCompiler.ts      StyleInput and compileStyle boundary
+    types.ts              Existing core domain types and contracts
     variants.ts           Spelling variant generation and provenance
   ui/
     AboutView.tsx         Product explanation copy
@@ -98,7 +154,6 @@ src/
     namePresentation.ts   Shared name display, length, rarity, and construction-cue helpers
     ScoreControl.tsx      Numeric and slider score control rendering
     presentation.ts       UI labels, score labels, rarity labels, and changelog entries
-    score.ts              UI score formatting and visual class helpers
 ```
 
 ## Mode system
@@ -136,6 +191,7 @@ Mode-level code may own:
 
 Mode-level code should not fork core mechanics unnecessarily. The following should remain shared until a real second mode proves otherwise:
 
+- the shared `SoundProfile` contract produced by style compilers
 - seeded random generation
 - style-pack lookup and provider registry contracts
 - deterministic readability diagnostics
@@ -167,7 +223,7 @@ The first second mode should likely be close to Fiction cast, such as Game NPC, 
 
 These should remain reusable across future modes:
 
-- `GenerationSettings`
+- `SoundProfile`
 - seeded random utility
 - style pack and provider registry
 - `NameSilhouette`
@@ -187,6 +243,8 @@ Fiction-specific concepts can use these primitives, but should not silently rede
 
 The engine centers on these first-class types:
 
+- `StyleInput`: ergonomic user-facing style intent for this first compiler. It is not a generic mode selector and should not contain sound-engine internals.
+- `SoundProfile`: compiled internal phonotactic/prosodic profile contract consumed by later phoneme-sequence generation work.
 - `GenerationSettings`: adjustable axes such as cast size, seed, style pack, name format, role preset, role influence, rarity distribution, novelty, pronounceability, memorability, cultural anchoring, and orthographic weirdness.
 - `ReadabilityDiagnostic`: non-canonical readability/speakability notes for names and casts.
 - `NameSilhouette`: the pre-spelling shape of one full name.
