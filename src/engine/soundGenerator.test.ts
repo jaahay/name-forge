@@ -4,14 +4,14 @@ import { generateSound, renderSegmentSequenceTranscription } from './soundGenera
 import { compileStyle } from './styleCompiler';
 
 describe('generateSound', () => {
-  it('generates a deterministic segment sequence from a fixed seed and default SoundProfile', () => {
+  it('generates a deterministic sound candidate from a fixed seed and default SoundProfile', () => {
     const profile = compileStyle();
     const sound = generateSound(profile, createSeededRandom('sound-seed:default'));
 
     expect(sound).toEqual({
-      contract: 'GeneratedSound',
+      contract: 'SoundCandidate',
       version: 1,
-      id: 'generated-sound:sound-profile:fiction-cast:balanced:medium:balanced:t-o-l-w-ay',
+      id: 'sound-candidate:sound-profile:fiction-cast:balanced:medium:balanced:t-o-l-w-ay',
       profileId: 'sound-profile:fiction-cast:balanced:medium:balanced',
       cadence: 'open',
       sequence: {
@@ -52,7 +52,7 @@ describe('generateSound', () => {
     expect(second).toEqual(first);
   });
 
-  it('uses profile texture, length, and distinctiveness to produce structured longer sounds', () => {
+  it('uses profile texture, length, and distinctiveness to produce structured longer candidates', () => {
     const profile = compileStyle({
       feel: 'lyrical',
       length: 'long',
@@ -61,9 +61,9 @@ describe('generateSound', () => {
     const sound = generateSound(profile, createSeededRandom('sound-seed:lyrical'));
 
     expect(sound).toEqual({
-      contract: 'GeneratedSound',
+      contract: 'SoundCandidate',
       version: 1,
-      id: 'generated-sound:sound-profile:fiction-cast:lyrical:long:distinctive:r-u-r-ey-l-y-a-r',
+      id: 'sound-candidate:sound-profile:fiction-cast:lyrical:long:distinctive:r-u-r-ey-l-y-a-r',
       profileId: 'sound-profile:fiction-cast:lyrical:long:distinctive',
       cadence: 'open',
       sequence: {
