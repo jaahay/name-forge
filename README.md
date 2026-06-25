@@ -88,7 +88,6 @@ src/
     silhouettes.ts
     soundGenerator.ts
     soundProfile.ts
-    soundSegments.ts
     soundSegmentTypes.ts
     starterSoundInventory.ts
     styleCompiler.ts
