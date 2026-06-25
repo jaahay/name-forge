@@ -1,6 +1,7 @@
 import type { SeededRandom } from './random';
 import type { SoundProfile, SoundProfileCadence, SoundProfileTexture } from './soundProfile';
-import { getSoundSegment, starterSoundInventory, type SoundSegmentId, type SonorityClass } from './soundSegments';
+import type { SonorityClass } from './soundSegmentTypes';
+import { getSoundSegment, starterSoundInventory, type SoundSegmentId } from './starterSoundInventory';
 import type { WeightedValue } from './types';
 
 export type SegmentSequenceContract = 'SegmentSequence';
