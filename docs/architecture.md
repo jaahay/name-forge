@@ -32,7 +32,7 @@ The important split is:
 ## Architectural principles
 
 1. **Controlled stochasticity**: random generation is deterministic by seed and constrained by explicit settings.
-2. **Sound structure before spelling**: style compilers produce a `SoundProfile`; future generator slices should produce a pre-spelling phoneme sequence before projecting viable spellings.
+2. **Sound structure before spelling**: style compilers produce a `SoundProfile`; future generator slices should produce a pre-spelling segment sequence before projecting viable spellings.
 3. **Silhouette before spelling**: shape the intended name before exact letters are chosen.
 4. **Ensemble-aware selection**: the first serious output is a cast, so repeated initials, endings, cadence, readability friction, and rarity clusters matter.
 5. **Mode-aware UX, shared primitives**: Fiction cast can have role mix, slot overrides, cast health, and cast export without making those concepts global product assumptions.
@@ -58,7 +58,7 @@ Future slices extend that boundary to:
 StyleInput
   -> compileStyle(input)
   -> SoundProfile
-  -> PhonemeSequence candidate pool
+  -> SegmentSequence candidate pool
   -> SpellingCandidate pool
   -> GeneratedName selection
 ```
@@ -67,12 +67,12 @@ StyleInput
 flowchart LR
   A[Mode-specific style input] --> B[Style compiler]
   B --> C[SoundProfile]
-  C --> D[PhonemeSequence candidates]
+  C --> D[SegmentSequence candidates]
   D --> E[Spelling candidates]
   E --> F[Generated names]
 ```
 
-The sequence layer is deliberately not called a single generated sound. A future `PhonemeSequence` should represent one pre-spelling candidate form with syllable segmentation metadata, then project to one or more spellings.
+The sequence layer is deliberately not called a single generated sound. A future `SegmentSequence` should represent one pre-spelling candidate form with syllable segmentation metadata, then project to one or more spellings.
 
 The current app runtime still uses the established Fiction cast pipeline until the later sequence generation and spelling slices are wired in:
 
@@ -101,19 +101,27 @@ Each step should remain testable as TypeScript. UI code renders controls and res
 
 `compileStyle(input)` is the boundary that translates those user-facing controls into the internal `SoundProfile`. That means phonotactic weights, cadence preferences, syllable targets, and similar sequence-generation details belong in the compiled profile, not in the user input.
 
-`SoundProfile` is the single internal compiled engine contract for later phoneme-sequence generation work. The name is kept as the product contract for issue #87, but the type should be understood as a profile of phonotactic and prosodic preferences rather than one generated sound or one final name. Future compilers for other naming jobs may expose different ergonomic inputs, but they should compile into the same `SoundProfile` contract rather than teaching the generator about job-specific input shapes.
+`SoundProfile` is the single internal compiled engine contract for later segment-sequence generation work. The name is kept as the product contract for issue #87, but the type should be understood as a profile of phonotactic and prosodic preferences rather than one generated sound or one final name. Future compilers for other naming jobs may expose different ergonomic inputs, but they should compile into the same `SoundProfile` contract rather than teaching the generator about job-specific input shapes.
 
-Do not use an ERD or UML class diagram for this layer yet. The useful artifact is the directional flow above: input intent is compiled into a sound-structure contract, the generator produces pre-spelling phoneme sequences, and spelling candidates are projections of those sequences.
+Do not use an ERD or UML class diagram for this layer yet. The useful artifact is the directional flow above: input intent is compiled into a sound-structure contract, the generator produces pre-spelling segment sequences, and spelling candidates are projections of those sequences.
+
+## Starter sound segment inventory
+
+`src/engine/soundSegments.ts` owns the first hard-coded engine-local sound inventory. It is a built-in table of stable sound segment ids, display symbols, durable feature metadata, and syllable-role metadata. It is not a generic source system, user-import format, language pack, or pronunciation database.
+
+The term segment is intentional. It is broader than phoneme and avoids claiming a language-specific contrastive unit. The current inventory is broad enough to cover common English-oriented consonants, monophthong nuclei, and diphthong nuclei for upcoming generator work, but the symbols remain display transcription symbols for generated fixtures rather than verified pronunciation for any language, dialect, speaker, TTS provider, or external source.
+
+Segment metadata deliberately separates broad category from feature axes. Consonants carry manner, place, voicing, and sonority. Vowels carry monophthong or diphthong movement, vowel target metadata, and sonority. This keeps liquid, glide, nasal, obstruent, and vowel behavior available for generation without using those classes as the top-level segment category.
 
 ## Future sequence and adapter boundaries
 
-A future `PhonemeSequence` should represent one pre-spelling candidate form, not one sound and not one final name. Its likely source of truth is a flat ordered phoneme list, with syllable segmentation recorded as spans or structured metadata over that list. That avoids storing both a flat phoneme array and nested syllable arrays as competing authoritative representations.
+A future `SegmentSequence` should represent one pre-spelling candidate form, not one sound and not one final name. Its likely source of truth is a flat ordered segment list, with syllable segmentation recorded as spans or structured metadata over that list. That avoids storing both a flat segment array and nested syllable arrays as competing authoritative representations.
 
 Syllable metadata should still matter. The future sequence model should be able to represent onset, nucleus, coda, stress, cadence, and pronounceability features, because those are useful for ensemble diversity and spelling projection.
 
-The default ensemble path should be pool-based: one `SoundProfile` can produce many `PhonemeSequence` candidates, spelling projection can produce many spelling candidates, and the ensemble selector can score both sequence-level diversity and spelling-level readability before choosing the final cast.
+The default ensemble path should be pool-based: one `SoundProfile` can produce many `SegmentSequence` candidates, spelling projection can produce many spelling candidates, and the ensemble selector can score both sequence-level diversity and spelling-level readability before choosing the final cast.
 
-TTS and IPA-like rendering should remain adapters, not core generation behavior. A sequence can later be rendered to debug text, approximate IPA, SSML phoneme markup, plain TTS text, or provider-specific payloads, but those projections should not make the internal sequence model depend on one TTS provider, SSML alphabet, or canonical pronunciation claim.
+TTS and pronunciation rendering should remain adapters, not core generation behavior. A sequence can later be rendered to debug text, display transcription, SSML phoneme markup, plain TTS text, or provider-specific payloads, but those projections should not make the internal sequence model depend on one TTS provider, SSML alphabet, or canonical pronunciation claim.
 
 ## Module boundaries
 
@@ -140,6 +148,7 @@ src/
     scoring.ts            Candidate score and explanation signals
     silhouettes.ts        NameSilhouette construction and rarity/shape planning
     soundProfile.ts       SoundProfile contract and private compiled-profile subtypes
+    soundSegments.ts      Starter sound segment inventory and display transcription rendering
     styleCompiler.ts      StyleInput and compileStyle boundary
     types.ts              Existing core domain types and contracts
     variants.ts           Spelling variant generation and provenance
@@ -224,6 +233,7 @@ The first second mode should likely be close to Fiction cast, such as Game NPC, 
 These should remain reusable across future modes:
 
 - `SoundProfile`
+- sound segment inventory
 - seeded random utility
 - style pack and provider registry
 - `NameSilhouette`
@@ -244,7 +254,8 @@ Fiction-specific concepts can use these primitives, but should not silently rede
 The engine centers on these first-class types:
 
 - `StyleInput`: ergonomic user-facing style intent for this first compiler. It is not a generic mode selector and should not contain sound-engine internals.
-- `SoundProfile`: compiled internal phonotactic/prosodic profile contract consumed by later phoneme-sequence generation work.
+- `SoundProfile`: compiled internal phonotactic/prosodic profile contract consumed by later segment-sequence generation work.
+- `SoundSegment`: stable engine-local sound segment unit with a display transcription symbol, feature metadata, and syllable-role metadata.
 - `GenerationSettings`: adjustable axes such as cast size, seed, style pack, name format, role preset, role influence, rarity distribution, novelty, pronounceability, memorability, cultural anchoring, and orthographic weirdness.
 - `ReadabilityDiagnostic`: non-canonical readability/speakability notes for names and casts.
 - `NameSilhouette`: the pre-spelling shape of one full name.
