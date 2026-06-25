@@ -136,8 +136,10 @@ function nucleusWeight(id: SoundSegmentId, profile: SoundProfile): number {
   let weight = textureWeight(profile.targets.texture, segment.sonority);
 
   if (segment.movement === 'diphthong') weight += profile.targets.distinctiveness * 1.4;
-  if (segment.movement === 'monophthong') weight += 0.65;
-  if (segment.rhotic) weight += profile.targets.distinctiveness * 0.5;
+  if (segment.movement === 'monophthong') {
+    weight += 0.65;
+    if (segment.rhotic) weight += profile.targets.distinctiveness * 0.5;
+  }
   if (id === 'schwa') weight += (1 - profile.targets.distinctiveness) * 0.65;
 
   return weight;
