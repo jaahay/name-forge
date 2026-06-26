@@ -1,17 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { stylePacks } from '../data/stylePacks';
 import { createCastExportPayload, serializeCastAsMarkdown } from './export';
-import type { GeneratedEnsemble, GeneratedName, NameScores, NameSilhouette, ProvenanceNote } from './types';
+import type { GeneratedEnsemble, GeneratedName, NameScores, NameSilhouette } from './types';
 import { generateVariants } from './variants';
 
 const pack = stylePacks[0];
-
-const baseProvenance: ProvenanceNote = {
-  sourceId: 'test-source',
-  sourceKind: 'algorithm',
-  label: 'Test source',
-  detail: 'Fixture provenance for variant metadata tests.',
-};
 
 const scores: NameScores = {
   pronounceability: 0.8,
@@ -36,7 +29,6 @@ const silhouette: NameSilhouette = {
   texture: 'soft',
   targetNovelty: 0.5,
   targetLength: 'medium',
-  provenance: [baseProvenance],
 };
 
 function fixtureName(): GeneratedName {
@@ -46,7 +38,6 @@ function fixtureName(): GeneratedName {
     silhouette,
     scores,
     variants: generateVariants('Aveline', pack, { orthographicWeirdness: 0.5 }),
-    provenance: [baseProvenance],
     readabilityDiagnostics: [],
   };
 }
