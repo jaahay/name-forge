@@ -40,7 +40,6 @@ export const stylePacks: StylePack[] = [{
   version: '0.1.0',
   localeHint: 'fictional-en-GB-literary',
   culturalAnchors: ['Albion', 'Arthurian romance', 'Victorian novels', 'border ballads'],
-  provenance: { sourceId: 'british-literary-fantasy@0.1.0', sourceKind: 'style-pack', label: 'Style pack', detail: 'Local JSON-style pack with fictionalized phonotactics, weighted endings, spelling alternates, and style constraints.' },
   phonotactics: {
     onsets: ['', 'b', 'br', 'c', 'cl', 'd', 'dr', 'f', 'g', 'gw', 'h', 'l', 'm', 'n', 'p', 'r', 's', 't', 'th', 'v', 'w', 'y'].map((value, index) => ({ value, weight: index === 0 ? 3 : 4 })),
     nuclei: ['a', 'ae', 'e', 'ea', 'i', 'ia', 'o', 'oo', 'u', 'y'].map((value) => ({ value, weight: value.length === 1 ? 6 : 2 })),
