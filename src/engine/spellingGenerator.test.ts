@@ -1,21 +1,25 @@
 import { describe, expect, it } from 'vitest';
 import { createSeededRandom } from './random';
 import { generateSound } from './soundGenerator';
-import { enumerateSpellings } from './spellingGenerator';
+import { generateRankedSpellings, generateSpellings, rankSpellings } from './spellingGenerator';
 import { compileStyle } from './styleCompiler';
 
-describe('enumerateSpellings', () => {
-  it('enumerates and ranks deterministic spelling candidates for one sound candidate', () => {
+describe('spelling generation and ranking', () => {
+  it('generates every viable spelling projection for one sound candidate', () => {
     const profile = compileStyle();
     const sound = generateSound(profile, createSeededRandom('sound-seed:default'));
-    const spellings = enumerateSpellings(sound, profile, { limit: 5 });
+    const spellings = generateSpellings(sound);
 
     expect(spellings.map((candidate) => candidate.text)).toEqual([
       'Tolway',
       'Tolwai',
-      'Tohlway',
       'Tolwy',
+      'Tohlway',
       'Tohlwai',
+      'Tohlwy',
+      'Toelway',
+      'Toelwai',
+      'Toelwy',
     ]);
     expect(spellings[0]).toEqual({
       contract: 'SpellingCandidate',
@@ -25,7 +29,6 @@ describe('enumerateSpellings', () => {
       profileId: 'sound-profile:fiction-cast:balanced:medium:balanced',
       sequenceId: 'segment-sequence:sound-profile:fiction-cast:balanced:medium:balanced:t-o-l-w-ay',
       text: 'Tolway',
-      score: 6.38,
       mappings: [
         {
           segmentIndex: 0,
@@ -76,18 +79,37 @@ describe('enumerateSpellings', () => {
     });
   });
 
-  it('keeps the highest-ranked spelling stable across repeated enumeration', () => {
+  it('ranks generated spelling candidates with profile-aware scoring', () => {
     const profile = compileStyle();
     const sound = generateSound(profile, createSeededRandom('sound-seed:default'));
+    const ranked = rankSpellings(generateSpellings(sound), profile, { maxCandidates: 5 });
 
-    expect(enumerateSpellings(sound, profile)[0]).toEqual(enumerateSpellings(sound, profile)[0]);
+    expect(ranked.map((candidate) => candidate.text)).toEqual([
+      'Tolway',
+      'Tolwai',
+      'Tohlway',
+      'Tolwy',
+      'Tohlwai',
+    ]);
+    expect(ranked[0]).toMatchObject({
+      text: 'Tolway',
+      rank: 1,
+      score: 6.482,
+    });
   });
 
-  it('honors an explicit result cap', () => {
+  it('keeps the highest-ranked spelling stable across repeated generation and ranking', () => {
     const profile = compileStyle();
     const sound = generateSound(profile, createSeededRandom('sound-seed:default'));
 
-    expect(enumerateSpellings(sound, profile, { limit: 2 }).map((candidate) => candidate.text)).toEqual([
+    expect(generateRankedSpellings(sound, profile)[0]).toEqual(generateRankedSpellings(sound, profile)[0]);
+  });
+
+  it('honors an explicit ranking cap when callers need bounded output', () => {
+    const profile = compileStyle();
+    const sound = generateSound(profile, createSeededRandom('sound-seed:default'));
+
+    expect(generateRankedSpellings(sound, profile, { maxCandidates: 2 }).map((candidate) => candidate.text)).toEqual([
       'Tolway',
       'Tolwai',
     ]);
