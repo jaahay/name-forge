@@ -89,6 +89,7 @@ src/
     soundGenerator.ts
     soundProfile.ts
     soundSegmentTypes.ts
+    spellingGenerator.ts
     starterSoundInventory.ts
     styleCompiler.ts
     types.ts
