@@ -53,6 +53,10 @@ StyleInput
   -> generateSound(profile, rng)
   -> SoundCandidate
   -> SegmentSequence
+  -> generateSpellings(sound)
+  -> SpellingCandidate[]
+  -> rankSpellings(spellings, profile)
+  -> RankedSpellingCandidate[]
 ```
 
 Future slices extend that boundary to:
@@ -63,6 +67,7 @@ StyleInput
   -> SoundProfile
   -> SegmentSequence candidate pool
   -> SpellingCandidate pool
+  -> RankedSpellingCandidate pool
   -> GeneratedName selection
 ```
 
@@ -72,7 +77,8 @@ flowchart LR
   B --> C[SoundProfile]
   C --> D[SegmentSequence candidates]
   D --> E[Spelling candidates]
-  E --> F[Generated names]
+  E --> G[Ranked spelling candidates]
+  G --> F[Generated names]
 ```
 
 The sequence layer is deliberately not called a single generated sound. `SegmentSequence` represents one pre-spelling candidate form with syllable segmentation metadata, then later projects to one or more spellings.
@@ -125,7 +131,19 @@ Segment metadata deliberately separates broad category from feature axes. Conson
 
 `src/engine/soundGenerator.ts` owns the first internal generator that consumes `SoundProfile` and `SeededRandom`. It returns `SoundCandidate`, whose durable payload is a flat `SegmentSequence` plus syllable spans for onset, nucleus, coda, shape, and display transcription rendering.
 
-This generator is deterministic by seed and profile. It deliberately does not project spellings, alter the current app runtime, or claim canonical pronunciation. The generated transcription is a display/debug rendering of internal segments, not a user-facing pronunciation authority.
+This generator is deterministic by seed and profile. It deliberately does not alter the current app runtime or claim canonical pronunciation. The generated transcription is a display/debug rendering of internal segments, not a user-facing pronunciation authority.
+
+## Spelling generation and ranking
+
+`src/engine/spellingGenerator.ts` owns the first projection from `SoundCandidate` to spelling candidates. The boundary is intentionally split:
+
+- `generateSpellings(sound)` projects one sound candidate into every viable spelling candidate known to the starter grapheme rules.
+- `rankSpellings(spellings, profile)` orders already-generated spelling candidates using deterministic ranker logic composed from `SoundProfile` fields.
+- `generateRankedSpellings(sound, profile)` is a convenience composition of the two operations.
+
+The profile does not store JavaScript callbacks. It remains a serializable data contract. Ranking callbacks and weights are internal engine mechanics derived from profile data and engine-local spelling rules.
+
+Spelling candidates carry text plus segment-to-text mapping data for later Inspect/export explanation surfaces. Ranked spelling candidates add rank and score. This layer does not use external spelling databases, TTS, source taxonomy, or canonical pronunciation claims.
 
 ## Future sequence and adapter boundaries
 
@@ -164,6 +182,7 @@ src/
     soundGenerator.ts     Deterministic SoundProfile to SoundCandidate and SegmentSequence generation
     soundProfile.ts       SoundProfile contract and private compiled-profile subtypes
     soundSegmentTypes.ts  Sound segment type model
+    spellingGenerator.ts  Spelling projection and profile-aware spelling ranking
     starterSoundInventory.ts  Starter sound segment inventory and lookup
     styleCompiler.ts      StyleInput and compileStyle boundary
     types.ts              Existing core domain types and contracts
@@ -251,6 +270,7 @@ These should remain reusable across future modes:
 - `SoundProfile`
 - sound segment inventory
 - deterministic sound generation
+- spelling generation and ranking
 - seeded random utility
 - style pack and provider registry
 - `NameSilhouette`
@@ -275,6 +295,8 @@ The engine centers on these first-class types:
 - `SoundSegment`: stable engine-local sound segment unit with a display transcription symbol, feature metadata, and syllable-role metadata.
 - `SegmentSequence`: ordered pre-spelling segment list plus syllable spans over that list.
 - `SoundCandidate`: deterministic pre-spelling sound candidate derived from a `SoundProfile`, carrying cadence, sequence structure, and display transcription.
+- `SpellingCandidate`: viable spelling projection for one `SoundCandidate`, including segment-to-text mapping data.
+- `RankedSpellingCandidate`: profile-ranked spelling candidate with rank and score.
 - `GenerationSettings`: adjustable axes such as cast size, seed, style pack, name format, role preset, role influence, rarity distribution, novelty, pronounceability, memorability, cultural anchoring, and orthographic weirdness.
 - `ReadabilityDiagnostic`: non-canonical readability/speakability notes for names and casts.
 - `NameSilhouette`: the pre-spelling shape of one full name.
