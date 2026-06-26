@@ -1,36 +1,24 @@
-import type { GenerationSettings, NameVariant, NameVariantConfidence, NameVariantRelationship, ProvenanceNote, SourceKind, SpellingVariantRule, StylePack } from './types';
+import type { GenerationSettings, NameVariant, NameVariantConfidence, NameVariantRelationship, SourceKind, SpellingVariantRule, StylePack } from './types';
 import { lerp } from './random';
 
 function titleCase(value: string): string { return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase(); }
 function applyRuleOnce(name: string, from: string, to: string): string | undefined { const expression = new RegExp(from, 'i'); if (!expression.test(name)) return undefined; const next = name.replace(expression, to); return next === name ? undefined : titleCase(next); }
 
-function sourceMetadata(provenance: ProvenanceNote): NameVariant['source'] {
-  return {
-    id: provenance.sourceId,
-    kind: provenance.sourceKind,
-    label: provenance.label,
-    detail: provenance.detail,
-  };
-}
-
 function listedVariant(name: string, pack: StylePack): NameVariant {
-  const provenance = {
-    sourceId: `${pack.id}:listedVariants`,
-    sourceKind: 'listed-source' as SourceKind,
-    label: 'Listed alternate',
-    detail: `Listed as an alternate spelling in the ${pack.label} style pack.`,
-  };
-
   return {
     value: name,
     kind: 'listed',
     relationship: 'orthographic_variant',
     confidence: 'high',
-    source: sourceMetadata(provenance),
+    source: {
+      id: `${pack.id}:listedVariants`,
+      kind: 'listed-source' as SourceKind,
+      label: 'Listed alternate',
+      detail: `Listed as an alternate spelling in the ${pack.label} style pack.`,
+    },
     locale: pack.localeHint,
     generated: false,
     ruleId: 'listed-style-pack-alternate',
-    provenance,
   };
 }
 
@@ -55,23 +43,20 @@ function generatedFlagForRule(rule: SpellingVariantRule): boolean {
 }
 
 function ruleVariant(name: string, rule: SpellingVariantRule, pack: StylePack): NameVariant {
-  const provenance = {
-    sourceId: `${pack.id}:${rule.id}`,
-    sourceKind: rule.sourceKind,
-    label: rule.label,
-    detail: `Variant produced by replacing /${rule.from}/ with "${rule.to}" under orthographic weirdness pressure.`,
-  };
-
   return {
     value: name,
     kind: kindForRule(rule),
     relationship: relationshipForRule(rule),
     confidence: confidenceForRule(rule),
-    source: sourceMetadata(provenance),
+    source: {
+      id: `${pack.id}:${rule.id}`,
+      kind: rule.sourceKind,
+      label: rule.label,
+      detail: `Variant produced by replacing /${rule.from}/ with "${rule.to}" under orthographic weirdness pressure.`,
+    },
     locale: pack.localeHint,
     generated: generatedFlagForRule(rule),
     ruleId: rule.id,
-    provenance,
   };
 }
 
