@@ -32,18 +32,47 @@ const silhouette: NameSilhouette = {
 };
 
 function fixtureName(): GeneratedName {
+  const soundProfile = {
+    contract: 'SoundProfile' as const,
+    version: 1 as const,
+    id: 'sound-profile:test',
+    source: {
+      kind: 'style-input' as const,
+      job: 'fiction-cast' as const,
+      compiler: 'name-forge:style-compiler@0.1.0' as const,
+    },
+    targets: {
+      length: 'medium' as const,
+      syllableCount: { min: 2, max: 3, preferred: 3 },
+      texture: 'soft' as const,
+      distinctiveness: 0.5,
+      cadences: ['balanced' as const],
+    },
+    phonotactics: {
+      preferredSyllableShapes: ['CV', 'CVC'],
+      onsetWeight: 0.72,
+      codaWeight: 0.46,
+      liquidWeight: 0.34,
+      glideWeight: 0.18,
+      clusterTolerance: 0.22,
+    },
+    lexicon: {
+      titles: [{ id: 'title:archivist', kind: 'title' as const, text: 'Archivist' }],
+      epithets: [{ id: 'epithet:the-ashen', kind: 'epithet' as const, text: 'the Ashen' }],
+    },
+  };
   const sound = {
     contract: 'SoundCandidate' as const,
     version: 1 as const,
     id: 'sound-candidate:test-profile:a-v-e-l-i-n',
-    profileId: 'sound-profile:test',
+    profileId: soundProfile.id,
     cadence: 'balanced' as const,
     transcription: '/a.ve.lin/',
     sequence: {
       contract: 'SegmentSequence' as const,
       version: 1 as const,
       id: 'segment-sequence:test-profile:a-v-e-l-i-n',
-      profileId: 'sound-profile:test',
+      profileId: soundProfile.id,
       segments: ['a', 'v', 'e', 'l', 'i', 'n'] as const,
       syllables: [
         { start: 0, end: 2, onset: [], nucleus: [0], coda: [1], shape: 'CVC' as const },
@@ -56,6 +85,7 @@ function fixtureName(): GeneratedName {
   return {
     id: 'name-1',
     name: 'Aveline',
+    soundProfile,
     sound,
     spelling: {
       contract: 'SpellingCandidate',
