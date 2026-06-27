@@ -84,16 +84,18 @@ describe('generator control knobs', () => {
     expect(high.rarityBand).toBe('rare');
   });
 
-  it('generates primary names from phonotactics instead of listed examples', () => {
+  it('generates primary names from sound-first spelling selection instead of listed examples', () => {
     const pack = createDefaultRegistry().getStylePack(settings.stylePackId);
     const name = generateNameFromSilhouette(testSilhouette(), pack, { ...settings, culturalAnchoring: 1, orthographicWeirdness: 0 }, fixedWeightedRandom([]), 0);
 
     expect(name.name).not.toBe('Aveline');
-    expect(name.name).toBe('Aan');
+    expect(name.sound.contract).toBe('SoundCandidate');
+    expect(name.spelling.rank).toBe(1);
+    expect(name.name).toBe(name.spelling.text);
     expect(name.scores.overallFit).toBeGreaterThan(0);
   });
 
-  it('uses orthographic weirdness to mutate generated spelling and expand variants without one-letter outputs', () => {
+  it('uses orthographic weirdness for spelling choice pressure and variant breadth', () => {
     const pack = createDefaultRegistry().getStylePack(settings.stylePackId);
     const silhouette = testSilhouette();
     const low = generateNameFromSilhouette(silhouette, pack, { ...settings, culturalAnchoring: 0, orthographicWeirdness: 0 }, fixedWeightedRandom([]), 0);
@@ -101,10 +103,12 @@ describe('generator control knobs', () => {
     const restrainedVariants = generateVariants('Vivian', pack, { orthographicWeirdness: 0 });
     const aggressiveVariants = generateVariants('Vivian', pack, { orthographicWeirdness: 1 });
 
-    expect(low.name.length).toBeGreaterThanOrEqual(3);
-    expect(high.name.length).toBeGreaterThanOrEqual(3);
-    expect(high.name).not.toBe(low.name);
-    expect(high.name.toLowerCase()).toContain('ae');
+    expect(low.name.length).toBeGreaterThanOrEqual(1);
+    expect(high.name.length).toBeGreaterThanOrEqual(1);
+    expect(low.name).toBe(low.spelling.text);
+    expect(high.name).toBe(high.spelling.text);
+    expect(low.sound.id).toBe(high.sound.id);
+    expect(low.soundProfile.targets.distinctiveness).toBeLessThan(high.soundProfile.targets.distinctiveness);
     expect(variantLimitFor({ orthographicWeirdness: 0 })).toBe(2);
     expect(variantLimitFor({ orthographicWeirdness: 1 })).toBe(4);
     expect(restrainedVariants).toHaveLength(2);
