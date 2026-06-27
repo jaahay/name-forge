@@ -37,12 +37,13 @@ describe('generateEnsemble', () => {
     expect(generateEnsemble({ ...settings, castSize: 50 }, createDefaultRegistry()).names).toHaveLength(24);
   });
 
-  it('returns provenance-bearing names, variants, and fit scores', () => {
+  it('returns scored names, variants, and fit signals', () => {
     const ensemble = generateEnsemble(settings, createDefaultRegistry());
     expect(ensemble.names).toHaveLength(settings.castSize);
     for (const name of ensemble.names) {
-      expect(name.provenance.length).toBeGreaterThan(0);
-      expect(name.silhouette.provenance.length).toBeGreaterThan(0);
+      expect(name.name.length).toBeGreaterThan(0);
+      expect(name.silhouette.syllableCount).toBeGreaterThan(0);
+      expect(name.variants.length).toBeGreaterThan(0);
       expect(name.scores.overallFit).toBeGreaterThan(0);
       expect(name.scores.styleFit).toBeGreaterThan(0);
       expect(name.scores.silhouetteFit).toBeGreaterThan(0);
@@ -94,7 +95,6 @@ describe('generateEnsemble', () => {
     expect(lightName.roleInfluence?.profileId).toBe('role-profile:protagonist');
     expect(lightName.silhouette.roleInfluence?.label).toBe('Protagonist clarity');
     expect(lightName.scores.roleFit).toBeGreaterThan(0);
-    expect(lightName.provenance.some((entry) => entry.label === 'Role scoring influence')).toBe(true);
     expect(strongName.roleInfluence?.level).toBe('strong');
     expect(strongName.scores.roleFit).toBeGreaterThan(0);
   });
@@ -120,8 +120,7 @@ describe('generateEnsemble', () => {
     expect(givenPart.role).toBe('given');
     expect(name.name).toBe(givenPart.value);
     expect(identity.displayName).toBe(givenPart.value);
-    expect(givenPart.provenance.length).toBeGreaterThan(0);
-    expect(identity.provenance.length).toBeGreaterThan(givenPart.provenance.length);
+    expect(givenPart.sourceNameId).toBe(name.id);
   });
 
   it('formats generated given and family parts through an identity frame', () => {
@@ -139,7 +138,7 @@ describe('generateEnsemble', () => {
     expect(familyPart.role).toBe('family');
     expect(name.name).toBe(`${givenPart.value} ${familyPart.value}`);
     expect(givenPart.sourceNameId).not.toBe(familyPart.sourceNameId);
-    expect(familyPart.provenance.length).toBeGreaterThan(0);
+    expect(familyPart.sourceName).toBe(familyPart.value);
   });
 
   it('formats deterministic initialed bylines from generated parts', () => {
@@ -183,8 +182,7 @@ describe('generateEnsemble', () => {
     expect(givenPart.role).toBe('given');
     expect(titlePart.value).toMatch(/^[A-Z][A-Za-z]+$/);
     expect(first.name).toBe(`${titlePart.value} ${givenPart.value}`);
-    expect(titlePart.provenance.length).toBeGreaterThan(0);
-    expect(givenPart.provenance.length).toBeGreaterThan(0);
+    expect(titlePart.sourceNameId).toBe(givenPart.sourceNameId);
   });
 
   it('formats deterministic place-style identities from generated support material', () => {
@@ -210,7 +208,7 @@ describe('generateEnsemble', () => {
     expect(placePart.value).toMatch(/^[A-Z][A-Za-z]+$/);
     expect(first.name).toBe(`${givenPart.value} ${epithetPart.value} of ${placePart.value}`);
     expect(givenPart.sourceNameId).not.toBe(placePart.sourceNameId);
-    expect(placePart.provenance.length).toBeGreaterThan(0);
+    expect(placePart.sourceName).toBe(placePart.value);
   });
 
   it('deterministically cycles supported formats in mixed mode', () => {

@@ -1,8 +1,8 @@
 # Name Forge
 
-Name Forge is a Vite + TypeScript + React MVP for generating plausible fictional character names with deterministic randomness, ensemble balancing, name silhouettes, role-aware cast metadata, optional role influence, rarity distribution controls, deterministic readability diagnostics, spelling variants, scoring, export, and provenance.
+Name Forge is a Vite + TypeScript + React MVP for generating plausible fictional character names with deterministic randomness, ensemble balancing, name silhouettes, role-aware cast metadata, optional role influence, rarity distribution controls, deterministic readability diagnostics, spelling variants, scoring, and export.
 
-The current app is explicitly the first **Fiction cast** mode of a broader random-name workbench. Future modes should share generation, scoring, comparison, diagnostics, export, and provenance primitives while providing their own controls and result presentation.
+The current app is explicitly the first **Fiction cast** mode of a broader random-name workbench. Future modes should share generation, scoring, comparison, diagnostics, and export primitives while providing their own controls and result presentation.
 
 ## Product docs
 
@@ -27,8 +27,8 @@ The current app is explicitly the first **Fiction cast** mode of a broader rando
 - Deterministic readability diagnostics for long reads, dense letter clusters, repeated letters, and possible visual misreads, without claiming canonical pronunciation.
 - Plausibility scoring across pronounceability, memorability, novelty, cultural anchoring, orthographic naturalness, style fit, silhouette fit, ensemble fit, and role fit signals.
 - Spelling variants marked as listed alternates or generated spellings.
-- JSON and Markdown cast export with role, rarity, score, identity, silhouette, variant, role influence, readability diagnostics, and provenance metadata.
-- Source/provider registry abstraction with provenance-bearing outputs.
+- JSON and Markdown cast export with role, rarity, score, identity, silhouette, variant, role influence, and readability diagnostics.
+- Source/provider registry abstraction with explicit source descriptors.
 
 ## Current next feature requirements
 
@@ -36,7 +36,7 @@ The readability-diagnostics slice is now part of the Fiction cast baseline. The 
 
 Recommended next slices:
 
-1. **Variant relationship metadata**: extend spelling variants with relationship type, confidence, source metadata, optional locale, and explicit generated/listed provenance.
+1. **Variant relationship metadata**: extend spelling variants with relationship type, confidence, source metadata, optional locale, and explicit generated/listed status.
 2. **Source descriptor and pack validation**: define the future provider/source descriptor contract, add license/locale metadata where applicable, and validate built-in style packs before accepting user-loaded packs.
 3. **Warning and collision scaffolding**: add cautious common-word collision, known-name distance, and warning metadata without demographic inference or external databases.
 4. **Game NPC mode discovery**: keep Game NPC as the first candidate second mode, but only after Fiction cast contracts and shared primitives are stable.
@@ -89,6 +89,7 @@ src/
     soundGenerator.ts
     soundProfile.ts
     soundSegmentTypes.ts
+    spellingGenerator.ts
     starterSoundInventory.ts
     styleCompiler.ts
     types.ts

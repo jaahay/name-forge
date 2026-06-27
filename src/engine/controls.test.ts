@@ -52,7 +52,6 @@ function testSilhouette(overrides: Partial<NameSilhouette> = {}): NameSilhouette
     texture: 'balanced',
     targetNovelty: 0.5,
     targetLength: 'short',
-    provenance: [],
     ...overrides,
   };
 }
@@ -90,8 +89,8 @@ describe('generator control knobs', () => {
     const name = generateNameFromSilhouette(testSilhouette(), pack, { ...settings, culturalAnchoring: 1, orthographicWeirdness: 0 }, fixedWeightedRandom([]), 0);
 
     expect(name.name).not.toBe('Aveline');
-    expect(name.provenance.some((item) => item.label === 'Curated seed')).toBe(false);
-    expect(name.provenance.some((item) => item.label === 'Generated name')).toBe(true);
+    expect(name.name).toBe('Aan');
+    expect(name.scores.overallFit).toBeGreaterThan(0);
   });
 
   it('uses orthographic weirdness to mutate generated spelling and expand variants without one-letter outputs', () => {

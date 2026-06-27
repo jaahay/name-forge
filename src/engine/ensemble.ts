@@ -45,7 +45,6 @@ function withNameIdentity(candidate: GeneratedName, settings: GenerationSettings
     name: identity.displayName,
     identity,
     readabilityDiagnostics: diagnoseNameReadability(identity.displayName),
-    provenance: [...candidate.provenance, identity.format.provenance],
   };
 }
 

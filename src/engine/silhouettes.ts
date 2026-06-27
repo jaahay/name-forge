@@ -63,23 +63,6 @@ export function createNameSilhouette(settings: GenerationSettings, pack: StylePa
     if (texture === 'liquid' && random.chance(liquidBias)) return 'LCV';
     return random.chance(openSyllableBias) ? 'CV' : 'CVC';
   });
-  const provenance = [
-    pack.provenance,
-    {
-      sourceId: 'name-forge:silhouette-engine@0.1.0',
-      sourceKind: 'algorithm' as const,
-      label: 'Name silhouette',
-      detail: 'Generated before exact letters using syllable count, rhythm, rarity, texture, target novelty, pronounceability, memorability pressure, and optional rarity distribution controls.',
-    },
-  ];
-  if (roleInfluence) {
-    provenance.push({
-      sourceId: 'name-forge:role-influence@0.1.0',
-      sourceKind: 'algorithm',
-      label: 'Role influence',
-      detail: `${roleInfluence.label} applied at ${roleInfluence.level} strength to nudge silhouette and scoring preferences without changing the explicit role assignment.`,
-    });
-  }
   return {
     id: `silhouette-${index + 1}`,
     syllableCount,
@@ -91,6 +74,5 @@ export function createNameSilhouette(settings: GenerationSettings, pack: StylePa
     targetNovelty: clamp(settings.novelty + random.next() * 0.18 - 0.09),
     targetLength,
     roleInfluence,
-    provenance,
   };
 }
