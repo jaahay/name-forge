@@ -1,4 +1,5 @@
 import type { SoundCandidate } from './soundGenerator';
+import type { SoundProfile } from './soundProfile';
 import type { RankedSpellingCandidate } from './spellingGenerator';
 import type { GeneratedName, GenerationSettings, NameSilhouette, StylePack } from './types';
 import type { SeededRandom } from './random';
@@ -12,6 +13,7 @@ import { generateRankedSpellings } from './spellingGenerator';
 import { generateVariants } from './variants';
 
 export interface NameGenerationCandidate {
+  readonly soundProfile: SoundProfile;
   readonly sound: SoundCandidate;
   readonly rankedSpellings: readonly RankedSpellingCandidate[];
   readonly selectedSpelling: RankedSpellingCandidate;
@@ -31,7 +33,7 @@ function spellingDistinctivenessFor(settings: GenerationSettings): StyleInput['d
   return 'balanced';
 }
 
-function compileSoundProfileFromSettings(settings: GenerationSettings, silhouette: NameSilhouette) {
+function compileSoundProfileFromSettings(settings: GenerationSettings, silhouette: NameSilhouette): SoundProfile {
   return compileStyle({
     feel: feelFor(silhouette),
     length: silhouette.targetLength,
@@ -49,7 +51,7 @@ export function generateNameCandidateFromSilhouette(silhouette: NameSilhouette, 
     throw new Error(`Expected at least one spelling candidate for ${sound.id}.`);
   }
 
-  return { sound, rankedSpellings, selectedSpelling };
+  return { soundProfile, sound, rankedSpellings, selectedSpelling };
 }
 
 export function generateNameFromSilhouette(silhouette: NameSilhouette, pack: StylePack, settings: GenerationSettings, random: SeededRandom, index: number): GeneratedName {
@@ -61,6 +63,7 @@ export function generateNameFromSilhouette(silhouette: NameSilhouette, pack: Sty
   return {
     id: `name-${index + 1}-${baseName.toLowerCase()}`,
     name: baseName,
+    soundProfile: candidate.soundProfile,
     sound: candidate.sound,
     spelling: candidate.selectedSpelling,
     silhouette,
