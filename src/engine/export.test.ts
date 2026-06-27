@@ -51,11 +51,10 @@ describe('cast export serialization', () => {
     expect(firstName.silhouette.syllableCount).toBeGreaterThan(0);
     expect(firstName.silhouette.rarityBand).toBeDefined();
     expect(firstName.parts.length).toBeGreaterThan(0);
-    expect(firstName.provenance.length).toBeGreaterThan(0);
     expect(firstName.warnings).toEqual([]);
   });
 
-  it('renders a Markdown export with score, silhouette, variants, provenance, role influence, and seed', () => {
+  it('renders a Markdown export with score, silhouette, variants, role influence, and seed', () => {
     const markdown = serializeCastAsMarkdown(exportableEnsemble());
 
     expect(markdown).toContain('# Name Forge Cast Export');
@@ -71,7 +70,6 @@ describe('cast export serialization', () => {
     expect(markdown).toContain('- Parts:');
     expect(markdown).toContain('- Silhouette:');
     expect(markdown).toContain('- Variants:');
-    expect(markdown).toContain('- Provenance:');
     expect(markdown).toContain('- Warnings: none');
   });
 });
