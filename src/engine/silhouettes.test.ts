@@ -14,9 +14,13 @@ describe('createNameSilhouette', () => {
     const second = createNameSilhouette(settings, pack, createSeededRandom(settings.seed), 0);
 
     expect(second).toEqual(first);
+    expect(first.id).toBe('silhouette-1');
     expect(first.shape).toHaveLength(first.syllableCount);
     expect(first.stressPattern.length).toBeGreaterThan(0);
-    expect(first.provenance.some((item) => item.label === 'Name silhouette')).toBe(true);
+    expect(first.rhythm.length).toBeGreaterThan(0);
+    expect(first.targetLength).toMatch(/^(short|medium|long)$/);
+    expect(first.targetNovelty).toBeGreaterThanOrEqual(0);
+    expect(first.targetNovelty).toBeLessThanOrEqual(1);
   });
 
   it('uses explicit rarity distribution independently from novelty', () => {
