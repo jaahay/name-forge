@@ -1,3 +1,5 @@
+import type { SoundCandidate } from './soundGenerator';
+import type { RankedSpellingCandidate } from './spellingGenerator';
 import type { GeneratedName, GenerationSettings, NameSilhouette, StylePack } from './types';
 import type { SeededRandom } from './random';
 import { diagnoseNameReadability } from './diagnostics';
@@ -8,6 +10,12 @@ import type { StyleInput } from './styleCompiler';
 import { compileStyle } from './styleCompiler';
 import { generateRankedSpellings } from './spellingGenerator';
 import { generateVariants } from './variants';
+
+export interface NameGenerationCandidate {
+  readonly sound: SoundCandidate;
+  readonly rankedSpellings: readonly RankedSpellingCandidate[];
+  readonly selectedSpelling: RankedSpellingCandidate;
+}
 
 function feelFor(silhouette: NameSilhouette): StyleInput['feel'] {
   if (silhouette.texture === 'soft') return 'gentle';
@@ -31,30 +39,34 @@ function compileSoundProfileFromSettings(settings: GenerationSettings, silhouett
   });
 }
 
-function selectedSpellingText(name: GeneratedName): string {
-  const [primarySpelling] = name.rankedSpellings;
-  return primarySpelling?.text ?? name.name;
-}
-
-export function generateNameFromSilhouette(silhouette: NameSilhouette, pack: StylePack, settings: GenerationSettings, random: SeededRandom, index: number): GeneratedName {
+export function generateNameCandidateFromSilhouette(silhouette: NameSilhouette, settings: GenerationSettings, random: SeededRandom): NameGenerationCandidate {
   const soundProfile = compileSoundProfileFromSettings(settings, silhouette);
   const sound = generateSound(soundProfile, random);
   const rankedSpellings = generateRankedSpellings(sound, soundProfile, { maxCandidates: 12 });
-  const [primarySpelling] = rankedSpellings;
-  const baseName = primarySpelling?.text ?? sound.transcription;
+  const [selectedSpelling] = rankedSpellings;
+
+  if (!selectedSpelling) {
+    throw new Error(`Expected at least one spelling candidate for ${sound.id}.`);
+  }
+
+  return { sound, rankedSpellings, selectedSpelling };
+}
+
+export function generateNameFromSilhouette(silhouette: NameSilhouette, pack: StylePack, settings: GenerationSettings, random: SeededRandom, index: number): GeneratedName {
+  const candidate = generateNameCandidateFromSilhouette(silhouette, settings, random);
+  const baseName = candidate.selectedSpelling.text;
   const scores = scoreName(baseName, silhouette, pack, settings);
   const variants = generateVariants(baseName, pack, settings);
-  const generatedName: GeneratedName = {
+
+  return {
     id: `name-${index + 1}-${baseName.toLowerCase()}`,
     name: baseName,
-    sound,
-    rankedSpellings,
+    sound: candidate.sound,
+    spelling: candidate.selectedSpelling,
     silhouette,
     scores,
     variants,
     roleInfluence: silhouette.roleInfluence,
     readabilityDiagnostics: diagnoseNameReadability(baseName),
   };
-
-  return { ...generatedName, name: selectedSpellingText(generatedName) };
 }
