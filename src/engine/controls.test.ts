@@ -107,7 +107,7 @@ describe('generator control knobs', () => {
     expect(high.name.length).toBeGreaterThanOrEqual(1);
     expect(low.name).toBe(low.spelling.text);
     expect(high.name).toBe(high.spelling.text);
-    expect(low.sound.id).toBe(high.sound.id);
+    expect(low.sound.sequence.segments).toEqual(high.sound.sequence.segments);
     expect(low.soundProfile.targets.distinctiveness).toBeLessThan(high.soundProfile.targets.distinctiveness);
     expect(variantLimitFor({ orthographicWeirdness: 0 })).toBe(2);
     expect(variantLimitFor({ orthographicWeirdness: 1 })).toBe(4);
