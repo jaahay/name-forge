@@ -1,4 +1,4 @@
-import type { SoundProfile, SoundProfileCadence, SoundProfileJob, SoundProfileLength, SoundProfileTexture } from './soundProfile';
+import type { SoundProfile, SoundProfileCadence, SoundProfileJob, SoundProfileLength, SoundProfileLexeme, SoundProfileTexture } from './soundProfile';
 
 type StyleFeel = 'balanced' | 'gentle' | 'strong' | 'lyrical';
 type StyleDistinctiveness = 'familiar' | 'balanced' | 'distinctive';
@@ -18,6 +18,28 @@ const DEFAULT_STYLE = {
   length: 'medium',
   distinctiveness: 'balanced',
 } as const satisfies NormalizedStyleInput;
+
+const titleLexemes: readonly SoundProfileLexeme[] = [
+  { id: 'title:archivist', kind: 'title', text: 'Archivist' },
+  { id: 'title:captain', kind: 'title', text: 'Captain' },
+  { id: 'title:chronicler', kind: 'title', text: 'Chronicler' },
+  { id: 'title:doctor', kind: 'title', text: 'Doctor' },
+  { id: 'title:keeper', kind: 'title', text: 'Keeper' },
+  { id: 'title:marshal', kind: 'title', text: 'Marshal' },
+  { id: 'title:professor', kind: 'title', text: 'Professor' },
+  { id: 'title:warden', kind: 'title', text: 'Warden' },
+];
+
+const epithetLexemes: readonly SoundProfileLexeme[] = [
+  { id: 'epithet:the-ashen', kind: 'epithet', text: 'the Ashen' },
+  { id: 'epithet:the-bright', kind: 'epithet', text: 'the Bright' },
+  { id: 'epithet:the-far', kind: 'epithet', text: 'the Far' },
+  { id: 'epithet:the-kindled', kind: 'epithet', text: 'the Kindled' },
+  { id: 'epithet:the-riverwise', kind: 'epithet', text: 'the Riverwise' },
+  { id: 'epithet:the-silver', kind: 'epithet', text: 'the Silver' },
+  { id: 'epithet:the-starlit', kind: 'epithet', text: 'the Starlit' },
+  { id: 'epithet:the-wry', kind: 'epithet', text: 'the Wry' },
+];
 
 const syllableCounts: Record<SoundProfileLength, SoundProfile['targets']['syllableCount']> = {
   short: { min: 1, max: 2, preferred: 1 },
@@ -112,5 +134,9 @@ export function compileStyle(input: StyleInput = {}): SoundProfile {
       cadences: cadencesByLength[style.length],
     },
     phonotactics: compilePhonotactics(style),
+    lexicon: {
+      titles: titleLexemes,
+      epithets: epithetLexemes,
+    },
   };
 }
