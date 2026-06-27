@@ -63,6 +63,15 @@ export function NameInspector({ name }: NameInspectorProps) {
           <p className="section-note">{constructionCueFor(name)}</p>
         </section>
 
+        <section className="detail-block">
+          <h3>Selected sound</h3>
+          <dl className="score-list detail-score-list">
+            <div><dt>Profile</dt><dd>{name.soundProfile.id}</dd></div>
+            <div><dt>Transcription</dt><dd>{name.sound.transcription}</dd></div>
+            <div><dt>Spelling</dt><dd>{name.spelling.text} · rank {name.spelling.rank}</dd></div>
+          </dl>
+        </section>
+
         <section className="detail-block" aria-label={`${name.name} read breakdown`}>
           <h3>Read</h3>
           <dl className="score-list detail-score-list">
