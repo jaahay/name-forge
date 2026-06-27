@@ -38,9 +38,10 @@ The important split is:
 5. **Mode-aware UX, shared primitives**: Fiction cast can have role mix, slot overrides, cast health, and cast export without making those concepts global product assumptions.
 6. **Hard-code mechanisms, not linguistic knowledge**: code owns schemas, algorithms, scoring, normalization, diagnostics, and source descriptor contracts; packs/providers own language-feel data.
 7. **Generated primary names**: style packs guide generation; they are not copied as the primary output path.
-8. **Serializable IR contracts**: `SoundProfile` and downstream candidate types should stay data-shaped and should not store callbacks, caches, UI state, or runtime handles.
-9. **Small abstraction first**: introduce seams only as needed. The current mode boundary is a lightweight config, not a full plugin framework.
-10. **Pronounceability before pronunciation**: scoring and deterministic readability diagnostics may ship before text pronunciation, IPA, or audio artifacts.
+8. **Sound-bearing output**: everything verbal that appears in the resultant name should be licensed by the compiled sound grammar. Prefixes, suffixes, honorifics, titles, epithets, and place-like components are not arbitrary downstream text decorations.
+9. **Serializable IR contracts**: `SoundProfile` and downstream candidate types should stay data-shaped and should not store callbacks, caches, UI state, or runtime handles.
+10. **Small abstraction first**: introduce seams only as needed. The current mode boundary is a lightweight config, not a full plugin framework.
+11. **Pronounceability before pronunciation**: scoring and deterministic readability diagnostics may ship before text pronunciation, IPA, or audio artifacts.
 
 ## Runtime pipeline
 
@@ -134,6 +135,8 @@ Each step should remain testable as TypeScript. UI code renders controls and res
 
 `SoundProfile` is the single internal compiled engine contract for later segment-sequence generation work. The name is kept as the product contract for issue #87, but the type should be understood as a profile of phonotactic and prosodic preferences rather than one generated sound or one final name. Future compilers for other naming jobs may expose different ergonomic inputs, but they should compile into the same `SoundProfile` contract rather than teaching the generator about job-specific input shapes.
 
+`SoundProfile` should trend toward a compiled sound grammar for the full verbal name, not merely a bag of phoneme weights. If a format requires a prefix, suffix, honorific, title, epithet, or place-like component, that component should eventually be represented as sound-bearing profile data or a profile-selected lexeme. The identity layer may arrange already licensed parts, but it should not invent new sound material by string surgery.
+
 Do not use an ERD or UML class diagram for this layer yet. The useful artifact is the directional flow above: input intent is compiled into a sound-structure contract, the generator produces pre-spelling segment sequences, and spelling candidates are projections of those sequences.
 
 ## Starter sound segment inventory
@@ -166,6 +169,14 @@ This generator is deterministic by seed and profile. It deliberately does not al
 The profile does not store JavaScript callbacks. It remains a serializable data contract. Ranking callbacks and weights are internal engine mechanics derived from profile data and engine-local spelling rules.
 
 Spelling candidates carry text plus segment-to-text mapping data for later Inspect/export explanation surfaces. Ranked spelling candidates add rank and score. This layer does not use external spelling databases, TTS, source taxonomy, or canonical pronunciation claims.
+
+## Name construction and sound identity
+
+Everything verbal in the resultant name has sound. A generated sound may produce multiple spellings, but adding or removing sound-bearing material creates a different name candidate, not a formatting variant.
+
+The identity layer may compose already generated or profile-licensed parts into display forms such as `{given}`, `{given} {family}`, `{title} {given}`, or `{given} {epithet} of {place}`. It must not append suffixes, prefixes, honorifics, epithets, or place markers as arbitrary post-generation string edits.
+
+For the current legacy runtime, `identity.ts` keeps place-style identities sound-preserving by using the generated supporting name as the place component directly. Future work can support place suffixes such as `vale`, `ford`, or `mere`, but those suffixes should be sound-bearing lexemes or construction slots selected by the compiled profile before spelling, not after a name has already been generated.
 
 ## Future sequence and adapter boundaries
 
