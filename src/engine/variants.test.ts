@@ -32,9 +32,43 @@ const silhouette: NameSilhouette = {
 };
 
 function fixtureName(): GeneratedName {
+  const sound = {
+    contract: 'SoundCandidate' as const,
+    version: 1 as const,
+    id: 'sound-candidate:test-profile:a-v-e-l-i-n',
+    profileId: 'sound-profile:test',
+    cadence: 'balanced' as const,
+    transcription: '/a.ve.lin/',
+    sequence: {
+      contract: 'SegmentSequence' as const,
+      version: 1 as const,
+      id: 'segment-sequence:test-profile:a-v-e-l-i-n',
+      profileId: 'sound-profile:test',
+      segments: ['a', 'v', 'e', 'l', 'i', 'n'] as const,
+      syllables: [
+        { start: 0, end: 2, onset: [], nucleus: [0], coda: [1], shape: 'CVC' as const },
+        { start: 2, end: 4, onset: [], nucleus: [2], coda: [3], shape: 'CVC' as const },
+        { start: 4, end: 6, onset: [], nucleus: [4], coda: [5], shape: 'CVC' as const },
+      ],
+    },
+  };
+
   return {
     id: 'name-1',
     name: 'Aveline',
+    sound,
+    spelling: {
+      contract: 'SpellingCandidate',
+      version: 1,
+      id: 'spelling-candidate:test-profile:aveline',
+      soundCandidateId: sound.id,
+      profileId: sound.profileId,
+      sequenceId: sound.sequence.id,
+      text: 'Aveline',
+      mappings: [],
+      rank: 1,
+      score: 1,
+    },
     silhouette,
     scores,
     variants: generateVariants('Aveline', pack, { orthographicWeirdness: 0.5 }),
