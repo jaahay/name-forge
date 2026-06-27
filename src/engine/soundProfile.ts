@@ -2,6 +2,13 @@ export type SoundProfileJob = 'fiction-cast';
 export type SoundProfileLength = 'short' | 'medium' | 'long';
 export type SoundProfileTexture = 'balanced' | 'soft' | 'crisp' | 'fluid';
 export type SoundProfileCadence = 'compact' | 'balanced' | 'open' | 'rolling';
+export type SoundProfileLexemeKind = 'title' | 'epithet';
+
+export interface SoundProfileLexeme {
+  readonly id: string;
+  readonly kind: SoundProfileLexemeKind;
+  readonly text: string;
+}
 
 interface CompiledStyleSource {
   readonly kind: 'style-input';
@@ -30,6 +37,11 @@ interface SoundProfilePhonotactics {
   readonly clusterTolerance: number;
 }
 
+interface SoundProfileLexicon {
+  readonly titles: readonly SoundProfileLexeme[];
+  readonly epithets: readonly SoundProfileLexeme[];
+}
+
 export interface SoundProfile {
   readonly contract: 'SoundProfile';
   readonly version: 1;
@@ -37,4 +49,5 @@ export interface SoundProfile {
   readonly source: CompiledStyleSource;
   readonly targets: SoundProfileTargets;
   readonly phonotactics: SoundProfilePhonotactics;
+  readonly lexicon: SoundProfileLexicon;
 }
