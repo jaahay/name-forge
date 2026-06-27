@@ -5,7 +5,6 @@ export type MaterializedNameFormatKind = Exclude<NameFormatKind, 'mixed'>;
 const mixedFormatSequence: MaterializedNameFormatKind[] = ['given-only', 'given-family', 'initials-family', 'title-name', 'epithet-place'];
 const titleOptions = ['Archivist', 'Captain', 'Chronicler', 'Doctor', 'Keeper', 'Marshal', 'Professor', 'Warden'];
 const epithetOptions = ['the Ashen', 'the Bright', 'the Far', 'the Kindled', 'the Riverwise', 'the Silver', 'the Starlit', 'the Wry'];
-const placeSuffixes = ['ford', 'hearth', 'holt', 'mere', 'reach', 'vale', 'wick', 'wold'];
 
 const formatRules: Record<MaterializedNameFormatKind, NameFormatRule> = {
   'given-only': { id: 'format:given-only', kind: 'given-only', label: 'Given name only', pattern: '{given}' },
@@ -41,14 +40,6 @@ function initialsFor(name: string): string {
   return name.split(/[\s-]+/).filter((part) => part.length > 0).map((part) => `${part.charAt(0).toUpperCase()}.`).join(' ');
 }
 
-function placeNameFor(name: string): string {
-  const compactName = name.replace(/[^A-Za-z]/g, '');
-  const baseStem = compactName.length >= 3 ? compactName.slice(0, Math.min(8, compactName.length)) : 'North';
-  const stem = `${baseStem.charAt(0).toUpperCase()}${baseStem.slice(1).toLowerCase()}`;
-  const suffix = pickDeterministic(placeSuffixes, name);
-  return stem.toLowerCase().endsWith(suffix) ? stem : `${stem}${suffix}`;
-}
-
 export function createNameIdentity(given: GeneratedName, supportingName: GeneratedName | undefined, format: MaterializedNameFormatKind): NameIdentity {
   const rule = formatRules[format];
   const givenPart = createPart('given', given.name, given);
@@ -61,7 +52,7 @@ export function createNameIdentity(given: GeneratedName, supportingName: Generat
   if (format === 'title-name') return { displayName: `${titlePart.value} ${givenPart.value}`, format: rule, parts: [titlePart, givenPart] };
   if (format === 'epithet-place') {
     const placeSource = supportingName ?? given;
-    const placePart = createPart('place', placeNameFor(placeSource.name), placeSource);
+    const placePart = createPart('place', placeSource.name, placeSource);
     return { displayName: `${givenPart.value} ${epithetPart.value} of ${placePart.value}`, format: rule, parts: [givenPart, epithetPart, placePart] };
   }
 
