@@ -1,6 +1,6 @@
 # Name Forge Architecture
 
-Name Forge is a random-name workbench whose first serious mode is **Fiction cast**. The current implementation should be read as a fiction-cast product surface built on reusable generation, scoring, comparison, diagnostics, export, and provenance primitives.
+Name Forge is a random-name workbench whose first serious mode is **Fiction cast**. The current implementation should be read as a fiction-cast product surface built on reusable generation, scoring, comparison, diagnostics, and export primitives.
 
 The architecture goal is not to build a generic abstraction before the product earns it. The goal is to keep fiction-specific UX behind a clear mode boundary while the engine remains useful for future naming modes.
 
@@ -22,7 +22,7 @@ Name Forge works by combining controlled randomness with explicit product judgme
 4. Score candidates with decomposed fit signals, including role fit where applicable.
 5. Select an ensemble that avoids obvious sameness.
 6. Attach deterministic readability diagnostics without claiming canonical pronunciation.
-7. Preserve provenance so generated names, listed alternates, rule-created variants, diagnostics, and future external-source results stay distinguishable.
+7. Preserve explicit source descriptors where source or pack identity is useful, without treating source metadata as a cross-cutting runtime field.
 
 The important split is:
 
@@ -36,9 +36,9 @@ The important split is:
 3. **Silhouette before spelling**: shape the intended name before exact letters are chosen.
 4. **Ensemble-aware selection**: the first serious output is a cast, so repeated initials, endings, cadence, readability friction, and rarity clusters matter.
 5. **Mode-aware UX, shared primitives**: Fiction cast can have role mix, slot overrides, cast health, and cast export without making those concepts global product assumptions.
-6. **Hard-code mechanisms, not linguistic knowledge**: code owns schemas, algorithms, scoring, normalization, diagnostics, and provenance contracts; packs/providers own language-feel data.
+6. **Hard-code mechanisms, not linguistic knowledge**: code owns schemas, algorithms, scoring, normalization, diagnostics, and source descriptor contracts; packs/providers own language-feel data.
 7. **Generated primary names**: style packs guide generation; they are not copied as the primary output path.
-8. **Provenance-bearing output**: every result should explain source, seed, style, role/rarity shaping, variant relationship, readability notes, and scoring signals.
+8. **Serializable IR contracts**: `SoundProfile` and downstream candidate types should stay data-shaped and should not store callbacks, caches, UI state, or runtime handles.
 9. **Small abstraction first**: introduce seams only as needed. The current mode boundary is a lightweight config, not a full plugin framework.
 10. **Pronounceability before pronunciation**: scoring and deterministic readability diagnostics may ship before text pronunciation, IPA, or audio artifacts.
 
@@ -59,7 +59,30 @@ StyleInput
   -> RankedSpellingCandidate[]
 ```
 
-Future slices extend that boundary to:
+The current product runtime is not yet fully piped through this boundary. Until the wiring slice lands, the app has two paths:
+
+```text
+Current app runtime
+  -> GenerationSettings
+  -> NameSilhouette
+  -> legacy candidate materialization
+  -> variants
+  -> identity composition
+  -> UI/export
+```
+
+```text
+New sound-first core
+  -> StyleInput
+  -> SoundProfile
+  -> SoundCandidate
+  -> SpellingCandidate[]
+  -> RankedSpellingCandidate[]
+```
+
+Issue #91 should rectify this by making the sound-first path the runtime path rather than leaving two competing generation flows.
+
+Future slices extend the sound-first boundary to:
 
 ```text
 StyleInput
@@ -83,7 +106,7 @@ flowchart LR
 
 The sequence layer is deliberately not called a single generated sound. `SegmentSequence` represents one pre-spelling candidate form with syllable segmentation metadata, then later projects to one or more spellings.
 
-The current app runtime still uses the established Fiction cast pipeline until the later sequence generation and spelling slices are wired in:
+The current app runtime still uses the established Fiction cast pipeline until the sound-first wiring slice is implemented:
 
 ```text
 Active mode config
@@ -98,7 +121,6 @@ Active mode config
   -> Attach identity and role metadata
   -> Generate variants
   -> Diagnose readability
-  -> Attach provenance
   -> Return ranked ensemble
 ```
 
@@ -172,7 +194,7 @@ src/
     ensemble.ts           Cast-level selection, diversity penalties, locked-slot preservation, and role attachment
     export.ts             JSON and Markdown cast serialization
     identity.ts           Given/surname/title/epithet identity composition
-    generator.ts          Candidate materialization from silhouettes, style packs, and settings
+    generator.ts          Legacy candidate materialization from silhouettes, style packs, and settings
     random.ts             Deterministic seeded randomness
     rarity.ts             Rarity distribution preset planning
     registry.ts           Provider/source lookup and style-pack registry
@@ -186,7 +208,7 @@ src/
     starterSoundInventory.ts  Starter sound segment inventory and lookup
     styleCompiler.ts      StyleInput and compileStyle boundary
     types.ts              Existing core domain types and contracts
-    variants.ts           Spelling variant generation and provenance
+    variants.ts           Spelling variant generation and relationship metadata
   ui/
     AboutView.tsx         Product explanation copy
     CastHealth.tsx        Deterministic roster-level checks and display
@@ -202,7 +224,7 @@ src/
 
 ## Mode system
 
-Name Forge should be treated as a mode-based product, not a collection of unrelated generators. A mode defines the naming job being performed. Shared primitives provide the reusable generation, scoring, comparison, diagnostics, export, and provenance machinery beneath that job.
+Name Forge should be treated as a mode-based product, not a collection of unrelated generators. A mode defines the naming job being performed. Shared primitives provide the reusable generation, scoring, comparison, diagnostics, and export machinery beneath that job.
 
 The app currently exposes one mode: **Fiction cast**.
 
@@ -245,7 +267,6 @@ Mode-level code should not fork core mechanics unnecessarily. The following shou
 - set/list comparison pressure
 - spelling variant relationships
 - warning and collision metadata
-- provenance structure
 - JSON/Markdown serialization mechanics where the shape is not mode-specific
 
 ### Adding a future mode
@@ -281,7 +302,6 @@ These should remain reusable across future modes:
 - identity composition
 - spelling variants and relationship metadata
 - warning/collision metadata
-- provenance entries
 - JSON/Markdown export mechanics
 
 Fiction-specific concepts can use these primitives, but should not silently redefine them globally.
@@ -300,6 +320,6 @@ The engine centers on these first-class types:
 - `GenerationSettings`: adjustable axes such as cast size, seed, style pack, name format, role preset, role influence, rarity distribution, novelty, pronounceability, memorability, cultural anchoring, and orthographic weirdness.
 - `ReadabilityDiagnostic`: non-canonical readability/speakability notes for names and casts.
 - `NameSilhouette`: the pre-spelling shape of one full name.
-- `GeneratedName`: rendered text plus identity parts, optional role metadata, optional role influence metadata, score metadata, variants, readability diagnostics, provenance, warnings, and seed.
+- `GeneratedName`: rendered text plus identity parts, optional role metadata, optional role influence metadata, score metadata, variants, readability diagnostics, warnings, and seed.
 - `NameScores`: decomposed scoring signals, not just one opaque score.
 - `CastRoleAssignment`: fiction-cast role metadata resolved from a preset or slot override.
