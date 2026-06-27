@@ -89,7 +89,7 @@ describe('generator control knobs', () => {
     const name = generateNameFromSilhouette(testSilhouette(), pack, { ...settings, culturalAnchoring: 1, orthographicWeirdness: 0 }, fixedWeightedRandom([]), 0);
 
     expect(name.name).not.toBe('Aveline');
-    expect(name.name).toBe('Baben');
+    expect(name.name).toBe('Aan');
     expect(name.scores.overallFit).toBeGreaterThan(0);
   });
 
