@@ -23,7 +23,7 @@ function exportableEnsemble() {
 }
 
 describe('cast export serialization', () => {
-  it('creates a deterministic JSON payload with cast metadata and exportable names', () => {
+  it('creates a deterministic JSON payload with cast metadata, selected sound, and exportable names', () => {
     const ensemble = exportableEnsemble();
     const firstJson = serializeCastAsJson(ensemble);
     const secondJson = serializeCastAsJson(exportableEnsemble());
@@ -39,22 +39,33 @@ describe('cast export serialization', () => {
     expect(payload.names).toHaveLength(settings.castSize);
 
     const [firstName] = payload.names;
+    const [sourceName] = ensemble.names;
     expect(firstName).toBeDefined();
-    if (!firstName) throw new Error('Expected at least one exported name.');
-    expect(firstName.name).toBe(ensemble.names[0]?.name);
+    expect(sourceName).toBeDefined();
+    if (!firstName || !sourceName) throw new Error('Expected at least one exported name.');
+    expect(firstName.name).toBe(sourceName.name);
     expect(firstName.seed).toBe(settings.seed);
     expect(firstName.role).toBe('Protagonist');
     expect(firstName.roleInfluence?.level).toBe('light');
     expect(firstName.roleInfluence?.profileId).toBe('role-profile:protagonist');
-    expect(firstName.score).toBe(ensemble.names[0]?.scores.overallFit);
-    expect(firstName.scores.roleFit).toBe(ensemble.names[0]?.scores.roleFit);
+    expect(firstName.score).toBe(sourceName.scores.overallFit);
+    expect(firstName.scores.roleFit).toBe(sourceName.scores.roleFit);
+    expect(firstName.sound.profileId).toBe(sourceName.soundProfile.id);
+    expect(firstName.sound.candidateId).toBe(sourceName.sound.id);
+    expect(firstName.sound.sequenceId).toBe(sourceName.sound.sequence.id);
+    expect(firstName.sound.transcription).toBe(sourceName.sound.transcription);
+    expect(firstName.sound.selectedSpelling.id).toBe(sourceName.spelling.id);
+    expect(firstName.sound.selectedSpelling.text).toBe(sourceName.spelling.text);
+    expect(firstName.sound.selectedSpelling.rank).toBe(1);
+    expect(firstName.sound.selectedSpelling.soundCandidateId).toBe(sourceName.sound.id);
+    expect(firstName.sound.selectedSpelling.sequenceId).toBe(sourceName.sound.sequence.id);
     expect(firstName.silhouette.syllableCount).toBeGreaterThan(0);
     expect(firstName.silhouette.rarityBand).toBeDefined();
     expect(firstName.parts.length).toBeGreaterThan(0);
     expect(firstName.warnings).toEqual([]);
   });
 
-  it('renders a Markdown export with score, silhouette, variants, role influence, and seed', () => {
+  it('renders a Markdown export with score, selected sound, silhouette, variants, role influence, and seed', () => {
     const markdown = serializeCastAsMarkdown(exportableEnsemble());
 
     expect(markdown).toContain('# Name Forge Cast Export');
@@ -68,6 +79,8 @@ describe('cast export serialization', () => {
     expect(markdown).toContain('- Overall fit:');
     expect(markdown).toContain('- Format:');
     expect(markdown).toContain('- Parts:');
+    expect(markdown).toContain('- Sound: /');
+    expect(markdown).toContain('- Selected spelling:');
     expect(markdown).toContain('- Silhouette:');
     expect(markdown).toContain('- Variants:');
     expect(markdown).toContain('- Warnings: none');
