@@ -29,6 +29,7 @@ describe('generateEnsemble', () => {
     const second = generateEnsemble(settings, registry);
     expect(second.names.map((name) => name.name)).toEqual(first.names.map((name) => name.name));
     expect(second.names.map((name) => name.scores.overallFit)).toEqual(first.names.map((name) => name.scores.overallFit));
+    expect(second.names.map((name) => name.soundProfile.id)).toEqual(first.names.map((name) => name.soundProfile.id));
     expect(second.names.map((name) => name.sound.transcription)).toEqual(first.names.map((name) => name.sound.transcription));
     expect(second.names.map((name) => name.spelling.text)).toEqual(first.names.map((name) => name.spelling.text));
   });
@@ -48,7 +49,11 @@ describe('generateEnsemble', () => {
     const silhouette = createNameSilhouette(settings, pack, createSeededRandom('candidate:silhouette'), 0);
     const candidate = generateNameCandidateFromSilhouette(silhouette, settings, createSeededRandom('candidate:sound'));
 
+    expect(candidate.soundProfile.contract).toBe('SoundProfile');
+    expect(candidate.soundProfile.lexicon.titles.length).toBeGreaterThan(0);
+    expect(candidate.soundProfile.lexicon.epithets.length).toBeGreaterThan(0);
     expect(candidate.sound.contract).toBe('SoundCandidate');
+    expect(candidate.sound.profileId).toBe(candidate.soundProfile.id);
     expect(candidate.sound.sequence.contract).toBe('SegmentSequence');
     expect(candidate.sound.transcription).toMatch(/^\/.+\/$/);
     expect(candidate.rankedSpellings.length).toBeGreaterThan(0);
@@ -66,7 +71,9 @@ describe('generateEnsemble', () => {
     expect(ensemble.names).toHaveLength(settings.castSize);
     for (const name of ensemble.names) {
       expect(name.name.length).toBeGreaterThan(0);
+      expect(name.soundProfile.contract).toBe('SoundProfile');
       expect(name.sound.contract).toBe('SoundCandidate');
+      expect(name.sound.profileId).toBe(name.soundProfile.id);
       expect(name.sound.sequence.contract).toBe('SegmentSequence');
       expect(name.sound.transcription).toMatch(/^\/.+\/$/);
       expect(name.spelling.rank).toBe(1);
@@ -193,7 +200,7 @@ describe('generateEnsemble', () => {
     expect(initialPart.sourceNameId).not.toBe(familyPart.sourceNameId);
   });
 
-  it('formats titled identities from generated name material', () => {
+  it('formats titled identities from profile-licensed lexemes and generated name material', () => {
     const first = onlyNameFor({ nameFormat: 'title-name' });
     const second = onlyNameFor({ nameFormat: 'title-name' });
     const identity = first.identity;
@@ -210,12 +217,12 @@ describe('generateEnsemble', () => {
     if (!titlePart || !givenPart) throw new Error('Expected title and given name parts.');
     expect(titlePart.role).toBe('title');
     expect(givenPart.role).toBe('given');
-    expect(titlePart.value).toMatch(/^[A-Z][A-Za-z]+$/);
+    expect(first.soundProfile.lexicon.titles.map((lexeme) => lexeme.text)).toContain(titlePart.value);
     expect(first.name).toBe(`${titlePart.value} ${givenPart.value}`);
     expect(titlePart.sourceNameId).toBe(givenPart.sourceNameId);
   });
 
-  it('formats deterministic place-style identities from generated support material', () => {
+  it('formats deterministic place-style identities from generated support material and profile-licensed epithets', () => {
     const first = onlyNameFor({ nameFormat: 'epithet-place' });
     const second = onlyNameFor({ nameFormat: 'epithet-place' });
     const identity = first.identity;
@@ -234,7 +241,7 @@ describe('generateEnsemble', () => {
     expect(givenPart.role).toBe('given');
     expect(epithetPart.role).toBe('epithet');
     expect(placePart.role).toBe('place');
-    expect(epithetPart.value).toMatch(/^the [A-Z]/);
+    expect(first.soundProfile.lexicon.epithets.map((lexeme) => lexeme.text)).toContain(epithetPart.value);
     expect(placePart.value).toMatch(/^[A-Z][A-Za-z]+$/);
     expect(first.name).toBe(`${givenPart.value} ${epithetPart.value} of ${placePart.value}`);
     expect(givenPart.sourceNameId).not.toBe(placePart.sourceNameId);
