@@ -1,10 +1,9 @@
 import type { GeneratedName, GeneratedNamePart, NameFormatKind, NameFormatRule, NameIdentity } from './types';
+import type { SoundProfileLexeme } from './soundProfile';
 
 export type MaterializedNameFormatKind = Exclude<NameFormatKind, 'mixed'>;
 
 const mixedFormatSequence: MaterializedNameFormatKind[] = ['given-only', 'given-family', 'initials-family', 'title-name', 'epithet-place'];
-const titleOptions = ['Archivist', 'Captain', 'Chronicler', 'Doctor', 'Keeper', 'Marshal', 'Professor', 'Warden'];
-const epithetOptions = ['the Ashen', 'the Bright', 'the Far', 'the Kindled', 'the Riverwise', 'the Silver', 'the Starlit', 'the Wry'];
 
 const formatRules: Record<MaterializedNameFormatKind, NameFormatRule> = {
   'given-only': { id: 'format:given-only', kind: 'given-only', label: 'Given name only', pattern: '{given}' },
@@ -31,9 +30,15 @@ function fingerprint(value: string): number {
   return [...value].reduce((total, character, index) => total + character.charCodeAt(0) * (index + 1), 0);
 }
 
-function pickDeterministic(options: string[], key: string): string {
-  const selected = options[fingerprint(key) % options.length];
-  return selected ?? options[0] ?? '';
+function pickProfileLexeme(options: readonly SoundProfileLexeme[], key: string, role: SoundProfileLexeme['kind']): SoundProfileLexeme {
+  const matchingOptions = options.filter((option) => option.kind === role);
+  const selected = matchingOptions[fingerprint(key) % matchingOptions.length];
+
+  if (!selected) {
+    throw new Error(`SoundProfile has no ${role} lexemes available for identity construction.`);
+  }
+
+  return selected;
 }
 
 function initialsFor(name: string): string {
@@ -45,8 +50,10 @@ export function createNameIdentity(given: GeneratedName, supportingName: Generat
   const givenPart = createPart('given', given.name, given);
   const familyPart = supportingName ? createPart('family', supportingName.name, supportingName) : undefined;
   const initialPart = createPart('initial', initialsFor(given.name), given);
-  const titlePart = createPart('title', pickDeterministic(titleOptions, given.name), given);
-  const epithetPart = createPart('epithet', pickDeterministic(epithetOptions, given.name), given);
+  const titleLexeme = pickProfileLexeme(given.soundProfile.lexicon.titles, given.name, 'title');
+  const epithetLexeme = pickProfileLexeme(given.soundProfile.lexicon.epithets, given.name, 'epithet');
+  const titlePart = createPart('title', titleLexeme.text, given);
+  const epithetPart = createPart('epithet', epithetLexeme.text, given);
 
   if (format === 'given-only') return { displayName: givenPart.value, format: rule, parts: [givenPart] };
   if (format === 'title-name') return { displayName: `${titlePart.value} ${givenPart.value}`, format: rule, parts: [titlePart, givenPart] };
