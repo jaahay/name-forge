@@ -24,10 +24,10 @@ function feelFor(silhouette: NameSilhouette): StyleInput['feel'] {
   return 'balanced';
 }
 
-function distinctivenessFor(settings: GenerationSettings): StyleInput['distinctiveness'] {
-  const novelty = clamp(settings.novelty);
-  if (novelty < 0.38) return 'familiar';
-  if (novelty > 0.62) return 'distinctive';
+function spellingDistinctivenessFor(settings: GenerationSettings): StyleInput['distinctiveness'] {
+  const orthographicWeirdness = clamp(settings.orthographicWeirdness);
+  if (orthographicWeirdness < 0.38) return 'familiar';
+  if (orthographicWeirdness > 0.62) return 'distinctive';
   return 'balanced';
 }
 
@@ -35,7 +35,7 @@ function compileSoundProfileFromSettings(settings: GenerationSettings, silhouett
   return compileStyle({
     feel: feelFor(silhouette),
     length: silhouette.targetLength,
-    distinctiveness: distinctivenessFor(settings),
+    distinctiveness: spellingDistinctivenessFor(settings),
   });
 }
 
