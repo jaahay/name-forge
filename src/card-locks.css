@@ -11,10 +11,28 @@
   text-transform: uppercase;
 }
 
+.lock-toggle-icon {
+  position: relative;
+  display: inline-block;
+  width: 0.86rem;
+  height: 0.62rem;
+  border: 0.11rem solid currentColor;
+  border-radius: 0.16rem;
+  box-sizing: border-box;
+}
+
 .lock-toggle-icon::before {
-  content: '◇';
-  font-size: 0.95rem;
-  line-height: 1;
+  content: '';
+  position: absolute;
+  left: 0.11rem;
+  top: -0.52rem;
+  width: 0.48rem;
+  height: 0.52rem;
+  border: 0.11rem solid currentColor;
+  border-bottom: 0;
+  border-radius: 0.4rem 0.4rem 0 0;
+  transform: translateX(0.18rem) rotate(28deg);
+  transform-origin: bottom left;
 }
 
 .lock-toggle[aria-pressed='true'] {
@@ -24,7 +42,7 @@
 }
 
 .lock-toggle[aria-pressed='true'] .lock-toggle-icon::before {
-  content: '◆';
+  transform: none;
 }
 
 .lock-status {

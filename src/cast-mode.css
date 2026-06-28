@@ -188,8 +188,7 @@
   background: linear-gradient(135deg, rgba(240, 184, 95, 0.28), transparent 62%);
 }
 
-.name-card-button:focus-visible,
-.sound-playback-placeholder:focus-visible {
+.name-card-button:focus-visible {
   outline: 3px solid rgba(240, 184, 95, 0.62);
   outline-offset: 0.18rem;
 }
@@ -235,12 +234,9 @@
   border-radius: 999px;
   color: rgba(248, 217, 159, 0.72);
   background: rgba(255, 255, 255, 0.04);
-  cursor: not-allowed;
+  cursor: default;
 }
 
-.sound-playback-placeholder:disabled {
-  opacity: 0.72;
-}
 
 /* Inspector */
 .inspector-empty-panel,

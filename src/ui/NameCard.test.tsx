@@ -75,7 +75,8 @@ describe('NameCard', () => {
     expect(html).toContain('Sound sketch');
     expect(html).toContain(name.sound.transcription);
     expect(html).toContain(readStatusFor(name));
-    expect(html).toContain(`Play sound sketch for ${name.name} (coming soon)`);
+    expect(html).toContain('Sound playback planned');
+    expect(html).not.toContain(`Play sound sketch for ${name.name} (coming soon)`);
     expect(html).not.toContain(`${name.silhouette.syllableCount} syllables`);
   });
 });
