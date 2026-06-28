@@ -41,15 +41,14 @@ function ExpandedCardSurface({ name }: NameCardHeaderProps) {
       <div className="name-card-sound-row">
         <span className="name-card-expanded-label">Sound sketch</span>
         <span className="name-card-sound-sketch">{name.sound.transcription}</span>
-        <button
-          type="button"
+        <span
           className="sound-playback-placeholder"
-          aria-label={`Play sound sketch for ${name.name} (coming soon)`}
-          title="Sound playback coming soon"
-          disabled
+          role="img"
+          aria-label="Sound playback planned"
+          title="Sound playback planned"
         >
-          <span aria-hidden="true">▶</span>
-        </button>
+          <span aria-hidden="true">♪</span>
+        </span>
       </div>
       <div className="name-card-read-status">{readNoteLabel(name)}</div>
     </div>
