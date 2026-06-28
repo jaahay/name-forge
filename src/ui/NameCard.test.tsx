@@ -29,6 +29,12 @@ function fixtureName(): GeneratedName {
   return name;
 }
 
+function readStatusFor(name: GeneratedName): string {
+  const noteCount = name.readabilityDiagnostics.length;
+  if (noteCount === 0) return 'Clean read';
+  return `${noteCount} read note${noteCount === 1 ? '' : 's'}`;
+}
+
 function renderCard(name: GeneratedName, isSelected: boolean): string {
   return renderToString(
     <NameCard
@@ -55,7 +61,7 @@ describe('NameCard', () => {
     expect(html).not.toContain(`${name.silhouette.syllableCount} syllables`);
     expect(html).not.toContain('Sound sketch');
     expect(html).not.toContain(name.sound.transcription);
-    expect(html).not.toContain('Clean read');
+    expect(html).not.toContain(readStatusFor(name));
     expect(html).not.toContain('name-card-expanded');
   });
 
@@ -68,7 +74,7 @@ describe('NameCard', () => {
     expect(html).toContain('name-card-expanded');
     expect(html).toContain('Sound sketch');
     expect(html).toContain(name.sound.transcription);
-    expect(html).toContain('Clean read');
+    expect(html).toContain(readStatusFor(name));
     expect(html).toContain(`Play sound sketch for ${name.name} (coming soon)`);
     expect(html).not.toContain(`${name.silhouette.syllableCount} syllables`);
   });
