@@ -1,16 +1,48 @@
 .lock-toggle {
   justify-self: start;
   margin: 0 0.88rem 0.82rem;
-  padding: 0.34rem 0.58rem;
+  padding: 0;
+  width: 1.85rem;
+  height: 1.85rem;
+  display: inline-grid;
+  place-items: center;
   font-size: 0.66rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.lock-toggle-icon {
+  position: relative;
+  display: inline-block;
+  width: 0.86rem;
+  height: 0.62rem;
+  border: 0.11rem solid currentColor;
+  border-radius: 0.16rem;
+  box-sizing: border-box;
+}
+
+.lock-toggle-icon::before {
+  content: '';
+  position: absolute;
+  left: 0.11rem;
+  top: -0.52rem;
+  width: 0.48rem;
+  height: 0.52rem;
+  border: 0.11rem solid currentColor;
+  border-bottom: 0;
+  border-radius: 0.4rem 0.4rem 0 0;
+  transform: translateX(0.18rem) rotate(28deg);
+  transform-origin: bottom left;
 }
 
 .lock-toggle[aria-pressed='true'] {
   border-color: rgba(240, 184, 95, 0.52);
   color: #1a130b;
   background: #f0b85f;
+}
+
+.lock-toggle[aria-pressed='true'] .lock-toggle-icon::before {
+  transform: none;
 }
 
 .lock-status {

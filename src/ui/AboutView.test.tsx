@@ -12,12 +12,16 @@ describe('AboutView', () => {
     expect(html).toContain('Seed');
     expect(html).toContain('Cast role mix');
     expect(html).toContain('Rarity distribution');
-    expect(html).toContain('Card detail');
+    expect(html).toContain('Card surfaces');
+    expect(html).toContain('Collapsed cards are name-only browsing surfaces');
+    expect(html).toContain('Expanded cards add quick evaluation cues');
     expect(html).toContain('Rarity');
     expect(html).toContain('Readability');
     expect(html).toContain('Compactness');
     expect(html).toContain('Style closeness');
     expect(html).toContain('Spelling style');
+    expect(html).not.toContain('Card detail');
+    expect(html).not.toContain('Basic, Brief, and Detail');
     expect(html).not.toContain('Novelty');
     expect(html).not.toContain('Pronounceability');
     expect(html).not.toContain('Memorability');
@@ -27,6 +31,6 @@ describe('AboutView', () => {
     expect(html).not.toContain('Brief influence');
     expect(html).toContain('What the diagnostic scores are for');
     expect(html).toContain('not grades');
-    expect(html).toContain('focuses on concrete traits instead of a headline score');
+    expect(html).toContain('collapsed cards stay name-only');
   });
 });
