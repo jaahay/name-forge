@@ -1,16 +1,30 @@
 .lock-toggle {
   justify-self: start;
   margin: 0 0.88rem 0.82rem;
-  padding: 0.34rem 0.58rem;
+  padding: 0;
+  width: 1.85rem;
+  height: 1.85rem;
+  display: inline-grid;
+  place-items: center;
   font-size: 0.66rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.lock-toggle-icon::before {
+  content: '◇';
+  font-size: 0.95rem;
+  line-height: 1;
 }
 
 .lock-toggle[aria-pressed='true'] {
   border-color: rgba(240, 184, 95, 0.52);
   color: #1a130b;
   background: #f0b85f;
+}
+
+.lock-toggle[aria-pressed='true'] .lock-toggle-icon::before {
+  content: '◆';
 }
 
 .lock-status {

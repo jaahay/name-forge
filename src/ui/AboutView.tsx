@@ -19,8 +19,8 @@ export function AboutView({ authorSiteUrl }: AboutViewProps) {
         <p className="eyebrow">About</p>
         <h1 id="about-title">What Name Forge does</h1>
         <p>
-          Name Forge is a cast-aware name workbench. It creates names as a set, then explains how each
-          result fits the selected style, shape, role, rarity, rhythm, spelling, and ensemble.
+          Name Forge is a cast-aware name workbench. It creates names as a set, keeps cards focused on
+          the generated name itself, and reserves deeper sound, spelling, and fit details for selected-name inspection.
         </p>
       </div>
 
@@ -31,7 +31,7 @@ export function AboutView({ authorSiteUrl }: AboutViewProps) {
         </article>
         <article>
           <h2>Cards adapt to the task</h2>
-          <p>Basic, Brief, and Detail density modes change how much each card shows while keeping every card expandable for inspection.</p>
+          <p>Collapsed cards show the name only. The selected card can expand with a sound sketch, while full detail stays in Inspect.</p>
         </article>
         <article>
           <h2>About the author</h2>
@@ -73,9 +73,9 @@ export function AboutView({ authorSiteUrl }: AboutViewProps) {
             <small>Example: a mythic arc can deliberately move from common names toward legendary ones.</small>
           </li>
           <li>
-            <h3>Card detail</h3>
-            <p>The browsing density for generated cards. Basic scans quickly, Brief is the default reading view, and Detail reveals diagnostics.</p>
-            <small>Changing card detail does not regenerate names; it only changes presentation.</small>
+            <h3>Card surfaces</h3>
+            <p>Collapsed cards are name-only browsing surfaces. Expanded cards add quick evaluation cues without absorbing Inspect.</p>
+            <small>Changing selection expands presentation; it does not regenerate names.</small>
           </li>
           {scoreControls.map((control) => (
             <li key={control.key}>
@@ -90,12 +90,11 @@ export function AboutView({ authorSiteUrl }: AboutViewProps) {
       <section className="about-section" aria-labelledby="score-title">
         <h2 id="score-title">What the diagnostic scores are for</h2>
         <p>
-          The numbers inside Detail mode are diagnostics, not grades and not percentiles. They explain why the generator
-          picked a name and help compare close alternatives when you are tuning the dials.
+          Inspect uses diagnostics, not grades and not percentiles. They help compare close alternatives when you are tuning the dials.
         </p>
         <p>
-          Since Name Forge already leaves out lower-scoring options, the visible numbers often cluster together.
-          That is why the collapsed card focuses on concrete traits instead of a headline score.
+          Since Name Forge already leaves out lower-scoring options, visible diagnostics often cluster together.
+          That is why collapsed cards stay name-only and let visual treatment carry lightweight state.
         </p>
       </section>
     </section>

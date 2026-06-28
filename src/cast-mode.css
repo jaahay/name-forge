@@ -130,9 +130,14 @@
 }
 
 .name-card-button {
-  min-height: 8.2rem;
+  min-height: 6.9rem;
   padding: 1rem 0.96rem 0.9rem;
   overflow: visible;
+}
+
+.name-card.selected .name-card-button {
+  min-height: 6.1rem;
+  padding-bottom: 0.65rem;
 }
 
 .name-card-title {
@@ -163,7 +168,7 @@
 }
 
 .name-card[data-name-length='very-long'] .name-card-button {
-  min-height: 9.25rem;
+  min-height: 8.1rem;
 }
 
 .name-card.locked:not(.selected) {
@@ -183,22 +188,59 @@
   background: linear-gradient(135deg, rgba(240, 184, 95, 0.28), transparent 62%);
 }
 
-.name-card-button:focus-visible {
+.name-card-button:focus-visible,
+.sound-playback-placeholder:focus-visible {
   outline: 3px solid rgba(240, 184, 95, 0.62);
   outline-offset: 0.18rem;
 }
 
-.name-card-meta .rarity-chip {
-  color: #f7f0e3;
-  border-color: currentColor;
-  background: rgba(255, 255, 255, 0.055);
+.name-card-expanded {
+  display: grid;
+  gap: 0.52rem;
+  margin: 0 0.88rem 0.84rem;
+  padding: 0.68rem 0.72rem;
+  border: 1px solid rgba(240, 184, 95, 0.18);
+  border-radius: 0.86rem;
+  background: rgba(10, 9, 8, 0.24);
 }
 
-.name-card-meta .rarity-chip.rarity-common { color: #ffffff; }
-.name-card-meta .rarity-chip.rarity-uncommon { color: #64ff4a; }
-.name-card-meta .rarity-chip.rarity-rare { color: #58adff; }
-.name-card-meta .rarity-chip.rarity-epic { color: #cf8bff; }
-.name-card-meta .rarity-chip.rarity-legendary { color: #ffad4a; }
+.name-card-sound-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 0.52rem;
+  align-items: center;
+}
+
+.name-card-expanded-label,
+.name-card-read-status {
+  color: var(--muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.name-card-sound-sketch {
+  color: #f8d99f;
+  font-size: 0.9rem;
+  font-variant-ligatures: none;
+  letter-spacing: 0.015em;
+}
+
+.sound-playback-placeholder {
+  display: inline-grid;
+  place-items: center;
+  width: 1.65rem;
+  height: 1.65rem;
+  border: 1px solid rgba(240, 184, 95, 0.28);
+  border-radius: 999px;
+  color: rgba(248, 217, 159, 0.72);
+  background: rgba(255, 255, 255, 0.04);
+  cursor: not-allowed;
+}
+
+.sound-playback-placeholder:disabled {
+  opacity: 0.72;
+}
 
 /* Inspector */
 .inspector-empty-panel,
