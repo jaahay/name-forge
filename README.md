@@ -11,6 +11,7 @@ The current app is explicitly the first **Fiction cast** mode of a broader rando
 - [`docs/product-requirements.md`](docs/product-requirements.md) contains the canonical product requirements converted from the original PRD.
 - [`docs/architecture.md`](docs/architecture.md) describes the engine boundaries, registry model, scoring layer, silhouette model, role and rarity planning, export layer, ensemble design, and current UI decomposition.
 - [`docs/product-architecture.md`](docs/product-architecture.md) describes the multi-mode product direction and positions Fiction cast generation as the first serious mode.
+- [`docs/selected-name-inspect-design.md`](docs/selected-name-inspect-design.md) captures the selected-name Inspect surface design direction, including Configure placement, responsive name selection, mobile Inspect behavior, and gesture non-goals.
 
 ## MVP capabilities
 
