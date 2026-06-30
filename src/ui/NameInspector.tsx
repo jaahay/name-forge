@@ -37,6 +37,7 @@ export function NameInspector({ name }: NameInspectorProps) {
   const displayName = protectInitialBreaks(name.name);
   const displayLength = getNameDisplayLength(name.name);
   const readNotes = name.readabilityDiagnostics;
+  const spellingCandidates = name.spellingCandidates.slice(0, 6);
 
   return (
     <aside className="selected-name-panel panel" aria-labelledby="selected-name-heading">
@@ -69,6 +70,18 @@ export function NameInspector({ name }: NameInspectorProps) {
             <div><dt>Rank</dt><dd>{name.spelling.rank}</dd></div>
             <div><dt>Score</dt><dd>{formatScore(name.spelling.score)}</dd></div>
           </dl>
+        </section>
+
+        <section className="detail-block artifact-detail-block">
+          <h3>Spelling candidates</h3>
+          <ul className="variants detail-variants" aria-label={`${name.name} ranked spelling candidates`}>
+            {spellingCandidates.map((candidate) => (
+              <li key={`${name.id}-${candidate.id}`}>
+                <span>{candidate.text}</span>
+                <em>{candidate.id === name.spelling.id ? 'selected; ' : ''}rank {candidate.rank}; score {formatScore(candidate.score)}</em>
+              </li>
+            ))}
+          </ul>
         </section>
 
         <section className="detail-block artifact-detail-block">
@@ -119,8 +132,8 @@ export function NameInspector({ name }: NameInspectorProps) {
 
         {name.variants.length > 0 ? (
           <section className="detail-block">
-            <h3>Spellings</h3>
-            <ul className="variants detail-variants" aria-label={`${name.name} alternate spellings`}>
+            <h3>Variants</h3>
+            <ul className="variants detail-variants" aria-label={`${name.name} variants`}>
               {name.variants.map((variant) => <li key={`${name.id}-${variant.value}`}><span>{variant.value}</span><em>{variantMetadataLabel(variant)}</em></li>)}
             </ul>
           </section>
