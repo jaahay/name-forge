@@ -81,24 +81,26 @@ function fixtureName(): GeneratedName {
       ],
     },
   };
+  const spelling = {
+    contract: 'SpellingCandidate' as const,
+    version: 1 as const,
+    id: 'spelling-candidate:test-profile:aveline',
+    soundCandidateId: sound.id,
+    profileId: sound.profileId,
+    sequenceId: sound.sequence.id,
+    text: 'Aveline',
+    mappings: [],
+    rank: 1,
+    score: 1,
+  };
 
   return {
     id: 'name-1',
     name: 'Aveline',
     soundProfile,
     sound,
-    spelling: {
-      contract: 'SpellingCandidate',
-      version: 1,
-      id: 'spelling-candidate:test-profile:aveline',
-      soundCandidateId: sound.id,
-      profileId: sound.profileId,
-      sequenceId: sound.sequence.id,
-      text: 'Aveline',
-      mappings: [],
-      rank: 1,
-      score: 1,
-    },
+    spelling,
+    spellingCandidates: [spelling],
     silhouette,
     scores,
     variants: generateVariants('Aveline', pack, { orthographicWeirdness: 0.5 }),
