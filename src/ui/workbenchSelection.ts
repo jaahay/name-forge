@@ -11,8 +11,10 @@ export function selectedNameIdFromView(selection: NameSelectionView): string {
 }
 
 export function sameNameSelection(left: NameSelectionView, right: NameSelectionView): boolean {
-  if (left.kind !== right.kind) return false;
-  if (left.kind === 'all-names') return true;
+  if (left.kind === 'all-names' || right.kind === 'all-names') {
+    return left.kind === right.kind;
+  }
+
   return left.nameId === right.nameId;
 }
 
