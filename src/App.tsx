@@ -49,7 +49,7 @@ export default function App() {
     setLockedNameIds(retainedLockIds(nextEnsemble, nextLockedNameIds));
   }
 
-  function generate(event?: FormEvent) {
+  function generate(event?: FormEvent<HTMLFormElement>) {
     event?.preventDefault();
     const nextSettings = { ...settings, seed: createRandomSeed() };
     setSettings(nextSettings);
