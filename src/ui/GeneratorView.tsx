@@ -18,7 +18,7 @@ interface GeneratorViewProps {
   ensemble: GeneratedEnsemble;
   lockedNameIds: Set<string>;
   onUpdateSetting: <K extends keyof GenerationSettings>(key: K, value: GenerationSettings[K]) => void;
-  onGenerate: (event?: FormEvent) => void;
+  onGenerate: (event?: FormEvent<HTMLFormElement>) => void;
   onCommitSettings: () => void;
   onRandomizeSliders: () => void;
   onRandomizeSlider: (key: ControlKey) => void;
