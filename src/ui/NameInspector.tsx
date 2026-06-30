@@ -7,6 +7,8 @@ interface NameInspectorProps {
   name: GeneratedName;
 }
 
+type SpellingCandidate = GeneratedName['spellingCandidates'][number];
+
 function metadataFor(name: GeneratedName) {
   const identity = name.identity;
   const rarity = rarityPresentation[name.silhouette.rarityBand];
@@ -24,6 +26,11 @@ function variantRelationshipLabel(variant: NameVariant): string {
 function variantMetadataLabel(variant: NameVariant): string {
   const generatedLabel = variant.generated ? 'generated' : 'listed';
   return `${variantRelationshipLabel(variant)}; ${variant.confidence} confidence; ${generatedLabel}; ${variant.source.label}`;
+}
+
+function spellingCandidateMetadataLabel(candidate: SpellingCandidate, selectedSpellingId: string): string {
+  const selectedLabel = candidate.id === selectedSpellingId ? 'selected; ' : '';
+  return `${selectedLabel}rank ${candidate.rank}; score ${formatScore(candidate.score)}`;
 }
 
 function readStatusLabel(name: GeneratedName): string {
@@ -78,7 +85,7 @@ export function NameInspector({ name }: NameInspectorProps) {
             {spellingCandidates.map((candidate) => (
               <li key={`${name.id}-${candidate.id}`}>
                 <span>{candidate.text}</span>
-                <em>{candidate.id === name.spelling.id ? 'selected; ' : ''}rank {candidate.rank}; score {formatScore(candidate.score)}</em>
+                <em>{spellingCandidateMetadataLabel(candidate, name.spelling.id)}</em>
               </li>
             ))}
           </ul>
