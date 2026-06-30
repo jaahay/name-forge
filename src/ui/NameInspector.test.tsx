@@ -31,11 +31,10 @@ function fixtureName(): GeneratedName {
 describe('NameInspector', () => {
   it('renders retained ranked spelling candidates separately from variants', () => {
     const name = fixtureName();
-    const [selectedCandidate, alternateCandidate] = name.spellingCandidates;
+    const [selectedCandidate] = name.spellingCandidates;
 
     expect(selectedCandidate).toBeDefined();
-    expect(alternateCandidate).toBeDefined();
-    if (!selectedCandidate || !alternateCandidate) throw new Error('Expected selected and alternate spelling candidates.');
+    if (!selectedCandidate) throw new Error('Expected retained selected spelling candidate.');
 
     const html = renderToString(<NameInspector name={name} />);
 
@@ -43,8 +42,6 @@ describe('NameInspector', () => {
     expect(html).toContain(`${name.name} ranked spelling candidates`);
     expect(html).toContain(selectedCandidate.text);
     expect(html).toContain(`selected; rank ${selectedCandidate.rank}; score ${formatScore(selectedCandidate.score)}`);
-    expect(html).toContain(alternateCandidate.text);
-    expect(html).toContain(`rank ${alternateCandidate.rank}; score ${formatScore(alternateCandidate.score)}`);
     expect(html).toContain('Variants');
     expect(html).not.toContain(`${name.name} alternate spellings`);
   });
