@@ -40,6 +40,62 @@
   color: rgba(247, 240, 227, 0.42);
 }
 
+.workbench {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.configure-tray {
+  position: static;
+  display: grid;
+  gap: 0.8rem;
+  max-height: none;
+  overflow: visible;
+  padding: 0.88rem;
+}
+
+.configure-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.85rem;
+  align-items: center;
+}
+
+.configure-summary-copy {
+  display: grid;
+  gap: 0.22rem;
+  min-width: 0;
+}
+
+.configure-summary-copy strong {
+  color: var(--text);
+  font-size: 0.95rem;
+  line-height: 1.25;
+}
+
+.configure-summary-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.configure-summary-actions button {
+  width: auto;
+}
+
+.configure-sections {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0.72rem;
+  align-items: start;
+}
+
+.configure-sections .actions {
+  align-self: stretch;
+  min-height: 100%;
+}
+
 /* Roster and Cast Health */
 .roster-panel {
   display: grid;
@@ -47,6 +103,47 @@
   padding: 0.75rem;
   border-color: rgba(240, 184, 95, 0.16);
   background: rgba(255, 255, 255, 0.04);
+}
+
+.rail-heading {
+  display: flex;
+  gap: 0.65rem;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.rail-heading h2 {
+  margin: 0;
+  color: #f8d99f;
+  font-size: 0.88rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.rail-heading span {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.name-selector-panel {
+  display: none;
+  gap: 0.7rem;
+  padding: 0.85rem;
+}
+
+.name-selector-panel label {
+  display: grid;
+  gap: 0.35rem;
+  color: #dacdb7;
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.name-stepper {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
 }
 
 .cast-health {
@@ -129,10 +226,20 @@
   gap: 0.78rem;
 }
 
+.name-rail .name-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .name-card-button {
   min-height: 6.9rem;
   padding: 1rem 0.96rem 0.9rem;
   overflow: visible;
+}
+
+.name-rail .name-card-button,
+.name-rail .name-card.selected .name-card-button {
+  min-height: 4.7rem;
+  padding: 0.86rem 0.9rem;
 }
 
 .name-card.selected .name-card-button {
@@ -169,6 +276,10 @@
 
 .name-card[data-name-length='very-long'] .name-card-button {
   min-height: 8.1rem;
+}
+
+.name-rail .name-card[data-name-length='very-long'] .name-card-button {
+  min-height: 5.6rem;
 }
 
 .name-card.locked:not(.selected) {
@@ -237,7 +348,6 @@
   cursor: default;
 }
 
-
 /* Inspector */
 .inspector-empty-panel,
 .selected-name-panel {
@@ -286,6 +396,43 @@
   color: #f8d99f;
 }
 
+.artifact-detail-block {
+  gap: 0.58rem;
+}
+
+.artifact-fact-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.48rem;
+  margin: 0;
+}
+
+.artifact-fact-list div {
+  display: grid;
+  gap: 0.16rem;
+  min-width: 0;
+  padding: 0.58rem 0.62rem;
+  border: 1px solid rgba(240, 184, 95, 0.14);
+  border-radius: 0.72rem;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.artifact-fact-list dt {
+  color: #a8987e;
+  font-size: 0.62rem;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.artifact-fact-list dd {
+  margin: 0;
+  color: #f7f0e3;
+  font-size: 0.84rem;
+  font-weight: 850;
+  overflow-wrap: anywhere;
+}
+
 .readability-list {
   display: grid;
   gap: 0.52rem;
@@ -321,14 +468,47 @@
   opacity: 0.74;
 }
 
+.results-layout.inspector-rail-layout {
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+}
+
 @media (min-width: 1181px) {
-  .results-layout {
-    grid-template-columns: minmax(500px, 1fr) minmax(280px, 324px);
+  .results-layout.inspector-rail-layout {
+    grid-template-columns: minmax(230px, 280px) minmax(0, 1fr);
   }
 }
 
 @media (max-width: 900px) {
+  .configure-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .configure-summary-actions {
+    justify-content: stretch;
+  }
+
+  .configure-summary-actions button {
+    flex: 1 1 10rem;
+  }
+
   .name-grid {
     grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+  }
+
+  .results-layout.inspector-rail-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .name-selector-panel {
+    display: grid;
+  }
+
+  .selection-kind-name .name-rail {
+    display: none;
+  }
+
+  .selection-kind-all .selected-name-panel,
+  .selection-kind-all .inspector-empty-panel {
+    display: none;
   }
 }
