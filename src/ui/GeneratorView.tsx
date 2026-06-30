@@ -86,16 +86,18 @@ export function GeneratorView({
   }
 
   function selectPreviousName() {
-    if (!hasPreviousName) return;
-    selectName(ensemble.names[selectedNameIndex - 1].id);
+    const previousName = ensemble.names[selectedNameIndex - 1];
+    if (!previousName) return;
+    selectName(previousName.id);
   }
 
   function selectNextName() {
-    if (!hasNextName) return;
-    selectName(ensemble.names[selectedNameIndex + 1].id);
+    const nextName = ensemble.names[selectedNameIndex + 1];
+    if (!nextName) return;
+    selectName(nextName.id);
   }
 
-  function submitGeneration(event?: FormEvent) {
+  function submitGeneration(event?: FormEvent<HTMLFormElement>) {
     setIsConfigureOpen(false);
     onGenerate(event);
   }
