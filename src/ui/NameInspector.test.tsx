@@ -29,7 +29,7 @@ function fixtureName(): GeneratedName {
 }
 
 describe('NameInspector', () => {
-  it('renders retained ranked spelling candidates separately from variants', () => {
+  it('renders retained ranked spelling candidates as a distinct Inspect section', () => {
     const name = fixtureName();
     const [selectedCandidate] = name.spellingCandidates;
 
@@ -42,7 +42,6 @@ describe('NameInspector', () => {
     expect(html).toContain(`${name.name} ranked spelling candidates`);
     expect(html).toContain(selectedCandidate.text);
     expect(html).toContain(`selected; rank ${selectedCandidate.rank}; score ${formatScore(selectedCandidate.score)}`);
-    expect(html).toContain('Variants');
     expect(html).not.toContain(`${name.name} alternate spellings`);
   });
 });
