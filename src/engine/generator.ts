@@ -66,6 +66,7 @@ export function generateNameFromSilhouette(silhouette: NameSilhouette, pack: Sty
     soundProfile: candidate.soundProfile,
     sound: candidate.sound,
     spelling: candidate.selectedSpelling,
+    spellingCandidates: candidate.rankedSpellings,
     silhouette,
     scores,
     variants,
