@@ -11,6 +11,7 @@ interface NameCardProps {
   name: GeneratedName;
   isSelected: boolean;
   isLocked: boolean;
+  showExpandedSurface?: boolean;
   onSelect: (id: string) => void;
   onToggleLocked: (id: string) => void;
 }
@@ -55,21 +56,22 @@ function ExpandedCardSurface({ name }: NameCardHeaderProps) {
   );
 }
 
-export function NameCard({ name, isSelected, isLocked, onSelect, onToggleLocked }: NameCardProps) {
+export function NameCard({ name, isSelected, isLocked, showExpandedSurface = true, onSelect, onToggleLocked }: NameCardProps) {
   const displayLength = getNameDisplayLength(name.name);
   const readNoteCount = name.readabilityDiagnostics.length;
   const cardClassName = `name-card panel ${textureClassName(name.silhouette.texture)}${isSelected ? ' selected' : ''}${isLocked ? ' locked' : ''}`;
+  const isExpanded = isSelected && showExpandedSurface;
 
   return (
     <article
       className={cardClassName}
-      data-expanded={isSelected ? 'true' : 'false'}
+      data-expanded={isExpanded ? 'true' : 'false'}
       data-name-length={displayLength}
       data-rarity={name.silhouette.rarityBand}
       data-role={name.role?.role ?? 'none'}
       data-read-notes={readNoteCount}
       aria-current={isSelected ? 'true' : undefined}
-      aria-label={`${isSelected ? 'Expanded' : 'Collapsed'} name card for ${name.name}`}
+      aria-label={`${isExpanded ? 'Expanded' : 'Collapsed'} name card for ${name.name}`}
     >
       <button
         type="button"
@@ -80,7 +82,7 @@ export function NameCard({ name, isSelected, isLocked, onSelect, onToggleLocked 
       >
         <NameCardHeader name={name} />
       </button>
-      {isSelected ? <ExpandedCardSurface name={name} /> : null}
+      {isExpanded ? <ExpandedCardSurface name={name} /> : null}
       <button
         type="button"
         className="anchor-button lock-toggle"
