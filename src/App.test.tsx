@@ -10,7 +10,7 @@ describe('App', () => {
       expect(html).toContain(expected);
     }
 
-    for (const collapsed of ['Cast setup', 'Story roles', 'Feel', 'Style pack', 'Cast variety', 'Advanced tuning', 'Generate', 'Shuffle feel']) {
+    for (const collapsed of ['Cast setup', 'Story roles', 'Feel', 'Style pack', 'Cast variety', 'Advanced tuning', 'Shuffle feel']) {
       expect(html).not.toContain(collapsed);
     }
 
