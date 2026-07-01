@@ -35,12 +35,12 @@ function readStatusFor(name: GeneratedName): string {
   return `${noteCount} read note${noteCount === 1 ? '' : 's'}`;
 }
 
-function renderCard(name: GeneratedName, isSelected: boolean): string {
+function renderCard(name: GeneratedName, isSelected: boolean, isLocked = false): string {
   return renderToString(
     <NameCard
       name={name}
       isSelected={isSelected}
-      isLocked={false}
+      isLocked={isLocked}
       onSelect={() => undefined}
       onToggleLocked={() => undefined}
     />,
@@ -78,5 +78,28 @@ describe('NameCard', () => {
     expect(html).toContain('Sound playback planned');
     expect(html).not.toContain(`Play sound sketch for ${name.name} (coming soon)`);
     expect(html).not.toContain(`${name.silhouette.syllableCount} syllables`);
+  });
+
+  it('renders name selection and lock as separate accessible controls', () => {
+    const name = fixtureName();
+    const html = renderCard(name, false);
+
+    expect(html).toContain('name-card-select-control');
+    expect(html).toContain(`aria-label="Inspect ${name.name}"`);
+    expect(html).toContain('name-card-actions');
+    expect(html).toContain(`aria-label="${name.name} card actions"`);
+    expect(html).toContain('name-card-lock-control');
+    expect(html).toContain(`aria-label="Lock ${name.name}"`);
+    expect(html).toContain('aria-pressed="false"');
+    expect(html).toContain('</button><div class="name-card-actions"');
+  });
+
+  it('reflects the locked state on the dedicated lock control', () => {
+    const name = fixtureName();
+    const html = renderCard(name, false, true);
+
+    expect(html).toContain('name-card-lock-control');
+    expect(html).toContain(`aria-label="Unlock ${name.name}"`);
+    expect(html).toContain('aria-pressed="true"');
   });
 });
