@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import type { SegmentSequence } from './soundGenerator';
+import type { SegmentSequence, SegmentSyllable } from './soundGenerator';
 import { createAuditionPhonology, renderAuditionCue, renderBrowserAuditionCue } from './audition';
+
+function fixtureSyllable(syllable: Omit<SegmentSyllable, 'stress' | 'stressSource'>): SegmentSyllable {
+  return {
+    ...syllable,
+    stress: 'unspecified',
+    stressSource: 'unspecified',
+  };
+}
 
 function fixtureSequence(): SegmentSequence {
   return {
@@ -10,9 +18,36 @@ function fixtureSequence(): SegmentSequence {
     profileId: 'sound-profile:test',
     segments: ['aw', 'r', 'eh', 'l', 'i', 'ow', 'n'],
     syllables: [
-      { start: 0, end: 2, onset: [], nucleus: [0], coda: [1], shape: 'CVL' },
-      { start: 2, end: 4, onset: [], nucleus: [2], coda: [3], shape: 'CVL' },
-      { start: 4, end: 7, onset: [], nucleus: [4], coda: [6], shape: 'CVC' },
+      fixtureSyllable({
+        start: 0,
+        end: 2,
+        onset: [],
+        nucleus: [0],
+        coda: [1],
+        shape: 'CVL',
+        weight: 'heavy',
+        sonorityProfile: 'falling',
+      }),
+      fixtureSyllable({
+        start: 2,
+        end: 4,
+        onset: [],
+        nucleus: [2],
+        coda: [3],
+        shape: 'CVL',
+        weight: 'heavy',
+        sonorityProfile: 'falling',
+      }),
+      fixtureSyllable({
+        start: 4,
+        end: 7,
+        onset: [],
+        nucleus: [4],
+        coda: [6],
+        shape: 'CVC',
+        weight: 'heavy',
+        sonorityProfile: 'complex',
+      }),
     ],
   };
 }
@@ -28,6 +63,9 @@ describe('audition cue rendering', () => {
     expect(phonology.profileId).toBe('sound-profile:test');
     expect(phonology.syllables).toHaveLength(3);
     expect(phonology.syllables.map((syllable) => syllable.stress)).toEqual(['unstressed', 'primary', 'unstressed']);
+    expect(phonology.syllables.map((syllable) => syllable.stressSource)).toEqual(['fallback', 'fallback', 'fallback']);
+    expect(phonology.syllables.map((syllable) => syllable.weight)).toEqual(['heavy', 'heavy', 'heavy']);
+    expect(phonology.syllables.map((syllable) => syllable.sonorityProfile)).toEqual(['falling', 'falling', 'complex']);
     expect(phonology.syllables.map((syllable) => syllable.segments)).toEqual([
       ['aw', 'r'],
       ['eh', 'l'],
@@ -35,6 +73,28 @@ describe('audition cue rendering', () => {
     ]);
     expect(phonology.syllables[0]?.nucleus).toEqual(['aw']);
     expect(phonology.syllables[0]?.coda).toEqual(['r']);
+  });
+
+  it('preserves modeled stress instead of applying fallback stress', () => {
+    const sequence = fixtureSequence();
+    const modeledSyllable: SegmentSyllable = {
+      ...sequence.syllables[0],
+      stress: 'primary',
+      stressSource: 'sequence',
+    };
+    const phonology = createAuditionPhonology({
+      ...sequence,
+      syllables: [modeledSyllable, ...sequence.syllables.slice(1)],
+    });
+
+    expect(phonology.syllables[0]).toMatchObject({
+      stress: 'primary',
+      stressSource: 'sequence',
+    });
+    expect(phonology.syllables[1]).toMatchObject({
+      stress: 'primary',
+      stressSource: 'fallback',
+    });
   });
 
   it('renders separate browser speech and human guide text from audition phonology', () => {
