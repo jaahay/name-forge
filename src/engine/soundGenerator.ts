@@ -214,17 +214,32 @@ function syllableSonorityProfile(segmentIds: readonly SoundSegmentId[]): Syllabl
   if (segmentIds.length === 1) return 'flat';
 
   const ranks = segmentIds.map((segmentId) => sonorityRankByClass[getSoundSegment(segmentId).sonority]);
-  const movements = ranks
-    .slice(1)
-    .map((rank, index) => Math.sign(rank - ranks[index]))
-    .filter((movement) => movement !== 0);
+  const movements: number[] = [];
+
+  for (let index = 1; index < ranks.length; index += 1) {
+    const previousRank = ranks[index - 1];
+    const rank = ranks[index];
+    if (previousRank === undefined || rank === undefined) continue;
+
+    const movement = Math.sign(rank - previousRank);
+    if (movement !== 0) movements.push(movement);
+  }
 
   if (movements.length === 0) return 'flat';
   if (movements.every((movement) => movement > 0)) return 'rising';
   if (movements.every((movement) => movement < 0)) return 'falling';
 
-  const changesDirectionOnce = movements.every((movement, index) => index === 0 || movement === movements[index - 1] || movement < movements[index - 1]);
-  const risesThenFalls = movements[0] > 0 && movements[movements.length - 1] < 0;
+  let changesDirectionOnce = true;
+  for (let index = 1; index < movements.length; index += 1) {
+    const previousMovement = movements[index - 1];
+    const movement = movements[index];
+    if (previousMovement === undefined || movement === undefined) continue;
+    if (movement > previousMovement) changesDirectionOnce = false;
+  }
+
+  const firstMovement = movements[0];
+  const lastMovement = movements[movements.length - 1];
+  const risesThenFalls = firstMovement !== undefined && lastMovement !== undefined && firstMovement > 0 && lastMovement < 0;
 
   return risesThenFalls && changesDirectionOnce ? 'rise-fall' : 'complex';
 }
