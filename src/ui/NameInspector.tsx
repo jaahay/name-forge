@@ -7,6 +7,8 @@ interface NameInspectorProps {
   name: GeneratedName;
 }
 
+export const visibleSpellingCandidateLimit = 6;
+
 type SpellingCandidate = GeneratedName['spellingCandidates'][number];
 
 function metadataFor(name: GeneratedName) {
@@ -44,7 +46,11 @@ export function NameInspector({ name }: NameInspectorProps) {
   const displayName = protectInitialBreaks(name.name);
   const displayLength = getNameDisplayLength(name.name);
   const readNotes = name.readabilityDiagnostics;
-  const spellingCandidates = name.spellingCandidates.slice(0, 6);
+  const spellingCandidates = name.spellingCandidates.slice(0, visibleSpellingCandidateLimit);
+  const hiddenSpellingCandidateCount = name.spellingCandidates.length - spellingCandidates.length;
+  const spellingCandidateLimitNote = hiddenSpellingCandidateCount > 0
+    ? `Showing top ${visibleSpellingCandidateLimit} of ${name.spellingCandidates.length} ranked spelling candidates.`
+    : undefined;
 
   return (
     <aside className="selected-name-panel panel" aria-labelledby="selected-name-heading">
@@ -89,6 +95,7 @@ export function NameInspector({ name }: NameInspectorProps) {
               </li>
             ))}
           </ul>
+          {spellingCandidateLimitNote ? <p className="section-note">{spellingCandidateLimitNote}</p> : null}
         </section>
 
         <section className="detail-block artifact-detail-block">
