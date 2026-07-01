@@ -57,6 +57,26 @@
   padding: 0.24rem 0.42rem;
 }
 
+.name-card-actions {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  gap: 0.45rem;
+  align-items: center;
+  justify-content: flex-start;
+  margin: 0 0.88rem 0.82rem;
+}
+
+.name-card-actions .lock-toggle {
+  flex: 0 0 auto;
+  margin: 0;
+}
+
+.name-card-lock-control {
+  position: relative;
+  z-index: 2;
+}
+
 .inspector-rail-layout {
   align-items: start;
 }
