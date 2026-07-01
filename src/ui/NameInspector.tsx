@@ -73,8 +73,9 @@ export function NameInspector({ name, isLocked, onToggleLockedName }: NameInspec
   const lockActionLabel = `${isLocked ? 'Unlock' : 'Lock'} ${name.name}`;
   const browserSpeechAvailable = canUseBrowserSpeech();
   const playVoiceDraftLabel = browserSpeechAvailable
-    ? `Play voice draft for ${name.name}`
+    ? `Play browser voice draft for ${name.name}`
     : `Browser voice draft unavailable for ${name.name}`;
+  const playbackStatus = browserSpeechAvailable ? 'Browser voice draft available' : 'Browser voice unavailable';
 
   return (
     <aside className="selected-name-panel panel" aria-labelledby="selected-name-heading">
@@ -102,10 +103,10 @@ export function NameInspector({ name, isLocked, onToggleLockedName }: NameInspec
           <h3>Sound</h3>
           <dl className="artifact-fact-list">
             <div><dt>Sound sketch</dt><dd>{name.sound.transcription}</dd></div>
-            <div><dt>Audition cue</dt><dd>{auditionCue.displayText}</dd></div>
-            <div><dt>Playback</dt><dd>Browser voice draft</dd></div>
+            <div><dt>Pronunciation guide</dt><dd>{auditionCue.displayText}</dd></div>
+            <div><dt>Playback</dt><dd>{playbackStatus}</dd></div>
           </dl>
-          <p className="section-note">Voice draft uses the generated sound cue, not the selected spelling. It is not a canonical pronunciation.</p>
+          <p className="section-note">Guide is generated from the sound model. Browser voice is an approximation, not a canonical pronunciation.</p>
         </section>
 
         <section className="detail-block artifact-detail-block">
