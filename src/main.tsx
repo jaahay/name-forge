@@ -4,6 +4,7 @@ import App from './App';
 import './styles.css';
 import './card-locks.css';
 import './cast-mode.css';
+import './inspect-actions.css';
 
 const root = document.getElementById('root');
 
