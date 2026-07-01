@@ -11,6 +11,7 @@ Related docs:
 - [`product-requirements.md`](product-requirements.md): original requirements and historical build-order scaffold.
 - [`product-architecture.md`](product-architecture.md): product-level mode strategy.
 - [`phase-one-closeout.md`](phase-one-closeout.md): Phase One completion and replacement tracking model.
+- [`sound-model-behavior.md`](sound-model-behavior.md): lay explanation of sound behavior, data ownership, ordering, syllables, stress, and projection boundaries.
 
 ## Current architecture thesis
 
