@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { renderToString } from 'react-dom/server';
+import { renderAuditionCue } from '../engine/audition';
 import { generateEnsemble } from '../engine/ensemble';
 import { createDefaultRegistry } from '../engine/registry';
 import type { GeneratedName, GenerationSettings } from '../engine/types';
@@ -89,6 +90,21 @@ describe('NameInspector', () => {
     expect(html).toContain(`aria-label="Copy name ${name.name}"`);
     expect(html).toContain(`aria-label="Lock ${name.name}"`);
     expect(html).toContain('aria-pressed="false"');
+  });
+
+  it('renders a sound-derived audition cue and browser voice draft affordance', () => {
+    const name = fixtureName();
+    const auditionCue = renderAuditionCue(name.sound.sequence);
+    const html = renderInspector(name);
+
+    expect(auditionCue.source).toBe('sound-sequence');
+    expect(auditionCue.displayText).not.toBe(name.name);
+    expect(html).toContain('Audition cue');
+    expect(html).toContain(auditionCue.displayText);
+    expect(html).toContain('Browser voice draft');
+    expect(html).toContain('Voice draft uses the generated sound cue, not the selected spelling. It is not a canonical pronunciation.');
+    expect(html).toContain(`aria-label="Browser voice draft unavailable for ${name.name}"`);
+    expect(html).toContain('Play voice draft');
   });
 
   it('reflects the locked state in the Inspect lock action', () => {

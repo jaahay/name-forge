@@ -1,3 +1,4 @@
+import { renderAuditionCue } from '../engine/audition';
 import type { GeneratedName, NameVariant } from '../engine/types';
 import { rarityPresentation, scorePresentation } from './presentation';
 import { formatScore } from './score';
@@ -47,8 +48,20 @@ function copyName(name: GeneratedName) {
   void navigator.clipboard?.writeText(name.name);
 }
 
+function canUseBrowserSpeech(): boolean {
+  return typeof window !== 'undefined' && 'speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined';
+}
+
+function playVoiceDraft(speechText: string) {
+  if (!canUseBrowserSpeech()) return;
+
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(new SpeechSynthesisUtterance(speechText));
+}
+
 export function NameInspector({ name, isLocked, onToggleLockedName }: NameInspectorProps) {
   const { formatLabel, identity, rarity, roleInfluenceLabel, roleLabel, textureLabel } = metadataFor(name);
+  const auditionCue = renderAuditionCue(name.sound.sequence);
   const displayName = protectInitialBreaks(name.name);
   const displayLength = getNameDisplayLength(name.name);
   const readNotes = name.readabilityDiagnostics;
@@ -58,6 +71,10 @@ export function NameInspector({ name, isLocked, onToggleLockedName }: NameInspec
     ? `Showing top ${visibleSpellingCandidateLimit} of ${name.spellingCandidates.length} ranked spelling candidates.`
     : undefined;
   const lockActionLabel = `${isLocked ? 'Unlock' : 'Lock'} ${name.name}`;
+  const browserSpeechAvailable = canUseBrowserSpeech();
+  const playVoiceDraftLabel = browserSpeechAvailable
+    ? `Play voice draft for ${name.name}`
+    : `Browser voice draft unavailable for ${name.name}`;
 
   return (
     <aside className="selected-name-panel panel" aria-labelledby="selected-name-heading">
@@ -74,6 +91,7 @@ export function NameInspector({ name, isLocked, onToggleLockedName }: NameInspec
           </ul>
           <div className="selected-name-actions" aria-label={`${name.name} selected-name actions`}>
             <button type="button" className="secondary" aria-label={`Copy name ${name.name}`} onClick={() => copyName(name)}>Copy name</button>
+            <button type="button" className="secondary" aria-label={playVoiceDraftLabel} disabled={!browserSpeechAvailable} onClick={() => playVoiceDraft(auditionCue.speechText)}>Play voice draft</button>
             <button type="button" className="secondary selected-name-lock-action" aria-pressed={isLocked} aria-label={lockActionLabel} onClick={() => onToggleLockedName(name.id)}>{isLocked ? 'Unlock' : 'Lock'}</button>
           </div>
         </div>
@@ -84,9 +102,10 @@ export function NameInspector({ name, isLocked, onToggleLockedName }: NameInspec
           <h3>Sound</h3>
           <dl className="artifact-fact-list">
             <div><dt>Sound sketch</dt><dd>{name.sound.transcription}</dd></div>
-            <div><dt>Profile</dt><dd>{name.soundProfile.id}</dd></div>
-            <div><dt>Playback</dt><dd>Planned</dd></div>
+            <div><dt>Audition cue</dt><dd>{auditionCue.displayText}</dd></div>
+            <div><dt>Playback</dt><dd>Browser voice draft</dd></div>
           </dl>
+          <p className="section-note">Voice draft uses the generated sound cue, not the selected spelling. It is not a canonical pronunciation.</p>
         </section>
 
         <section className="detail-block artifact-detail-block">
