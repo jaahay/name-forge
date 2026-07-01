@@ -1,6 +1,6 @@
 import type { SoundCandidate } from './soundGenerator';
 import type { SoundProfile } from './soundProfile';
-import type { RankedSpellingCandidate } from './spellingGenerator';
+import type { RankedSpellingCandidate, RankedSpellingCandidateList } from './spellingGenerator';
 import type { GeneratedName, GenerationSettings, NameSilhouette, StylePack } from './types';
 import type { SeededRandom } from './random';
 import { diagnoseNameReadability } from './diagnostics';
@@ -9,13 +9,13 @@ import { scoreName } from './scoring';
 import { generateSound } from './soundGenerator';
 import type { StyleInput } from './styleCompiler';
 import { compileStyle } from './styleCompiler';
-import { generateRankedSpellings } from './spellingGenerator';
+import { generateRankedSpellingCandidates } from './spellingGenerator';
 import { generateVariants } from './variants';
 
 export interface NameGenerationCandidate {
   readonly soundProfile: SoundProfile;
   readonly sound: SoundCandidate;
-  readonly rankedSpellings: readonly RankedSpellingCandidate[];
+  readonly rankedSpellings: RankedSpellingCandidateList;
   readonly selectedSpelling: RankedSpellingCandidate;
 }
 
@@ -44,8 +44,8 @@ function compileSoundProfileFromSettings(settings: GenerationSettings, silhouett
 export function generateNameCandidateFromSilhouette(silhouette: NameSilhouette, settings: GenerationSettings, random: SeededRandom): NameGenerationCandidate {
   const soundProfile = compileSoundProfileFromSettings(settings, silhouette);
   const sound = generateSound(soundProfile, random);
-  const rankedSpellings = generateRankedSpellings(sound, soundProfile, { maxCandidates: 12 });
-  const [selectedSpelling] = rankedSpellings;
+  const rankedSpellings = generateRankedSpellingCandidates(sound, soundProfile, { maxCandidates: 12 });
+  const [selectedSpelling] = rankedSpellings.candidates;
 
   if (!selectedSpelling) {
     throw new Error(`Expected at least one spelling candidate for ${sound.id}.`);
@@ -66,7 +66,7 @@ export function generateNameFromSilhouette(silhouette: NameSilhouette, pack: Sty
     soundProfile: candidate.soundProfile,
     sound: candidate.sound,
     spelling: candidate.selectedSpelling,
-    spellingCandidates: candidate.rankedSpellings,
+    spellingCandidates: candidate.rankedSpellings.candidates,
     silhouette,
     scores,
     variants,
