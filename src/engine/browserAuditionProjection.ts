@@ -12,6 +12,7 @@ export interface BrowserAuditionCue {
   readonly speechText: string;
   readonly displayText: string;
   readonly syllableText: readonly string[];
+  readonly guideSyllables: readonly string[];
 }
 
 const browserSpeechTokenBySegmentId: Record<SoundSegmentId, string> = {
@@ -60,18 +61,68 @@ const browserSpeechTokenBySegmentId: Record<SoundSegmentId, string> = {
   aw: 'ow',
 };
 
+const guideTokenBySegmentId: Record<SoundSegmentId, string> = {
+  ...browserSpeechTokenBySegmentId,
+  dh: 'dh',
+  e: 'ay',
+  ae: 'a',
+  ao: 'aw',
+  ow: 'oh',
+  aw: 'ow',
+};
+
+const vowelSegmentIds: ReadonlySet<SoundSegmentId> = new Set<SoundSegmentId>([
+  'i',
+  'ih',
+  'e',
+  'eh',
+  'ae',
+  'schwa',
+  'uh',
+  'a',
+  'aa',
+  'ao',
+  'o',
+  'uhRounded',
+  'u',
+  'er',
+  'ey',
+  'ay',
+  'oy',
+  'ow',
+  'aw',
+]);
+
 function renderSyllableSpeechText(syllable: AuditionSyllable): string {
   return syllable.segments.map((segmentId) => browserSpeechTokenBySegmentId[segmentId]).join('');
 }
 
+function shouldSeparateGuideToken(
+  previousPreviousSegmentId: SoundSegmentId | undefined,
+  previousSegmentId: SoundSegmentId | undefined,
+  segmentId: SoundSegmentId,
+): boolean {
+  if (!previousSegmentId) return false;
+  if (vowelSegmentIds.has(previousSegmentId) && vowelSegmentIds.has(segmentId)) return true;
+  return Boolean(previousPreviousSegmentId
+    && vowelSegmentIds.has(previousPreviousSegmentId)
+    && vowelSegmentIds.has(previousSegmentId)
+    && !vowelSegmentIds.has(segmentId));
+}
+
 function renderSyllableGuideText(syllable: AuditionSyllable): string {
-  const speechText = renderSyllableSpeechText(syllable);
-  if (syllable.stress === 'primary') return speechText.toUpperCase();
-  return speechText;
+  const text = syllable.segments.reduce((result, segmentId, index) => {
+    const separator = shouldSeparateGuideToken(syllable.segments[index - 2], syllable.segments[index - 1], segmentId) ? '-' : '';
+    return `${result}${separator}${guideTokenBySegmentId[segmentId]}`;
+  }, '');
+
+  if (syllable.stress === 'primary') return text.toUpperCase();
+  return text;
 }
 
 export function renderBrowserAuditionCue(phonology: AuditionPhonology): BrowserAuditionCue {
   const syllableText = phonology.syllables.map(renderSyllableSpeechText);
+  const guideSyllables = phonology.syllables.map(renderSyllableGuideText);
 
   return {
     contract: 'BrowserAuditionCue',
@@ -80,7 +131,8 @@ export function renderBrowserAuditionCue(phonology: AuditionPhonology): BrowserA
     sequenceId: phonology.sequenceId,
     profileId: phonology.profileId,
     speechText: syllableText.join(' '),
-    displayText: phonology.syllables.map(renderSyllableGuideText).join('-'),
+    displayText: guideSyllables.join(' · '),
     syllableText,
+    guideSyllables,
   };
 }

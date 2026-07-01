@@ -6,6 +6,8 @@ The architecture goal is not to build a generic abstraction before the product e
 
 Related docs:
 
+- [`model-module-contracts.md`](model-module-contracts.md): model inventory, module input/output contracts, and collection-order semantics.
+- [`sound-model-behavior.md`](sound-model-behavior.md): lay explanation of sound behavior, data ownership, ordering, syllables, stress, and projection boundaries.
 - [`product-brief.md`](product-brief.md): product thesis, mode strategy, candidate modes, and recommended sequencing.
 - [`current-product-scope.md`](current-product-scope.md): active scope lens, shipped baseline, and next feature requirements.
 - [`product-requirements.md`](product-requirements.md): original requirements and historical build-order scaffold.
