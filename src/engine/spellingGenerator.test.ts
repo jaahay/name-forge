@@ -132,13 +132,22 @@ describe('spelling generation and ranking', () => {
       'Tohlway',
       'Tolwy',
       'Tohlwai',
-      'Tohlwy',
       'Toelway',
+      'Tohlwy',
       'Toelwai',
       'Toelwy',
     ]);
-    expect('rank' in pool.candidates[0]).toBe(false);
-    expect(ranked.candidates[0]?.rank).toBe(1);
+
+    const generatedCandidate = pool.candidates[0];
+    expect(generatedCandidate).toBeDefined();
+    if (!generatedCandidate) throw new Error('Expected generated spelling candidate.');
+
+    const rankedCandidate = ranked.candidates[0];
+    expect(rankedCandidate).toBeDefined();
+    if (!rankedCandidate) throw new Error('Expected ranked spelling candidate.');
+
+    expect(Object.hasOwn(generatedCandidate, 'rank')).toBe(false);
+    expect(rankedCandidate.rank).toBe(1);
   });
 
   it('keeps the highest-ranked spelling stable across repeated generation and ranking', () => {
