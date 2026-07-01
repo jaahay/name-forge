@@ -7,6 +7,10 @@ import type { WeightedValue } from './types';
 export type SegmentSequenceContract = 'SegmentSequence';
 export type SoundCandidateContract = 'SoundCandidate';
 export type SupportedSyllableShape = 'V' | 'CV' | 'CVC' | 'CVL';
+export type SyllableWeight = 'light' | 'heavy' | 'unspecified';
+export type SyllableSonorityProfile = 'rising' | 'falling' | 'rise-fall' | 'flat' | 'complex' | 'unspecified';
+export type SyllableStress = 'primary' | 'secondary' | 'unstressed' | 'unspecified';
+export type SyllableStressSource = 'sequence' | 'cadence-rule' | 'weight-rule' | 'fallback' | 'unspecified';
 
 export interface SegmentSyllable {
   readonly start: number;
@@ -15,6 +19,10 @@ export interface SegmentSyllable {
   readonly nucleus: readonly number[];
   readonly coda: readonly number[];
   readonly shape: SupportedSyllableShape;
+  readonly weight: SyllableWeight;
+  readonly sonorityProfile: SyllableSonorityProfile;
+  readonly stress: SyllableStress;
+  readonly stressSource: SyllableStressSource;
 }
 
 export interface SegmentSequence {
@@ -39,6 +47,13 @@ export interface SoundCandidate {
 const supportedSyllableShapes: readonly SupportedSyllableShape[] = ['V', 'CV', 'CVC', 'CVL'];
 const fallbackSyllableShapes: readonly SupportedSyllableShape[] = ['CV'];
 const allSegmentIds = Object.keys(starterSoundInventory) as SoundSegmentId[];
+const sonorityRankByClass: Record<SonorityClass, number> = {
+  obstruent: 1,
+  nasal: 2,
+  liquid: 3,
+  glide: 4,
+  vowel: 5,
+};
 
 function isSupportedSyllableShape(shape: string): shape is SupportedSyllableShape {
   return supportedSyllableShapes.includes(shape as SupportedSyllableShape);
@@ -176,6 +191,44 @@ function addSegment(
   segments.push(id);
 }
 
+function syllableSegmentIds(segments: readonly SoundSegmentId[], start: number, end: number): readonly SoundSegmentId[] {
+  return segments.slice(start, end);
+}
+
+function syllableWeight(segments: readonly SoundSegmentId[], nucleus: readonly number[], coda: readonly number[]): SyllableWeight {
+  if (nucleus.length === 0) return 'unspecified';
+  if (coda.length > 0) return 'heavy';
+
+  const hasHeavyNucleus = nucleus.some((index) => {
+    const segmentId = segments[index];
+    if (!segmentId) return false;
+    const segment = getSoundSegment(segmentId);
+    return segment.category === 'vowel' && (segment.movement === 'diphthong' || segment.rhotic === true);
+  });
+
+  return hasHeavyNucleus ? 'heavy' : 'light';
+}
+
+function syllableSonorityProfile(segmentIds: readonly SoundSegmentId[]): SyllableSonorityProfile {
+  if (segmentIds.length === 0) return 'unspecified';
+  if (segmentIds.length === 1) return 'flat';
+
+  const ranks = segmentIds.map((segmentId) => sonorityRankByClass[getSoundSegment(segmentId).sonority]);
+  const movements = ranks
+    .slice(1)
+    .map((rank, index) => Math.sign(rank - ranks[index]))
+    .filter((movement) => movement !== 0);
+
+  if (movements.length === 0) return 'flat';
+  if (movements.every((movement) => movement > 0)) return 'rising';
+  if (movements.every((movement) => movement < 0)) return 'falling';
+
+  const changesDirectionOnce = movements.every((movement, index) => index === 0 || movement === movements[index - 1] || movement < movements[index - 1]);
+  const risesThenFalls = movements[0] > 0 && movements[movements.length - 1] < 0;
+
+  return risesThenFalls && changesDirectionOnce ? 'rise-fall' : 'complex';
+}
+
 function generateSyllable(
   shape: SupportedSyllableShape,
   profile: SoundProfile,
@@ -201,13 +254,20 @@ function generateSyllable(
     addSegment(segments, coda, pickWeightedSegment(liquidCodaSegmentIds, (id) => codaWeight(id, profile), rng));
   }
 
+  const end = segments.length;
+  const segmentIds = syllableSegmentIds(segments, start, end);
+
   return {
     start,
-    end: segments.length,
+    end,
     onset,
     nucleus,
     coda,
     shape,
+    weight: syllableWeight(segments, nucleus, coda),
+    sonorityProfile: syllableSonorityProfile(segmentIds),
+    stress: 'unspecified',
+    stressSource: 'unspecified',
   };
 }
 
