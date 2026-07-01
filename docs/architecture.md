@@ -136,9 +136,19 @@ This generator is deterministic by seed and profile. The generated transcription
 
 ## Audition rendering
 
-`src/engine/audition.ts` owns the first pronunciation-adjacent adapter over generated sound sequences. It renders a `SegmentSequence` into a `NameAuditionCue` for browser voice draft playback without depending on `GeneratedName`, selected spelling text, React, browser APIs, or any paid TTS provider.
+Audition rendering is a two-stage pipeline over generated sound sequences:
 
-This module is an adapter over sound data, not generation behavior. Its browser speech cue is a practical audition projection for the current UI and is not an IPA transcription, SSML payload, provider payload, or canonical pronunciation.
+```text
+SegmentSequence
+  -> AuditionPhonology
+  -> renderer-specific projection
+```
+
+`src/engine/auditionPhonology.ts` owns the renderer-neutral audition structure derived from `SegmentSequence`. It preserves syllable order, segment slices, onset/nucleus/coda role segments, and deterministic stress hints without depending on `GeneratedName`, selected spelling text, React, browser APIs, or any paid TTS provider.
+
+`src/engine/browserAuditionProjection.ts` owns the browser-specific projection from `AuditionPhonology` to a speakable `BrowserAuditionCue`. This cue is a practical browser voice draft and is not an IPA transcription, SSML payload, provider payload, or canonical pronunciation.
+
+`src/engine/audition.ts` is a thin composition/export boundary for the current UI. It should not absorb renderer-specific logic as additional renderers are added.
 
 Phrase-level audition for identities with generated parts, profile lexemes, and literals is a future layer over the same adapter boundary; it should preserve per-part provenance instead of flattening a formatted identity to raw text.
 
@@ -185,7 +195,9 @@ src/
   data/
     stylePacks.ts         Built-in soft-coded style packs
   engine/
-    audition.ts           SegmentSequence to browser voice draft audition cues
+    audition.ts           Thin audition composition/export boundary
+    auditionPhonology.ts  SegmentSequence to renderer-neutral audition phonology
+    browserAuditionProjection.ts  Browser voice draft projection from audition phonology
     diagnostics.ts        Deterministic readability diagnostics and cast summaries
     ensemble.ts           Cast-level selection, diversity penalties, locked-slot preservation, and role attachment
     export.ts             JSON and Markdown cast serialization
