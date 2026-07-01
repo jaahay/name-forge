@@ -5,6 +5,8 @@ import { getNameDisplayLength, labelFor, protectInitialBreaks } from './namePres
 
 interface NameInspectorProps {
   name: GeneratedName;
+  isLocked: boolean;
+  onToggleLockedName: (id: string) => void;
 }
 
 export const visibleSpellingCandidateLimit = 6;
@@ -41,7 +43,11 @@ function readStatusLabel(name: GeneratedName): string {
   return `${noteCount} read note${noteCount === 1 ? '' : 's'}`;
 }
 
-export function NameInspector({ name }: NameInspectorProps) {
+function copyName(name: GeneratedName) {
+  void navigator.clipboard?.writeText(name.name);
+}
+
+export function NameInspector({ name, isLocked, onToggleLockedName }: NameInspectorProps) {
   const { formatLabel, identity, rarity, roleInfluenceLabel, roleLabel, textureLabel } = metadataFor(name);
   const displayName = protectInitialBreaks(name.name);
   const displayLength = getNameDisplayLength(name.name);
@@ -51,6 +57,7 @@ export function NameInspector({ name }: NameInspectorProps) {
   const spellingCandidateLimitNote = hiddenSpellingCandidateCount > 0
     ? `Showing top ${visibleSpellingCandidateLimit} of ${name.spellingCandidates.length} ranked spelling candidates.`
     : undefined;
+  const lockActionLabel = `${isLocked ? 'Unlock' : 'Lock'} ${name.name}`;
 
   return (
     <aside className="selected-name-panel panel" aria-labelledby="selected-name-heading">
@@ -59,11 +66,17 @@ export function NameInspector({ name }: NameInspectorProps) {
           <p className="eyebrow inspector-eyebrow">Inspect</p>
           <h2 id="selected-name-heading" className={`name-card-title ${rarity.className}`} data-name-length={displayLength}>{displayName}</h2>
         </div>
-        <ul className="selected-name-chips" aria-label="Name snapshot">
-          <li>{rarity.label}</li>
-          <li>{roleLabel}</li>
-          <li>{name.silhouette.syllableCount} syllables</li>
-        </ul>
+        <div className="selected-name-heading-tools">
+          <ul className="selected-name-chips" aria-label="Name snapshot">
+            <li>{rarity.label}</li>
+            <li>{roleLabel}</li>
+            <li>{name.silhouette.syllableCount} syllables</li>
+          </ul>
+          <div className="selected-name-actions" aria-label={`${name.name} selected-name actions`}>
+            <button type="button" className="secondary" aria-label={`Copy name ${name.name}`} onClick={() => copyName(name)}>Copy name</button>
+            <button type="button" className="secondary selected-name-lock-action" aria-pressed={isLocked} aria-label={lockActionLabel} onClick={() => onToggleLockedName(name.id)}>{isLocked ? 'Unlock' : 'Lock'}</button>
+          </div>
+        </div>
       </header>
 
       <div className="name-detail-grid" aria-label={`Selected details for ${name.name}`}>
