@@ -61,6 +61,7 @@ export function NameCard({ name, isSelected, isLocked, showExpandedSurface = tru
   const readNoteCount = name.readabilityDiagnostics.length;
   const cardClassName = `name-card panel ${textureClassName(name.silhouette.texture)}${isSelected ? ' selected' : ''}${isLocked ? ' locked' : ''}`;
   const isExpanded = isSelected && showExpandedSurface;
+  const lockActionLabel = `${isLocked ? 'Unlock' : 'Lock'} ${name.name}`;
 
   return (
     <article
@@ -75,7 +76,7 @@ export function NameCard({ name, isSelected, isLocked, showExpandedSurface = tru
     >
       <button
         type="button"
-        className="name-card-button"
+        className="name-card-button name-card-select-control"
         aria-pressed={isSelected}
         aria-label={`Inspect ${name.name}`}
         onClick={() => onSelect(name.id)}
@@ -83,16 +84,18 @@ export function NameCard({ name, isSelected, isLocked, showExpandedSurface = tru
         <NameCardHeader name={name} />
       </button>
       {isExpanded ? <ExpandedCardSurface name={name} /> : null}
-      <button
-        type="button"
-        className="anchor-button lock-toggle"
-        aria-pressed={isLocked}
-        aria-label={`${isLocked ? 'Unlock' : 'Lock'} ${name.name}`}
-        title={isLocked ? 'Unlock name' : 'Lock name'}
-        onClick={() => onToggleLocked(name.id)}
-      >
-        <span className="lock-toggle-icon" aria-hidden="true" />
-      </button>
+      <div className="name-card-actions" aria-label={`${name.name} card actions`}>
+        <button
+          type="button"
+          className="anchor-button lock-toggle name-card-lock-control"
+          aria-pressed={isLocked}
+          aria-label={lockActionLabel}
+          title={isLocked ? 'Unlock name' : 'Lock name'}
+          onClick={() => onToggleLocked(name.id)}
+        >
+          <span className="lock-toggle-icon" aria-hidden="true" />
+        </button>
+      </div>
     </article>
   );
 }
