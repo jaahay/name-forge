@@ -107,7 +107,13 @@ export function GeneratorView({
     onRandomizeSliders();
   }
 
-  const inspector = selectedName ? <NameInspector name={selectedName} /> : <EmptyInspector />;
+  const inspector = selectedName ? (
+    <NameInspector
+      name={selectedName}
+      isLocked={lockedNameIds.has(selectedName.id)}
+      onToggleLockedName={onToggleLockedName}
+    />
+  ) : <EmptyInspector />;
 
   return (
     <>

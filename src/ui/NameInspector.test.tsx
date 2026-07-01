@@ -56,18 +56,48 @@ function withSpellingCandidateCount(name: GeneratedName, candidateCount: number)
   return { ...name, spelling: selectedSpelling, spellingCandidates };
 }
 
+function renderInspector(name: GeneratedName, isLocked = false): string {
+  return renderToString(
+    <NameInspector
+      name={name}
+      isLocked={isLocked}
+      onToggleLockedName={() => undefined}
+    />,
+  );
+}
+
 describe('NameInspector', () => {
   it('renders retained ranked spelling candidates as a distinct Inspect section', () => {
     const name = fixtureName();
     const selectedCandidate = firstSpellingCandidate(name);
 
-    const html = renderToString(<NameInspector name={name} />);
+    const html = renderInspector(name);
 
     expect(html).toContain('Spelling candidates');
     expect(html).toContain(`${name.name} ranked spelling candidates`);
     expect(html).toContain(selectedCandidate.text);
     expect(html).toContain(`selected; rank ${selectedCandidate.rank}; score ${formatScore(selectedCandidate.score)}`);
     expect(html).not.toContain(`${name.name} alternate spellings`);
+  });
+
+  it('renders selected-name actions in Inspect', () => {
+    const name = fixtureName();
+    const html = renderInspector(name);
+
+    expect(html).toContain('selected-name-actions');
+    expect(html).toContain(`${name.name} selected-name actions`);
+    expect(html).toContain(`aria-label="Copy name ${name.name}"`);
+    expect(html).toContain(`aria-label="Lock ${name.name}"`);
+    expect(html).toContain('aria-pressed="false"');
+  });
+
+  it('reflects the locked state in the Inspect lock action', () => {
+    const name = fixtureName();
+    const html = renderInspector(name, true);
+
+    expect(html).toContain('selected-name-lock-action');
+    expect(html).toContain(`aria-label="Unlock ${name.name}"`);
+    expect(html).toContain('aria-pressed="true"');
   });
 
   it('renders only the visible spelling candidate limit with a deterministic overflow note', () => {
@@ -81,7 +111,7 @@ describe('NameInspector', () => {
     expect(firstHiddenCandidate).toBeDefined();
     if (!firstHiddenCandidate) throw new Error('Expected a hidden spelling candidate beyond the visible limit.');
 
-    const html = renderToString(<NameInspector name={name} />);
+    const html = renderInspector(name);
 
     expect(html).toContain(lastVisibleCandidate.text);
     expect(html).not.toContain(firstHiddenCandidate.text);
@@ -95,7 +125,7 @@ describe('NameInspector', () => {
     expect(finalCandidate).toBeDefined();
     if (!finalCandidate) throw new Error('Expected a final retained spelling candidate.');
 
-    const html = renderToString(<NameInspector name={name} />);
+    const html = renderInspector(name);
 
     expect(html).toContain(finalCandidate.text);
     expect(html).not.toContain('Showing top');
