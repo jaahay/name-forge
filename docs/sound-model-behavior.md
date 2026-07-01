@@ -50,16 +50,17 @@ It stores:
 - the ordered sound segments
 - the syllable spans over those segments
 - which segment indexes act as onset, nucleus, and coda inside each syllable
+- explicit coarse syllable metadata: `weight`, `sonorityProfile`, `stress`, and `stressSource`
 
 This is the core generated sound artifact. It is not browser text, IPA, spelling, or a provider payload.
 
 ### 4. Spelling options
 
-`generateSpellings(sound)` projects one generated sound into possible written forms.
+`generateSpellingCandidatePool(sound)` projects one generated sound into possible written forms.
 
-`SpellingCandidate[]` is an ordered JavaScript/TypeScript collection because arrays are ordered. However, plain `SpellingCandidate` order should not be treated as quality ranking unless the function contract says so. Generation order is useful for deterministic traversal and tests, but it is not the same as ranked preference.
+`SpellingCandidatePool.candidates` is an ordered JavaScript/TypeScript collection because arrays are ordered. Its order is deterministic generation order, not quality ranking.
 
-`rankSpellings(spellings, profile)` creates `RankedSpellingCandidate[]`. At that point, order is meaningful: the array is sorted by score and each candidate also carries an explicit `rank` field. Consumers should use the rank field or the ranked array contract, not infer quality from an unranked spelling array.
+`rankSpellingCandidatePool(pool, profile)` creates a `RankedSpellingCandidateList`. At that point, order is meaningful: `.candidates` is sorted by score and each candidate also carries an explicit `rank` field. Consumers should use the rank field or ranked-list contract, not infer quality from an unranked spelling pool.
 
 ### 5. Selected display name
 
@@ -97,7 +98,7 @@ SegmentSequence
   -> BrowserAuditionCue
 ```
 
-`AuditionPhonology` is renderer-neutral. It should read syllables, segments, and stress hints. It should not decide what names are valid.
+`AuditionPhonology` is renderer-neutral. It reads syllables, segments, generated syllable metadata, and stress hints. If generated stress is still `unspecified`, it may expose fallback stress, but it must label that fallback with `stressSource: 'fallback'`.
 
 `BrowserAuditionCue` is renderer-specific. It may use practical text tricks to make browser speech or human display less awkward. It is not the source of truth.
 
@@ -115,10 +116,14 @@ Examples:
 - `SegmentSequence.syllables`
 - `SegmentSyllable.start` / `end`
 - `SegmentSyllable.onset` / `nucleus` / `coda`
+- `SegmentSyllable.weight`
+- `SegmentSyllable.sonorityProfile`
+- `SegmentSyllable.stress`
+- `SegmentSyllable.stressSource`
 - `SpellingSegmentMapping.segmentIndex`
 - `RankedSpellingCandidate.rank`
 
-These facts should be explicit and testable.
+These facts should be explicit and testable. When the generator does not know a linguistic fact, it should record `unspecified` rather than omit the field or pretend to know more.
 
 ### Derived facts
 
@@ -128,10 +133,11 @@ Examples:
 
 - a human-readable sound guide
 - browser speech text
+- fallback audition stress
 - readability diagnostics
 - future SSML/provider payloads
 
-Derived facts may be useful, but they should not silently replace the durable model.
+Derived facts may be useful, but they should not silently replace the durable model. A fallback should stay visibly marked as a fallback.
 
 ## Syllables, stress, and phonotactics in plain terms
 
@@ -151,9 +157,9 @@ In the code, syllables are represented as spans over the segment list. The segme
 
 Syllable weight is a rough description of whether a syllable feels light or heavy.
 
-A light syllable is usually short and open. A heavy syllable often has a long vowel, diphthong, or closing consonant. This is approximate for this product; it should not claim linguistic authority.
+A light syllable is short and open. A heavy syllable has a coda, diphthong, or rhotic nucleus in the current coarse model. This is approximate for this product; it should not claim linguistic authority.
 
-When we add this field, prefer an explicit unknown state:
+The field is explicit:
 
 ```ts
 weight: 'light' | 'heavy' | 'unspecified';
@@ -165,7 +171,7 @@ Do not use an optional field for this. Optional fields make it unclear whether t
 
 Sonority is a rough idea of how open or vowel-like a sound is. Vowels are highly sonorous; stops like `p` and `t` are less sonorous; liquids like `l` and `r` sit in the middle.
 
-A sonority profile describes the shape of a syllable's sound energy. For this product, it should remain coarse and humble:
+A sonority profile describes the shape of a syllable's sound energy. The current generator computes it mechanically from segment sonority ranks:
 
 ```ts
 sonorityProfile:
@@ -177,7 +183,7 @@ sonorityProfile:
   | 'unspecified';
 ```
 
-Again, prefer explicit `unspecified` over optional fields.
+This is a coarse product signal, not a language-specific phonology claim.
 
 ### Stress
 
@@ -190,16 +196,14 @@ owr · EHL · ee-oh-n
        ^ primary stress
 ```
 
-Current stress handling is a fallback approximation. It is good enough for a first guide, but it is not a deep prosody model.
-
-Future stress fields should also carry the reason for the decision:
+Generated syllables now carry explicit stress fields:
 
 ```ts
 stress: 'primary' | 'secondary' | 'unstressed' | 'unspecified';
 stressSource: 'sequence' | 'cadence-rule' | 'weight-rule' | 'fallback' | 'unspecified';
 ```
 
-The source matters because a fallback guess should not look as authoritative as a generated or profile-driven stress decision.
+The generator currently sets stress to `unspecified`. `AuditionPhonology` applies the existing fallback stress rule only for presentation, and exposes that with `stressSource: 'fallback'` so a fallback guess does not look as authoritative as a generated stress decision.
 
 ### Phonotactics
 
@@ -220,10 +224,10 @@ Phonotactics belong in the sound recipe and generation behavior: `SoundProfile`,
 | --- | --- | --- | --- |
 | `styleCompiler.ts` | Turns user-facing style intent into an engine recipe | Compiled profile data | Generated names |
 | `soundProfile.ts` | Describes the internal sound recipe | Sound weights, cadence preferences, lexicon | Runtime callbacks or UI state |
-| `soundGenerator.ts` | Creates generated sound plans | Segment sequences, syllable spans, sound candidates | Browser text or spelling display |
-| `spellingGenerator.ts` | Writes the sound plan in letters | Spelling candidates, spelling mappings, spelling ranking | Sound validity |
+| `soundGenerator.ts` | Creates generated sound plans | Segment sequences, syllable spans, syllable metadata, sound candidates | Browser text or spelling display |
+| `spellingGenerator.ts` | Writes the sound plan in letters | Spelling candidate pools, spelling mappings, spelling ranking | Sound validity |
 | `identity.ts` | Arranges licensed name parts | Display identity parts | New arbitrary sound material |
-| `auditionPhonology.ts` | Reads generated sound for sound presentation | Renderer-neutral syllable/stress facts | Generation rules or browser hacks |
+| `auditionPhonology.ts` | Reads generated sound for sound presentation | Renderer-neutral syllable metadata and explicit fallback stress | Generation rules or browser hacks |
 | `browserAuditionProjection.ts` | Makes browser/display text from audition facts | `speechText`, guide text, browser-specific compromises | Core phonology or name validity |
 | `NameInspector.tsx` | Shows the selected name to the user | Labels, controls, selected-name presentation | Generation logic |
 
@@ -240,13 +244,4 @@ Phonotactics belong in the sound recipe and generation behavior: `SoundProfile`,
 
 ## Near-term direction
 
-The next responsible data-model improvements are likely:
-
-```ts
-weight: 'light' | 'heavy' | 'unspecified';
-sonorityProfile: 'rising' | 'falling' | 'rise-fall' | 'flat' | 'complex' | 'unspecified';
-stress: 'primary' | 'secondary' | 'unstressed' | 'unspecified';
-stressSource: 'sequence' | 'cadence-rule' | 'weight-rule' | 'fallback' | 'unspecified';
-```
-
-These should be added only when tests can explain the behavior in plain terms. The product should prefer explicit uncertainty over confident-looking pseudo-science.
+The explicit syllable metadata fields are now in the durable sound model. Future work should make stress assignment smarter only when the generator has a real rule to own, such as cadence-driven or weight-driven stress. Until then, fallback stress belongs in audition projection and must remain labeled as fallback.
