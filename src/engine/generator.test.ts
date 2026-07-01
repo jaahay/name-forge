@@ -56,8 +56,11 @@ describe('generateEnsemble', () => {
     expect(candidate.sound.profileId).toBe(candidate.soundProfile.id);
     expect(candidate.sound.sequence.contract).toBe('SegmentSequence');
     expect(candidate.sound.transcription).toMatch(/^\/.+\/$/);
-    expect(candidate.rankedSpellings.length).toBeGreaterThan(0);
-    const [topSpelling] = candidate.rankedSpellings;
+    expect(candidate.rankedSpellings.soundCandidateId).toBe(candidate.sound.id);
+    expect(candidate.rankedSpellings.profileId).toBe(candidate.soundProfile.id);
+    expect(candidate.rankedSpellings.sequenceId).toBe(candidate.sound.sequence.id);
+    expect(candidate.rankedSpellings.candidates.length).toBeGreaterThan(0);
+    const [topSpelling] = candidate.rankedSpellings.candidates;
     expect(topSpelling).toBeDefined();
     if (!topSpelling) throw new Error('Expected top ranked spelling.');
     expect(candidate.selectedSpelling).toBe(topSpelling);
