@@ -66,7 +66,7 @@ describe('generateEnsemble', () => {
     expect(candidate.selectedSpelling.text.length).toBeGreaterThan(0);
   });
 
-  it('returns scored names, variants, fit signals, generated sound, and selected spelling', () => {
+  it('returns scored names, variants, fit signals, generated sound, and retained spelling candidates', () => {
     const ensemble = generateEnsemble(settings, createDefaultRegistry());
     expect(ensemble.names).toHaveLength(settings.castSize);
     for (const name of ensemble.names) {
@@ -79,6 +79,13 @@ describe('generateEnsemble', () => {
       expect(name.spelling.rank).toBe(1);
       expect(name.spelling.soundCandidateId).toBe(name.sound.id);
       expect(name.name).toBe(name.spelling.text);
+      expect(name.spellingCandidates.length).toBeGreaterThan(0);
+      const [selectedCandidate] = name.spellingCandidates;
+      expect(selectedCandidate).toBeDefined();
+      if (!selectedCandidate) throw new Error('Expected retained selected spelling candidate.');
+      expect(selectedCandidate).toEqual(name.spelling);
+      expect(name.spellingCandidates.map((candidate) => candidate.rank)).toEqual(name.spellingCandidates.map((candidate) => candidate.rank).sort((left, right) => left - right));
+      expect(new Set(name.spellingCandidates.map((candidate) => candidate.text)).has(name.spelling.text)).toBe(true);
       expect(name.silhouette.syllableCount).toBeGreaterThan(0);
       expect(name.variants.length).toBeGreaterThan(0);
       expect(name.scores.overallFit).toBeGreaterThan(0);
