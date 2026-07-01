@@ -134,6 +134,14 @@ Segment metadata deliberately separates broad category from feature axes. Conson
 
 This generator is deterministic by seed and profile. The generated transcription is a display/debug rendering of internal segments, not a user-facing pronunciation authority.
 
+## Audition rendering
+
+`src/engine/audition.ts` owns the first pronunciation-adjacent adapter over generated sound sequences. It renders a `SegmentSequence` into a `NameAuditionCue` for browser voice draft playback without depending on `GeneratedName`, selected spelling text, React, browser APIs, or any paid TTS provider.
+
+This module is an adapter over sound data, not generation behavior. Its browser speech cue is a practical audition projection for the current UI and is not an IPA transcription, SSML payload, provider payload, or canonical pronunciation.
+
+Phrase-level audition for identities with generated parts, profile lexemes, and literals is a future layer over the same adapter boundary; it should preserve per-part provenance instead of flattening a formatted identity to raw text.
+
 ## Spelling generation and ranking
 
 `src/engine/spellingGenerator.ts` owns the projection from `SoundCandidate` to spelling candidates. The boundary is intentionally split:
@@ -177,6 +185,7 @@ src/
   data/
     stylePacks.ts         Built-in soft-coded style packs
   engine/
+    audition.ts           SegmentSequence to browser voice draft audition cues
     diagnostics.ts        Deterministic readability diagnostics and cast summaries
     ensemble.ts           Cast-level selection, diversity penalties, locked-slot preservation, and role attachment
     export.ts             JSON and Markdown cast serialization
