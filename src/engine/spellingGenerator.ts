@@ -35,6 +35,20 @@ export interface RankedSpellingCandidate extends SpellingCandidate {
   readonly score: number;
 }
 
+export interface SpellingCandidatePool {
+  readonly soundCandidateId: string;
+  readonly profileId: string;
+  readonly sequenceId: string;
+  readonly candidates: readonly SpellingCandidate[];
+}
+
+export interface RankedSpellingCandidateList {
+  readonly soundCandidateId: string;
+  readonly profileId: string;
+  readonly sequenceId: string;
+  readonly candidates: readonly RankedSpellingCandidate[];
+}
+
 interface SpellingRule {
   readonly text: string;
   readonly weight: number;
@@ -226,7 +240,7 @@ function materializeCandidate(sound: SoundCandidate, candidate: PartialSpellingC
   };
 }
 
-export function generateSpellings(sound: SoundCandidate): readonly SpellingCandidate[] {
+function generateSpellingCandidates(sound: SoundCandidate): readonly SpellingCandidate[] {
   let candidates: readonly PartialSpellingCandidate[] = [{ text: '', mappings: [] }];
 
   sound.sequence.segments.forEach((segmentId, segmentIndex) => {
@@ -265,13 +279,22 @@ export function generateSpellings(sound: SoundCandidate): readonly SpellingCandi
   return [...deduped.values()].map((candidate) => materializeCandidate(sound, candidate));
 }
 
-export function rankSpellings(
-  spellings: readonly SpellingCandidate[],
+export function generateSpellingCandidatePool(sound: SoundCandidate): SpellingCandidatePool {
+  return {
+    soundCandidateId: sound.id,
+    profileId: sound.profileId,
+    sequenceId: sound.sequence.id,
+    candidates: generateSpellingCandidates(sound),
+  };
+}
+
+export function rankSpellingCandidatePool(
+  pool: SpellingCandidatePool,
   profile: SoundProfile,
   options: SpellingRankingOptions = {},
-): readonly RankedSpellingCandidate[] {
+): RankedSpellingCandidateList {
   const maxCandidates = sanitizeMaxCandidates(options.maxCandidates);
-  const ranked = spellings
+  const ranked = pool.candidates
     .map((candidate) => ({
       ...candidate,
       score: roundScore(scoreCandidate(candidate, profile)),
@@ -282,13 +305,18 @@ export function rankSpellings(
       rank: index + 1,
     }));
 
-  return maxCandidates === undefined ? ranked : ranked.slice(0, maxCandidates);
+  return {
+    soundCandidateId: pool.soundCandidateId,
+    profileId: pool.profileId,
+    sequenceId: pool.sequenceId,
+    candidates: maxCandidates === undefined ? ranked : ranked.slice(0, maxCandidates),
+  };
 }
 
-export function generateRankedSpellings(
+export function generateRankedSpellingCandidates(
   sound: SoundCandidate,
   profile: SoundProfile,
   options: SpellingRankingOptions = {},
-): readonly RankedSpellingCandidate[] {
-  return rankSpellings(generateSpellings(sound), profile, options);
+): RankedSpellingCandidateList {
+  return rankSpellingCandidatePool(generateSpellingCandidatePool(sound), profile, options);
 }
