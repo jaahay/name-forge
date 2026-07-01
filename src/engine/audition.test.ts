@@ -77,8 +77,12 @@ describe('audition cue rendering', () => {
 
   it('preserves modeled stress instead of applying fallback stress', () => {
     const sequence = fixtureSequence();
+    const firstSyllable = sequence.syllables[0];
+    expect(firstSyllable).toBeDefined();
+    if (!firstSyllable) throw new Error('Expected first fixture syllable.');
+
     const modeledSyllable: SegmentSyllable = {
-      ...sequence.syllables[0],
+      ...firstSyllable,
       stress: 'primary',
       stressSource: 'sequence',
     };
