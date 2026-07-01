@@ -146,7 +146,7 @@ describe('spelling generation and ranking', () => {
     expect(rankedCandidate).toBeDefined();
     if (!rankedCandidate) throw new Error('Expected ranked spelling candidate.');
 
-    expect(Object.hasOwn(generatedCandidate, 'rank')).toBe(false);
+    expect(Object.prototype.hasOwnProperty.call(generatedCandidate, 'rank')).toBe(false);
     expect(rankedCandidate.rank).toBe(1);
   });
 
