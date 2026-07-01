@@ -1,12 +1,12 @@
 # Model and Module Contracts
 
-This document describes the current Name Forge models and modules as contracts. It is meant to answer three practical questions:
+This document describes the current Name Forge models and modules as contracts. It answers three practical questions:
 
 1. What models do we have?
 2. Which module owns each behavior?
 3. What does each module take as input and return as output?
 
-It also calls out collection-order semantics explicitly, because `T[]` is always ordered in JavaScript/TypeScript even when the product does not intend that order to mean ranking.
+It also calls out collection semantics explicitly, because `T[]` is always ordered in JavaScript/TypeScript. The important design question is what the order means at a module boundary.
 
 ## Reading rule
 
@@ -16,7 +16,7 @@ A module contract should be read as:
 input model(s) -> module behavior -> output model(s)
 ```
 
-When a module returns an array, the array order must mean one of these things:
+When a module exposes a collection, the collection order must mean one of these things:
 
 | Order kind | Meaning |
 | --- | --- |
@@ -24,9 +24,8 @@ When a module returns an array, the array order must mean one of these things:
 | `generation-order` | Deterministic traversal order from the generator, not quality ranking. |
 | `rank-order` | Best-to-worst or most-preferred-to-least-preferred order. |
 | `display-order` | Chosen for UI readability, not necessarily model priority. |
-| `unordered-set-encoded-as-array` | A set encoded as an array only because TypeScript has no built-in readonly set literal contract. Avoid this when order confusion matters. |
 
-If ranking matters, prefer an explicit `rank` field or a collection wrapper that says the array is ranked.
+If ranking matters, prefer a named model or explicit `rank` field over expecting callers to remember what a raw array means.
 
 ## Current model inventory
 
@@ -54,13 +53,15 @@ If ranking matters, prefer an explicit `rank` field or a collection wrapper that
 | --- | --- | --- |
 | `SpellingSegmentMapping` | `spellingGenerator.ts` | Link from one segment to its generated letters. |
 | `SpellingCandidate` | `spellingGenerator.ts` | One possible written form for a sound candidate. |
+| `SpellingCandidatePool` | `spellingGenerator.ts` | Projection result containing every generated spelling candidate for one sound candidate. |
 | `RankedSpellingCandidate` | `spellingGenerator.ts` | A spelling candidate after scoring/ranking. |
+| `RankedSpellingCandidateList` | `spellingGenerator.ts` | Ranked spelling alternatives for one sound candidate. |
 
 ### App-facing name models
 
 | Model | Current owner | Plain meaning |
 | --- | --- | --- |
-| `GeneratedNameCandidate` | `generator.ts` | Pre-selection candidate with sound and ranked spelling pool. |
+| `NameGenerationCandidate` | `generator.ts` | Pre-selection candidate with sound and ranked spelling list. |
 | `GeneratedName` | `types.ts` / `generator.ts` | Selected app-facing name with sound, selected spelling, scores, variants, and identity. |
 | `NameIdentity` | `identity.ts` / `types.ts` | Display composition from generated/profile-licensed parts. |
 | `GeneratedEnsemble` | `ensemble.ts` / `types.ts` | Cast-level result set and diagnostics. |
@@ -143,24 +144,19 @@ Does not own:
 - browser speech text
 - identity phrases
 
-Primary output:
-
-```ts
-SoundCandidate
-```
-
 Collection semantics:
 
-- `SegmentSequence.segments` is `source-order`: exact sound order.
-- `SegmentSequence.syllables` is `source-order`: exact syllable order.
+- `SegmentSequence.segments` is source-order: exact sound order.
+- `SegmentSequence.syllables` is source-order: exact syllable order.
 
 ### `spellingGenerator.ts`
 
-Current module contains two separable behaviors:
+Current module contains two separable public behaviors:
 
 ```text
-SoundCandidate -> generateSpellings -> SpellingCandidate[]
-SpellingCandidate[] + SoundProfile -> rankSpellings -> RankedSpellingCandidate[]
+SoundCandidate -> generateSpellingCandidatePool -> SpellingCandidatePool
+SpellingCandidatePool + SoundProfile -> rankSpellingCandidatePool -> RankedSpellingCandidateList
+SoundCandidate + SoundProfile -> generateRankedSpellingCandidates -> RankedSpellingCandidateList
 ```
 
 Owns:
@@ -179,40 +175,20 @@ Does not own:
 
 Collection semantics:
 
-| Function | Output | Current order meaning |
+| Function | Output | Collection meaning |
 | --- | --- | --- |
-| `generateSpellings(sound)` | `readonly SpellingCandidate[]` | `generation-order`: deterministic traversal/deduplication order, not quality ranking. |
-| `rankSpellings(spellings, profile)` | `readonly RankedSpellingCandidate[]` | `rank-order`: sorted by score descending, then text ascending; each item also has `rank`. |
-| `generateRankedSpellings(sound, profile)` | `readonly RankedSpellingCandidate[]` | `rank-order`. |
+| `generateSpellingCandidatePool(sound)` | `SpellingCandidatePool` | `.candidates` is deterministic generation order, not quality ranking. |
+| `rankSpellingCandidatePool(pool, profile)` | `RankedSpellingCandidateList` | `.candidates` is rank order; each item also has `rank` and `score`. |
+| `generateRankedSpellingCandidates(sound, profile)` | `RankedSpellingCandidateList` | `.candidates` is rank order. |
 
 Design note:
 
-`SpellingCandidate[]` is not literally unordered; arrays are ordered. The potential incoherence is that a deterministic ordered array can be mistaken for ranked order. The model is safer once the collection semantics are encoded in a named wrapper.
-
-Possible future wrappers:
-
-```ts
-interface SpellingCandidatePool {
-  readonly contract: 'SpellingCandidatePool';
-  readonly order: 'generation-order';
-  readonly soundCandidateId: string;
-  readonly candidates: readonly SpellingCandidate[];
-}
-
-interface RankedSpellingCandidateList {
-  readonly contract: 'RankedSpellingCandidateList';
-  readonly order: 'rank-order';
-  readonly ranking: 'score-desc-text-asc';
-  readonly candidates: readonly RankedSpellingCandidate[];
-}
-```
-
-This would let callers depend on a collection contract instead of interpreting a raw array.
+The collection wrappers deliberately do not carry ceremonial runtime fields like `contract` or `order`. Their names and TypeScript contracts are enough for this internal boundary. If the collection ever becomes serialized data crossing a storage, API, or plugin boundary, explicit runtime metadata may become worthwhile. It is not needed now.
 
 ### `generator.ts`
 
 ```text
-GenerationSettings + NameSourceProvider -> GeneratedName[] / GeneratedNameCandidate[]
+GenerationSettings + NameSourceProvider -> GeneratedName[] / NameGenerationCandidate[]
 ```
 
 Owns:
@@ -229,7 +205,7 @@ Does not own:
 
 Important model boundary:
 
-`GeneratedName.spellingCandidates` is currently `readonly RankedSpellingCandidate[]`. That means the retained spelling alternatives are ranked alternatives, not raw unranked spelling candidates.
+`NameGenerationCandidate.rankedSpellings` is a `RankedSpellingCandidateList`. `GeneratedName.spellingCandidates` remains the app-facing ranked candidate array for UI/export convenience; it does not expose raw unranked spelling projections.
 
 ### `identity.ts`
 
@@ -248,12 +224,6 @@ Does not own:
 - inventing arbitrary suffixes or epithets by string surgery
 - phrase-level audio/prosody
 - browser projection
-
-Current output:
-
-```ts
-NameIdentity
-```
 
 Known limitation:
 
@@ -279,15 +249,9 @@ Does not own:
 - browser-specific token hacks
 - identity phrase composition
 
-Current output:
-
-```ts
-AuditionPhonology
-```
-
 Collection semantics:
 
-- `AuditionPhonology.syllables` is `source-order`: exact syllable order from the source segment sequence.
+- `AuditionPhonology.syllables` is source-order: exact syllable order from the source segment sequence.
 
 ### `browserAuditionProjection.ts`
 
@@ -311,8 +275,8 @@ Does not own:
 
 Collection semantics:
 
-- `syllableText` is `source-order`: browser speech text per syllable.
-- `guideSyllables` is `source-order`: human guide text per syllable.
+- `syllableText` is source-order: browser speech text per syllable.
+- `guideSyllables` is source-order: human guide text per syllable.
 
 ### `audition.ts`
 
@@ -354,7 +318,7 @@ Does not own:
 
 Collection semantics:
 
-- `GeneratedEnsemble.names` is `display-order`: the order presented in the cast. It may encode slot order and ensemble selection, not simply raw score order.
+- `GeneratedEnsemble.names` is display-order: the order presented in the cast. It may encode slot order and ensemble selection, not simply raw score order.
 
 ### `NameInspector.tsx`
 
@@ -375,52 +339,30 @@ Does not own:
 - ranking behavior
 - sound validity
 
-## Data-model concern: raw arrays leaking semantics
+## Data-model concern resolved for spelling
 
-The current model is not incoherent, but it is under-specified in one important way: several APIs expose raw arrays whose order has different meanings.
-
-The most important case is spelling:
+The previous low-level spelling API exposed two raw arrays with different order semantics:
 
 ```text
 SpellingCandidate[]          generation-order
 RankedSpellingCandidate[]    rank-order
 ```
 
-Both are arrays, but the order means different things. This is easy for humans and LLMs to misread.
-
-### Current safety factors
-
-The current code has two mitigating facts:
-
-1. `RankedSpellingCandidate` includes explicit `rank` and `score`.
-2. `GeneratedName.spellingCandidates` already exposes ranked candidates, not raw unranked `SpellingCandidate[]`.
-
-So the app-facing model is less confused than the low-level projection function.
-
-### Remaining smell
-
-The raw return type of `generateSpellings(sound)` is still easy to misuse. A caller can accidentally treat the first spelling as preferred even though it only reflects generation traversal/deduplication order.
-
-### Recommended later refactor
-
-When spelling code is next touched for model cleanup, consider splitting the concepts:
+That was not catastrophic, but it was easy for humans and LLMs to misread. The current boundary is explicit:
 
 ```text
-spellingProjection.ts
-  SoundCandidate -> SpellingCandidatePool
-
-spellingRanking.ts
-  SpellingCandidatePool + SoundProfile -> RankedSpellingCandidateList
+SpellingCandidatePool.candidates          generation-order
+RankedSpellingCandidateList.candidates    rank-order
 ```
 
-This does not need to happen in the current UX/projection PR. It is a data-model cleanup candidate.
+`GeneratedName.spellingCandidates` remains a ranked app-facing list for UI/export convenience. Raw unranked spelling candidates should stay inside the spelling projection boundary.
 
 ## Desired module rule
 
 Prefer this:
 
 ```text
-module returns named model or named collection contract
+module returns named model or named collection boundary
 ```
 
 over this:
@@ -429,11 +371,10 @@ over this:
 module returns raw array and expects callers to remember what order means
 ```
 
-Raw arrays are still fine inside modules and for tiny internal helpers. They become risky at module boundaries.
+Raw arrays are still fine inside modules and for tiny internal helpers. They become risky at module boundaries when multiple arrays of the same family have different semantics.
 
 ## Near-term cleanup candidates
 
-1. Rename or wrap spelling collections so generation order and ranking order are explicit.
-2. Add explicit syllable metadata with `unspecified` values instead of optional pseudo-science fields.
-3. Add phrase-level audition models that preserve per-part provenance.
-4. Gradually turn `architecture.md` into an index and keep detailed contracts in focused docs like this one.
+1. Add explicit syllable metadata with `unspecified` values instead of optional pseudo-science fields.
+2. Add phrase-level audition models that preserve per-part provenance.
+3. Gradually turn `architecture.md` into an index and keep detailed contracts in focused docs like this one.
