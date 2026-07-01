@@ -57,25 +57,25 @@ GenerationSettings
   -> SoundProfile
   -> generateSound(profile, rng)
   -> SoundCandidate
-  -> generateSpellings(sound)
-  -> SpellingCandidate[]
-  -> rankSpellings(spellings, profile)
-  -> RankedSpellingCandidate[]
+  -> generateSpellingCandidatePool(sound)
+  -> SpellingCandidatePool
+  -> rankSpellingCandidatePool(pool, profile)
+  -> RankedSpellingCandidateList
   -> GeneratedNameCandidate
   -> GeneratedName selected from rank #1
   -> identity composition from generated/profile-licensed parts
   -> UI/export
 ```
 
-`GeneratedNameCandidate` is the pre-selection result that owns the full ranked spelling pool. `GeneratedName` is the app-facing selected result: it carries the compiled `soundProfile`, generated `sound`, and selected `spelling`, but not the entire ranked spelling pool.
+`GeneratedNameCandidate` is the pre-selection result that owns the ranked spelling list. `GeneratedName` is the app-facing selected result: it carries the compiled `soundProfile`, generated `sound`, selected `spelling`, and retained ranked spelling alternatives.
 
 ```mermaid
 flowchart LR
   A[GenerationSettings] --> B[StyleInput projection]
   B --> C[SoundProfile]
   C --> D[SoundCandidate]
-  D --> E[Spelling candidates]
-  E --> F[Ranked spelling candidates]
+  D --> E[Spelling candidate pool]
+  E --> F[Ranked spelling candidate list]
   F --> G[GeneratedNameCandidate]
   G --> H[GeneratedName]
   C --> I[Profile lexicon]
@@ -156,11 +156,11 @@ Phrase-level audition for identities with generated parts, profile lexemes, and 
 
 ## Spelling generation and ranking
 
-`src/engine/spellingGenerator.ts` owns the projection from `SoundCandidate` to spelling candidates. The boundary is intentionally split:
+`src/engine/spellingGenerator.ts` owns the projection from `SoundCandidate` to spelling candidates and the ranking of those candidates. The boundary is intentionally split:
 
-- `generateSpellings(sound)` projects one sound candidate into every viable spelling candidate known to the starter grapheme rules.
-- `rankSpellings(spellings, profile)` orders already-generated spelling candidates using deterministic ranker logic composed from `SoundProfile` fields.
-- `generateRankedSpellings(sound, profile)` is a convenience composition of the two operations.
+- `generateSpellingCandidatePool(sound)` projects one sound candidate into every viable spelling candidate known to the starter grapheme rules.
+- `rankSpellingCandidatePool(pool, profile)` orders already-generated spelling candidates using deterministic ranker logic composed from `SoundProfile` fields.
+- `generateRankedSpellingCandidates(sound, profile)` is a convenience composition of the two operations.
 
 The profile does not store JavaScript callbacks. It remains a serializable data contract. Ranking callbacks and weights are internal engine mechanics derived from profile data and engine-local spelling rules.
 
