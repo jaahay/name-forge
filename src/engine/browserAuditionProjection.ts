@@ -71,7 +71,7 @@ const guideTokenBySegmentId: Record<SoundSegmentId, string> = {
   aw: 'ow',
 };
 
-const vowelSegmentIds: ReadonlySet<SoundSegmentId> = new Set([
+const vowelSegmentIds: ReadonlySet<SoundSegmentId> = new Set<SoundSegmentId>([
   'i',
   'ih',
   'e',
@@ -97,13 +97,22 @@ function renderSyllableSpeechText(syllable: AuditionSyllable): string {
   return syllable.segments.map((segmentId) => browserSpeechTokenBySegmentId[segmentId]).join('');
 }
 
-function shouldSeparateGuideToken(previousSegmentId: SoundSegmentId | undefined, segmentId: SoundSegmentId): boolean {
-  return Boolean(previousSegmentId && vowelSegmentIds.has(previousSegmentId) && vowelSegmentIds.has(segmentId));
+function shouldSeparateGuideToken(
+  previousPreviousSegmentId: SoundSegmentId | undefined,
+  previousSegmentId: SoundSegmentId | undefined,
+  segmentId: SoundSegmentId,
+): boolean {
+  if (!previousSegmentId) return false;
+  if (vowelSegmentIds.has(previousSegmentId) && vowelSegmentIds.has(segmentId)) return true;
+  return Boolean(previousPreviousSegmentId
+    && vowelSegmentIds.has(previousPreviousSegmentId)
+    && vowelSegmentIds.has(previousSegmentId)
+    && !vowelSegmentIds.has(segmentId));
 }
 
 function renderSyllableGuideText(syllable: AuditionSyllable): string {
   const text = syllable.segments.reduce((result, segmentId, index) => {
-    const separator = shouldSeparateGuideToken(syllable.segments[index - 1], segmentId) ? '-' : '';
+    const separator = shouldSeparateGuideToken(syllable.segments[index - 2], syllable.segments[index - 1], segmentId) ? '-' : '';
     return `${result}${separator}${guideTokenBySegmentId[segmentId]}`;
   }, '');
 
