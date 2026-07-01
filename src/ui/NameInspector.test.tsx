@@ -92,17 +92,18 @@ describe('NameInspector', () => {
     expect(html).toContain('aria-pressed="false"');
   });
 
-  it('renders a sound-derived audition cue and browser voice draft affordance', () => {
+  it('renders a sound-derived pronunciation guide and browser voice draft state', () => {
     const name = fixtureName();
     const auditionCue = renderAuditionCue(name.sound.sequence);
     const html = renderInspector(name);
 
     expect(auditionCue.source).toBe('sound-sequence');
-    expect(auditionCue.displayText).not.toBe(name.name);
-    expect(html).toContain('Audition cue');
+    expect(auditionCue.displayText.length).toBeGreaterThan(0);
+    expect(auditionCue.displayText).not.toBe(auditionCue.speechText);
+    expect(html).toContain('Pronunciation guide');
     expect(html).toContain(auditionCue.displayText);
-    expect(html).toContain('Browser voice draft');
-    expect(html).toContain('Voice draft uses the generated sound cue, not the selected spelling. It is not a canonical pronunciation.');
+    expect(html).toContain('Browser voice unavailable');
+    expect(html).toContain('Guide is generated from the sound model. Browser voice is an approximation, not a canonical pronunciation.');
     expect(html).toContain(`aria-label="Browser voice draft unavailable for ${name.name}"`);
     expect(html).toContain('Play voice draft');
   });
