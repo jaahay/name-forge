@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { SegmentSequence } from './soundGenerator';
-import { renderAuditionCue } from './audition';
+import { createAuditionPhonology, renderAuditionCue, renderBrowserAuditionCue } from './audition';
 
 function fixtureSequence(): SegmentSequence {
   return {
@@ -18,17 +18,47 @@ function fixtureSequence(): SegmentSequence {
 }
 
 describe('audition cue rendering', () => {
-  it('renders a browser speech cue from a segment sequence', () => {
-    const cue = renderAuditionCue(fixtureSequence());
+  it('builds audition phonology from a segment sequence before renderer projection', () => {
+    const phonology = createAuditionPhonology(fixtureSequence());
 
-    expect(cue.contract).toBe('NameAuditionCue');
+    expect(phonology.contract).toBe('AuditionPhonology');
+    expect(phonology.version).toBe(1);
+    expect(phonology.source).toBe('sound-sequence');
+    expect(phonology.sequenceId).toBe('segment-sequence:test:aw-r-eh-l-i-ow-n');
+    expect(phonology.profileId).toBe('sound-profile:test');
+    expect(phonology.syllables).toHaveLength(3);
+    expect(phonology.syllables.map((syllable) => syllable.stress)).toEqual(['unstressed', 'primary', 'unstressed']);
+    expect(phonology.syllables.map((syllable) => syllable.segments)).toEqual([
+      ['aw', 'r'],
+      ['eh', 'l'],
+      ['i', 'ow', 'n'],
+    ]);
+    expect(phonology.syllables[0]?.nucleus).toEqual(['aw']);
+    expect(phonology.syllables[0]?.coda).toEqual(['r']);
+  });
+
+  it('renders a browser speech cue from audition phonology', () => {
+    const phonology = createAuditionPhonology(fixtureSequence());
+    const cue = renderBrowserAuditionCue(phonology);
+
+    expect(cue.contract).toBe('BrowserAuditionCue');
     expect(cue.version).toBe(1);
     expect(cue.source).toBe('sound-sequence');
     expect(cue.sequenceId).toBe('segment-sequence:test:aw-r-eh-l-i-ow-n');
     expect(cue.profileId).toBe('sound-profile:test');
     expect(cue.syllableText).toEqual(['owr', 'ehl', 'eeohn']);
     expect(cue.speechText).toBe('owr ehl eeohn');
-    expect(cue.displayText).toBe('owr ehl eeohn');
+    expect(cue.displayText).toBe('owr-EHL-eeohn');
+  });
+
+  it('renders a composed name audition cue from a segment sequence', () => {
+    const cue = renderAuditionCue(fixtureSequence());
+
+    expect(cue.contract).toBe('NameAuditionCue');
+    expect(cue.phonology.contract).toBe('AuditionPhonology');
+    expect(cue.syllableText).toEqual(['owr', 'ehl', 'eeohn']);
+    expect(cue.speechText).toBe('owr ehl eeohn');
+    expect(cue.displayText).toBe('owr-EHL-eeohn');
   });
 
   it('does not require displayed spelling or GeneratedName data', () => {
@@ -38,6 +68,7 @@ describe('audition cue rendering', () => {
     expect(Object.keys(cue).sort()).toEqual([
       'contract',
       'displayText',
+      'phonology',
       'profileId',
       'sequenceId',
       'source',
