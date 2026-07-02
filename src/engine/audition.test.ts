@@ -104,7 +104,6 @@ function fixtureIdentity(): NameIdentity {
       id: 'format:epithet-place',
       kind: 'epithet-place',
       label: 'Epithet/place-style name',
-      pattern: '{given} {epithet} of {place}',
     },
     parts: [
       { id: 'given-name:given', role: 'given', value: 'Aurelion', sourceNameId: 'given-name', sourceName: 'Aurelion' },
@@ -127,7 +126,6 @@ function fixtureRepeatedIdentity(): NameIdentity {
       id: 'format:duplicate-given-place',
       kind: 'epithet-place',
       label: 'Duplicate given + place test',
-      pattern: '{given}, {given} of {place}',
     },
     parts: [
       { id: 'given-name:given', role: 'given', value: 'Aurelion', sourceNameId: 'given-name', sourceName: 'Aurelion' },
