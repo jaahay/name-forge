@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import type { SegmentSequence, SegmentSyllable } from './soundGenerator';
-import { createAuditionPhonology, renderAuditionCue, renderBrowserAuditionCue } from './audition';
+import type { SegmentSequence, SegmentSyllable, SoundCandidate } from './soundGenerator';
+import type { NameIdentity } from './types';
+import { createAuditionPhonology, renderAuditionCue, renderBrowserAuditionCue, renderIdentityAuditionPhrase } from './audition';
 
 function fixtureSyllable(syllable: Omit<SegmentSyllable, 'stress' | 'stressSource'>): SegmentSyllable {
   return {
@@ -48,6 +49,67 @@ function fixtureSequence(): SegmentSequence {
         weight: 'heavy',
         sonorityProfile: 'complex',
       }),
+    ],
+  };
+}
+
+function fixturePlaceSequence(): SegmentSequence {
+  return {
+    contract: 'SegmentSequence',
+    version: 1,
+    id: 'segment-sequence:test:r-eh-l-m-a-r',
+    profileId: 'sound-profile:test',
+    segments: ['r', 'eh', 'l', 'm', 'a', 'r'],
+    syllables: [
+      fixtureSyllable({
+        start: 0,
+        end: 3,
+        onset: [0],
+        nucleus: [1],
+        coda: [2],
+        shape: 'CVL',
+        weight: 'heavy',
+        sonorityProfile: 'rise-fall',
+      }),
+      fixtureSyllable({
+        start: 3,
+        end: 6,
+        onset: [3],
+        nucleus: [4],
+        coda: [5],
+        shape: 'CVC',
+        weight: 'heavy',
+        sonorityProfile: 'rise-fall',
+      }),
+    ],
+  };
+}
+
+function fixtureSound(id: string, name: string, sequence: SegmentSequence): SoundCandidate {
+  return {
+    contract: 'SoundCandidate',
+    version: 1,
+    id,
+    profileId: sequence.profileId,
+    cadence: 'balanced',
+    sequence,
+    transcription: `/${name.toLowerCase()}/`,
+  };
+}
+
+function fixtureIdentity(): NameIdentity {
+  return {
+    displayName: 'Aurelion the Ashen of Relmar',
+    format: {
+      id: 'format:epithet-place',
+      kind: 'epithet-place',
+      label: 'Epithet/place-style name',
+      pattern: '{given} {epithet} of {place}',
+    },
+    parts: [
+      { id: 'given-name:given', role: 'given', value: 'Aurelion', sourceNameId: 'given-name', sourceName: 'Aurelion' },
+      { id: 'given-name:epithet', role: 'epithet', value: 'the Ashen', sourceNameId: 'given-name', sourceName: 'Aurelion' },
+      { id: 'place-name:place', role: 'place', value: 'Relmar', sourceNameId: 'place-name', sourceName: 'Relmar' },
     ],
   };
 }
@@ -125,6 +187,40 @@ describe('audition cue rendering', () => {
     expect(cue.guideSyllables).toEqual(['owr', 'EHL', 'ee-oh-n']);
     expect(cue.speechText).toBe('owr ehl eeohn');
     expect(cue.displayText).toBe('owr · EHL · ee-oh-n');
+  });
+
+  it('renders phrase-level audition for composed identity parts without inventing lexical sound', () => {
+    const phrase = renderIdentityAuditionPhrase(fixtureIdentity(), [
+      { id: 'given-name', name: 'Aurelion', sound: fixtureSound('sound-candidate:given', 'Aurelion', fixtureSequence()) },
+      { id: 'place-name', name: 'Relmar', sound: fixtureSound('sound-candidate:place', 'Relmar', fixturePlaceSequence()) },
+    ]);
+
+    expect(phrase).toMatchObject({
+      contract: 'IdentityAuditionPhrase',
+      version: 1,
+      source: 'name-identity',
+      formatId: 'format:epithet-place',
+      formatKind: 'epithet-place',
+      identityText: 'Aurelion the Ashen of Relmar',
+      speechText: 'owr ehl eeohn the Ashen of rehl mahr',
+      displayText: 'owr · EHL · ee-oh-n the Ashen of REHL · mahr',
+    });
+    expect(phrase.parts.map((part) => [part.kind, part.role, part.value])).toEqual([
+      ['sound', 'given', 'Aurelion'],
+      ['text', 'epithet', 'the Ashen'],
+      ['literal', 'literal', 'of'],
+      ['sound', 'place', 'Relmar'],
+    ]);
+    expect(phrase.parts[0]).toMatchObject({
+      kind: 'sound',
+      sourceNameId: 'given-name',
+      sourceName: 'Aurelion',
+    });
+    expect(phrase.parts[1]).toMatchObject({
+      kind: 'text',
+      sourceNameId: 'given-name',
+      sourceName: 'Aurelion',
+    });
   });
 
   it('does not require displayed spelling or GeneratedName data', () => {
