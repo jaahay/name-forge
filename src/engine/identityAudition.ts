@@ -8,8 +8,21 @@ export type IdentityAuditionPhraseContract = 'IdentityAuditionPhrase';
 export type IdentityAuditionPhraseSource = 'name-identity';
 export type IdentityAuditionPartKind = 'sound' | 'text' | 'literal';
 export type IdentityAuditionPartRole = NamePartRole | 'literal';
+export type IdentityAuditionTextSource = 'generated-sound' | 'identity-text' | 'format-literal';
 
 export type IdentityAuditionSourceName = Pick<GeneratedName, 'id' | 'name' | 'sound'>;
+
+interface IdentityFormatPlaceholderToken {
+  readonly kind: 'placeholder';
+  readonly role: NamePartRole;
+}
+
+interface IdentityFormatLiteralToken {
+  readonly kind: 'literal';
+  readonly value: string;
+}
+
+type IdentityFormatToken = IdentityFormatPlaceholderToken | IdentityFormatLiteralToken;
 
 export interface IdentityAuditionBasePart {
   readonly index: number;
@@ -18,11 +31,15 @@ export interface IdentityAuditionBasePart {
   readonly value: string;
   readonly speechText: string;
   readonly displayText: string;
+  readonly speechSource: IdentityAuditionTextSource;
+  readonly displaySource: IdentityAuditionTextSource;
 }
 
 export interface IdentityAuditionSoundPart extends IdentityAuditionBasePart {
   readonly kind: 'sound';
   readonly role: 'given' | 'family' | 'place';
+  readonly speechSource: 'generated-sound';
+  readonly displaySource: 'generated-sound';
   readonly sourceNameId: string;
   readonly sourceName: string;
   readonly cue: NameAuditionCue;
@@ -31,6 +48,8 @@ export interface IdentityAuditionSoundPart extends IdentityAuditionBasePart {
 export interface IdentityAuditionTextPart extends IdentityAuditionBasePart {
   readonly kind: 'text';
   readonly role: NamePartRole;
+  readonly speechSource: 'identity-text';
+  readonly displaySource: 'identity-text';
   readonly sourceNameId: string;
   readonly sourceName: string;
 }
@@ -38,6 +57,8 @@ export interface IdentityAuditionTextPart extends IdentityAuditionBasePart {
 export interface IdentityAuditionLiteralPart extends IdentityAuditionBasePart {
   readonly kind: 'literal';
   readonly role: 'literal';
+  readonly speechSource: 'format-literal';
+  readonly displaySource: 'format-literal';
 }
 
 export type IdentityAuditionPart = IdentityAuditionSoundPart | IdentityAuditionTextPart | IdentityAuditionLiteralPart;
@@ -54,28 +75,91 @@ export interface IdentityAuditionPhrase {
   readonly parts: readonly IdentityAuditionPart[];
 }
 
+const namePartRoles: readonly NamePartRole[] = ['given', 'family', 'initial', 'title', 'epithet', 'place'];
 const soundBackedRoles: ReadonlySet<NamePartRole> = new Set(['given', 'family', 'place']);
-const placeholderPattern = /^\{(\w+)\}$/;
+const punctuationLiterals = new Set([',', '.', ':', ';', '-', '(', ')', '[', ']', '/', '&']);
+
+function isNamePartRole(value: string): value is NamePartRole {
+  return namePartRoles.includes(value as NamePartRole);
+}
 
 function isSoundBackedRole(role: NamePartRole): role is IdentityAuditionSoundPart['role'] {
   return soundBackedRoles.has(role);
+}
+
+function isWhitespace(character: string): boolean {
+  return character === ' ' || character === '\n' || character === '\t' || character === '\r';
 }
 
 function sourceNameById(sourceNames: readonly IdentityAuditionSourceName[]): ReadonlyMap<string, IdentityAuditionSourceName> {
   return new Map(sourceNames.map((sourceName) => [sourceName.id, sourceName]));
 }
 
-function identityPartByRole(identity: NameIdentity): ReadonlyMap<NamePartRole, GeneratedNamePart> {
-  return new Map(identity.parts.map((part) => [part.role, part]));
+function partForRole(identity: NameIdentity, role: NamePartRole, occurrence: number): GeneratedNamePart | undefined {
+  const matches = identity.parts.filter((part) => part.role === role);
+  if (matches.length === 0) return undefined;
+  return matches[occurrence] ?? matches[0];
 }
 
-function phraseTokens(pattern: string): readonly string[] {
-  return pattern.split(/\s+/).filter((token) => token.length > 0);
+function pushLiteralToken(tokens: IdentityFormatToken[], value: string): void {
+  const trimmed = value.trim();
+  if (trimmed.length === 0) return;
+  tokens.push({ kind: 'literal', value: trimmed });
 }
 
-function roleToken(token: string): NamePartRole | undefined {
-  const match = placeholderPattern.exec(token);
-  return match?.[1] as NamePartRole | undefined;
+function pushLiteralTokens(tokens: IdentityFormatToken[], value: string): void {
+  let literal = '';
+
+  for (const character of value) {
+    if (isWhitespace(character)) {
+      pushLiteralToken(tokens, literal);
+      literal = '';
+      continue;
+    }
+
+    if (punctuationLiterals.has(character)) {
+      pushLiteralToken(tokens, literal);
+      literal = '';
+      pushLiteralToken(tokens, character);
+      continue;
+    }
+
+    literal = `${literal}${character}`;
+  }
+
+  pushLiteralToken(tokens, literal);
+}
+
+function parseIdentityFormatPattern(pattern: string): readonly IdentityFormatToken[] {
+  const tokens: IdentityFormatToken[] = [];
+  let index = 0;
+  let literal = '';
+
+  while (index < pattern.length) {
+    const character = pattern[index];
+
+    if (character === '{') {
+      const end = pattern.indexOf('}', index + 1);
+
+      if (end > index) {
+        const role = pattern.slice(index + 1, end);
+
+        if (isNamePartRole(role)) {
+          pushLiteralTokens(tokens, literal);
+          literal = '';
+          tokens.push({ kind: 'placeholder', role });
+          index = end + 1;
+          continue;
+        }
+      }
+    }
+
+    literal = `${literal}${character}`;
+    index += 1;
+  }
+
+  pushLiteralTokens(tokens, literal);
+  return tokens;
 }
 
 function renderTextPart(index: number, part: GeneratedNamePart): IdentityAuditionTextPart {
@@ -86,6 +170,8 @@ function renderTextPart(index: number, part: GeneratedNamePart): IdentityAuditio
     value: part.value,
     speechText: part.value,
     displayText: part.value,
+    speechSource: 'identity-text',
+    displaySource: 'identity-text',
     sourceNameId: part.sourceNameId,
     sourceName: part.sourceName,
   };
@@ -99,6 +185,8 @@ function renderLiteralPart(index: number, value: string): IdentityAuditionLitera
     value,
     speechText: value,
     displayText: value,
+    speechSource: 'format-literal',
+    displaySource: 'format-literal',
   };
 }
 
@@ -130,6 +218,8 @@ function renderIdentityPart(
       value: part.value,
       speechText: cue.speechText,
       displayText: cue.displayText,
+      speechSource: 'generated-sound',
+      displaySource: 'generated-sound',
       sourceNameId: part.sourceNameId,
       sourceName: sourceName.name,
       cue,
@@ -139,22 +229,34 @@ function renderIdentityPart(
   return renderTextPart(index, part);
 }
 
+function phraseText(parts: readonly IdentityAuditionPart[], field: 'speechText' | 'displayText'): string {
+  return parts.reduce((text, part) => {
+    if (text.length === 0) return part[field];
+    if (part.kind === 'literal' && punctuationLiterals.has(part.value)) return `${text}${part[field]}`;
+    return `${text} ${part[field]}`;
+  }, '');
+}
+
 export function renderIdentityAuditionPhrase(
   identity: NameIdentity,
   sourceNames: readonly IdentityAuditionSourceName[],
 ): IdentityAuditionPhrase {
   const sources = sourceNameById(sourceNames);
-  const partsByRole = identityPartByRole(identity);
+  const roleOccurrences = new Map<NamePartRole, number>();
   const parts: IdentityAuditionPart[] = [];
 
-  for (const token of phraseTokens(identity.format.pattern)) {
-    const role = roleToken(token);
-    const part = role ? partsByRole.get(role) : undefined;
+  for (const token of parseIdentityFormatPattern(identity.format.pattern)) {
+    if (token.kind === 'literal') {
+      parts.push(renderLiteralPart(parts.length, token.value));
+      continue;
+    }
+
+    const occurrence = roleOccurrences.get(token.role) ?? 0;
+    const part = partForRole(identity, token.role, occurrence);
+    roleOccurrences.set(token.role, occurrence + 1);
 
     if (part) {
       parts.push(renderIdentityPart(parts.length, part, sources));
-    } else if (!role) {
-      parts.push(renderLiteralPart(parts.length, token));
     }
   }
 
@@ -165,8 +267,8 @@ export function renderIdentityAuditionPhrase(
     formatId: identity.format.id,
     formatKind: identity.format.kind,
     identityText: identity.displayName,
-    speechText: parts.map((part) => part.speechText).join(' '),
-    displayText: parts.map((part) => part.displayText).join(' '),
+    speechText: phraseText(parts, 'speechText'),
+    displayText: phraseText(parts, 'displayText'),
     parts,
   };
 }
