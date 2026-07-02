@@ -6,11 +6,11 @@ export type MaterializedNameFormatKind = Exclude<NameFormatKind, 'mixed'>;
 const mixedFormatSequence: MaterializedNameFormatKind[] = ['given-only', 'given-family', 'initials-family', 'title-name', 'epithet-place'];
 
 const formatRules: Record<MaterializedNameFormatKind, NameFormatRule> = {
-  'given-only': { id: 'format:given-only', kind: 'given-only', label: 'Given name only', pattern: '{given}' },
-  'given-family': { id: 'format:given-family', kind: 'given-family', label: 'Given + family name', pattern: '{given} {family}' },
-  'initials-family': { id: 'format:initials-family', kind: 'initials-family', label: 'Initials + family name', pattern: '{initials} {family}' },
-  'title-name': { id: 'format:title-name', kind: 'title-name', label: 'Title + name', pattern: '{title} {given}' },
-  'epithet-place': { id: 'format:epithet-place', kind: 'epithet-place', label: 'Epithet/place-style name', pattern: '{given} {epithet} of {place}' },
+  'given-only': { id: 'format:given-only', kind: 'given-only', label: 'Given name only' },
+  'given-family': { id: 'format:given-family', kind: 'given-family', label: 'Given + family name' },
+  'initials-family': { id: 'format:initials-family', kind: 'initials-family', label: 'Initials + family name' },
+  'title-name': { id: 'format:title-name', kind: 'title-name', label: 'Title + name' },
+  'epithet-place': { id: 'format:epithet-place', kind: 'epithet-place', label: 'Epithet/place-style name' },
 };
 
 export function resolveMaterializedFormatKind(format: NameFormatKind | undefined, index: number): MaterializedNameFormatKind {
