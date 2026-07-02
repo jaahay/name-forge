@@ -136,7 +136,7 @@ function parseIdentityFormatPattern(pattern: string): readonly IdentityFormatTok
   let literal = '';
 
   while (index < pattern.length) {
-    const character = pattern[index];
+    const character = pattern.charAt(index);
 
     if (character === '{') {
       const end = pattern.indexOf('}', index + 1);
