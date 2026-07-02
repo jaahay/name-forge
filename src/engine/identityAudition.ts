@@ -52,6 +52,7 @@ export interface IdentityAuditionPhrase {
 }
 
 const soundBackedRoles: ReadonlySet<NamePartRole> = new Set(['given', 'family', 'place']);
+const placeholderPattern = /^\{(\w+)\}$/;
 
 function isSoundBackedRole(role: NamePartRole): role is IdentityAuditionSoundPart['role'] {
   return soundBackedRoles.has(role);
@@ -70,8 +71,8 @@ function phraseTokens(pattern: string): readonly string[] {
 }
 
 function roleToken(token: string): NamePartRole | undefined {
-  const match = /^\{(?<role>\w+)\}$/.exec(token);
-  return match?.groups?.role as NamePartRole | undefined;
+  const match = placeholderPattern.exec(token);
+  return match?.[1] as NamePartRole | undefined;
 }
 
 function renderTextPart(index: number, part: GeneratedNamePart): IdentityAuditionTextPart {
@@ -130,17 +131,18 @@ export function renderIdentityAuditionPhrase(
 ): IdentityAuditionPhrase {
   const sources = sourceNameById(sourceNames);
   const partsByRole = identityPartByRole(identity);
-  const parts = phraseTokens(identity.format.pattern).flatMap((token): IdentityAuditionPart[] => {
+  const parts: IdentityAuditionPart[] = [];
+
+  for (const token of phraseTokens(identity.format.pattern)) {
     const role = roleToken(token);
-    const index = parts.length;
+    const part = role ? partsByRole.get(role) : undefined;
 
-    if (!role) return [renderLiteralPart(index, token)];
-
-    const part = partsByRole.get(role);
-    if (!part) return [];
-
-    return [renderIdentityPart(index, part, sources)];
-  });
+    if (part) {
+      parts.push(renderIdentityPart(parts.length, part, sources));
+    } else if (!role) {
+      parts.push(renderLiteralPart(parts.length, token));
+    }
+  }
 
   return {
     contract: 'IdentityAuditionPhrase',
