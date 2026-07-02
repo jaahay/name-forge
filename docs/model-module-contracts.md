@@ -63,7 +63,7 @@ If ranking matters, prefer a named model or explicit `rank` field over expecting
 | --- | --- | --- |
 | `NameGenerationCandidate` | `generator.ts` | Pre-selection candidate with sound and ranked spelling list. |
 | `GeneratedName` | `types.ts` / `generator.ts` | Selected app-facing name with sound, selected spelling, scores, variants, and identity. |
-| `NameIdentity` | `identity.ts` / `types.ts` | Display composition from generated/profile-licensed parts. |
+| `NameIdentity` | `identity.ts` / `types.ts` | Display composition plus materialized phrase parts from generated/profile-licensed parts. |
 | `GeneratedEnsemble` | `ensemble.ts` / `types.ts` | Cast-level result set and diagnostics. |
 
 ### Audition/projection models
@@ -73,6 +73,7 @@ If ranking matters, prefer a named model or explicit `rank` field over expecting
 | `AuditionPhonology` | `auditionPhonology.ts` | Renderer-neutral sound presentation structure derived from a segment sequence. |
 | `BrowserAuditionCue` | `browserAuditionProjection.ts` | Browser/display projection for sound guide and voice draft. |
 | `NameAuditionCue` | `audition.ts` | Current UI composition of audition phonology and browser cue. |
+| `IdentityAuditionPhrase` | `identityAudition.ts` | Renderer-neutral phrase-level audition projection from materialized identity phrase parts. |
 
 ## Module contract map
 
@@ -218,6 +219,7 @@ Owns:
 - arranging already licensed parts into display identity forms
 - choosing title/epithet lexemes from the compiled profile lexicon
 - using generated supporting names for family/place components
+- materializing phrase structure as `NameIdentity.phraseParts`
 
 Does not own:
 
@@ -225,9 +227,9 @@ Does not own:
 - phrase-level audio/prosody
 - browser projection
 
-Known limitation:
+Important model boundary:
 
-`NameIdentity.parts` preserves text and source-name references, but it does not yet preserve the source sound sequence per part. Phrase-level audition should address that.
+`NameIdentity.parts` preserves text and source-name references. `NameIdentity.phraseParts` is the only structural phrase representation; it preserves final phrase order with explicit part references and literals.
 
 ### `auditionPhonology.ts`
 
@@ -282,6 +284,7 @@ Collection semantics:
 
 ```text
 SegmentSequence -> NameAuditionCue
+NameIdentity + source generated names -> IdentityAuditionPhrase
 ```
 
 Owns:
@@ -294,8 +297,32 @@ Does not own:
 - renderer logic
 - core phonology
 - browser APIs
+- identity phrase materialization
 
 This file should remain boring.
+
+### `identityAudition.ts`
+
+```text
+NameIdentity + source generated names -> IdentityAuditionPhrase
+```
+
+Owns:
+
+- projecting materialized identity phrase parts into sound, text, or literal audition parts
+- preserving per-part speech/display provenance
+- reusing generated source-name sound for sound-backed identity parts
+
+Does not own:
+
+- identity phrase materialization
+- format-template parsing
+- automatic pronunciation for arbitrary lexical text
+- provider-specific speech payloads
+
+Collection semantics:
+
+- `IdentityAuditionPhrase.parts` is source-order: exact order from `NameIdentity.phraseParts` after dropping unresolved stale references.
 
 ### `ensemble.ts`
 
@@ -375,6 +402,6 @@ Raw arrays are still fine inside modules and for tiny internal helpers. They bec
 
 ## Near-term cleanup candidates
 
-1. Add explicit syllable metadata with `unspecified` values instead of optional pseudo-science fields.
-2. Add phrase-level audition models that preserve per-part provenance.
+1. Use phrase-level audition output in the inspector UI while keeping browser/provider details out of the model.
+2. Make generated stress assignment cadence/weight-driven only when the generator owns a real rule.
 3. Gradually turn `architecture.md` into an index and keep detailed contracts in focused docs like this one.
