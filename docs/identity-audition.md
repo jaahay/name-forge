@@ -12,18 +12,18 @@ NameIdentity + source generated names -> IdentityAuditionPhrase
 `IdentityAuditionPhrase` is the phrase-level projection for composed display identities such as:
 
 ```text
-{given} {family}
-{title} {given}
-{given} {epithet} of {place}
+Aurelion Relmar
+Archivist Aurelion
+Aurelion the Ashen of Relmar
 ```
 
 ## Ownership split
 
 `identity.ts` owns phrase materialization. It creates `NameIdentity.phraseParts` at the same time it creates `displayName` and `parts`.
 
-`identityAudition.ts` owns audition projection. It consumes `NameIdentity.phraseParts`; it does not parse `NameFormatRule.pattern`.
+`identityAudition.ts` owns audition projection. It consumes `NameIdentity.phraseParts`; it does not parse a format template string.
 
-That split keeps template/layout knowledge near identity construction and keeps audition focused on sound/text/literal projection.
+That split keeps layout knowledge near identity construction and keeps audition focused on sound/text/literal projection.
 
 ## Boundary rule
 
@@ -39,7 +39,7 @@ Each phrase part carries both `speechSource` and `displaySource`. They currently
 
 ## Materialized phrase parts
 
-`NameIdentity.phraseParts` is the structural phrase model. It records part references and literals in final phrase order:
+`NameIdentity.phraseParts` is the only structural phrase model. It records part references and literals in final phrase order:
 
 ```ts
 [
@@ -50,7 +50,7 @@ Each phrase part carries both `speechSource` and `displaySource`. They currently
 ]
 ```
 
-Repeated references are represented by repeated phrase entries, not by reparsing format strings:
+Repeated references are represented by repeated phrase entries:
 
 ```ts
 [
@@ -60,7 +60,7 @@ Repeated references are represented by repeated phrase entries, not by reparsing
 ]
 ```
 
-`NameFormatRule.pattern` remains useful as documentation/debug metadata for the format rule, but it is not executable input to phrase audition.
+There is no separate format pattern field. That is deliberate: phrase structure should not have a second template-string representation that can drift from `phraseParts`.
 
 ## Sound-backed parts
 
