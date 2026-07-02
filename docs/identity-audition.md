@@ -15,42 +15,60 @@ NameIdentity + source generated names -> IdentityAuditionPhrase
 {given} {family}
 {title} {given}
 {given} {epithet} of {place}
-{given}, {given} of {place}
 ```
+
+## Ownership split
+
+`identity.ts` owns phrase materialization. It creates `NameIdentity.phraseParts` at the same time it creates `displayName` and `parts`.
+
+`identityAudition.ts` owns audition projection. It consumes `NameIdentity.phraseParts`; it does not parse `NameFormatRule.pattern`.
+
+That split keeps template/layout knowledge near identity construction and keeps audition focused on sound/text/literal projection.
 
 ## Boundary rule
 
 Phrase audition must preserve provenance. It should not turn every identity part into invented sound.
 
-| Part kind | Meaning | Speech/display source |
-| --- | --- | --- |
-| `sound` | The identity part matches a generated source name and can reuse that source name's sound sequence. | `generated-sound` |
-| `text` | The identity part is lexical or display text, such as a title, epithet, or initial. | `identity-text` |
-| `literal` | The format pattern contributes a literal word or punctuation such as `of` or `,`. | `format-literal` |
+| `NameIdentity.phraseParts` entry | `IdentityAuditionPart` kind | Meaning | Speech/display source |
+| --- | --- | --- | --- |
+| `{ kind: 'part', partId, role }` for a sound-backed generated name | `sound` | The identity part matches a generated source name and can reuse that source name's sound sequence. | `generated-sound` |
+| `{ kind: 'part', partId, role }` for lexical/display text | `text` | The identity part is text such as a title, epithet, or initial. | `identity-text` |
+| `{ kind: 'literal', value }` | `literal` | The identity format contributes a literal word or punctuation such as `of` or `,`. | `format-literal` |
 
-Each phrase part carries both `speechSource` and `displaySource`. They currently match, but they are explicit because speech and display will likely diverge once provider-specific speech payloads or richer UI rendering are introduced.
+Each phrase part carries both `speechSource` and `displaySource`. They currently match, but they are explicit because speech and display may diverge once provider-specific speech payloads or richer UI rendering are introduced.
 
-## Controlled format parsing
+## Materialized phrase parts
 
-Identity phrase audition parses the controlled `NameFormatRule.pattern` string without regular expressions. It scans the string for known placeholders such as `{given}` and `{place}`, then emits literal tokens for controlled words and punctuation.
+`NameIdentity.phraseParts` is the structural phrase model. It records part references and literals in final phrase order:
 
-This supports simple punctuation and repeated placeholders:
-
-```text
-{given}, {given} of {place}
+```ts
+[
+  { kind: 'part', partId: 'given-name:given', role: 'given' },
+  { kind: 'part', partId: 'given-name:epithet', role: 'epithet' },
+  { kind: 'literal', value: 'of' },
+  { kind: 'part', partId: 'place-name:place', role: 'place' },
+]
 ```
 
-Whitespace is formatting glue, not an audition part. Punctuation such as `,` is emitted as a `literal` part and attaches to the previous phrase text when the final speech/display string is assembled.
+Repeated references are represented by repeated phrase entries, not by reparsing format strings:
 
-Repeated placeholders are deterministic. When multiple identity parts with the same role exist, repeated placeholders consume matching parts by occurrence. If there is only one matching part for a repeated placeholder, the projection reuses that part.
+```ts
+[
+  { kind: 'part', partId: 'given-name:given', role: 'given' },
+  { kind: 'literal', value: ',' },
+  { kind: 'part', partId: 'given-name:given', role: 'given' },
+]
+```
+
+`NameFormatRule.pattern` remains useful as documentation/debug metadata for the format rule, but it is not executable input to phrase audition.
 
 ## Sound-backed parts
 
-A part may become `sound` only when all of these are true:
+A phrase part may become `sound` only when all of these are true:
 
-1. Its role is sound-backed: `given`, `family`, or `place`.
+1. The referenced identity part role is sound-backed: `given`, `family`, or `place`.
 2. A matching source generated name is supplied by `sourceNameId`.
-3. The part value exactly equals the source generated name's display name.
+3. The identity part value exactly equals the source generated name's display name.
 
 When those conditions hold, phrase audition reuses the existing generated-name audition behavior from the source name's `sound.sequence`. This keeps the generated sound model as the source of truth.
 
