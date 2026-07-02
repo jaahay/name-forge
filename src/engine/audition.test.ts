@@ -111,6 +111,12 @@ function fixtureIdentity(): NameIdentity {
       { id: 'given-name:epithet', role: 'epithet', value: 'the Ashen', sourceNameId: 'given-name', sourceName: 'Aurelion' },
       { id: 'place-name:place', role: 'place', value: 'Relmar', sourceNameId: 'place-name', sourceName: 'Relmar' },
     ],
+    phraseParts: [
+      { kind: 'part', partId: 'given-name:given', role: 'given' },
+      { kind: 'part', partId: 'given-name:epithet', role: 'epithet' },
+      { kind: 'literal', value: 'of' },
+      { kind: 'part', partId: 'place-name:place', role: 'place' },
+    ],
   };
 }
 
@@ -126,6 +132,13 @@ function fixtureRepeatedIdentity(): NameIdentity {
     parts: [
       { id: 'given-name:given', role: 'given', value: 'Aurelion', sourceNameId: 'given-name', sourceName: 'Aurelion' },
       { id: 'place-name:place', role: 'place', value: 'Relmar', sourceNameId: 'place-name', sourceName: 'Relmar' },
+    ],
+    phraseParts: [
+      { kind: 'part', partId: 'given-name:given', role: 'given' },
+      { kind: 'literal', value: ',' },
+      { kind: 'part', partId: 'given-name:given', role: 'given' },
+      { kind: 'literal', value: 'of' },
+      { kind: 'part', partId: 'place-name:place', role: 'place' },
     ],
   };
 }
@@ -205,7 +218,7 @@ describe('audition cue rendering', () => {
     expect(cue.displayText).toBe('owr · EHL · ee-oh-n');
   });
 
-  it('renders phrase-level audition for composed identity parts without inventing lexical sound', () => {
+  it('renders phrase-level audition from materialized identity phrase parts without inventing lexical sound', () => {
     const phrase = renderIdentityAuditionPhrase(fixtureIdentity(), [
       { id: 'given-name', name: 'Aurelion', sound: fixtureSound('sound-candidate:given', 'Aurelion', fixtureSequence()) },
       { id: 'place-name', name: 'Relmar', sound: fixtureSound('sound-candidate:place', 'Relmar', fixturePlaceSequence()) },
@@ -239,7 +252,7 @@ describe('audition cue rendering', () => {
     });
   });
 
-  it('parses controlled identity patterns with punctuation and repeated placeholders without regular expressions', () => {
+  it('uses materialized punctuation and repeated phrase references without parsing format patterns', () => {
     const phrase = renderIdentityAuditionPhrase(fixtureRepeatedIdentity(), [
       { id: 'given-name', name: 'Aurelion', sound: fixtureSound('sound-candidate:given', 'Aurelion', fixtureSequence()) },
       { id: 'place-name', name: 'Relmar', sound: fixtureSound('sound-candidate:place', 'Relmar', fixturePlaceSequence()) },
