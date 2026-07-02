@@ -25,3 +25,12 @@ export { createAuditionPhonology } from './auditionPhonology';
 export type { AuditionPhonology, AuditionSyllable, AuditionStress } from './auditionPhonology';
 export { renderBrowserAuditionCue } from './browserAuditionProjection';
 export type { BrowserAuditionCue } from './browserAuditionProjection';
+export { renderIdentityAuditionPhrase } from './identityAudition';
+export type {
+  IdentityAuditionLiteralPart,
+  IdentityAuditionPart,
+  IdentityAuditionPhrase,
+  IdentityAuditionSoundPart,
+  IdentityAuditionSourceName,
+  IdentityAuditionTextPart,
+} from './identityAudition';
