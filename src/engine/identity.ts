@@ -1,4 +1,4 @@
-import type { GeneratedName, GeneratedNamePart, NameFormatKind, NameFormatRule, NameIdentity } from './types';
+import type { GeneratedName, GeneratedNamePart, NameFormatKind, NameFormatRule, NameIdentity, NameIdentityPhrasePart } from './types';
 import type { SoundProfileLexeme } from './soundProfile';
 
 export type MaterializedNameFormatKind = Exclude<NameFormatKind, 'mixed'>;
@@ -24,6 +24,23 @@ export function requiresSupportingName(format: MaterializedNameFormatKind): bool
 
 function createPart(role: GeneratedNamePart['role'], value: string, sourceName: GeneratedName): GeneratedNamePart {
   return { id: `${sourceName.id}:${role}`, role, value, sourceNameId: sourceName.id, sourceName: sourceName.name };
+}
+
+function phrasePart(part: GeneratedNamePart): NameIdentityPhrasePart {
+  return { kind: 'part', partId: part.id, role: part.role };
+}
+
+function literalPart(value: string): NameIdentityPhrasePart {
+  return { kind: 'literal', value };
+}
+
+function createIdentity(displayName: string, format: NameFormatRule, parts: GeneratedNamePart[], phraseParts: NameIdentityPhrasePart[]): NameIdentity {
+  return {
+    displayName,
+    format,
+    parts,
+    phraseParts,
+  };
 }
 
 function fingerprint(value: string): number {
@@ -55,15 +72,30 @@ export function createNameIdentity(given: GeneratedName, supportingName: Generat
   const titlePart = createPart('title', titleLexeme.text, given);
   const epithetPart = createPart('epithet', epithetLexeme.text, given);
 
-  if (format === 'given-only') return { displayName: givenPart.value, format: rule, parts: [givenPart] };
-  if (format === 'title-name') return { displayName: `${titlePart.value} ${givenPart.value}`, format: rule, parts: [titlePart, givenPart] };
+  if (format === 'given-only') {
+    return createIdentity(givenPart.value, rule, [givenPart], [phrasePart(givenPart)]);
+  }
+
+  if (format === 'title-name') {
+    return createIdentity(`${titlePart.value} ${givenPart.value}`, rule, [titlePart, givenPart], [phrasePart(titlePart), phrasePart(givenPart)]);
+  }
+
   if (format === 'epithet-place') {
     const placeSource = supportingName ?? given;
     const placePart = createPart('place', placeSource.name, placeSource);
-    return { displayName: `${givenPart.value} ${epithetPart.value} of ${placePart.value}`, format: rule, parts: [givenPart, epithetPart, placePart] };
+    return createIdentity(
+      `${givenPart.value} ${epithetPart.value} of ${placePart.value}`,
+      rule,
+      [givenPart, epithetPart, placePart],
+      [phrasePart(givenPart), phrasePart(epithetPart), literalPart('of'), phrasePart(placePart)],
+    );
   }
 
   const safeFamilyPart = familyPart ?? createPart('family', given.name, given);
-  if (format === 'initials-family') return { displayName: `${initialPart.value} ${safeFamilyPart.value}`, format: rule, parts: [initialPart, safeFamilyPart] };
-  return { displayName: `${givenPart.value} ${safeFamilyPart.value}`, format: rule, parts: [givenPart, safeFamilyPart] };
+
+  if (format === 'initials-family') {
+    return createIdentity(`${initialPart.value} ${safeFamilyPart.value}`, rule, [initialPart, safeFamilyPart], [phrasePart(initialPart), phrasePart(safeFamilyPart)]);
+  }
+
+  return createIdentity(`${givenPart.value} ${safeFamilyPart.value}`, rule, [givenPart, safeFamilyPart], [phrasePart(givenPart), phrasePart(safeFamilyPart)]);
 }
