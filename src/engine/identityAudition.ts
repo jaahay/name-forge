@@ -1,4 +1,7 @@
-import { renderAuditionCue, type NameAuditionCue } from './audition';
+import type { NameAuditionCue } from './audition';
+import { createAuditionPhonology } from './auditionPhonology';
+import { renderBrowserAuditionCue } from './browserAuditionProjection';
+import type { SegmentSequence } from './soundGenerator';
 import type { GeneratedName, GeneratedNamePart, NameIdentity, NamePartRole } from './types';
 
 export type IdentityAuditionPhraseContract = 'IdentityAuditionPhrase';
@@ -99,6 +102,17 @@ function renderLiteralPart(index: number, value: string): IdentityAuditionLitera
   };
 }
 
+function renderNameAuditionCue(sequence: SegmentSequence): NameAuditionCue {
+  const phonology = createAuditionPhonology(sequence);
+  const browserCue = renderBrowserAuditionCue(phonology);
+
+  return {
+    ...browserCue,
+    contract: 'NameAuditionCue',
+    phonology,
+  };
+}
+
 function renderIdentityPart(
   index: number,
   part: GeneratedNamePart,
@@ -107,7 +121,7 @@ function renderIdentityPart(
   const sourceName = sources.get(part.sourceNameId);
 
   if (sourceName && isSoundBackedRole(part.role) && part.value === sourceName.name) {
-    const cue = renderAuditionCue(sourceName.sound.sequence);
+    const cue = renderNameAuditionCue(sourceName.sound.sequence);
 
     return {
       index,
