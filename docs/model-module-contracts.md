@@ -229,7 +229,7 @@ Does not own:
 
 Important model boundary:
 
-`NameIdentity.parts` preserves text and source-name references. `NameIdentity.phraseParts` preserves final phrase order with explicit part references and literals. Audition consumes this materialized phrase structure instead of reparsing format patterns.
+`NameIdentity.parts` preserves text and source-name references. `NameIdentity.phraseParts` is the only structural phrase representation; it preserves final phrase order with explicit part references and literals.
 
 ### `auditionPhonology.ts`
 
@@ -316,7 +316,7 @@ Owns:
 Does not own:
 
 - identity phrase materialization
-- parsing `NameFormatRule.pattern`
+- format-template parsing
 - automatic pronunciation for arbitrary lexical text
 - provider-specific speech payloads
 
