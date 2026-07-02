@@ -114,6 +114,22 @@ function fixtureIdentity(): NameIdentity {
   };
 }
 
+function fixtureRepeatedIdentity(): NameIdentity {
+  return {
+    displayName: 'Aurelion, Aurelion of Relmar',
+    format: {
+      id: 'format:duplicate-given-place',
+      kind: 'epithet-place',
+      label: 'Duplicate given + place test',
+      pattern: '{given}, {given} of {place}',
+    },
+    parts: [
+      { id: 'given-name:given', role: 'given', value: 'Aurelion', sourceNameId: 'given-name', sourceName: 'Aurelion' },
+      { id: 'place-name:place', role: 'place', value: 'Relmar', sourceNameId: 'place-name', sourceName: 'Relmar' },
+    ],
+  };
+}
+
 describe('audition cue rendering', () => {
   it('builds audition phonology from a segment sequence before renderer projection', () => {
     const phonology = createAuditionPhonology(fixtureSequence());
@@ -205,11 +221,11 @@ describe('audition cue rendering', () => {
       speechText: 'owr ehl eeohn the Ashen of rehl mahr',
       displayText: 'owr · EHL · ee-oh-n the Ashen of REHL · mahr',
     });
-    expect(phrase.parts.map((part) => [part.kind, part.role, part.value])).toEqual([
-      ['sound', 'given', 'Aurelion'],
-      ['text', 'epithet', 'the Ashen'],
-      ['literal', 'literal', 'of'],
-      ['sound', 'place', 'Relmar'],
+    expect(phrase.parts.map((part) => [part.kind, part.role, part.value, part.speechSource, part.displaySource])).toEqual([
+      ['sound', 'given', 'Aurelion', 'generated-sound', 'generated-sound'],
+      ['text', 'epithet', 'the Ashen', 'identity-text', 'identity-text'],
+      ['literal', 'literal', 'of', 'format-literal', 'format-literal'],
+      ['sound', 'place', 'Relmar', 'generated-sound', 'generated-sound'],
     ]);
     expect(phrase.parts[0]).toMatchObject({
       kind: 'sound',
@@ -221,6 +237,23 @@ describe('audition cue rendering', () => {
       sourceNameId: 'given-name',
       sourceName: 'Aurelion',
     });
+  });
+
+  it('parses controlled identity patterns with punctuation and repeated placeholders without regular expressions', () => {
+    const phrase = renderIdentityAuditionPhrase(fixtureRepeatedIdentity(), [
+      { id: 'given-name', name: 'Aurelion', sound: fixtureSound('sound-candidate:given', 'Aurelion', fixtureSequence()) },
+      { id: 'place-name', name: 'Relmar', sound: fixtureSound('sound-candidate:place', 'Relmar', fixturePlaceSequence()) },
+    ]);
+
+    expect(phrase.speechText).toBe('owr ehl eeohn, owr ehl eeohn of rehl mahr');
+    expect(phrase.displayText).toBe('owr · EHL · ee-oh-n, owr · EHL · ee-oh-n of REHL · mahr');
+    expect(phrase.parts.map((part) => [part.kind, part.role, part.value])).toEqual([
+      ['sound', 'given', 'Aurelion'],
+      ['literal', 'literal', ','],
+      ['sound', 'given', 'Aurelion'],
+      ['literal', 'literal', 'of'],
+      ['sound', 'place', 'Relmar'],
+    ]);
   });
 
   it('does not require displayed spelling or GeneratedName data', () => {
