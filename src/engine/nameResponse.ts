@@ -20,6 +20,8 @@ function resolveStylePackId(registry: SourceRegistry, requestedStylePackId: stri
 }
 
 function bridgeCriteriaToGenerationSettings(criteria: NameCriteria, seed: string, stylePackId: string): GenerationSettings {
+  // Slice 4 establishes the criteria-to-generation seam without making criteria behavior-affecting yet.
+  // Slice 5/6 add honest diagnostics and functional criteria-to-current-control mapping.
   void criteria;
 
   return {
