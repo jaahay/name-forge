@@ -4,7 +4,8 @@ import type { NameCriteria } from './nameCriteria';
 export type NameRequestVersion = 1;
 export type RandomizationAlgorithm = 'name-forge-v1';
 export type NameDiagnosticSeverity = 'info' | 'warning';
-export type NameDiagnosticKind = 'unsupported-criteria' | 'partially-implemented-criteria';
+export type NameDiagnosticCode = 'criteria_not_implemented' | 'criteria_partially_implemented' | 'fallback_used';
+export type NameDiagnosticKind = 'unsupported-criteria' | 'partially-implemented-criteria' | 'fallback-used';
 
 export const NAME_REQUEST_RANDOMIZATION_ALGORITHM: RandomizationAlgorithm = 'name-forge-v1';
 
@@ -53,6 +54,7 @@ export interface NameResponse {
 
 export interface NameDiagnostic {
   readonly id: string;
+  readonly code: NameDiagnosticCode;
   readonly kind: NameDiagnosticKind;
   readonly severity: NameDiagnosticSeverity;
   readonly message: string;
