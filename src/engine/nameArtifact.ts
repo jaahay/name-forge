@@ -5,7 +5,6 @@ import type {
   CastRoleAssignment,
   GeneratedName,
   NameIdentity,
-  NameScores,
   NameSilhouette,
   NameVariant,
   ReadabilityDiagnostic,
@@ -20,7 +19,6 @@ export interface NameArtifact {
   readonly spelling?: RankedSpellingCandidate;
   readonly spellingCandidates?: readonly RankedSpellingCandidate[];
   readonly silhouette?: NameSilhouette;
-  readonly scores?: NameScores;
   readonly variants?: readonly NameVariant[];
   readonly readabilityDiagnostics?: readonly ReadabilityDiagnostic[];
   readonly identity?: NameIdentity;
@@ -37,7 +35,6 @@ export function toNameArtifact(generatedName: GeneratedName): NameArtifact {
     spelling: generatedName.spelling,
     spellingCandidates: generatedName.spellingCandidates,
     silhouette: generatedName.silhouette,
-    scores: generatedName.scores,
     variants: generatedName.variants,
     readabilityDiagnostics: generatedName.readabilityDiagnostics,
     ...(generatedName.identity === undefined ? {} : { identity: generatedName.identity }),
