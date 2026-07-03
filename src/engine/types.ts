@@ -9,6 +9,8 @@ export type { NameArtifact } from './nameArtifact';
 export type { NameCriteria, NameCriteriaClause, NameCriteriaFamily, NameCriteriaPolarity } from './nameCriteria';
 export { NAME_REQUEST_RANDOMIZATION_ALGORITHM, resolveNameRequest } from './nameRequest';
 export type { NameDiagnostic, NameDiagnosticKind, NameDiagnosticSeverity, NameRequest, NameRequestInput, NameRequestResolution, NameRequestVersion, NameResponse, RandomizationAlgorithm, RandomizationRequest, RandomizationResult, ResolvedNameRequest } from './nameRequest';
+export { generateNameResponse } from './nameResponse';
+export type { NameResponseAdapterOptions } from './nameResponse';
 export type { AssetKind, CachePolicy, SourceChannel, SourceDescriptor, SourceValidationIssue, SourceValidationSeverity, StylePackValidationResult } from './sourceTypes';
 export type { StyleDescriptor, StylePackSourceDescriptor } from './stylePackTypes';
 
