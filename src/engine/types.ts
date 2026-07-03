@@ -6,7 +6,8 @@ import type { StyleDescriptor, StylePackSourceDescriptor } from './stylePackType
 
 export type { NameArtifact } from './nameArtifact';
 export type { NameCriteria, NameCriteriaClause, NameCriteriaFamily, NameCriteriaPolarity } from './nameCriteria';
-export type { NameDiagnostic, NameDiagnosticKind, NameDiagnosticSeverity, NameRequest, NameRequestVersion, NameResponse, RandomizationAlgorithm, RandomizationRequest, RandomizationResult, ResolvedNameRequest } from './nameRequest';
+export { NAME_REQUEST_RANDOMIZATION_ALGORITHM, resolveNameRequest } from './nameRequest';
+export type { NameDiagnostic, NameDiagnosticKind, NameDiagnosticSeverity, NameRequest, NameRequestResolution, NameRequestVersion, NameResponse, RandomizationAlgorithm, RandomizationRequest, RandomizationResult, ResolvedNameRequest } from './nameRequest';
 export type { AssetKind, CachePolicy, SourceChannel, SourceDescriptor, SourceValidationIssue, SourceValidationSeverity, StylePackValidationResult } from './sourceTypes';
 export type { StyleDescriptor, StylePackSourceDescriptor } from './stylePackTypes';
 
