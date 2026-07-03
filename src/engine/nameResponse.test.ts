@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { NameArtifact } from './nameArtifact';
 import type { NameCriteria } from './nameCriteria';
-import type { NameRequest } from './nameRequest';
+import type { NameDiagnostic, NameRequest } from './nameRequest';
 import { generateNameResponse } from './nameResponse';
 
 function requireValue<T>(value: T | undefined, label: string): T {
@@ -16,6 +16,10 @@ function firstArtifact(response: ReturnType<typeof generateNameResponse>): NameA
   return requireValue(response.names[0], 'first response artifact');
 }
 
+function responseDiagnostics(response: ReturnType<typeof generateNameResponse>): readonly NameDiagnostic[] {
+  return response.diagnostics ?? [];
+}
+
 const emptyCriteria: NameCriteria = { clauses: [] };
 const soundCriteria: NameCriteria = {
   clauses: [
@@ -26,6 +30,34 @@ const soundCriteria: NameCriteria = {
       target: 'soft',
       strength: 0.8,
     },
+  ],
+};
+const supportedSingularCriteria: NameCriteria = {
+  clauses: [
+    {
+      id: 'require-single-name',
+      family: 'practical',
+      polarity: 'require',
+      target: 'single-name',
+      strength: 1,
+    },
+  ],
+};
+const unsupportedCriteria: NameCriteria = {
+  clauses: [
+    {
+      id: 'prefer-moonlit-meaning',
+      family: 'semantic',
+      polarity: 'prefer',
+      target: 'moonlit',
+      strength: 0.7,
+    },
+  ],
+};
+const mixedDiagnosticCriteria: NameCriteria = {
+  clauses: [
+    ...soundCriteria.clauses,
+    ...unsupportedCriteria.clauses,
   ],
 };
 
@@ -97,5 +129,75 @@ describe('generateNameResponse', () => {
     expect(artifact.spelling).toBeDefined();
     expect(spellingCandidates.length).toBeGreaterThan(0);
     expect(artifact.role).toBeUndefined();
+  });
+
+  it('emits diagnostics for unsupported criteria', () => {
+    const response = generateNameResponse({
+      version: 1,
+      criteria: unsupportedCriteria,
+      random: { seed: 'unsupported-diagnostic-seed' },
+    });
+    const diagnostics = responseDiagnostics(response);
+
+    expect(diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
+      'criteria_not_implemented',
+      'fallback_used',
+    ]);
+    expect(diagnostics[0]).toMatchObject({
+      id: 'criteria_not_implemented:prefer-moonlit-meaning',
+      kind: 'unsupported-criteria',
+      severity: 'warning',
+      clauseIds: ['prefer-moonlit-meaning'],
+    });
+  });
+
+  it('does not emit unsupported diagnostics for supported singular criteria', () => {
+    const response = generateNameResponse({
+      version: 1,
+      criteria: supportedSingularCriteria,
+      random: { seed: 'supported-singular-seed' },
+    });
+    const diagnostics = responseDiagnostics(response);
+
+    expect(diagnostics).toHaveLength(0);
+  });
+
+  it('emits partial diagnostics for diagnostic-only current-generator criteria', () => {
+    const response = generateNameResponse({
+      version: 1,
+      criteria: soundCriteria,
+      random: { seed: 'partial-diagnostic-seed' },
+    });
+    const diagnostics = responseDiagnostics(response);
+
+    expect(diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
+      'criteria_partially_implemented',
+      'fallback_used',
+    ]);
+    expect(diagnostics.some((diagnostic) => diagnostic.code === 'criteria_not_implemented')).toBe(false);
+  });
+
+  it('emits stable diagnostics for the same request', () => {
+    const request: NameRequest = {
+      version: 1,
+      criteria: mixedDiagnosticCriteria,
+      random: { seed: 'stable-diagnostics-seed' },
+    };
+
+    const firstResponse = generateNameResponse(request);
+    const secondResponse = generateNameResponse(request);
+
+    expect(responseDiagnostics(firstResponse)).toEqual(responseDiagnostics(secondResponse));
+  });
+
+  it('still returns one artifact when unsupported criteria are present', () => {
+    const response = generateNameResponse({
+      version: 1,
+      criteria: unsupportedCriteria,
+      random: { seed: 'unsupported-best-effort-seed' },
+    });
+
+    expect(response.names).toHaveLength(1);
+    expect(firstArtifact(response).displayText.length).toBeGreaterThan(0);
   });
 });
