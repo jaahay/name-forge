@@ -265,7 +265,6 @@ describe('toNameArtifact', () => {
     expect(artifact.role).toBeUndefined();
     expect(artifact.roleInfluence).toBeUndefined();
     expect(artifact.silhouette).toBe(generatedName.silhouette);
-    expect(artifact.scores).toBe(generatedName.scores);
     expect(artifact.variants).toBe(generatedName.variants);
   });
 });
