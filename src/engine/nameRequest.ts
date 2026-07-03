@@ -24,6 +24,13 @@ export interface NameRequest {
   readonly random?: RandomizationRequest;
 }
 
+export interface NameRequestInput {
+  readonly version: NameRequestVersion;
+  readonly criteria?: NameCriteria;
+  readonly mode?: string;
+  readonly random?: RandomizationRequest;
+}
+
 export interface ResolvedNameRequest {
   readonly version: NameRequestVersion;
   readonly criteria: NameCriteria;
@@ -81,7 +88,7 @@ function resolveRandomization(random?: RandomizationRequest): RandomizationResul
   };
 }
 
-export function resolveNameRequest(request: NameRequest): NameRequestResolution {
+export function resolveNameRequest(request: NameRequestInput): NameRequestResolution {
   const random = resolveRandomization(request.random);
   const resolvedRequest: ResolvedNameRequest = {
     version: 1,
