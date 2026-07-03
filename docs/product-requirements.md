@@ -1,6 +1,8 @@
 # Name Forge Product Requirements
 
-> Converted from the uploaded `Name Forge Product Requirements.docx`. This Markdown copy is intended as the canonical repo-readable product specification.
+> Historical source document. This file was converted from the uploaded `Name Forge Product Requirements.docx` and records the original product specification. It is no longer the active planning contract.
+>
+> For current planning, start with [`name-request-planning.md`](name-request-planning.md), [`current-product-scope.md`](current-product-scope.md), and the decision records in [`decisions/`](decisions/). When this historical document conflicts with those newer docs, prefer the newer docs.
 
 # 1. Product Summary
 
@@ -758,9 +760,3 @@ These should remain architecturally possible but not implemented in the first pa
 The core rule of Name Forge is:
 
 > Hard-code mechanisms, not linguistic knowledge.
-
-Hard-code schemas, interfaces, generation mechanisms, scoring mechanisms, normalization, fallback behavior, and provenance structure.
-
-Soft-code languages, phoneme inventories, name corpora, style packs, pronunciation dictionaries, spelling conventions, variant rules, cultural naming behavior, and TTS/audio providers.
-
-This keeps the system extensible, testable, legally safer, and suitable for fictional media workflows.
