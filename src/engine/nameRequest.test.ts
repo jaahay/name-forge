@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { NameArtifact } from './nameArtifact';
 import type { NameCriteria } from './nameCriteria';
 import { resolveNameRequest } from './nameRequest';
-import type { NameRequest, NameRequestResolution, NameResponse } from './nameRequest';
+import type { NameRequest, NameRequestInput, NameRequestResolution, NameResponse } from './nameRequest';
 
 function requireValue<T>(value: T | undefined, label: string): T {
   if (value === undefined) {
@@ -162,10 +162,11 @@ describe('resolveNameRequest', () => {
       criteria: { clauses: [] },
       random: { seed: 'empty-criteria-seed' },
     });
-    const missingCriteriaResolution = resolveNameRequest({
+    const missingCriteriaInput: NameRequestInput = {
       version: 1,
       random: { seed: 'missing-criteria-seed' },
-    } as NameRequest);
+    };
+    const missingCriteriaResolution = resolveNameRequest(missingCriteriaInput);
 
     expect(emptyCriteriaResolution.request.criteria).toEqual({ clauses: [] });
     expect(missingCriteriaResolution.request.criteria).toEqual({ clauses: [] });
