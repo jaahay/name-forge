@@ -74,13 +74,14 @@ describe('NameRequest v1 contracts', () => {
 
     expect(response.names).toHaveLength(1);
 
-    const [firstArtifact] = response.names;
+    const firstArtifact = requireValue(response.names[0], 'first name artifact');
     expect(firstArtifact).toBe(artifact);
     expect(firstArtifact.displayText).toBe('Aurel');
     expect(response.random.seed).toBe('resolved-seed');
     expect(response.request.random.seed).toBe('resolved-seed');
 
-    const diagnostic = requireValue(response.diagnostics?.[0], 'first diagnostic');
+    const diagnostics = requireValue(response.diagnostics, 'diagnostics');
+    const diagnostic = requireValue(diagnostics[0], 'first diagnostic');
     expect(diagnostic.kind).toBe('unsupported-criteria');
   });
 });
