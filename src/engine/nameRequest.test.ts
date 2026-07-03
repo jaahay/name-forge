@@ -3,6 +3,14 @@ import type { NameArtifact } from './nameArtifact';
 import type { NameCriteria } from './nameCriteria';
 import type { NameRequest, NameResponse } from './nameRequest';
 
+function requireValue<T>(value: T | undefined, label: string): T {
+  if (value === undefined) {
+    throw new Error(`Expected ${label}.`);
+  }
+
+  return value;
+}
+
 describe('NameRequest v1 contracts', () => {
   it('represents a criteria-driven request with optional mode metadata', () => {
     const criteria: NameCriteria = {
@@ -25,8 +33,10 @@ describe('NameRequest v1 contracts', () => {
     };
 
     expect(request.criteria.clauses).toHaveLength(1);
-    expect(request.criteria.clauses[0]?.family).toBe('sound');
-    expect(request.criteria.clauses[0]?.polarity).toBe('prefer');
+
+    const clause = requireValue(request.criteria.clauses[0], 'first criteria clause');
+    expect(clause.family).toBe('sound');
+    expect(clause.polarity).toBe('prefer');
     expect(request.mode).toBe('fiction-cast');
   });
 
@@ -63,9 +73,14 @@ describe('NameRequest v1 contracts', () => {
     };
 
     expect(response.names).toHaveLength(1);
-    expect(response.names[0]?.displayText).toBe('Aurel');
+
+    const [firstArtifact] = response.names;
+    expect(firstArtifact).toBe(artifact);
+    expect(firstArtifact.displayText).toBe('Aurel');
     expect(response.random.seed).toBe('resolved-seed');
     expect(response.request.random.seed).toBe('resolved-seed');
-    expect(response.diagnostics?.[0]?.kind).toBe('unsupported-criteria');
+
+    const diagnostic = requireValue(response.diagnostics?.[0], 'first diagnostic');
+    expect(diagnostic.kind).toBe('unsupported-criteria');
   });
 });
