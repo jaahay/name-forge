@@ -2,6 +2,14 @@ import { describe, expect, it } from 'vitest';
 import { toNameArtifact } from './nameArtifact';
 import type { GeneratedName } from './types';
 
+function requireValue<T>(value: T | undefined, label: string): T {
+  if (value === undefined) {
+    throw new Error(`Expected ${label}.`);
+  }
+
+  return value;
+}
+
 const generatedName: GeneratedName = {
   id: 'generated-aurel',
   name: 'Aurel',
@@ -220,13 +228,23 @@ describe('toNameArtifact', () => {
     expect(artifact.identity).toBe(generatedName.identity);
   });
 
+  it('falls back to the generated name when no identity display composition is present', () => {
+    const { identity: _identity, ...nameWithoutIdentity } = generatedName;
+    const artifact = toNameArtifact(nameWithoutIdentity);
+
+    expect(artifact.displayText).toBe('Aurel');
+    expect(artifact.identity).toBeUndefined();
+  });
+
   it('preserves sound and selected spelling metadata', () => {
     const artifact = toNameArtifact(generatedName);
 
     expect(artifact.soundProfile).toBe(generatedName.soundProfile);
     expect(artifact.sound).toBe(generatedName.sound);
     expect(artifact.spelling).toBe(generatedName.spelling);
-    expect(artifact.spelling?.text).toBe('Aurel');
+
+    const spelling = requireValue(artifact.spelling, 'selected spelling');
+    expect(spelling.text).toBe('Aurel');
   });
 
   it('preserves ranked spelling alternatives and current selected-name diagnostics', () => {
@@ -235,7 +253,10 @@ describe('toNameArtifact', () => {
     expect(artifact.spellingCandidates).toBe(generatedName.spellingCandidates);
     expect(artifact.spellingCandidates).toHaveLength(2);
     expect(artifact.readabilityDiagnostics).toBe(generatedName.readabilityDiagnostics);
-    expect(artifact.readabilityDiagnostics?.[0]?.severity).toBe('notice');
+
+    const diagnostics = requireValue(artifact.readabilityDiagnostics, 'readability diagnostics');
+    const diagnostic = requireValue(diagnostics[0], 'first readability diagnostic');
+    expect(diagnostic.severity).toBe('notice');
   });
 
   it('does not require cast role metadata on every artifact', () => {
