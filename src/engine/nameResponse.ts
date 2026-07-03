@@ -20,6 +20,8 @@ function resolveStylePackId(registry: SourceRegistry, requestedStylePackId: stri
 }
 
 function bridgeCriteriaToGenerationSettings(criteria: NameCriteria, seed: string, stylePackId: string): GenerationSettings {
+  void criteria;
+
   return {
     castSize: 1,
     novelty: 0.48,
