@@ -4,7 +4,7 @@ import type { NameCriteria } from './nameCriteria';
 export type NameRequestVersion = 1;
 export type RandomizationAlgorithm = 'name-forge-v1';
 export type NameDiagnosticSeverity = 'info' | 'warning';
-export type NameDiagnosticKind = 'unsupported-criteria' | 'partially-implemented-criteria' | 'fallback';
+export type NameDiagnosticKind = 'unsupported-criteria' | 'partially-implemented-criteria';
 
 export interface RandomizationRequest {
   readonly seed?: string;
