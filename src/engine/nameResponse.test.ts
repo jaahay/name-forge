@@ -87,6 +87,7 @@ describe('generateNameResponse', () => {
       random: { seed: 'single-artifact-seed' },
     });
     const artifact = firstArtifact(response);
+    const spellingCandidates = requireValue(artifact.spellingCandidates, 'spelling candidates');
 
     expect(response.version).toBe(1);
     expect(response.names).toHaveLength(1);
@@ -94,7 +95,7 @@ describe('generateNameResponse', () => {
     expect(artifact.displayText.length).toBeGreaterThan(0);
     expect(artifact.sound).toBeDefined();
     expect(artifact.spelling).toBeDefined();
-    expect(artifact.spellingCandidates?.length).toBeGreaterThan(0);
+    expect(spellingCandidates.length).toBeGreaterThan(0);
     expect(artifact.role).toBeUndefined();
   });
 });
