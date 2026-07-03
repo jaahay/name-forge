@@ -40,7 +40,7 @@ describe('NameRequest v1 contracts', () => {
     expect(request.mode).toBe('fiction-cast');
   });
 
-  it('represents a resolved response with name artifacts and an emitted seed', () => {
+  it('represents a resolved response with name artifacts, an emitted seed, and criteria diagnostics', () => {
     const artifact: NameArtifact = {
       id: 'name-artifact-1',
       displayText: 'Aurel',
@@ -69,6 +69,13 @@ describe('NameRequest v1 contracts', () => {
           message: 'Criteria diagnostics can identify unsupported clauses when behavior lands later.',
           clauseIds: ['future-clause'],
         },
+        {
+          id: 'partial-clause',
+          kind: 'partially-implemented-criteria',
+          severity: 'info',
+          message: 'Criteria diagnostics can identify partially implemented clauses when behavior lands later.',
+          clauseIds: ['partial-clause'],
+        },
       ],
     };
 
@@ -81,7 +88,12 @@ describe('NameRequest v1 contracts', () => {
     expect(response.request.random.seed).toBe('resolved-seed');
 
     const diagnostics = requireValue(response.diagnostics, 'diagnostics');
-    const diagnostic = requireValue(diagnostics[0], 'first diagnostic');
-    expect(diagnostic.kind).toBe('unsupported-criteria');
+    expect(diagnostics).toHaveLength(2);
+
+    const unsupportedDiagnostic = requireValue(diagnostics[0], 'unsupported diagnostic');
+    expect(unsupportedDiagnostic.kind).toBe('unsupported-criteria');
+
+    const partialDiagnostic = requireValue(diagnostics[1], 'partially implemented diagnostic');
+    expect(partialDiagnostic.kind).toBe('partially-implemented-criteria');
   });
 });
