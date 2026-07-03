@@ -4,6 +4,7 @@ import type { RankedSpellingCandidate } from './spellingGenerator';
 import type { SourceDescriptor, SourceValidationIssue, StylePackValidationResult } from './sourceTypes';
 import type { StyleDescriptor, StylePackSourceDescriptor } from './stylePackTypes';
 
+export { toNameArtifact } from './nameArtifact';
 export type { NameArtifact } from './nameArtifact';
 export type { NameCriteria, NameCriteriaClause, NameCriteriaFamily, NameCriteriaPolarity } from './nameCriteria';
 export { NAME_REQUEST_RANDOMIZATION_ALGORITHM, resolveNameRequest } from './nameRequest';
