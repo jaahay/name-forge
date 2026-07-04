@@ -112,7 +112,7 @@ export function ConfigureTray({
           <p className="eyebrow">Configure criteria</p>
           <strong>{summaryItems.join(' · ')}</strong>
           <div aria-label="Criteria summary">
-            <p className="section-note">Bounded criteria signals for this cast. No prompt or LLM surface is active.</p>
+            <p className="section-note">Bounded criteria signals for this cast.</p>
             <ul className="criteria-summary-list">
               {criteriaItems.map((item) => <li key={item}>{item}</li>)}
             </ul>
@@ -206,7 +206,7 @@ export function ConfigureTray({
               <details className="slot-overrides">
                 <summary>Advanced tuning</summary>
                 <div className="control-section-body">
-                  <p className="section-note">These bounded controls shape current criteria signals. They are not a prompt and do not imply unsupported language or LLM behavior.</p>
+                  <p className="section-note">These bounded controls shape current criteria signals without introducing free-form text behavior.</p>
                   {advancedScoreControls.map((control) => (
                     <ScoreControl key={control.key} control={control} value={Number(settings[control.key])} onChange={(key, value) => onUpdateSetting(key, value)} onRandomize={onRandomizeSlider} />
                   ))}
@@ -227,7 +227,7 @@ export function ConfigureTray({
 
           <div className="actions" aria-label="Generation actions">
             <button type="submit">Generate</button>
-            <button type="button" className="secondary" onClick={onRandomizeSliders}>Shuffle criteria</button>
+            <button type="button" className="secondary" onClick={onRandomizeSliders}>Shuffle feel</button>
             {hasLockedNames ? (
               <p className="lock-status">{lockedCount} locked. Generate keeps locked names and rerolls the rest. <button type="button" className="anchor-button" onClick={onClearLockedNames}>Clear</button></p>
             ) : null}
