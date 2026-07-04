@@ -14,6 +14,8 @@ export interface CandidateSelectionScoreComponent {
   readonly contribution: number;
 }
 
+// Internal selection heuristic only. This score is not calibrated,
+// not a probability, and must not be exposed as a public fit percentage.
 export interface CandidateSelectionScore {
   readonly total: number;
   readonly components: readonly CandidateSelectionScoreComponent[];
