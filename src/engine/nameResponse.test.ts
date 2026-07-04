@@ -54,6 +54,28 @@ const unsupportedCriteria: NameCriteria = {
     },
   ],
 };
+const registerCriteria: NameCriteria = {
+  clauses: [
+    {
+      id: 'prefer-formal-register',
+      family: 'register',
+      polarity: 'prefer',
+      target: 'formal',
+      strength: 0.6,
+    },
+  ],
+};
+const blankIdCriteria: NameCriteria = {
+  clauses: [
+    {
+      id: ' ',
+      family: 'semantic',
+      polarity: 'prefer',
+      target: 'moonlit',
+      strength: 0.7,
+    },
+  ],
+};
 const mixedDiagnosticCriteria: NameCriteria = {
   clauses: [
     ...soundCriteria.clauses,
@@ -175,6 +197,42 @@ describe('generateNameResponse', () => {
       'fallback_used',
     ]);
     expect(diagnostics.some((diagnostic) => diagnostic.code === 'criteria_not_implemented')).toBe(false);
+  });
+
+  it('treats register criteria as unsupported until a real register mapping exists', () => {
+    const response = generateNameResponse({
+      version: 1,
+      criteria: registerCriteria,
+      random: { seed: 'register-unsupported-seed' },
+    });
+    const diagnostics = responseDiagnostics(response);
+
+    expect(diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
+      'criteria_not_implemented',
+      'fallback_used',
+    ]);
+    expect(diagnostics[0]).toMatchObject({
+      id: 'criteria_not_implemented:prefer-formal-register',
+      clauseIds: ['prefer-formal-register'],
+    });
+  });
+
+  it('uses the same stable fallback clause id for diagnostic ids and clauseIds', () => {
+    const response = generateNameResponse({
+      version: 1,
+      criteria: blankIdCriteria,
+      random: { seed: 'blank-clause-id-seed' },
+    });
+    const diagnostics = responseDiagnostics(response);
+
+    expect(diagnostics[0]).toMatchObject({
+      id: 'criteria_not_implemented:semantic-1',
+      clauseIds: ['semantic-1'],
+    });
+    expect(diagnostics[1]).toMatchObject({
+      code: 'fallback_used',
+      clauseIds: ['semantic-1'],
+    });
   });
 
   it('emits stable diagnostics for the same request', () => {
