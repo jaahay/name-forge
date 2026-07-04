@@ -3,15 +3,9 @@ import type { NameDiagnostic, NameDiagnosticCode } from './nameRequest';
 
 export type CriteriaSupportStatus = 'supported' | 'partially-supported' | 'unsupported';
 
-interface CriteriaSupportClassification {
-  readonly clause: NameCriteriaClause;
-  readonly status: CriteriaSupportStatus;
-}
-
 const PARTIALLY_SUPPORTED_FAMILIES = new Set<NameCriteriaFamily>([
   'sound',
   'shape',
-  'register',
   'spelling',
 ]);
 
@@ -27,50 +21,57 @@ function normalizedTarget(target: string): string {
   return target.trim().toLowerCase();
 }
 
-function diagnosticId(code: NameDiagnosticCode, clause: NameCriteriaClause, index: number): string {
-  const stableClauseId = clause.id.trim() || `${clause.family}-${index + 1}`;
-  return `${code}:${stableClauseId}`;
+function stableClauseId(clause: NameCriteriaClause, index: number): string {
+  return clause.id.trim() || `${clause.family}-${index + 1}`;
+}
+
+function diagnosticId(code: NameDiagnosticCode, clauseId: string): string {
+  return `${code}:${clauseId}`;
 }
 
 function clauseLabel(clause: NameCriteriaClause): string {
   return `${clause.family}:${clause.polarity}:${clause.target}`;
 }
 
-function classifyCriteriaClause(clause: NameCriteriaClause): CriteriaSupportClassification {
+function classifyCriteriaClause(clause: NameCriteriaClause): CriteriaSupportStatus {
   if (
     clause.family === 'practical'
     && clause.polarity === 'require'
     && SUPPORTED_SINGULAR_TARGETS.has(normalizedTarget(clause.target))
   ) {
-    return { clause, status: 'supported' };
+    return 'supported';
   }
 
   if (PARTIALLY_SUPPORTED_FAMILIES.has(clause.family)) {
-    return { clause, status: 'partially-supported' };
+    return 'partially-supported';
   }
 
-  return { clause, status: 'unsupported' };
+  return 'unsupported';
 }
 
 function partiallyImplementedDiagnostic(clause: NameCriteriaClause, index: number): NameDiagnostic {
+  const clauseId = stableClauseId(clause, index);
+
   return {
-    id: diagnosticId('criteria_partially_implemented', clause, index),
+    id: diagnosticId('criteria_partially_implemented', clauseId),
     code: 'criteria_partially_implemented',
     kind: 'partially-implemented-criteria',
     severity: 'warning',
-    message: `Criterion ${clause.id} (${clauseLabel(clause)}) is accepted, but target-specific ${clause.family} criteria mapping is not implemented yet. The v1 adapter keeps using neutral current-generator settings for this family.`,
-    clauseIds: [clause.id],
+    message: `Criterion ${clauseId} (${clauseLabel(clause)}) is accepted, but target-specific ${clause.family} criteria mapping is not implemented yet. The v1 adapter keeps using neutral current-generator settings for this family.`,
+    clauseIds: [clauseId],
   };
 }
 
 function unsupportedDiagnostic(clause: NameCriteriaClause, index: number): NameDiagnostic {
+  const clauseId = stableClauseId(clause, index);
+
   return {
-    id: diagnosticId('criteria_not_implemented', clause, index),
+    id: diagnosticId('criteria_not_implemented', clauseId),
     code: 'criteria_not_implemented',
     kind: 'unsupported-criteria',
     severity: 'warning',
-    message: `Criterion ${clause.id} (${clauseLabel(clause)}) is accepted but is not implemented by the v1 adapter yet. Generation continues with neutral best-effort fallback settings.`,
-    clauseIds: [clause.id],
+    message: `Criterion ${clauseId} (${clauseLabel(clause)}) is accepted but is not implemented by the v1 adapter yet. Generation continues with neutral best-effort fallback settings.`,
+    clauseIds: [clauseId],
   };
 }
 
@@ -86,18 +87,19 @@ function fallbackDiagnostic(clauseIds: readonly string[]): NameDiagnostic {
 }
 
 export function diagnosticsForNameCriteria(criteria: NameCriteria): readonly NameDiagnostic[] {
-  const criteriaDiagnostics = criteria.clauses.flatMap((clause, index): readonly NameDiagnostic[] => {
-    const classification = classifyCriteriaClause(clause);
+  const criteriaDiagnostics: NameDiagnostic[] = [];
 
-    if (classification.status === 'supported') {
-      return [];
+  criteria.clauses.forEach((clause, index) => {
+    const status = classifyCriteriaClause(clause);
+
+    if (status === 'partially-supported') {
+      criteriaDiagnostics.push(partiallyImplementedDiagnostic(clause, index));
+      return;
     }
 
-    if (classification.status === 'partially-supported') {
-      return [partiallyImplementedDiagnostic(clause, index)];
+    if (status === 'unsupported') {
+      criteriaDiagnostics.push(unsupportedDiagnostic(clause, index));
     }
-
-    return [unsupportedDiagnostic(clause, index)];
   });
 
   if (criteriaDiagnostics.length === 0) {
