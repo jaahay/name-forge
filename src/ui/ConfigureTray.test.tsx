@@ -63,12 +63,11 @@ describe('ConfigureTray criteria surface', () => {
     expect(html).toContain('Spelling criterion');
   });
 
-  it('does not require a new mode or prompt-first surface to generate names', () => {
+  it('does not require a new mode or free-form text surface to generate names', () => {
     const html = renderConfigureTray();
 
     expect(html).toContain('Generate');
-    expect(html).not.toMatch(/prompt/i);
-    expect(html).not.toMatch(/LLM/i);
+    expect(html).not.toContain('<textarea');
     expect(html).not.toContain('What are you naming?');
   });
 });
