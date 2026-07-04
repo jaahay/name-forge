@@ -20,18 +20,28 @@ function responseDiagnostics(response: ReturnType<typeof generateNameResponse>):
   return response.diagnostics ?? [];
 }
 
+function criteriaClause(id: string, family: NameCriteria['clauses'][number]['family'], target: string): NameCriteria {
+  return {
+    clauses: [
+      {
+        id,
+        family,
+        polarity: 'prefer',
+        target,
+        strength: 1,
+      },
+    ],
+  };
+}
+
 const emptyCriteria: NameCriteria = { clauses: [] };
-const soundCriteria: NameCriteria = {
-  clauses: [
-    {
-      id: 'prefer-soft-sound',
-      family: 'sound',
-      polarity: 'prefer',
-      target: 'soft',
-      strength: 0.8,
-    },
-  ],
-};
+const soundCriteria: NameCriteria = criteriaClause('prefer-soft-sound', 'sound', 'soft');
+const crispSoundCriteria: NameCriteria = criteriaClause('prefer-crisp-sound', 'sound', 'crisp');
+const flowingSoundCriteria: NameCriteria = criteriaClause('prefer-flowing-sound', 'sound', 'flowing');
+const clippedSoundCriteria: NameCriteria = criteriaClause('prefer-clipped-sound', 'sound', 'clipped');
+const plainSpellingCriteria: NameCriteria = criteriaClause('prefer-plain-spelling', 'spelling', 'plain');
+const distinctiveSpellingCriteria: NameCriteria = criteriaClause('prefer-distinctive-spelling', 'spelling', 'distinctive');
+const easyToSpellCriteria: NameCriteria = criteriaClause('prefer-easy-to-spell', 'practical', 'easy-to-spell');
 const supportedSingularCriteria: NameCriteria = {
   clauses: [
     {
@@ -43,28 +53,8 @@ const supportedSingularCriteria: NameCriteria = {
     },
   ],
 };
-const unsupportedCriteria: NameCriteria = {
-  clauses: [
-    {
-      id: 'prefer-moonlit-meaning',
-      family: 'semantic',
-      polarity: 'prefer',
-      target: 'moonlit',
-      strength: 0.7,
-    },
-  ],
-};
-const registerCriteria: NameCriteria = {
-  clauses: [
-    {
-      id: 'prefer-formal-register',
-      family: 'register',
-      polarity: 'prefer',
-      target: 'formal',
-      strength: 0.6,
-    },
-  ],
-};
+const unsupportedCriteria: NameCriteria = criteriaClause('prefer-moonlit-meaning', 'semantic', 'moonlit');
+const registerCriteria: NameCriteria = criteriaClause('prefer-formal-register', 'register', 'formal');
 const blankIdCriteria: NameCriteria = {
   clauses: [
     {
@@ -78,7 +68,7 @@ const blankIdCriteria: NameCriteria = {
 };
 const mixedDiagnosticCriteria: NameCriteria = {
   clauses: [
-    ...soundCriteria.clauses,
+    ...clippedSoundCriteria.clauses,
     ...unsupportedCriteria.clauses,
   ],
 };
@@ -153,6 +143,53 @@ describe('generateNameResponse', () => {
     expect(artifact.role).toBeUndefined();
   });
 
+  it('maps supported sound criteria into current silhouette and sound profile texture', () => {
+    const softArtifact = firstArtifact(generateNameResponse({
+      version: 1,
+      criteria: soundCriteria,
+      random: { seed: 'sound-texture-seed' },
+    }));
+    const crispArtifact = firstArtifact(generateNameResponse({
+      version: 1,
+      criteria: crispSoundCriteria,
+      random: { seed: 'sound-texture-seed' },
+    }));
+    const flowingArtifact = firstArtifact(generateNameResponse({
+      version: 1,
+      criteria: flowingSoundCriteria,
+      random: { seed: 'sound-texture-seed' },
+    }));
+
+    expect(requireValue(softArtifact.silhouette, 'soft silhouette').texture).toBe('soft');
+    expect(requireValue(softArtifact.soundProfile, 'soft sound profile').targets.texture).toBe('soft');
+    expect(requireValue(crispArtifact.silhouette, 'crisp silhouette').texture).toBe('hard');
+    expect(requireValue(crispArtifact.soundProfile, 'crisp sound profile').targets.texture).toBe('crisp');
+    expect(requireValue(flowingArtifact.silhouette, 'flowing silhouette').texture).toBe('liquid');
+    expect(requireValue(flowingArtifact.soundProfile, 'flowing sound profile').targets.texture).toBe('fluid');
+  });
+
+  it('maps supported spelling criteria into current sound profile distinctiveness', () => {
+    const plainArtifact = firstArtifact(generateNameResponse({
+      version: 1,
+      criteria: plainSpellingCriteria,
+      random: { seed: 'spelling-profile-seed' },
+    }));
+    const distinctiveArtifact = firstArtifact(generateNameResponse({
+      version: 1,
+      criteria: distinctiveSpellingCriteria,
+      random: { seed: 'spelling-profile-seed' },
+    }));
+    const easyToSpellArtifact = firstArtifact(generateNameResponse({
+      version: 1,
+      criteria: easyToSpellCriteria,
+      random: { seed: 'spelling-profile-seed' },
+    }));
+
+    expect(requireValue(plainArtifact.soundProfile, 'plain sound profile').targets.distinctiveness).toBe(0.28);
+    expect(requireValue(distinctiveArtifact.soundProfile, 'distinctive sound profile').targets.distinctiveness).toBe(0.72);
+    expect(requireValue(easyToSpellArtifact.soundProfile, 'easy-to-spell sound profile').targets.distinctiveness).toBe(0.28);
+  });
+
   it('emits diagnostics for unsupported criteria', () => {
     const response = generateNameResponse({
       version: 1,
@@ -173,11 +210,18 @@ describe('generateNameResponse', () => {
     });
   });
 
-  it('does not emit unsupported diagnostics for supported singular criteria', () => {
+  it('does not emit diagnostics for supported criteria', () => {
     const response = generateNameResponse({
       version: 1,
-      criteria: supportedSingularCriteria,
-      random: { seed: 'supported-singular-seed' },
+      criteria: {
+        clauses: [
+          ...supportedSingularCriteria.clauses,
+          ...soundCriteria.clauses,
+          ...plainSpellingCriteria.clauses,
+          ...easyToSpellCriteria.clauses,
+        ],
+      },
+      random: { seed: 'supported-criteria-seed' },
     });
     const diagnostics = responseDiagnostics(response);
 
@@ -187,7 +231,7 @@ describe('generateNameResponse', () => {
   it('emits partial diagnostics for diagnostic-only current-generator criteria', () => {
     const response = generateNameResponse({
       version: 1,
-      criteria: soundCriteria,
+      criteria: clippedSoundCriteria,
       random: { seed: 'partial-diagnostic-seed' },
     });
     const diagnostics = responseDiagnostics(response);
