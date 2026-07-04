@@ -54,6 +54,21 @@ function labelForRolePreset(value: CastRolePresetKind | undefined): string {
   return castRolePresetOptions.find((option) => option.value === (value ?? 'none'))?.label ?? 'No role mix';
 }
 
+function tierLabel(value: number, low: string, middle: string, high: string): string {
+  if (value < 0.38) return low;
+  if (value > 0.62) return high;
+  return middle;
+}
+
+function criteriaSummaryItems(settings: GenerationSettings, stylePackLabel: string): string[] {
+  return [
+    `Style source: ${stylePackLabel}`,
+    `Rarity target: ${tierLabel(settings.novelty, 'familiar', 'balanced', 'rarer')}`,
+    `Readability target: ${tierLabel(settings.pronounceability, 'loose', 'balanced', 'easy to read')}`,
+    `Spelling target: ${tierLabel(settings.orthographicWeirdness, 'plain', 'balanced', 'distinctive')}`,
+  ];
+}
+
 export function ConfigureTray({
   mode,
   stylePacks,
@@ -76,6 +91,7 @@ export function ConfigureTray({
   const summarySettings = committedSettings ?? settings;
   const summaryStylePack = stylePacks.find((pack) => pack.id === summarySettings.stylePackId)?.label ?? summarySettings.stylePackId;
   const summaryItems = [summaryStylePack, `${clampCastSize(summarySettings.castSize)} names`, labelForFormat(summarySettings.nameFormat), labelForRolePreset(summarySettings.rolePreset)];
+  const criteriaItems = criteriaSummaryItems(summarySettings, summaryStylePack);
   const hasLockedNames = lockedCount > 0;
   const castSizeLabel = `${mode.shortLabel} size`;
 
@@ -93,11 +109,17 @@ export function ConfigureTray({
     <form className={`controls configure-tray panel ${isOpen ? 'expanded' : 'collapsed'}`} onSubmit={onGenerate}>
       <div className="configure-summary" aria-label="Current generation settings">
         <div className="configure-summary-copy">
-          <p className="eyebrow">Configure run</p>
+          <p className="eyebrow">Configure criteria</p>
           <strong>{summaryItems.join(' · ')}</strong>
+          <div aria-label="Criteria summary">
+            <p className="section-note">Bounded criteria signals for this cast. No prompt or LLM surface is active.</p>
+            <ul className="criteria-summary-list">
+              {criteriaItems.map((item) => <li key={item}>{item}</li>)}
+            </ul>
+          </div>
         </div>
         <div className="configure-summary-actions" aria-label="Configure actions">
-          <button type="button" className="secondary" onClick={onToggleOpen}>{isOpen ? 'Hide settings' : 'Tune settings'}</button>
+          <button type="button" className="secondary" onClick={onToggleOpen}>{isOpen ? 'Hide settings' : 'Tune criteria'}</button>
           <button type="submit">Regenerate</button>
         </div>
       </div>
@@ -170,10 +192,10 @@ export function ConfigureTray({
           </details>
 
           <details className="control-section" open>
-            <summary>Feel</summary>
+            <summary>Criteria signals</summary>
             <div className="control-section-body">
               <label>
-                <span>Cast variety</span>
+                <span>Cast variety / rarity spread</span>
                 <select value={settings.rarityDistribution ?? 'style-pack'} onChange={(event) => onUpdateSetting('rarityDistribution', event.target.value as RarityDistributionPresetKind)}>
                   {rarityDistributionOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                 </select>
@@ -184,7 +206,7 @@ export function ConfigureTray({
               <details className="slot-overrides">
                 <summary>Advanced tuning</summary>
                 <div className="control-section-body">
-                  <p className="section-note">These controls still shape scoring, but they stay secondary to style pack, story role, cast variety, rarity, and readability.</p>
+                  <p className="section-note">These bounded controls shape current criteria signals. They are not a prompt and do not imply unsupported language or LLM behavior.</p>
                   {advancedScoreControls.map((control) => (
                     <ScoreControl key={control.key} control={control} value={Number(settings[control.key])} onChange={(key, value) => onUpdateSetting(key, value)} onRandomize={onRandomizeSlider} />
                   ))}
@@ -205,7 +227,7 @@ export function ConfigureTray({
 
           <div className="actions" aria-label="Generation actions">
             <button type="submit">Generate</button>
-            <button type="button" className="secondary" onClick={onRandomizeSliders}>Shuffle feel</button>
+            <button type="button" className="secondary" onClick={onRandomizeSliders}>Shuffle criteria</button>
             {hasLockedNames ? (
               <p className="lock-status">{lockedCount} locked. Generate keeps locked names and rerolls the rest. <button type="button" className="anchor-button" onClick={onClearLockedNames}>Clear</button></p>
             ) : null}
