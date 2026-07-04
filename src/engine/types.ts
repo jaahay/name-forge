@@ -41,7 +41,7 @@ export type ReadabilityDiagnosticSeverity = 'notice' | 'warning';
 export type ReadabilityDiagnosticScope = 'name' | 'cast';
 
 export interface ReadabilityDiagnostic { id: string; scope: ReadabilityDiagnosticScope; severity: ReadabilityDiagnosticSeverity; label: string; detail: string; }
-export interface GenerationSettings { castSize: number; novelty: number; pronounceability: number; memorability: number; culturalAnchoring: number; orthographicWeirdness: number; stylePackId: string; seed: string; nameFormat?: NameFormatKind; rarityDistribution?: RarityDistributionPresetKind; rolePreset?: CastRolePresetKind; roleInfluence?: RoleInfluenceLevel; slotRoleOverrides?: SlotRoleOverrides; }
+export interface GenerationSettings { castSize: number; novelty: number; pronounceability: number; memorability: number; culturalAnchoring: number; orthographicWeirdness: number; stylePackId: string; seed: string; nameFormat?: NameFormatKind; rarityDistribution?: RarityDistributionPresetKind; rolePreset?: CastRolePresetKind; roleInfluence?: RoleInfluenceLevel; slotRoleOverrides?: SlotRoleOverrides; preferredTexture?: NameTexture; }
 export interface WeightedValue<T = string> { value: T; weight: number; }
 export interface CastRoleAssignment { role: CastRole; label: string; source: 'preset' | 'slot'; slot: number; }
 export interface RoleInfluenceMetadata { level: Exclude<RoleInfluenceLevel, 'off'>; role: CastRole; profileId: string; label: string; strength: number; effects: string[]; }
