@@ -46,6 +46,14 @@ const unsupportedCriteria: NameCriteria = {
   ],
 };
 
+function requireCandidate(candidate: RankedSpellingCandidate | undefined, label: string): RankedSpellingCandidate {
+  if (candidate === undefined) {
+    throw new Error(`Expected ${label}.`);
+  }
+
+  return candidate;
+}
+
 function mapping(segmentIndex: number, segmentId: SoundSegmentId, text: string): SpellingSegmentMapping {
   return {
     segmentIndex,
@@ -177,8 +185,9 @@ describe('candidate selection scoring', () => {
       distinctiveCriteria,
       { seed: 'selection-test-seed', stylePackId: 'test-style-pack' },
     );
-    const firstScore = scoreRankedSpellingCandidate(candidatePool[2], settings);
-    const secondScore = scoreRankedSpellingCandidate(candidatePool[2], settings);
+    const distinctiveCandidate = requireCandidate(candidatePool[2], 'distinctive fixture candidate');
+    const firstScore = scoreRankedSpellingCandidate(distinctiveCandidate, settings);
+    const secondScore = scoreRankedSpellingCandidate(distinctiveCandidate, settings);
 
     expect(firstScore).toEqual(secondScore);
   });
@@ -188,9 +197,10 @@ describe('candidate selection scoring', () => {
       unsupportedCriteria,
       { seed: 'selection-test-seed', stylePackId: 'test-style-pack' },
     );
+    const plainCandidate = requireCandidate(candidatePool[0], 'plain fixture candidate');
 
-    expect(scoreRankedSpellingCandidate(candidatePool[0], unsupportedSettings)).toEqual(
-      scoreRankedSpellingCandidate(candidatePool[0], baseSettings),
+    expect(scoreRankedSpellingCandidate(plainCandidate, unsupportedSettings)).toEqual(
+      scoreRankedSpellingCandidate(plainCandidate, baseSettings),
     );
     expect(selectRankedSpellingCandidate(candidatePool, unsupportedSettings)?.candidate.text).toBe('Kara');
   });
