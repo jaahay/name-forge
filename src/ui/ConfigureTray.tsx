@@ -112,6 +112,7 @@ export function ConfigureTray({
           <p className="eyebrow">Configure criteria</p>
           <strong>{summaryItems.join(' · ')}</strong>
           <div aria-label="Criteria summary">
+            <p className="eyebrow">Criteria summary</p>
             <p className="section-note">Bounded criteria signals for this cast.</p>
             <ul className="criteria-summary-list">
               {criteriaItems.map((item) => <li key={item}>{item}</li>)}
