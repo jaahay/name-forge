@@ -45,6 +45,7 @@ function applySpellingCriteria(settings: GenerationSettings, clause: NameCriteri
     return {
       ...settings,
       orthographicWeirdness: Math.min(settings.orthographicWeirdness, 0.18 + (1 - strength) * 0.12),
+      spellingSelectionPreference: 'plain',
     };
   }
 
@@ -52,6 +53,7 @@ function applySpellingCriteria(settings: GenerationSettings, clause: NameCriteri
     return {
       ...settings,
       orthographicWeirdness: Math.max(settings.orthographicWeirdness, 0.72 + strength * 0.1),
+      spellingSelectionPreference: 'distinctive',
     };
   }
 
@@ -66,6 +68,7 @@ function applyPracticalCriteria(settings: GenerationSettings, clause: NameCriter
     return {
       ...settings,
       orthographicWeirdness: Math.min(settings.orthographicWeirdness, 0.2 + (1 - strength) * 0.12),
+      spellingSelectionPreference: 'plain',
     };
   }
 
