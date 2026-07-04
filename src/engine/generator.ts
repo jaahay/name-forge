@@ -1,3 +1,4 @@
+import { selectRankedSpellingCandidate } from './candidateSelection';
 import type { SoundCandidate } from './soundGenerator';
 import type { SoundProfile } from './soundProfile';
 import type { RankedSpellingCandidate, RankedSpellingCandidateList } from './spellingGenerator';
@@ -45,7 +46,8 @@ export function generateNameCandidateFromSilhouette(silhouette: NameSilhouette, 
   const soundProfile = compileSoundProfileFromSettings(settings, silhouette);
   const sound = generateSound(soundProfile, random);
   const rankedSpellings = generateRankedSpellingCandidates(sound, soundProfile, { maxCandidates: 12 });
-  const [selectedSpelling] = rankedSpellings.candidates;
+  const selection = selectRankedSpellingCandidate(rankedSpellings.candidates, settings);
+  const selectedSpelling = selection?.candidate;
 
   if (!selectedSpelling) {
     throw new Error(`Expected at least one spelling candidate for ${sound.id}.`);
