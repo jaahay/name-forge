@@ -41,6 +41,10 @@ function rhythmFor(stressPattern: string): string {
 }
 
 function selectTexture(settings: GenerationSettings, pack: StylePack, random: SeededRandom, role?: CastRoleAssignment): NameTexture {
+  if (settings.preferredTexture !== undefined) {
+    return settings.preferredTexture;
+  }
+
   const roleInfluence = resolveRoleInfluence(settings, role);
   if (!roleInfluence) return random.pickWeighted(pack.silhouetteBias.textures);
   const profile = getRolePreferenceProfile(roleInfluence.role);

@@ -17,6 +17,21 @@ const SUPPORTED_SINGULAR_TARGETS = new Set([
   'names.length:1',
 ]);
 
+const SUPPORTED_SOUND_TARGETS = new Set([
+  'soft',
+  'crisp',
+  'flowing',
+]);
+
+const SUPPORTED_SPELLING_TARGETS = new Set([
+  'plain',
+  'distinctive',
+]);
+
+const SUPPORTED_PRACTICAL_TARGETS = new Set([
+  'easy-to-spell',
+]);
+
 function normalizedTarget(target: string): string {
   return target.trim().toLowerCase();
 }
@@ -33,12 +48,33 @@ function clauseLabel(clause: NameCriteriaClause): string {
   return `${clause.family}:${clause.polarity}:${clause.target}`;
 }
 
+function isSupportedCriteriaClause(clause: NameCriteriaClause): boolean {
+  if (clause.polarity === 'avoid') {
+    return false;
+  }
+
+  const target = normalizedTarget(clause.target);
+
+  if (clause.family === 'sound') {
+    return SUPPORTED_SOUND_TARGETS.has(target);
+  }
+
+  if (clause.family === 'spelling') {
+    return SUPPORTED_SPELLING_TARGETS.has(target);
+  }
+
+  if (clause.family === 'practical') {
+    return (
+      SUPPORTED_PRACTICAL_TARGETS.has(target)
+      || (clause.polarity === 'require' && SUPPORTED_SINGULAR_TARGETS.has(target))
+    );
+  }
+
+  return false;
+}
+
 function classifyCriteriaClause(clause: NameCriteriaClause): CriteriaSupportStatus {
-  if (
-    clause.family === 'practical'
-    && clause.polarity === 'require'
-    && SUPPORTED_SINGULAR_TARGETS.has(normalizedTarget(clause.target))
-  ) {
+  if (isSupportedCriteriaClause(clause)) {
     return 'supported';
   }
 
