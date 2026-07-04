@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { NameArtifact } from './nameArtifact';
-import type { NameCriteria } from './nameCriteria';
+import type { NameCriteria, NameCriteriaFamily } from './nameCriteria';
 import type { NameDiagnostic, NameRequest } from './nameRequest';
 import { generateNameResponse } from './nameResponse';
 
@@ -20,7 +20,7 @@ function responseDiagnostics(response: ReturnType<typeof generateNameResponse>):
   return response.diagnostics ?? [];
 }
 
-function criteriaClause(id: string, family: NameCriteria['clauses'][number]['family'], target: string): NameCriteria {
+function criteriaClause(id: string, family: NameCriteriaFamily, target: string): NameCriteria {
   return {
     clauses: [
       {
