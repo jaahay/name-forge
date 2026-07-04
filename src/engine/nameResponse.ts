@@ -1,3 +1,4 @@
+import { diagnosticsForNameCriteria } from './nameCriteriaDiagnostics';
 import { generateNameFromSilhouette } from './generator';
 import { toNameArtifact } from './nameArtifact';
 import type { NameCriteria } from './nameCriteria';
@@ -20,8 +21,8 @@ function resolveStylePackId(registry: SourceRegistry, requestedStylePackId: stri
 }
 
 function bridgeCriteriaToGenerationSettings(criteria: NameCriteria, seed: string, stylePackId: string): GenerationSettings {
-  // Slice 4 establishes the criteria-to-generation seam without making criteria behavior-affecting yet.
-  // Slice 5/6 add honest diagnostics and functional criteria-to-current-control mapping.
+  // Slice 4 established this seam without making criteria behavior-affecting yet.
+  // Slice 5 reports diagnostic-only criteria; Slice 6 adds functional criteria-to-current-control mapping.
   void criteria;
 
   return {
@@ -43,6 +44,7 @@ function bridgeCriteriaToGenerationSettings(criteria: NameCriteria, seed: string
 
 export function generateNameResponse(request: NameRequest, options: NameResponseAdapterOptions = {}): NameResponse {
   const resolution = resolveNameRequest(request);
+  const diagnostics = diagnosticsForNameCriteria(resolution.request.criteria);
   const registry = options.registry ?? createDefaultRegistry();
   const settings = bridgeCriteriaToGenerationSettings(
     resolution.request.criteria,
@@ -70,5 +72,6 @@ export function generateNameResponse(request: NameRequest, options: NameResponse
     request: resolution.request,
     names: [artifact],
     random: resolution.random,
+    ...(diagnostics.length === 0 ? {} : { diagnostics }),
   };
 }

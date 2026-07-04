@@ -72,6 +72,7 @@ describe('NameRequest v1 contracts', () => {
       diagnostics: [
         {
           id: 'unsupported-clause',
+          code: 'criteria_not_implemented',
           kind: 'unsupported-criteria',
           severity: 'warning',
           message: 'Criteria diagnostics can identify unsupported clauses when behavior lands later.',
@@ -79,8 +80,9 @@ describe('NameRequest v1 contracts', () => {
         },
         {
           id: 'partial-clause',
+          code: 'criteria_partially_implemented',
           kind: 'partially-implemented-criteria',
-          severity: 'info',
+          severity: 'warning',
           message: 'Criteria diagnostics can identify partially implemented clauses when behavior lands later.',
           clauseIds: ['partial-clause'],
         },
@@ -99,9 +101,11 @@ describe('NameRequest v1 contracts', () => {
     expect(diagnostics).toHaveLength(2);
 
     const unsupportedDiagnostic = requireValue(diagnostics[0], 'unsupported diagnostic');
+    expect(unsupportedDiagnostic.code).toBe('criteria_not_implemented');
     expect(unsupportedDiagnostic.kind).toBe('unsupported-criteria');
 
     const partialDiagnostic = requireValue(diagnostics[1], 'partially implemented diagnostic');
+    expect(partialDiagnostic.code).toBe('criteria_partially_implemented');
     expect(partialDiagnostic.kind).toBe('partially-implemented-criteria');
   });
 });
