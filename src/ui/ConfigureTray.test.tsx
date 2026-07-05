@@ -1,60 +1,73 @@
+import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import { criteriaSummaryItems } from './configureCriteria';
+import { createDefaultRegistry } from '../engine/registry';
+import type { GenerationSettings } from '../engine/types';
+import { ConfigureTray } from './ConfigureTray';
 import { fictionCastMode } from './modes';
-import { advancedScoreControls, primaryScoreControls } from './presentation';
+import type { ControlKey } from './presentation';
 
-const settings = fictionCastMode.defaultSettings('british-literary-fantasy');
+const registry = createDefaultRegistry();
+const stylePacks = registry.listStylePacks();
+const stylePackId = stylePacks[0]?.id ?? 'british-literary-fantasy';
+const settings = fictionCastMode.defaultSettings(stylePackId);
 
-const existingGenerationControlCopy = [
-  'Cast size',
-  'Style pack',
-  'Name format',
-  'Generation seed',
-  'Generate',
-  'Shuffle feel',
-];
+function renderConfigureTray(overrides: Partial<GenerationSettings> = {}): string {
+  const renderedSettings = { ...settings, ...overrides };
 
-describe('Configure criteria surface copy', () => {
-  it('keeps existing generation controls represented in Configure copy', () => {
-    expect(existingGenerationControlCopy).toContain('Cast size');
-    expect(existingGenerationControlCopy).toContain('Style pack');
-    expect(existingGenerationControlCopy).toContain('Name format');
-    expect(existingGenerationControlCopy).toContain('Generation seed');
-    expect(existingGenerationControlCopy).toContain('Generate');
-    expect(existingGenerationControlCopy).toContain('Shuffle feel');
+  return renderToStaticMarkup(
+    <ConfigureTray
+      mode={fictionCastMode}
+      stylePacks={stylePacks}
+      settings={renderedSettings}
+      committedSettings={renderedSettings}
+      isOpen
+      lockedCount={0}
+      onToggleOpen={() => {}}
+      onUpdateSetting={() => {}}
+      onGenerate={() => {}}
+      onCommitSettings={() => {}}
+      onRandomizeSliders={() => {}}
+      onRandomizeSlider={(_: ControlKey) => {}}
+      onClearLockedNames={() => {}}
+    />,
+  );
+}
+
+describe('ConfigureTray criteria surface', () => {
+  it('keeps the existing generation controls visible', () => {
+    const html = renderConfigureTray();
+
+    expect(html).toContain('Cast size');
+    expect(html).toContain('Style pack');
+    expect(html).toContain('Name format');
+    expect(html).toContain('Generation seed');
+    expect(html).toContain('Generate');
+    expect(html).toContain('Shuffle feel');
   });
 
-  it('summarizes bounded criteria signals from current settings', () => {
-    expect(criteriaSummaryItems({
-      ...settings,
+  it('renders bounded criteria wording without adding a large taxonomy surface', () => {
+    const html = renderConfigureTray({
       novelty: 0.72,
       pronounceability: 0.74,
       orthographicWeirdness: 0.24,
-    }, 'British Literary Fantasy')).toEqual([
-      'Style source: British Literary Fantasy',
-      'Rarity target: rarer',
-      'Readability target: easy to read',
-      'Spelling target: plain',
-    ]);
+    });
+
+    expect(html).toContain('Configure criteria');
+    expect(html).toContain('Criteria summary');
+    expect(html).toContain('Criteria signals');
+    expect(html).toContain('Rarity target: rarer');
+    expect(html).toContain('Readability target: easy to read');
+    expect(html).toContain('Spelling target: plain');
+    expect(html).toContain('Rarity target');
+    expect(html).toContain('Readability target');
+    expect(html).toContain('Spelling criterion');
   });
 
-  it('keeps criteria labels bounded to current controls', () => {
-    expect(primaryScoreControls.map((control) => control.label)).toEqual([
-      'Rarity target',
-      'Readability target',
-    ]);
-    expect(advancedScoreControls.map((control) => control.label)).toContain('Spelling criterion');
-  });
+  it('does not require a new mode or free-form text surface to generate names', () => {
+    const html = renderConfigureTray();
 
-  it('does not introduce mode, prompt, or LLM copy in criteria control labels', () => {
-    const criteriaSurfaceCopy = [
-      ...primaryScoreControls.flatMap((control) => [control.label, control.help]),
-      ...advancedScoreControls.flatMap((control) => [control.label, control.help]),
-      ...criteriaSummaryItems(settings, 'British Literary Fantasy'),
-    ].join(' ');
-
-    expect(criteriaSurfaceCopy).not.toMatch(/prompt/i);
-    expect(criteriaSurfaceCopy).not.toMatch(/LLM/i);
-    expect(criteriaSurfaceCopy).not.toContain('What are you naming?');
+    expect(html).toContain('Generate');
+    expect(html).not.toContain('<textarea');
+    expect(html).not.toContain('What are you naming?');
   });
 });
