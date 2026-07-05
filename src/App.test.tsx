@@ -6,11 +6,11 @@ describe('App', () => {
   it('renders the fiction cast workbench with collapsed Configure and selected-name artifact surfaces', () => {
     const html = renderToString(<App />);
 
-    for (const expected of ['Name Forge', 'Fiction Cast', 'Configure run', 'Tune settings', 'Regenerate', 'Names', 'Name selection', 'Previous', 'Next', 'Inspect', 'Sound', 'Spelling', 'Cast context', 'Usability', 'Cast health', 'Export']) {
+    for (const expected of ['Name Forge', 'Fiction Cast', 'Configure criteria', 'Criteria summary', 'Tune criteria', 'Regenerate', 'Names', 'Name selection', 'Previous', 'Next', 'Inspect', 'Sound', 'Spelling', 'Cast context', 'Usability', 'Cast health', 'Export']) {
       expect(html).toContain(expected);
     }
 
-    for (const collapsed of ['Cast setup', 'Story roles', 'Feel', 'Style pack', 'Cast variety', 'Advanced tuning', 'Shuffle feel']) {
+    for (const collapsed of ['Cast setup', 'Story roles', 'Criteria signals', 'Style pack', 'Cast variety', 'Advanced tuning', 'Shuffle feel']) {
       expect(html).not.toContain(collapsed);
     }
 
