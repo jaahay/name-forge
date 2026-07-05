@@ -14,8 +14,8 @@ export const primaryScoreControls: Array<{
   label: string;
   help: string;
 }> = [
-  { key: 'novelty', label: 'Rarity', help: 'Higher values push individual names toward less familiar shapes, textures, and spellings.' },
-  { key: 'pronounceability', label: 'Readability', help: 'Higher values favor names that are easier to read aloud on first sight.' },
+  { key: 'novelty', label: 'Rarity target', help: 'Higher values push individual names toward less familiar shapes, textures, and spellings.' },
+  { key: 'pronounceability', label: 'Readability target', help: 'Higher values favor names that are easier to read aloud on first sight.' },
 ];
 
 export const advancedScoreControls: Array<{
@@ -25,7 +25,7 @@ export const advancedScoreControls: Array<{
 }> = [
   { key: 'memorability', label: 'Compactness', help: 'Higher values favor shorter, more rhythmically distinct names.' },
   { key: 'culturalAnchoring', label: 'Style closeness', help: 'Higher values keep names closer to the selected style pack texture.' },
-  { key: 'orthographicWeirdness', label: 'Spelling style', help: 'Higher values permit more stylized spellings while still scoring naturalness separately.' },
+  { key: 'orthographicWeirdness', label: 'Spelling criterion', help: 'Higher values permit more distinctive spellings while still scoring naturalness separately.' },
 ];
 
 export const scoreControls = [...primaryScoreControls, ...advancedScoreControls];

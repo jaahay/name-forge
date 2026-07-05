@@ -19,7 +19,7 @@ describe('AboutView', () => {
     expect(html).toContain('Readability');
     expect(html).toContain('Compactness');
     expect(html).toContain('Style closeness');
-    expect(html).toContain('Spelling style');
+    expect(html).toContain('Spelling criterion');
     expect(html).not.toContain('Card detail');
     expect(html).not.toContain('Basic, Brief, and Detail');
     expect(html).not.toContain('Novelty');
