@@ -2,11 +2,11 @@
 
 This document is a navigation map for the NameRequest and criteria-driven generation planning work.
 
-It does not introduce new doctrine. It points to the canonical planning documents and gives future implementation work a stable read order.
+It points to the canonical planning documents, marks the current Slice 1-8 checkpoint, and gives future implementation work a stable read order.
 
 ## Current direction
 
-Name Forge is moving toward one durable naming operation:
+Name Forge now has one durable naming operation:
 
 ```text
 NameRequest -> NameResponse
@@ -16,74 +16,102 @@ The primary output artifact is `NameArtifact`.
 
 The stable input model is `NameCriteria`.
 
-The planning pipeline is:
+The implemented v1 runtime pipeline is:
 
 ```text
-Intent surfaces
-  -> NameCriteria
-  -> compiled criteria
-  -> SoundProfile / spelling preferences / exclusions / selection inputs
-  -> candidate generation and scoring
-  -> NameArtifact
+NameRequest
+  -> resolve seed / criteria / optional mode metadata
+  -> diagnostics
+  -> compile NameCriteria into current GenerationSettings
+  -> generate sound/silhouette/spelling candidates
+  -> internally select spelling candidate when compiled criteria request selection pressure
+  -> map GeneratedName to NameArtifact
+  -> NameResponse containing exactly one artifact
 ```
+
+## Slice 1-8 checkpoint
+
+Slices 1-8 of the NameRequest v1 sequence have landed in `main`:
+
+```text
+NameRequest / NameCriteria contract
+  -> request resolver and seed handling
+  -> NameArtifact mapper
+  -> singular NameRequest adapter
+  -> criteria diagnostics bridge
+  -> small criteria-to-current-generator compiler
+  -> internal candidate selection scoring
+  -> bounded Configure criteria surface
+```
+
+This checkpoint means future work should treat the singular v1 request/response path as implemented, not planned. It also means the next implementation step should be a docs-only checkpoint PR that makes Slice 9 safe to start as a design-only grouping spike.
+
+Slice 9 should remain design-only until the grouping model is explicitly accepted. Do not implement runtime grouping merely because the design vocabulary exists.
 
 ## Read order
 
-1. [`decisions/0001-name-artifact-and-request-contract.md`](decisions/0001-name-artifact-and-request-contract.md)
+1. [`requirements/name-request-v1-checkpoint.md`](requirements/name-request-v1-checkpoint.md)
+   - Checkpoint after Slices 1-8 and explicit boundary before Slice 9.
+2. [`decisions/0001-name-artifact-and-request-contract.md`](decisions/0001-name-artifact-and-request-contract.md)
    - Establishes `NameArtifact` and `NameRequest -> NameResponse`.
-2. [`decisions/0002-criteria-driven-generation.md`](decisions/0002-criteria-driven-generation.md)
+3. [`decisions/0002-criteria-driven-generation.md`](decisions/0002-criteria-driven-generation.md)
    - Establishes criteria-driven generation and internal candidate scoring.
-3. [`decisions/0003-intent-criteria-compiler-pipeline.md`](decisions/0003-intent-criteria-compiler-pipeline.md)
+4. [`decisions/0003-intent-criteria-compiler-pipeline.md`](decisions/0003-intent-criteria-compiler-pipeline.md)
    - Establishes intent surfaces as producers of `NameCriteria`.
-4. [`decisions/0004-modes-presets-and-grouping.md`](decisions/0004-modes-presets-and-grouping.md)
+5. [`decisions/0004-modes-presets-and-grouping.md`](decisions/0004-modes-presets-and-grouping.md)
    - Establishes mode, preset, skin, and grouping boundaries.
-5. [`current-product-scope.md`](current-product-scope.md)
+6. [`current-product-scope.md`](current-product-scope.md)
    - Active product-scope lens and next feature priorities.
-6. [`product-architecture.md`](product-architecture.md)
+7. [`product-architecture.md`](product-architecture.md)
    - Product vocabulary, workbench loop, criteria UI direction, and mode strategy.
-7. [`architecture.md`](architecture.md)
+8. [`architecture.md`](architecture.md)
    - Engine-level direction and pipeline boundaries.
-8. [`model-module-contracts.md`](model-module-contracts.md)
-   - Planned request/criteria model contracts and current module ownership.
-9. [`requirements/name-request-v1.md`](requirements/name-request-v1.md)
-   - Requirements for the first implementation slice.
-10. [`requirements/name-request-v1-slices.md`](requirements/name-request-v1-slices.md)
-    - Suggested future PR decomposition.
+9. [`model-module-contracts.md`](model-module-contracts.md)
+   - Implemented v1 request/criteria model contracts, future grouping boundary, and current module ownership.
+10. [`requirements/name-request-v1.md`](requirements/name-request-v1.md)
+    - Requirements for the first implementation sequence.
+11. [`requirements/name-request-v1-slices.md`](requirements/name-request-v1-slices.md)
+    - Slice decomposition and next grouping-design context.
 
 ## Canonical implementation starting point
 
-Start future implementation work from:
+Start the next planning pass from:
+
+```text
+docs/requirements/name-request-v1-checkpoint.md
+```
+
+Then read:
 
 ```text
 docs/requirements/name-request-v1-slices.md
 ```
 
-The first implementation issue should probably be:
+The next work should make Slice 9 safe as a design-only grouping spike. It should clarify future grouping and quantity contracts before any runtime behavior is added.
 
-> Add NameRequest v1 model contracts
+## Explicit non-goals before Slice 9 implementation
 
-Then proceed to request resolution, seed handling, `NameArtifact` mapping, and the singular `NameRequest -> NameResponse` adapter.
+The following remain explicitly deferred:
 
-## Do not start with
+- no runtime grouping
+- no plural quantity behavior
+- no slotted generation
+- no new active modes
+- no LLM prompt-first UI
+- no public Criteria Match UI
+- no public fit percentage UI
+- no candidate scoring leakage into public response artifacts
 
-The following are explicitly deferred from the first implementation slice:
+These can become real work later, but they should not alter the implemented singular v1 request contract.
 
-- plural generation
-- grouping behavior
-- Cast extraction
-- slot criteria
-- public Criteria Match UI
-- fit percentages
-- prompt-first UX
-- LLM parsing
-- large chip-library UI
-- new active modes
-- baby-name mode
+## Follow-up risk
 
-These can become real work later, but they should not block the singular request contract.
+Supported-criteria knowledge is duplicated between `nameCriteriaCompiler.ts` and `nameCriteriaDiagnostics.ts`.
+
+Before expanding criteria targets, supported-target metadata should be centralized or a shared helper such as `isCriteriaClauseCompiled(...)` should be introduced. Keep that as a docs-tracked follow-up until a runtime cleanup PR is explicitly scoped.
 
 ## Historical docs
 
 Some older documents still describe the project in terms of Fiction cast, style packs, source descriptors, or style input. Keep those documents for historical context unless this planning direction explicitly updates them.
 
-When there is a conflict, prefer the decision records and the current product-scope document for future implementation planning.
+When there is a conflict, prefer the decision records, the checkpoint doc, and the current product-scope document for future implementation planning.
