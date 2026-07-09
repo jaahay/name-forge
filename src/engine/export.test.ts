@@ -23,7 +23,7 @@ function exportableEnsemble() {
 }
 
 describe('cast export serialization', () => {
-  it('creates a deterministic JSON payload with cast metadata, selected sound, and exportable names', () => {
+  it('creates a deterministic JSON payload with cast metadata, selected sound, spelling candidates, and exportable names', () => {
     const ensemble = exportableEnsemble();
     const firstJson = serializeCastAsJson(ensemble);
     const secondJson = serializeCastAsJson(exportableEnsemble());
@@ -59,14 +59,26 @@ describe('cast export serialization', () => {
     expect(firstName.sound.selectedSpelling.rank).toBe(1);
     expect(firstName.sound.selectedSpelling.soundCandidateId).toBe(sourceName.sound.id);
     expect(firstName.sound.selectedSpelling.sequenceId).toBe(sourceName.sound.sequence.id);
+    expect(firstName.sound.selectedSpelling.selected).toBe(true);
+    expect(firstName.sound.spellingCandidates).toHaveLength(sourceName.spellingCandidates.length);
+    expect(firstName.sound.spellingCandidates.map((candidate) => candidate.id)).toEqual(sourceName.spellingCandidates.map((candidate) => candidate.id));
+    expect(firstName.sound.spellingCandidates.map((candidate) => candidate.rank)).toEqual(sourceName.spellingCandidates.map((candidate) => candidate.rank));
+    expect(firstName.sound.spellingCandidates.filter((candidate) => candidate.selected)).toEqual([firstName.sound.selectedSpelling]);
     expect(firstName.silhouette.syllableCount).toBeGreaterThan(0);
     expect(firstName.silhouette.rarityBand).toBeDefined();
     expect(firstName.parts.length).toBeGreaterThan(0);
     expect(firstName.warnings).toEqual([]);
   });
 
-  it('renders a Markdown export with score, selected sound, silhouette, variants, role influence, and seed', () => {
-    const markdown = serializeCastAsMarkdown(exportableEnsemble());
+  it('renders a Markdown export with score, selected sound, spelling candidates, variants, role influence, and seed', () => {
+    const ensemble = exportableEnsemble();
+    const markdown = serializeCastAsMarkdown(ensemble);
+    const [sourceName] = ensemble.names;
+    expect(sourceName).toBeDefined();
+    if (!sourceName) throw new Error('Expected at least one exported name.');
+    const [selectedCandidate] = sourceName.spellingCandidates;
+    expect(selectedCandidate).toBeDefined();
+    if (!selectedCandidate) throw new Error('Expected at least one retained spelling candidate.');
 
     expect(markdown).toContain('# Name Forge Cast Export');
     expect(markdown).toContain('Seed: `export-test-seed`');
@@ -81,6 +93,8 @@ describe('cast export serialization', () => {
     expect(markdown).toContain('- Parts:');
     expect(markdown).toContain('- Sound: /');
     expect(markdown).toContain('- Selected spelling:');
+    expect(markdown).toContain('- Spelling candidates:');
+    expect(markdown).toContain(`${selectedCandidate.text} (selected; rank ${selectedCandidate.rank}, score ${selectedCandidate.score.toFixed(2)})`);
     expect(markdown).toContain('- Silhouette:');
     expect(markdown).toContain('- Variants:');
     expect(markdown).toContain('- Warnings: none');
