@@ -48,29 +48,43 @@ This checkpoint means future work should treat the singular v1 request/response 
 
 Slice 9 should remain design-only until the grouping model is explicitly accepted. Do not implement runtime grouping merely because the design vocabulary exists.
 
+## Slice 9 grouping boundary
+
+Slice 9 is a docs-only design boundary for future grouping work.
+
+The canonical Slice 9 note is:
+
+```text
+docs/requirements/name-grouping-design-boundary.md
+```
+
+It defines `NameQuantity`, `NameGrouping`, and `NameSetCriteria` as future design vocabulary only. It does not add those concepts to the current public v1 API, and it does not authorize runtime grouping, plural quantity behavior, slotted generation, grouped response shape, UI changes, persistence changes, or export changes.
+
 ## Read order
 
 1. [`requirements/name-request-v1-checkpoint.md`](requirements/name-request-v1-checkpoint.md)
    - Checkpoint after Slices 1-8 and explicit boundary before Slice 9.
-2. [`decisions/0001-name-artifact-and-request-contract.md`](decisions/0001-name-artifact-and-request-contract.md)
+2. [`requirements/name-grouping-design-boundary.md`](requirements/name-grouping-design-boundary.md)
+   - Slice 9 docs-only boundary for future `NameGrouping`, quantity, and set criteria design.
+3. [`decisions/0001-name-artifact-and-request-contract.md`](decisions/0001-name-artifact-and-request-contract.md)
    - Establishes `NameArtifact` and `NameRequest -> NameResponse`.
-3. [`decisions/0002-criteria-driven-generation.md`](decisions/0002-criteria-driven-generation.md)
+4. [`decisions/0002-criteria-driven-generation.md`](decisions/0002-criteria-driven-generation.md)
    - Establishes criteria-driven generation and internal candidate scoring.
-4. [`decisions/0003-intent-criteria-compiler-pipeline.md`](decisions/0003-intent-criteria-compiler-pipeline.md)
+5. [`decisions/0003-intent-criteria-compiler-pipeline.md`](decisions/0003-intent-criteria-compiler-pipeline.md)
    - Establishes intent surfaces as producers of `NameCriteria`.
-5. [`decisions/0004-modes-presets-and-grouping.md`](decisions/0004-modes-presets-and-grouping.md)
+6. [`decisions/0004-modes-presets-and-grouping.md`](decisions/0004-modes-presets-and-grouping.md)
    - Establishes mode, preset, skin, and grouping boundaries.
-6. [`current-product-scope.md`](current-product-scope.md)
+7. [`current-product-scope.md`](current-product-scope.md)
    - Active product-scope lens and next feature priorities.
-7. [`product-architecture.md`](product-architecture.md)
+8. [`product-architecture.md`](product-architecture.md)
    - Product vocabulary, workbench loop, criteria UI direction, and mode strategy.
-8. [`architecture.md`](architecture.md)
+9. [`architecture.md`](architecture.md)
    - Engine-level direction and pipeline boundaries.
-9. [`model-module-contracts.md`](model-module-contracts.md)
-   - Implemented v1 request/criteria model contracts, future grouping boundary, and current module ownership.
-10. [`requirements/name-request-v1.md`](requirements/name-request-v1.md)
+10. [`model-module-contracts.md`](model-module-contracts.md)
+    - Implemented v1 request/criteria model contracts, future grouping boundary, and current module ownership.
+11. [`requirements/name-request-v1.md`](requirements/name-request-v1.md)
     - Requirements for the first implementation sequence.
-11. [`requirements/name-request-v1-slices.md`](requirements/name-request-v1-slices.md)
+12. [`requirements/name-request-v1-slices.md`](requirements/name-request-v1-slices.md)
     - Slice decomposition and next grouping-design context.
 
 ## Canonical implementation starting point
@@ -79,6 +93,7 @@ Start the next planning pass from:
 
 ```text
 docs/requirements/name-request-v1-checkpoint.md
+docs/requirements/name-grouping-design-boundary.md
 ```
 
 Then read:
@@ -87,15 +102,16 @@ Then read:
 docs/requirements/name-request-v1-slices.md
 ```
 
-The next work should make Slice 9 safe as a design-only grouping spike. It should clarify future grouping and quantity contracts before any runtime behavior is added.
+The next implementation work should keep Slice 9 design-only. It should clarify future grouping and quantity contracts before any runtime behavior is added.
 
-## Explicit non-goals before Slice 9 implementation
+## Explicit non-goals before grouping implementation
 
 The following remain explicitly deferred:
 
 - no runtime grouping
 - no plural quantity behavior
 - no slotted generation
+- no grouped response shape
 - no new active modes
 - no LLM prompt-first UI
 - no public Criteria Match UI
@@ -114,4 +130,4 @@ Before expanding criteria targets, supported-target metadata should be centraliz
 
 Some older documents still describe the project in terms of Fiction cast, style packs, source descriptors, or style input. Keep those documents for historical context unless this planning direction explicitly updates them.
 
-When there is a conflict, prefer the decision records, the checkpoint doc, and the current product-scope document for future implementation planning.
+When there is a conflict, prefer the decision records, the checkpoint doc, the grouping boundary doc, and the current product-scope document for future implementation planning.

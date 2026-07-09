@@ -15,6 +15,7 @@ Related decisions:
 - [`decisions/0003-intent-criteria-compiler-pipeline.md`](decisions/0003-intent-criteria-compiler-pipeline.md)
 - [`decisions/0004-modes-presets-and-grouping.md`](decisions/0004-modes-presets-and-grouping.md)
 - [`requirements/name-request-v1-checkpoint.md`](requirements/name-request-v1-checkpoint.md)
+- [`requirements/name-grouping-design-boundary.md`](requirements/name-grouping-design-boundary.md)
 
 ## Reading rule
 
@@ -134,9 +135,9 @@ If the request omits a seed, the engine resolves a fresh one and emits it. The s
 
 ## Future quantity and grouping contracts
 
-Runtime quantity, grouping, and slotted generation are deferred. Do not add these to the public v1 API until a dedicated grouping design slice defines them.
+Runtime quantity, grouping, and slotted generation are deferred. Do not add these to the public v1 API until a dedicated grouping design slice accepts the contract. The current docs-only boundary is [`requirements/name-grouping-design-boundary.md`](requirements/name-grouping-design-boundary.md).
 
-Future concepts include:
+Future concept names include:
 
 ```ts
 type NameQuantity = {
@@ -145,23 +146,28 @@ type NameQuantity = {
 
 type NameGrouping =
   | { readonly kind: "none" }
-  | { readonly kind: "independent" }
   | { readonly kind: "set"; readonly criteria?: NameSetCriteria }
-  | {
-      readonly kind: "slotted-set";
-      readonly criteria?: NameSetCriteria;
-      readonly slots: readonly NameSlotRequest[];
-    };
+  | { readonly kind: "ranked-list" }
+  | { readonly kind: "slots"; readonly slots: readonly NameSlotRequest[] };
 ```
 
 Meanings:
 
-- `none`: one generated name.
-- `independent`: multiple names without a relationship requirement.
-- `set`: multiple names selected to work together.
-- `slotted-set`: a set where each slot may add local criteria.
+- `none`: the current singular behavior.
+- `set`: independent names generated under shared criteria.
+- `ranked-list`: multiple alternatives for one naming problem.
+- `slots`: named roles such as given/family/place/team/member.
 
-This remains the planned abstraction for Cast and Ensemble behavior. Cast remains a mode/product surface; grouping is the future backend-relevant invariant.
+`NameSetCriteria` is future vocabulary for criteria that apply across a set or group. It is where cohesion, contrast, diversity, compatibility, and aggregate diagnostics questions can be designed without changing the current request shape.
+
+Boundary rules:
+
+- Do not add grouping fields to the current public v1 `NameRequest` until a contract slice is accepted.
+- Do not make `mode` drive grouping behavior.
+- Do not make Fiction Cast concepts global engine assumptions.
+- Do not expose candidate scoring as public group fit scoring.
+- Do not add public Criteria Match or fit percentage UI as part of grouping design.
+- Do not implement runtime grouping in a docs-only slice.
 
 ## Current model inventory
 
@@ -262,6 +268,7 @@ Does not own:
 - runtime grouping
 - plural quantity behavior
 - slotted generation
+- grouped response shape
 - new active modes
 
 ### Candidate scoring

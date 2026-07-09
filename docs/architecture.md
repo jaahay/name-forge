@@ -14,6 +14,7 @@ Related docs:
 - [`product-architecture.md`](product-architecture.md): product-level mode strategy and criteria UI direction.
 - [`phase-one-closeout.md`](phase-one-closeout.md): Phase One completion and replacement tracking model.
 - [`requirements/name-request-v1-checkpoint.md`](requirements/name-request-v1-checkpoint.md): checkpoint after Slices 1-8 and boundary before Slice 9.
+- [`requirements/name-grouping-design-boundary.md`](requirements/name-grouping-design-boundary.md): Slice 9 docs-only boundary for future grouping, quantity, and set criteria design.
 - [`decisions/0001-name-artifact-and-request-contract.md`](decisions/0001-name-artifact-and-request-contract.md): `NameArtifact` and `NameRequest -> NameResponse` direction.
 - [`decisions/0002-criteria-driven-generation.md`](decisions/0002-criteria-driven-generation.md): criteria-driven generation and internal scoring.
 - [`decisions/0003-intent-criteria-compiler-pipeline.md`](decisions/0003-intent-criteria-compiler-pipeline.md): intent surfaces to criteria to compiler pipeline.
@@ -83,6 +84,8 @@ NameRequest
 ```
 
 That path is singular by design. V1 returns exactly one name artifact in `NameResponse.names`. Runtime quantity, grouping, slotted generation, and set selection remain future extensions.
+
+Slice 9 documents the future grouping boundary without changing that runtime. `NameQuantity`, `NameGrouping`, and `NameSetCriteria` remain design vocabulary only until a later contract slice accepts a grouped request/response shape. Do not add grouping fields to the current public v1 `NameRequest`, do not make `mode` drive grouping behavior, and do not treat Fiction Cast role/ensemble concepts as global engine assumptions.
 
 The older settings-facing Fiction cast runtime still powers the active app surface:
 
