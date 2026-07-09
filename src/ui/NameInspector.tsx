@@ -13,6 +13,7 @@ interface NameInspectorProps {
 export const visibleSpellingCandidateLimit = 6;
 
 type SpellingCandidate = GeneratedName['spellingCandidates'][number];
+type AuditionCue = ReturnType<typeof renderAuditionCue>;
 
 function metadataFor(name: GeneratedName) {
   const identity = name.identity;
@@ -44,8 +45,31 @@ function readStatusLabel(name: GeneratedName): string {
   return `${noteCount} read note${noteCount === 1 ? '' : 's'}`;
 }
 
+function retainedSpellingCandidateSummary(name: GeneratedName): string {
+  return name.spellingCandidates
+    .slice(0, visibleSpellingCandidateLimit)
+    .map((candidate) => `${candidate.text} (${spellingCandidateMetadataLabel(candidate, name.spelling.id)})`)
+    .join(', ');
+}
+
+function selectedNameDetailsText(name: GeneratedName, auditionCue: AuditionCue): string {
+  const spellingCandidates = retainedSpellingCandidateSummary(name) || 'None';
+  return [
+    name.name,
+    `Sound sketch: ${name.sound.transcription}`,
+    `Pronunciation guide: ${auditionCue.displayText}`,
+    `Selected spelling: ${name.spelling.text} (rank ${name.spelling.rank}, score ${formatScore(name.spelling.score)})`,
+    `Spelling candidates: ${spellingCandidates}`,
+    `Read status: ${readStatusLabel(name)}`,
+  ].join('\n');
+}
+
 function copyName(name: GeneratedName) {
   void navigator.clipboard?.writeText(name.name);
+}
+
+function copyDetails(name: GeneratedName, auditionCue: AuditionCue) {
+  void navigator.clipboard?.writeText(selectedNameDetailsText(name, auditionCue));
 }
 
 function canUseBrowserSpeech(): boolean {
@@ -92,6 +116,7 @@ export function NameInspector({ name, isLocked, onToggleLockedName }: NameInspec
           </ul>
           <div className="selected-name-actions" aria-label={`${name.name} selected-name actions`}>
             <button type="button" className="secondary" aria-label={`Copy name ${name.name}`} onClick={() => copyName(name)}>Copy name</button>
+            <button type="button" className="secondary" aria-label={`Copy details ${name.name}`} onClick={() => copyDetails(name, auditionCue)}>Copy details</button>
             <button type="button" className="secondary" aria-label={playVoiceDraftLabel} disabled={!browserSpeechAvailable} onClick={() => playVoiceDraft(auditionCue.speechText)}>Play voice draft</button>
             <button type="button" className="secondary selected-name-lock-action" aria-pressed={isLocked} aria-label={lockActionLabel} onClick={() => onToggleLockedName(name.id)}>{isLocked ? 'Unlock' : 'Lock'}</button>
           </div>
@@ -112,7 +137,7 @@ export function NameInspector({ name, isLocked, onToggleLockedName }: NameInspec
         <section className="detail-block artifact-detail-block">
           <h3>Spelling</h3>
           <dl className="artifact-fact-list">
-            <div><dt>Selected</dt><dd>{name.spelling.text}</dd></div>
+            <div><dt>Selected spelling</dt><dd>{name.spelling.text}</dd></div>
             <div><dt>Rank</dt><dd>{name.spelling.rank}</dd></div>
             <div><dt>Score</dt><dd>{formatScore(name.spelling.score)}</dd></div>
           </dl>
