@@ -88,8 +88,17 @@ describe('NameInspector', () => {
     expect(html).toContain('selected-name-actions');
     expect(html).toContain(`${name.name} selected-name actions`);
     expect(html).toContain(`aria-label="Copy name ${name.name}"`);
+    expect(html).toContain(`aria-label="Copy details ${name.name}"`);
     expect(html).toContain(`aria-label="Lock ${name.name}"`);
     expect(html).toContain('aria-pressed="false"');
+  });
+
+  it('aligns selected spelling terminology with export terminology', () => {
+    const name = fixtureName();
+    const html = renderInspector(name);
+
+    expect(html).toContain('Selected spelling');
+    expect(html).not.toContain('<dt>Selected</dt>');
   });
 
   it('renders a sound-derived pronunciation guide and browser voice draft state', () => {
