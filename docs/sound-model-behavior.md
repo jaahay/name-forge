@@ -2,6 +2,10 @@
 
 This document explains the sound side of Name Forge in plain terms. It is intentionally not a linguistics textbook. The goal is to make the product behavior understandable, keep the code honest about what it knows, and prevent browser/audio shortcuts from becoming the source of truth.
 
+Related docs:
+
+- [`requirements/sound-unit-audio-audition-boundary.md`](requirements/sound-unit-audio-audition-boundary.md): docs-only future boundary for renderer-neutral audio plans, provider projections, and phrase-level audio provenance.
+
 ## The short version
 
 Name Forge should behave like this:
@@ -102,6 +106,8 @@ SegmentSequence
 
 `BrowserAuditionCue` is renderer-specific. It may use practical text tricks to make browser speech or human display less awkward. It is not the source of truth.
 
+Future audio work should follow [`requirements/sound-unit-audio-audition-boundary.md`](requirements/sound-unit-audio-audition-boundary.md) before introducing runtime audio, provider payloads, SSML, IPA, waveform persistence, or UI changes. Future audio plans should be downstream projections of `AuditionPhonology` and `IdentityAuditionPhrase`, not replacements for them.
+
 ## Data model
 
 A data model describes what facts the system preserves.
@@ -135,6 +141,7 @@ Examples:
 - browser speech text
 - fallback audition stress
 - readability diagnostics
+- future renderer-neutral audio plans
 - future SSML/provider payloads
 
 Derived facts may be useful, but they should not silently replace the durable model. A fallback should stay visibly marked as a fallback.
@@ -229,6 +236,7 @@ Phonotactics belong in the sound recipe and generation behavior: `SoundProfile`,
 | `identity.ts` | Arranges licensed name parts | Display identity parts | New arbitrary sound material |
 | `auditionPhonology.ts` | Reads generated sound for sound presentation | Renderer-neutral syllable metadata and explicit fallback stress | Generation rules or browser hacks |
 | `browserAuditionProjection.ts` | Makes browser/display text from audition facts | `speechText`, guide text, browser-specific compromises | Core phonology or name validity |
+| `identityAudition.ts` | Projects composed identities into audition phrase parts | Sound/text/literal provenance | Provider audio payloads or invented sound for text |
 | `NameInspector.tsx` | Shows the selected name to the user | Labels, controls, selected-name presentation | Generation logic |
 
 ## Working rules
@@ -241,7 +249,11 @@ Phonotactics belong in the sound recipe and generation behavior: `SoundProfile`,
 6. Treat arrays as ordered collections. If order is semantic, document what it means. If order is only deterministic traversal, do not let callers treat it as ranking.
 7. A rank field is stronger than array position when ranking is part of the contract.
 8. Add small, testable facts before adding a large phonology abstraction.
+9. Keep future audio plans renderer-neutral before provider-specific projection.
+10. Preserve phrase-level sound/text/literal provenance before any audio rendering.
 
 ## Near-term direction
 
 The explicit syllable metadata fields are now in the durable sound model. Future work should make stress assignment smarter only when the generator has a real rule to own, such as cadence-driven or weight-driven stress. Until then, fallback stress belongs in audition projection and must remain labeled as fallback.
+
+Future audio audition should start from the docs-only boundary in [`requirements/sound-unit-audio-audition-boundary.md`](requirements/sound-unit-audio-audition-boundary.md). Runtime audio, SSML, IPA, provider integration, waveform generation, and audio persistence remain deferred until the renderer-neutral plan and phrase provenance contract are accepted.
