@@ -4,15 +4,15 @@ import { generateEnsemble, type LockedNameSlot } from './engine/ensemble';
 import type { GeneratedEnsemble, GenerationSettings } from './engine/types';
 import { AboutView } from './ui/AboutView';
 import { ChangelogView } from './ui/ChangelogView';
+import { GameNpcView } from './ui/GameNpcView';
 import { GeneratorView } from './ui/GeneratorView';
-import { fictionCastMode } from './ui/modes';
+import { fictionCastMode, gameNpcMode, type NamingModeId } from './ui/modes';
 import type { AppView, ControlKey } from './ui/presentation';
 import { randomizeScoreSettings, randomScore } from './ui/score';
 
 const registry = createDefaultRegistry();
 const stylePacks = registry.listStylePacks();
-const activeMode = fictionCastMode;
-const initialSettings = activeMode.defaultSettings(stylePacks[0]?.id ?? 'british-literary-fantasy');
+const initialSettings = fictionCastMode.defaultSettings(stylePacks[0]?.id ?? 'british-literary-fantasy');
 const initialEnsemble = generateEnsemble(initialSettings, registry);
 const authorSiteUrl = 'https://jameshay.org/';
 const sourceUrl = 'https://github.com/jaahay/name-forge';
@@ -33,10 +33,16 @@ function retainedLockIds(ensemble: GeneratedEnsemble, lockedNameIds: Set<string>
 
 export default function App() {
   const [currentView, setCurrentView] = useState<AppView>('generator');
+  const [activeModeId, setActiveModeId] = useState<NamingModeId>('fiction-cast');
   const [settings, setSettings] = useState<GenerationSettings>(initialSettings);
   const [committedSettings, setCommittedSettings] = useState<GenerationSettings>(initialSettings);
   const [ensemble, setEnsemble] = useState<GeneratedEnsemble>(initialEnsemble);
   const [lockedNameIds, setLockedNameIds] = useState<Set<string>>(() => new Set());
+
+  function showMode(modeId: NamingModeId) {
+    setActiveModeId(modeId);
+    setCurrentView('generator');
+  }
 
   function updateSetting<K extends keyof GenerationSettings>(key: K, value: GenerationSettings[K]) {
     setSettings((current) => ({ ...current, [key]: value }));
@@ -96,9 +102,9 @@ export default function App() {
           <span className="nav-divider" aria-hidden="true" />
           <div className="mode-tabs" aria-label="Naming modes">
             <button type="button" className="mode-tab" disabled>Product</button>
-            <button type="button" className="mode-tab" disabled>NPC</button>
+            <button type="button" className={currentView === 'generator' && activeModeId === 'game-npc' ? 'mode-tab active' : 'mode-tab'} onClick={() => showMode('game-npc')}>NPC</button>
             <button type="button" className="mode-tab" disabled>Pen name</button>
-            <button type="button" className={currentView === 'generator' ? 'mode-tab active' : 'mode-tab'} onClick={() => setCurrentView('generator')}>Cast</button>
+            <button type="button" className={currentView === 'generator' && activeModeId === 'fiction-cast' ? 'mode-tab active' : 'mode-tab'} onClick={() => showMode('fiction-cast')}>Cast</button>
           </div>
         </div>
         <div className="utility-tabs" aria-label="Project links">
@@ -109,21 +115,25 @@ export default function App() {
       </nav>
 
       {currentView === 'generator' ? (
-        <GeneratorView
-          mode={activeMode}
-          stylePacks={stylePacks}
-          settings={settings}
-          committedSettings={committedSettings}
-          ensemble={ensemble}
-          lockedNameIds={lockedNameIds}
-          onUpdateSetting={updateSetting}
-          onGenerate={generate}
-          onCommitSettings={commitCurrentSettings}
-          onRandomizeSliders={randomizeSliders}
-          onRandomizeSlider={randomizeSlider}
-          onToggleLockedName={toggleLockedName}
-          onClearLockedNames={clearLockedNames}
-        />
+        activeModeId === 'game-npc' ? (
+          <GameNpcView mode={gameNpcMode} stylePacks={stylePacks} />
+        ) : (
+          <GeneratorView
+            mode={fictionCastMode}
+            stylePacks={stylePacks}
+            settings={settings}
+            committedSettings={committedSettings}
+            ensemble={ensemble}
+            lockedNameIds={lockedNameIds}
+            onUpdateSetting={updateSetting}
+            onGenerate={generate}
+            onCommitSettings={commitCurrentSettings}
+            onRandomizeSliders={randomizeSliders}
+            onRandomizeSlider={randomizeSlider}
+            onToggleLockedName={toggleLockedName}
+            onClearLockedNames={clearLockedNames}
+          />
+        )
       ) : currentView === 'changelog' ? (
         <ChangelogView commitHistoryUrl={commitHistoryUrl} />
       ) : (
