@@ -19,6 +19,8 @@ export interface FictionCastModeConfig extends NamingModePresentation {
   defaultSettings: (stylePackId: string) => GenerationSettings;
 }
 
+export type NamingModeConfig = FictionCastModeConfig;
+
 export const fictionCastMode: FictionCastModeConfig = {
   id: 'fiction-cast',
   label: 'Fiction cast',
