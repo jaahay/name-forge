@@ -1,5 +1,9 @@
 # Identity Phrase Audition
 
+Related docs:
+
+- [`requirements/sound-unit-audio-audition-boundary.md`](requirements/sound-unit-audio-audition-boundary.md): docs-only future boundary for phrase-level audio planning, sound-backed parts, text-backed parts, literals, provider projection, and audio non-goals.
+
 Name Forge has two related audition surfaces:
 
 ```text
@@ -36,6 +40,8 @@ Phrase audition must preserve provenance. It should not turn every identity part
 | `{ kind: 'literal', value }` | `literal` | The identity format contributes a literal word or punctuation such as `of` or `,`. | `format-literal` |
 
 Each phrase part carries both `speechSource` and `displaySource`. They currently match, but they are explicit because speech and display may diverge once provider-specific speech payloads or richer UI rendering are introduced.
+
+Future audio work must preserve the same `sound` / `text` / `literal` distinction. A sound-backed part may later reference a generated sound-unit plan, but text-backed lexemes and literals must stay explicit unless a future model gives them their own sound provenance.
 
 ## Materialized phrase parts
 
@@ -85,5 +91,6 @@ That distinction is deliberate. `Archivist`, `the Ashen`, `J.`, and `of` are use
 - No provider-specific TTS payload.
 - No automatic pronunciation for arbitrary lexical text.
 - No UI redesign.
+- No phrase-level audio implementation.
 
-This keeps phrase audition as a provenance-preserving projection rather than a new pronunciation engine.
+This keeps phrase audition as a provenance-preserving projection rather than a new pronunciation engine. Future audio planning should start from [`requirements/sound-unit-audio-audition-boundary.md`](requirements/sound-unit-audio-audition-boundary.md) before adding renderer-specific playback or provider payloads.
