@@ -137,9 +137,9 @@ describe('analyzeNameArtifactSet', () => {
     expect(analysis.exactDuplicateCount).toBe(0);
     expect(analysis.nearSpellingPairCount).toBe(1);
     expect(analysis.collisions.map((collision) => collision.kind)).toEqual([
-      'near-spelling',
       'shared-initial',
       'shared-cadence',
+      'near-spelling',
       'shared-ending',
       'shared-cadence',
       'shared-cadence',
