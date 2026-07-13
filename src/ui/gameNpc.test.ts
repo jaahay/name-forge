@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { compileGameNpcStyleInput, defaultGameNpcStyleInput } from './gameNpc';
 
 describe('compileGameNpcStyleInput', () => {
-  it('emits deterministic singular criteria for the default Game NPC input', () => {
+  it('emits only the singular requirement for the balanced default input', () => {
     expect(compileGameNpcStyleInput(defaultGameNpcStyleInput)).toEqual({
       clauses: [
         {
@@ -12,21 +12,13 @@ describe('compileGameNpcStyleInput', () => {
           target: 'single-name',
           strength: 1,
         },
-        {
-          id: 'game-npc-pronounceability',
-          family: 'practical',
-          polarity: 'prefer',
-          target: 'easy-to-spell',
-          strength: 0.78,
-        },
       ],
     });
   });
 
-  it('maps hard and strange intent into supported sound and spelling criteria', () => {
+  it('maps hard sound and distinctive spelling into supported criteria', () => {
     expect(compileGameNpcStyleInput({
-      familiarity: 'strange',
-      pronounceability: 0.55,
+      spellingStyle: 'distinctive',
       texture: 'hard',
     })).toEqual({
       clauses: [
@@ -38,13 +30,6 @@ describe('compileGameNpcStyleInput', () => {
           strength: 1,
         },
         {
-          id: 'game-npc-pronounceability',
-          family: 'practical',
-          polarity: 'prefer',
-          target: 'easy-to-spell',
-          strength: 0.55,
-        },
-        {
           id: 'game-npc-texture',
           family: 'sound',
           polarity: 'prefer',
@@ -52,7 +37,7 @@ describe('compileGameNpcStyleInput', () => {
           strength: 1,
         },
         {
-          id: 'game-npc-familiarity',
+          id: 'game-npc-spelling-style',
           family: 'spelling',
           polarity: 'prefer',
           target: 'distinctive',
