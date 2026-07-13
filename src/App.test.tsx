@@ -3,10 +3,10 @@ import { renderToString } from 'react-dom/server';
 import App from './App';
 
 describe('App', () => {
-  it('renders the fiction cast workbench with collapsed Configure and selected-name artifact surfaces', () => {
+  it('renders the fiction cast workbench with collapsed Configure and shared artifact surfaces', () => {
     const html = renderToString(<App />);
 
-    for (const expected of ['Name Forge', 'Fiction Cast', 'Configure criteria', 'Criteria summary', 'Tune criteria', 'Regenerate', 'Names', 'Name selection', 'Previous', 'Next', 'Inspect', 'Sound', 'Spelling', 'Cast context', 'Usability', 'Cast health', 'Export']) {
+    for (const expected of ['Name Forge', 'Fiction Cast', 'Configure criteria', 'Criteria summary', 'Tune criteria', 'Regenerate', 'Names', 'Name selection', 'Previous', 'Next', 'Inspect', 'Sound', 'Spelling', 'Spelling candidates', 'Readability', 'Cast context', 'Generated shape', 'Cast health', 'Export']) {
       expect(html).toContain(expected);
     }
 
