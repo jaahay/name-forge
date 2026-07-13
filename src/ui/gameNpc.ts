@@ -1,24 +1,17 @@
 import type { NameCriteria, NameCriteriaClause } from '../engine/nameCriteria';
 
-export type GameNpcFamiliarity = 'familiar' | 'balanced' | 'strange';
+export type GameNpcSpellingStyle = 'plain' | 'balanced' | 'distinctive';
 export type GameNpcTexture = 'soft' | 'balanced' | 'hard' | 'liquid';
 
 export interface GameNpcStyleInput {
-  readonly familiarity: GameNpcFamiliarity;
-  readonly pronounceability: number;
+  readonly spellingStyle: GameNpcSpellingStyle;
   readonly texture: GameNpcTexture;
 }
 
 export const defaultGameNpcStyleInput: GameNpcStyleInput = {
-  familiarity: 'balanced',
-  pronounceability: 0.78,
+  spellingStyle: 'balanced',
   texture: 'balanced',
 };
-
-function clampStrength(value: number): number {
-  if (!Number.isFinite(value)) return 1;
-  return Math.min(1, Math.max(0, value));
-}
 
 function soundCriterion(texture: GameNpcTexture): NameCriteriaClause | undefined {
   if (texture === 'balanced') return undefined;
@@ -32,14 +25,14 @@ function soundCriterion(texture: GameNpcTexture): NameCriteriaClause | undefined
   };
 }
 
-function familiarityCriterion(familiarity: GameNpcFamiliarity): NameCriteriaClause | undefined {
-  if (familiarity === 'balanced') return undefined;
+function spellingCriterion(spellingStyle: GameNpcSpellingStyle): NameCriteriaClause | undefined {
+  if (spellingStyle === 'balanced') return undefined;
 
   return {
-    id: 'game-npc-familiarity',
+    id: 'game-npc-spelling-style',
     family: 'spelling',
     polarity: 'prefer',
-    target: familiarity === 'familiar' ? 'plain' : 'distinctive',
+    target: spellingStyle,
     strength: 1,
   };
 }
@@ -53,20 +46,13 @@ export function compileGameNpcStyleInput(input: GameNpcStyleInput): NameCriteria
       target: 'single-name',
       strength: 1,
     },
-    {
-      id: 'game-npc-pronounceability',
-      family: 'practical',
-      polarity: 'prefer',
-      target: 'easy-to-spell',
-      strength: clampStrength(input.pronounceability),
-    },
   ];
 
   const sound = soundCriterion(input.texture);
   if (sound) clauses.push(sound);
 
-  const familiarity = familiarityCriterion(input.familiarity);
-  if (familiarity) clauses.push(familiarity);
+  const spelling = spellingCriterion(input.spellingStyle);
+  if (spelling) clauses.push(spelling);
 
   return { clauses };
 }
