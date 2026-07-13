@@ -66,6 +66,9 @@ export function NameArtifactInspector({ artifact, eyebrow = 'Inspect', extraActi
   const browserSpeechAvailable = Boolean(auditionCue) && canUseBrowserSpeech();
   const displayName = protectInitialBreaks(artifact.displayText);
   const displayLength = getNameDisplayLength(artifact.displayText);
+  const playVoiceDraftLabel = browserSpeechAvailable
+    ? `Play browser voice draft for ${artifact.displayText}`
+    : `Browser voice draft unavailable for ${artifact.displayText}`;
 
   return (
     <aside className="selected-name-panel panel" aria-labelledby={`artifact-heading-${artifact.id}`}>
@@ -76,9 +79,9 @@ export function NameArtifactInspector({ artifact, eyebrow = 'Inspect', extraActi
         </div>
         <div className="selected-name-heading-tools">
           <div className="selected-name-actions" aria-label={`${artifact.displayText} selected-name actions`}>
-            <button type="button" className="secondary" onClick={() => copyText(artifact.displayText)}>Copy name</button>
-            <button type="button" className="secondary" onClick={() => copyText(detailsText(artifact, auditionCue?.displayText))}>Copy details</button>
-            {auditionCue ? <button type="button" className="secondary" disabled={!browserSpeechAvailable} onClick={() => playVoiceDraft(auditionCue.speechText)}>Play voice draft</button> : null}
+            <button type="button" className="secondary" aria-label={`Copy name ${artifact.displayText}`} onClick={() => copyText(artifact.displayText)}>Copy name</button>
+            <button type="button" className="secondary" aria-label={`Copy details ${artifact.displayText}`} onClick={() => copyText(detailsText(artifact, auditionCue?.displayText))}>Copy details</button>
+            {auditionCue ? <button type="button" className="secondary" aria-label={playVoiceDraftLabel} disabled={!browserSpeechAvailable} onClick={() => playVoiceDraft(auditionCue.speechText)}>Play voice draft</button> : null}
             {extraActions}
           </div>
         </div>
@@ -92,7 +95,7 @@ export function NameArtifactInspector({ artifact, eyebrow = 'Inspect', extraActi
             <div><dt>Pronunciation guide</dt><dd>{auditionCue?.displayText ?? 'Not available'}</dd></div>
             <div><dt>Playback</dt><dd>{browserSpeechAvailable ? 'Browser voice draft available' : 'Browser voice unavailable'}</dd></div>
           </dl>
-          <p className="section-note">Guide is derived from the sound model. It is not a canonical pronunciation or a measured ease score.</p>
+          <p className="section-note">Guide is generated from the sound model. Browser voice is an approximation, not a canonical pronunciation. Neither is a measured ease score.</p>
         </section>
 
         <section className="detail-block artifact-detail-block">
