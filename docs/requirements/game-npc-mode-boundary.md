@@ -1,216 +1,189 @@
-# Game NPC mode discovery boundary
+# Game NPC mode boundary
 
-This document defines the first product and compiler boundary for a future **Game NPC** mode. It does not activate a new mode or add runtime behavior.
+This document defines the implemented product, criteria, and presentation boundary for **Game NPC** mode.
 
 ## User job
 
-The Game NPC job is:
+Game NPC serves this job:
 
-> Give me usable names quickly for tabletop, videogame, or interactive-fiction prep, with minimal configuration and fast reroll.
+> Give me one usable name quickly for tabletop, videogame, or interactive-fiction prep, with minimal configuration and fast reroll.
 
-This differs from Fiction cast:
+Fiction Cast serves a different job:
 
-> Help me name a coherent cast of characters that feel distinct.
+> Help me build a coherent but distinct ensemble of character names.
 
-Fiction cast optimizes for ensemble coherence, roster browsing, role-aware selection, and cast-level diagnostics. Game NPC should optimize for speed, low setup cost, and rapid use during prep or live play.
+Game NPC optimizes for speed, low setup cost, and immediate use. Fiction Cast optimizes for roster construction, ensemble comparison, role-aware selection, locks, cast-level diagnostics, and cast export.
 
-## Product boundary
+## Cardinality decision
 
-Game NPC is a **mode**, not a separate generator.
+The implemented Game NPC mode generates **one name at a time**.
 
-The intended pipeline remains:
+That is intentional:
 
-```text
-Game NPC intent surface
-  -> NameCriteria
-  -> compiled criteria
-  -> existing SoundProfile / spelling preferences / exclusions / selection inputs
-  -> existing sound-first generation
-  -> NameArtifact
-  -> Game NPC result presentation
-```
+- it matches the current singular `NameRequest -> NameResponse` v1 contract;
+- it supports the live-play loop of generate, inspect, copy, or reroll;
+- it avoids disguising one NPC as a one-member cast;
+- it avoids introducing a mode-specific plural loop before the shared quantity/grouping contract exists.
 
-The mode may choose labels, defaults, suggested criteria, compact controls, result presentation, and export language. It must not introduce a second phonological engine, a separate request family, or a mode-driven branch inside v1 generation.
+A future short NPC roster may be useful for encounter prep. That must use the shared quantity and grouping model when it exists. It must not become a separate `NpcRosterRequest`, repeated client-side singular requests presented as one atomic roster, or a forked generator.
 
-## Current architectural invariants
+## Platform pipeline
 
-The future Game NPC slice must preserve these current contracts:
-
-- `NameRequest -> NameResponse` remains the public request/response direction.
-- `NameRequest.mode` remains optional product metadata and must not drive v1 generation behavior.
-- `NameCriteria` is the durable input model.
-- `SoundProfile` remains the shared compiled sound-generation contract.
-- `SegmentSequence` remains the pre-spelling generated sound plan.
-- ranked spelling candidates remain projections of generated sound.
-- `NameArtifact` remains the inspectable output artifact.
-- the singular v1 request still returns exactly one artifact.
-
-Game NPC should not require `NpcRequest`, `GameNpcRequest`, or a dedicated backend generator.
-
-## First input model
-
-The first Game NPC interface should be a compact intent surface that emits existing or future `NameCriteriaClause` values.
-
-Potential user-facing controls:
-
-| Control | Product meaning | Criteria/compiler direction |
-| --- | --- | --- |
-| Context preset | Region, faction, species, class, culture-like fictional frame, or campaign tone. | Produces a bounded set of sound, register, spelling, semantic, and practical criteria. |
-| Familiarity | Familiar, balanced, or strange. | Adjusts novelty, cultural anchoring, orthographic naturalness, and spelling pressure. |
-| Pronounceability | How easily the name can be read aloud during play. | Reuses pronounceability and readability-related selection inputs. |
-| Length | Short, medium, or long. | Produces shape criteria and syllable/length targets. |
-| Texture | Soft, balanced, hard, or liquid. | Produces sound criteria and existing texture preferences. |
-| Format | Given name, full name, title-name, or place-like form where supported. | Reuses existing name-format or identity composition paths. |
-| Avoid | Fragments, initials, or other practical exclusions. | Produces avoid/practical criteria. |
-| Seed | Reproduce or reroll the same configured job. | Reuses existing randomization behavior. |
-
-The UI does not need to expose criteria-family terminology directly. Presets and compact controls may compile into several clauses.
-
-## `GameNpcStyleInput` design vocabulary
-
-A future frontend-only convenience type may be useful:
-
-```ts
-type GameNpcStyleInput = {
-  readonly contextPresetId?: string;
-  readonly familiarity: "familiar" | "balanced" | "strange";
-  readonly pronounceability: number;
-  readonly length?: "short" | "medium" | "long";
-  readonly texture?: "soft" | "balanced" | "hard" | "liquid";
-  readonly format?: string;
-  readonly avoid?: readonly string[];
-};
-```
-
-This type is design vocabulary only. It should compile to `NameCriteria`; it should not be added to the engine as a parallel durable request contract.
-
-Potential direction:
+Game NPC is a mode over the shared naming platform, not a separate generator:
 
 ```text
 GameNpcStyleInput
   -> compileGameNpcStyleInput
   -> NameCriteria
-  -> existing criteria compiler / generator path
+  -> NameRequest
+  -> existing criteria compiler
+  -> SoundProfile / SegmentSequence / spelling selection
+  -> NameArtifact
+  -> shared NameArtifactInspector
 ```
 
-The compiler should be deterministic and data-shaped. Context presets should be explicit frontend configuration, not hidden prompt logic.
+The mode may own labels, defaults, compact controls, reroll behavior, and mode-specific surrounding actions. It must not own a second phonological engine, request family, artifact model, or artifact renderer.
 
-## Result presentation
+## Implemented input contract
 
-The first Game NPC result surface should emphasize speed:
+The first `GameNpcStyleInput` intentionally exposes only criteria the current compiler implements explicitly:
 
-- one prominent generated name;
-- immediate reroll using the same configured criteria with a new seed;
-- copy-name action;
-- compact access to selected spelling, sound guide, readability notes, and variants;
-- optional deeper Inspect using the existing selected-name artifact surface;
-- concise mode-specific export or copied detail text.
+```ts
+type GameNpcStyleInput = {
+  readonly spellingStyle: "plain" | "balanced" | "distinctive";
+  readonly texture: "soft" | "balanced" | "hard" | "liquid";
+};
+```
 
-The first implementation should not require plural generation. A fast singular generate/reroll loop is compatible with the current v1 request contract.
+Compilation is deterministic:
 
-Future quantity may later support a short NPC list, but it belongs to the accepted grouping/quantity contract rather than a Game NPC-specific loop around generation.
+- `plain` and `distinctive` map to supported spelling criteria;
+- `soft`, `hard`, and `liquid` map to supported sound-texture criteria;
+- `balanced` emits no preference for that dimension;
+- every request requires one name.
 
-## Fiction Cast assumptions that must not leak
+The mode does not currently expose familiarity, pronounceability, length, semantic context, format, or avoidance controls.
 
-Game NPC must not inherit these as global requirements:
+## Why pronounceability is not a current control
 
-- cast size;
-- ensemble balance;
-- Cast Health;
-- cast role presets;
-- slot overrides;
-- role influence;
-- lock behavior designed around maintaining an ensemble;
-- cast-oriented headings or export language;
-- assumptions that all results belong to one coherent roster.
+Name Forge does not currently possess a validated scalar pronounceability model.
 
-Shared workbench primitives may remain reusable:
+A meaningful pronounceability claim would need at least:
 
-- Configure;
-- generated candidate/result display;
-- Inspect;
-- copy/export;
-- seed and reroll;
-- spelling candidates;
+- a declared listener language or language family;
+- phonotactic legality and markedness for that listener population;
+- syllable structure, stress, sonority transitions, cluster complexity, and segment inventory;
+- a distinction between generated sound and orthographic interpretation;
+- empirical or expert validation showing that the score predicts human performance.
+
+The current system has renderer-neutral sound structure, an audition projection, browser voice approximation, and deterministic read-friction diagnostics. Those are useful facts, but they do not justify a universal “78% pronounceable” control or score.
+
+Readability diagnostics may report observable orthographic friction. They must not be presented as proof of pronunciation ease.
+
+## Why familiarity is not a current control
+
+Name familiarity is also population- and context-dependent.
+
+A meaningful familiarity model would need a declared reference corpus or audience and would likely distinguish:
+
+- lexical or name-frequency familiarity;
+- phonological neighborhood familiarity;
+- cultural or regional familiarity;
+- spelling-pattern familiarity;
+- genre familiarity;
+- prior exposure to related names.
+
+The current compiler can choose plain or distinctive spelling pressure. That is not equivalent to name familiarity, so the UI labels the implemented control **Spelling style** rather than Familiarity.
+
+## Shared artifact rendering contract
+
+`NameArtifact` is the reusable result contract across modes.
+
+Both Fiction Cast and Game NPC render the common artifact surface through `NameArtifactInspector`, including:
+
+- display name;
+- sound sketch;
+- sound-derived pronunciation guide;
+- browser voice draft state;
+- selected spelling;
+- ranked spelling candidates;
 - readability diagnostics;
-- sound audition draft;
-- variants and provenance.
+- variants;
+- copy-name and copy-details actions.
+
+Modes may compose additional sections and actions around the shared inspector:
+
+- Fiction Cast adds lock controls, cast context, generated shape, score detail, name parts, and role influence.
+- Game NPC adds reroll behavior and compact criteria configuration.
+
+A mode must not create a parallel rendering implementation for common `NameArtifact` facts.
 
 ## Mode configuration boundary
 
-The current `NamingModeConfig` contains Fiction cast labels and `GenerationSettings` defaults. A future implementation should avoid simply adding `game-npc` to that type while retaining cast-only fields as universal mode requirements.
+Shared mode presentation metadata is separate from Fiction Cast generation settings.
 
-Before activating Game NPC, the mode configuration should be reviewed so that:
+- `NamingModePresentation` owns common labels and descriptive copy.
+- `FictionCastModeConfig` owns Fiction Cast-specific `GenerationSettings` defaults.
+- Game NPC compiles its own input into `NameCriteria` and calls the shared request adapter directly.
 
-- common workbench labels and presentation options are shared;
-- Fiction cast-only configuration remains owned by Fiction cast;
-- Game NPC defaults can produce criteria without requiring cast settings;
-- no inactive placeholder mode appears in the UI.
+Game NPC does not fabricate cast size, role presets, slot overrides, lock state, Cast Health, or cast export.
 
-This may require decomposing the current mode config before or during the first implementation slice.
+## Determinism and reroll
 
-## Validation target for a later implementation slice
+The same Game NPC input, style source, and seed must produce the same singular `NameArtifact`.
 
-A future implementation PR should demonstrate:
-
-1. a Game NPC intent input compiles deterministically into `NameCriteria`;
-2. the existing criteria-driven request/generator path produces the result;
-3. the same input and seed produce the same selected `NameArtifact`;
-4. changing a meaningful Game NPC control changes compiled criteria or selection behavior;
-5. no separate Game NPC generator or request type is introduced;
-6. the rendered result surface uses Game NPC language rather than cast language;
-7. Fiction cast behavior remains unchanged.
-
-A minimal smoke path could be:
+Reroll means:
 
 ```text
-Game NPC preset + compact controls
-  -> NameCriteria
-  -> NameRequest
-  -> one NameArtifact
-  -> compact result + reroll + Inspect
+same mode input + same style source + fresh seed -> new singular response
 ```
 
-## Recommended implementation sequence
+Reproduction means:
+
+```text
+same mode input + same style source + same seed -> same singular artifact
+```
+
+## Implemented slices
 
 ### Slice A: criteria projection
 
-- introduce frontend Game NPC preset/input vocabulary;
-- compile it deterministically into `NameCriteria`;
-- test the compiled criteria;
-- do not expose a selectable mode yet.
+Implemented:
+
+- frontend-owned Game NPC input vocabulary;
+- deterministic projection into `NameCriteria`;
+- exact contract tests for emitted criteria.
 
 ### Slice B: mode shell
 
-- separate shared workbench mode configuration from Fiction cast-only configuration;
-- add the Game NPC mode surface;
-- reuse the singular request/response path;
-- add a compact result and reroll loop;
-- keep existing Inspect available.
+Implemented:
 
-### Slice C: mode-specific polish
+- selectable Game NPC mode;
+- singular `NameRequest -> NameArtifact` generation;
+- compact criteria controls;
+- reroll with a fresh seed;
+- shared `NameArtifactInspector` rendering;
+- deterministic same-seed artifact test;
+- separation from Fiction Cast ensemble state and UI.
 
-- refine quick-copy/export language;
-- add preset discovery and compact configuration;
-- evaluate whether lock/keep behavior is useful for a single result;
-- defer quantity/list behavior to the grouping contract.
+## Deferred work
 
-## Non-goals for this discovery slice
+- Shared quantity and grouping for NPC rosters.
+- Context presets backed by explicit criteria bundles.
+- Meaningful audience-specific familiarity research.
+- Meaningful language-specific pronounceability research.
+- Additional format, semantic, practical, or avoidance criteria once supported honestly.
+- Persistence.
+- Character hooks, biography generation, or encounter generation.
+- Warning/collision implementation.
+- New phonology, audio-provider, IPA, or pronunciation-scoring implementation.
 
-- No selectable Game NPC mode.
-- No runtime code.
-- No separate generator.
-- No `NpcRequest` or Game NPC-specific backend API.
-- No plural quantity or grouped response.
-- No prompt-first or LLM-based criteria compilation.
-- No character hooks or biography generation.
-- No source/asset taxonomy work.
-- No warning/collision implementation.
-- No new phonology or pronunciation implementation.
-- No persistence changes.
+## Invariants
 
-## Decision
-
-Game NPC is the preferred first second mode because it reuses the current sound-first, criteria-driven, inspectable artifact path while materially changing the workflow emphasis from ensemble construction to rapid single-name use.
-
-The next safe implementation slice is **Game NPC criteria projection**, not an immediately selectable mode.
+- No separate Game NPC generator.
+- No `NpcRequest`, `GameNpcRequest`, or `NpcRosterRequest`.
+- No mode-driven branch inside core v1 generation.
+- No fake one-member cast state.
+- No parallel artifact renderer.
+- No unsupported linguistic score presented as objective fact.
+- No plural response until the shared quantity/grouping contract is implemented.
