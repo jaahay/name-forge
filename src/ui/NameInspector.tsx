@@ -1,6 +1,7 @@
 import { toNameArtifact } from '../engine/nameArtifact';
 import type { GeneratedName } from '../engine/types';
 import { NameArtifactInspector } from './NameArtifactInspector';
+export { visibleSpellingCandidateLimit } from './NameArtifactInspector';
 import { rarityPresentation, scorePresentation } from './presentation';
 import { formatScore } from './score';
 import { labelFor } from './namePresentation';
