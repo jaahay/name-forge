@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { renderAuditionCue } from '../engine/audition';
 import type { NameArtifact } from '../engine/nameArtifact';
+import { analyzeNameArtifact } from '../engine/nameArtifactAnalysis';
 import type { NameVariant } from '../engine/types';
 import { formatScore } from './score';
 import { getNameDisplayLength, protectInitialBreaks } from './namePresentation';
@@ -42,6 +43,7 @@ function playVoiceDraft(speechText: string) {
 }
 
 function detailsText(artifact: NameArtifact, pronunciationGuide?: string): string {
+  const analysis = analyzeNameArtifact(artifact);
   const candidates = (artifact.spellingCandidates ?? [])
     .slice(0, visibleSpellingCandidateLimit)
     .map((candidate) => `${candidate.text} (${spellingCandidateMetadataLabel(candidate, artifact.spelling?.id)})`)
@@ -51,13 +53,16 @@ function detailsText(artifact: NameArtifact, pronunciationGuide?: string): strin
     artifact.displayText,
     artifact.sound ? `Sound sketch: ${artifact.sound.transcription}` : undefined,
     pronunciationGuide ? `Pronunciation guide: ${pronunciationGuide}` : undefined,
+    analysis.structure ? `Structure: ${analysis.structure.syllableCount} syllable(s); ${analysis.structure.segmentCount} segments; ${analysis.structure.syllableShapes.join('-')}` : undefined,
     artifact.spelling ? `Selected spelling: ${artifact.spelling.text} (rank ${artifact.spelling.rank}, score ${formatScore(artifact.spelling.score)})` : undefined,
+    analysis.spelling?.selectionSummary,
     `Spelling candidates: ${candidates}`,
-    `Read status: ${(artifact.readabilityDiagnostics ?? []).length === 0 ? 'No deterministic read-friction notes' : `${artifact.readabilityDiagnostics?.length} read notes`}`,
+    `Read status: ${analysis.readability.diagnosticCount === 0 ? 'No deterministic read-friction notes' : `${analysis.readability.diagnosticCount} read notes`}`,
   ].filter(Boolean).join('\n');
 }
 
 export function NameArtifactInspector({ artifact, eyebrow = 'Inspect', extraActions, extraSections }: NameArtifactInspectorProps) {
+  const analysis = analyzeNameArtifact(artifact);
   const spellingCandidates = (artifact.spellingCandidates ?? []).slice(0, visibleSpellingCandidateLimit);
   const hiddenCandidateCount = Math.max(0, (artifact.spellingCandidates?.length ?? 0) - spellingCandidates.length);
   const readNotes = artifact.readabilityDiagnostics ?? [];
@@ -98,13 +103,28 @@ export function NameArtifactInspector({ artifact, eyebrow = 'Inspect', extraActi
           <p className="section-note">Guide is generated from the sound model. Browser voice is an approximation, not a canonical pronunciation. Neither is a measured ease score.</p>
         </section>
 
+        {analysis.structure ? (
+          <section className="detail-block artifact-detail-block">
+            <h3>Structure</h3>
+            <dl className="artifact-fact-list">
+              <div><dt>Segments</dt><dd>{analysis.structure.segmentCount}</dd></div>
+              <div><dt>Syllables</dt><dd>{analysis.structure.syllableCount}</dd></div>
+              <div><dt>Shapes</dt><dd>{analysis.structure.syllableShapes.join(' · ')}</dd></div>
+              <div><dt>Stress</dt><dd>{analysis.structure.stressPattern.join(' · ')}</dd></div>
+              {analysis.structure.cadence ? <div><dt>Cadence</dt><dd>{analysis.structure.cadence}</dd></div> : null}
+            </dl>
+          </section>
+        ) : null}
+
         <section className="detail-block artifact-detail-block">
           <h3>Spelling</h3>
           <dl className="artifact-fact-list">
             <div><dt>Selected spelling</dt><dd>{artifact.spelling?.text ?? artifact.displayText}</dd></div>
             <div><dt>Rank</dt><dd>{artifact.spelling?.rank ?? 'Not ranked'}</dd></div>
             <div><dt>Score</dt><dd>{artifact.spelling ? formatScore(artifact.spelling.score) : 'Not scored'}</dd></div>
+            {analysis.spelling?.runnerUpText ? <div><dt>Runner-up</dt><dd>{analysis.spelling.runnerUpText}</dd></div> : null}
           </dl>
+          {analysis.spelling ? <p className="section-note">{analysis.spelling.selectionSummary}</p> : null}
         </section>
 
         <section className="detail-block artifact-detail-block">
@@ -119,6 +139,10 @@ export function NameArtifactInspector({ artifact, eyebrow = 'Inspect', extraActi
 
         <section className="detail-block artifact-detail-block">
           <h3>Readability</h3>
+          <dl className="artifact-fact-list">
+            <div><dt>Notices</dt><dd>{analysis.readability.noticeCount}</dd></div>
+            <div><dt>Warnings</dt><dd>{analysis.readability.warningCount}</dd></div>
+          </dl>
           {readNotes.length > 0 ? (
             <ul className="readability-list" aria-label={`${artifact.displayText} readability notes`}>
               {readNotes.map((diagnostic) => <li key={`${artifact.id}-${diagnostic.id}`} className={`readability-note ${diagnostic.severity}`}><strong>{diagnostic.label}</strong><span>{diagnostic.detail}</span></li>)}
