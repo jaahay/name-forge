@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import type { NameArtifact } from './nameArtifact';
 import { analyzeNameArtifact, analyzeNameArtifactSet } from './nameArtifactAnalysis';
+import type { SoundProfileCadence } from './soundProfile';
 
-function artifact(id: string, displayText: string, cadence = 'balanced'): NameArtifact {
+function artifact(id: string, displayText: string, cadence: SoundProfileCadence = 'balanced'): NameArtifact {
   return {
     id,
     displayText,
