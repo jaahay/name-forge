@@ -4,8 +4,7 @@ import { renderAuditionCue } from '../engine/audition';
 import { generateEnsemble } from '../engine/ensemble';
 import { createDefaultRegistry } from '../engine/registry';
 import type { GeneratedName, GenerationSettings } from '../engine/types';
-import { NameInspector, visibleSpellingCandidateLimit } from './NameInspector';
-import { formatScore } from './score';
+import { NameInspector } from './NameInspector';
 
 const settings: GenerationSettings = {
   castSize: 1,
@@ -44,15 +43,15 @@ function withSpellingCandidateCount(name: GeneratedName, candidateCount: number)
   const baseCandidate = firstSpellingCandidate(name);
   const spellingCandidates = Array.from({ length: candidateCount }, (_, index): SpellingCandidate => ({
     ...baseCandidate,
-    id: `spelling-candidate:visible-policy-${index + 1}`,
-    text: `VisiblePolicy${index + 1}`,
+    id: `spelling-candidate:same-sound-${index + 1}`,
+    text: `SameSound${index + 1}`,
     rank: index + 1,
     score: Math.max(0, baseCandidate.score - index * 0.01),
   }));
   const [selectedSpelling] = spellingCandidates;
 
   expect(selectedSpelling).toBeDefined();
-  if (!selectedSpelling) throw new Error('Expected visible-policy fixture to include a selected spelling.');
+  if (!selectedSpelling) throw new Error('Expected same-sound fixture to include a selected spelling.');
 
   return { ...name, spelling: selectedSpelling, spellingCandidates };
 }
@@ -68,17 +67,20 @@ function renderInspector(name: GeneratedName, isLocked = false): string {
 }
 
 describe('NameInspector', () => {
-  it('renders retained ranked spelling candidates as a distinct Inspect section', () => {
-    const name = fixtureName();
-    const selectedCandidate = firstSpellingCandidate(name);
-
+  it('renders every retained spelling as an option for the same generated sound', () => {
+    const name = withSpellingCandidateCount(fixtureName(), 14);
+    const finalCandidate = name.spellingCandidates.at(-1);
     const html = renderInspector(name);
 
-    expect(html).toContain('Spelling candidates');
-    expect(html).toContain(`${name.name} ranked spelling candidates`);
-    expect(html).toContain(selectedCandidate.text);
-    expect(html).toContain(`selected; rank ${selectedCandidate.rank}; score ${formatScore(selectedCandidate.score)}`);
-    expect(html).not.toContain(`${name.name} alternate spellings`);
+    expect(finalCandidate).toBeDefined();
+    if (!finalCandidate) throw new Error('Expected a final same-sound spelling.');
+
+    expect(html).toContain('All same-sound spellings');
+    expect(html).toContain(`${name.name} same-sound spellings`);
+    expect(html).toContain(finalCandidate.text);
+    expect(html).toContain('preference rank 14');
+    expect(html).not.toContain('Showing top');
+    expect(html).not.toContain('score ');
   });
 
   it('renders selected-name actions in Inspect', () => {
@@ -98,7 +100,7 @@ describe('NameInspector', () => {
     const html = renderInspector(name);
 
     expect(html).toContain('Selected spelling');
-    expect(html).not.toContain('<dt>Selected</dt>');
+    expect(html).toContain('Same-sound options');
   });
 
   it('renders a sound-derived pronunciation guide and browser voice draft state', () => {
@@ -124,38 +126,5 @@ describe('NameInspector', () => {
     expect(html).toContain('selected-name-lock-action');
     expect(html).toContain(`aria-label="Unlock ${name.name}"`);
     expect(html).toContain('aria-pressed="true"');
-  });
-
-  it('renders only the visible spelling candidate limit with a deterministic overflow note', () => {
-    const candidateCount = visibleSpellingCandidateLimit + 2;
-    const name = withSpellingCandidateCount(fixtureName(), candidateCount);
-    const lastVisibleCandidate = name.spellingCandidates[visibleSpellingCandidateLimit - 1];
-    const firstHiddenCandidate = name.spellingCandidates[visibleSpellingCandidateLimit];
-
-    expect(lastVisibleCandidate).toBeDefined();
-    if (!lastVisibleCandidate) throw new Error('Expected a final visible spelling candidate.');
-    expect(firstHiddenCandidate).toBeDefined();
-    if (!firstHiddenCandidate) throw new Error('Expected a hidden spelling candidate beyond the visible limit.');
-
-    const html = renderInspector(name);
-
-    expect(html).toContain(lastVisibleCandidate.text);
-    expect(html).not.toContain(firstHiddenCandidate.text);
-    expect(html).toContain('Showing top');
-    expect(html).toContain(`${visibleSpellingCandidateLimit}<!-- --> of <!-- -->${candidateCount}`);
-    expect(html).toContain('ranked spelling candidates.');
-  });
-
-  it('omits the spelling candidate limit note when all retained candidates are visible', () => {
-    const name = withSpellingCandidateCount(fixtureName(), visibleSpellingCandidateLimit);
-    const finalCandidate = name.spellingCandidates[visibleSpellingCandidateLimit - 1];
-
-    expect(finalCandidate).toBeDefined();
-    if (!finalCandidate) throw new Error('Expected a final retained spelling candidate.');
-
-    const html = renderInspector(name);
-
-    expect(html).toContain(finalCandidate.text);
-    expect(html).not.toContain('Showing top');
   });
 });
