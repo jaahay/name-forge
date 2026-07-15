@@ -34,8 +34,10 @@ Game NPC is a thin mode over the shared naming platform:
 ```text
 NameRequest
   -> existing criteria compiler
-  -> SoundProfile / SegmentSequence / spelling selection
-  -> NameArtifact
+  -> SoundProfile / SegmentSequence
+  -> exhaustive supported spelling pool
+  -> deterministic orthographic preference ranking
+  -> selected spelling + NameArtifact
   -> analyzeNameArtifact
   -> shared NameArtifactInspector
 ```
@@ -59,6 +61,36 @@ It does not expose speculative controls for:
 
 Those labels are not useful merely because internal generator settings or heuristics exist. A user-facing control must correspond to a clear product intent and a defensible model.
 
+The spelling display cap is different. It is a local presentation preference, not a generation criterion. Changing it reveals more or fewer already-ranked spellings without regenerating the sound or changing the selected spelling.
+
+## Same-sound spelling contract
+
+For one generated sound sequence, Name Forge derives every spelling supported by the current grapheme inventory. The engine ranks the full pool before any display cap is applied.
+
+The ranking is an **orthographic preference**, not a universal beauty score:
+
+- conventional segment-to-grapheme mappings carry the strongest base weight;
+- recognizable alternatives follow;
+- unusual or heavily expanded mappings rank lower;
+- profile distinctiveness and texture may reorder otherwise plausible alternatives;
+- deterministic text ordering breaks exact score ties.
+
+This supports a result shape such as:
+
+```text
+more conventional
+  -> Sean
+  -> Shawn
+  -> Shon
+  -> ...
+  -> Phsawn
+less conventional
+```
+
+The specific forms depend on the available segment-to-grapheme rules. “All supported spellings” means every orthographic realization derivable from that inventory, not every spelling a person could invent outside the model.
+
+The inspector defaults to the top **10** same-sound spellings. The user can change the cap from 1 up to the full supported count. The cap affects only rendering and copied details; the complete ranked pool remains attached to the artifact.
+
 ## Shared artifact rendering contract
 
 `NameArtifact` is the reusable result contract across modes.
@@ -71,7 +103,8 @@ Both Fiction Cast and Game NPC render common facts through `NameArtifactInspecto
 - browser voice draft state;
 - deterministic structure facts;
 - selected spelling;
-- ranked spelling candidates;
+- total supported same-sound spelling count;
+- a configurable top-N view of the ranked same-sound spellings;
 - spelling-selection explanation;
 - readability diagnostics;
 - variants;
@@ -104,7 +137,7 @@ The platform may expose deterministic observations that follow directly from gen
 - syllable shapes;
 - stress pattern;
 - cadence;
-- retained spelling-candidate count;
+- supported same-sound spelling count;
 - selected spelling rank;
 - runner-up spelling;
 - deterministic selection explanation;
@@ -122,7 +155,7 @@ The platform may inspect any `NameArtifact[]` for concrete pairwise collisions:
 - one-edit spelling proximity;
 - identical cadence keys based on stress pattern, syllable count, and rhythm.
 
-The API reports the collision kind and evidence. It does not collapse these facts into a universal fit, quality, or confusion percentage.
+The API reports the collision kind and evidence. It does not collapse these facts into a universal fit, quality, or confusion percentage. Same-roster sound proximity remains deferred to issue #154.
 
 ## Why pronounceability is not a current score
 
@@ -155,12 +188,17 @@ same style source + same seed -> same singular artifact
 same style source + fresh seed -> rerolled singular artifact
 ```
 
+Changing the spelling display cap does not alter either mapping.
+
 ## Implemented in this slice
 
 - selectable Game NPC mode;
 - singular shared `NameRequest -> NameArtifact` generation;
 - style-source selection and reroll;
 - deterministic same-seed artifact test;
+- exhaustive same-sound spelling derivation from the current grapheme inventory;
+- deterministic orthographic preference ranking over the full pool;
+- configurable spelling display cap with a default of 10;
 - shared `NameArtifactInspector` used by both active modes;
 - shared pure artifact-analysis APIs;
 - deterministic single-artifact structure, spelling, and readability evidence;
@@ -175,6 +213,7 @@ same style source + fresh seed -> rerolled singular artifact
 - Audience-specific pronounceability research and validation.
 - Corpus-specific familiarity research and validation.
 - Human-tested memorability research and validation.
+- Same-roster sound proximity diagnostics.
 - Semantic, genre, cultural, or realism scoring backed by declared data and methodology.
 - Persistence.
 - Character hooks, biography generation, or encounter generation.
@@ -189,4 +228,5 @@ same style source + fresh seed -> rerolled singular artifact
 - No parallel artifact renderer or analyzer.
 - No derived analysis persisted into the durable artifact without a versioned contract decision.
 - No unsupported linguistic or psychological score presented as objective fact.
+- No display cap applied before full-pool ranking or selected-spelling resolution.
 - No plural request behavior until the shared quantity/grouping contract is implemented.
