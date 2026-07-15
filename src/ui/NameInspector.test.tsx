@@ -84,7 +84,8 @@ describe('NameInspector', () => {
     expect(html).toContain('Spelling display cap');
     expect(html).toContain(finalVisibleCandidate.text);
     expect(html).not.toContain(firstHiddenCandidate.text);
-    expect(html).toContain('4 lower-ranked same-sound spellings hidden by the current display cap.');
+    expect(html).toContain('4<!-- --> lower-ranked same-sound spelling');
+    expect(html).toContain('hidden by the current display cap.');
     expect(html).toContain('preference rank 10');
   });
 
