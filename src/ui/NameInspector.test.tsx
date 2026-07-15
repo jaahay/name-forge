@@ -141,7 +141,9 @@ describe('NameInspector', () => {
 
     expect(html).toContain(lastVisibleCandidate.text);
     expect(html).not.toContain(firstHiddenCandidate.text);
-    expect(html).toContain(`Showing top ${visibleSpellingCandidateLimit} of ${candidateCount} ranked spelling candidates.`);
+    expect(html).toContain('Showing top');
+    expect(html).toContain(`${visibleSpellingCandidateLimit}<!-- --> of <!-- -->${candidateCount}`);
+    expect(html).toContain('ranked spelling candidates.');
   });
 
   it('omits the spelling candidate limit note when all retained candidates are visible', () => {
