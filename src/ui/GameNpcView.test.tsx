@@ -21,8 +21,8 @@ describe('GameNpcView', () => {
       'Copy details',
       'Play voice draft',
       'Sound',
-      'Spelling',
-      'Spelling candidates',
+      'Selected spelling',
+      'All same-sound spellings',
       'Readability',
     ]) {
       expect(html).toContain(expected);
