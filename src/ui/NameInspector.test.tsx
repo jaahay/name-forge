@@ -69,7 +69,7 @@ function renderInspector(name: GeneratedName, isLocked = false): string {
 describe('NameInspector', () => {
   it('renders every retained spelling as an option for the same generated sound', () => {
     const name = withSpellingCandidateCount(fixtureName(), 14);
-    const finalCandidate = name.spellingCandidates.at(-1);
+    const finalCandidate = name.spellingCandidates[name.spellingCandidates.length - 1];
     const html = renderInspector(name);
 
     expect(finalCandidate).toBeDefined();
