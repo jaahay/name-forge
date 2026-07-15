@@ -3,7 +3,6 @@ import { renderAuditionCue } from '../engine/audition';
 import type { NameArtifact } from '../engine/nameArtifact';
 import { analyzeNameArtifact } from '../engine/nameArtifactAnalysis';
 import type { NameVariant } from '../engine/types';
-import { formatScore } from './score';
 import { getNameDisplayLength, protectInitialBreaks } from './namePresentation';
 
 interface NameArtifactInspectorProps {
@@ -13,8 +12,6 @@ interface NameArtifactInspectorProps {
   readonly extraSections?: ReactNode;
 }
 
-export const visibleSpellingCandidateLimit = 6;
-
 type SpellingCandidate = NonNullable<NameArtifact['spellingCandidates']>[number];
 
 function variantMetadataLabel(variant: NameVariant): string {
@@ -23,9 +20,8 @@ function variantMetadataLabel(variant: NameVariant): string {
   return `${relationship}; ${variant.confidence} confidence; ${generatedLabel}; ${variant.source.label}`;
 }
 
-function spellingCandidateMetadataLabel(candidate: SpellingCandidate, selectedSpellingId: string | undefined): string {
-  const selectedLabel = candidate.id === selectedSpellingId ? 'selected; ' : '';
-  return `${selectedLabel}rank ${candidate.rank}; score ${formatScore(candidate.score)}`;
+function sameSoundSpellingMetadataLabel(candidate: SpellingCandidate, selectedSpellingId: string | undefined): string {
+  return candidate.id === selectedSpellingId ? `selected; preference rank ${candidate.rank}` : `preference rank ${candidate.rank}`;
 }
 
 function copyText(value: string) {
@@ -44,9 +40,8 @@ function playVoiceDraft(speechText: string) {
 
 function detailsText(artifact: NameArtifact, pronunciationGuide?: string): string {
   const analysis = analyzeNameArtifact(artifact);
-  const candidates = (artifact.spellingCandidates ?? [])
-    .slice(0, visibleSpellingCandidateLimit)
-    .map((candidate) => `${candidate.text} (${spellingCandidateMetadataLabel(candidate, artifact.spelling?.id)})`)
+  const spellings = (artifact.spellingCandidates ?? [])
+    .map((candidate) => `${candidate.text} (${sameSoundSpellingMetadataLabel(candidate, artifact.spelling?.id)})`)
     .join(', ') || 'None';
 
   return [
@@ -54,17 +49,16 @@ function detailsText(artifact: NameArtifact, pronunciationGuide?: string): strin
     artifact.sound ? `Sound sketch: ${artifact.sound.transcription}` : undefined,
     pronunciationGuide ? `Pronunciation guide: ${pronunciationGuide}` : undefined,
     analysis.structure ? `Structure: ${analysis.structure.syllableCount} syllable(s); ${analysis.structure.segmentCount} segments; ${analysis.structure.syllableShapes.join('-')}` : undefined,
-    artifact.spelling ? `Selected spelling: ${artifact.spelling.text} (rank ${artifact.spelling.rank}, score ${formatScore(artifact.spelling.score)})` : undefined,
+    artifact.spelling ? `Selected spelling: ${artifact.spelling.text} (preference rank ${artifact.spelling.rank})` : undefined,
     analysis.spelling?.selectionSummary,
-    `Spelling candidates: ${candidates}`,
+    `Same-sound spellings: ${spellings}`,
     `Read status: ${analysis.readability.diagnosticCount === 0 ? 'No deterministic read-friction notes' : `${analysis.readability.diagnosticCount} read notes`}`,
   ].filter(Boolean).join('\n');
 }
 
 export function NameArtifactInspector({ artifact, eyebrow = 'Inspect', extraActions, extraSections }: NameArtifactInspectorProps) {
   const analysis = analyzeNameArtifact(artifact);
-  const spellingCandidates = (artifact.spellingCandidates ?? []).slice(0, visibleSpellingCandidateLimit);
-  const hiddenCandidateCount = Math.max(0, (artifact.spellingCandidates?.length ?? 0) - spellingCandidates.length);
+  const sameSoundSpellings = artifact.spellingCandidates ?? [];
   const readNotes = artifact.readabilityDiagnostics ?? [];
   const variants = artifact.variants ?? [];
   const auditionCue = artifact.sound ? renderAuditionCue(artifact.sound.sequence) : undefined;
@@ -104,8 +98,8 @@ export function NameArtifactInspector({ artifact, eyebrow = 'Inspect', extraActi
         </section>
 
         {analysis.structure ? (
-          <section className="detail-block artifact-detail-block">
-            <h3>Structure</h3>
+          <details className="detail-block artifact-detail-block">
+            <summary>Technical sound structure</summary>
             <dl className="artifact-fact-list">
               <div><dt>Segments</dt><dd>{analysis.structure.segmentCount}</dd></div>
               <div><dt>Syllables</dt><dd>{analysis.structure.syllableCount}</dd></div>
@@ -113,29 +107,29 @@ export function NameArtifactInspector({ artifact, eyebrow = 'Inspect', extraActi
               <div><dt>Stress</dt><dd>{analysis.structure.stressPattern.join(' · ')}</dd></div>
               {analysis.structure.cadence ? <div><dt>Cadence</dt><dd>{analysis.structure.cadence}</dd></div> : null}
             </dl>
-          </section>
+          </details>
         ) : null}
 
         <section className="detail-block artifact-detail-block">
-          <h3>Spelling</h3>
+          <h3>Selected spelling</h3>
           <dl className="artifact-fact-list">
-            <div><dt>Selected spelling</dt><dd>{artifact.spelling?.text ?? artifact.displayText}</dd></div>
-            <div><dt>Rank</dt><dd>{artifact.spelling?.rank ?? 'Not ranked'}</dd></div>
-            <div><dt>Score</dt><dd>{artifact.spelling ? formatScore(artifact.spelling.score) : 'Not scored'}</dd></div>
-            {analysis.spelling?.runnerUpText ? <div><dt>Runner-up</dt><dd>{analysis.spelling.runnerUpText}</dd></div> : null}
+            <div><dt>Spelling</dt><dd>{artifact.spelling?.text ?? artifact.displayText}</dd></div>
+            <div><dt>Preference rank</dt><dd>{artifact.spelling?.rank ?? 'Not ranked'}</dd></div>
+            <div><dt>Same-sound options</dt><dd>{sameSoundSpellings.length}</dd></div>
+            {analysis.spelling?.runnerUpText ? <div><dt>Next option</dt><dd>{analysis.spelling.runnerUpText}</dd></div> : null}
           </dl>
           {analysis.spelling ? <p className="section-note">{analysis.spelling.selectionSummary}</p> : null}
         </section>
 
-        <section className="detail-block artifact-detail-block">
-          <h3>Spelling candidates</h3>
-          {spellingCandidates.length > 0 ? (
-            <ul className="variants detail-variants" aria-label={`${artifact.displayText} ranked spelling candidates`}>
-              {spellingCandidates.map((candidate) => <li key={`${artifact.id}-${candidate.id}`}><span>{candidate.text}</span><em>{spellingCandidateMetadataLabel(candidate, artifact.spelling?.id)}</em></li>)}
+        <details className="detail-block artifact-detail-block">
+          <summary>All same-sound spellings ({sameSoundSpellings.length})</summary>
+          <p className="section-note">Every spelling below is generated from the same sound sequence using the current spelling-rule inventory. Preference rank orders the options; it is not a quality percentage.</p>
+          {sameSoundSpellings.length > 0 ? (
+            <ul className="variants detail-variants" aria-label={`${artifact.displayText} same-sound spellings`}>
+              {sameSoundSpellings.map((candidate) => <li key={`${artifact.id}-${candidate.id}`}><span>{candidate.text}</span><em>{sameSoundSpellingMetadataLabel(candidate, artifact.spelling?.id)}</em></li>)}
             </ul>
-          ) : <p className="section-note">No retained spelling candidates.</p>}
-          {hiddenCandidateCount > 0 ? <p className="section-note">Showing top {visibleSpellingCandidateLimit} of {artifact.spellingCandidates?.length} ranked spelling candidates.</p> : null}
-        </section>
+          ) : <p className="section-note">No retained same-sound spellings.</p>}
+        </details>
 
         <section className="detail-block artifact-detail-block">
           <h3>Readability</h3>
@@ -151,12 +145,12 @@ export function NameArtifactInspector({ artifact, eyebrow = 'Inspect', extraActi
         </section>
 
         {variants.length > 0 ? (
-          <section className="detail-block">
-            <h3>Variants</h3>
+          <details className="detail-block">
+            <summary>Other variants</summary>
             <ul className="variants detail-variants" aria-label={`${artifact.displayText} variants`}>
               {variants.map((variant) => <li key={`${artifact.id}-${variant.value}`}><span>{variant.value}</span><em>{variantMetadataLabel(variant)}</em></li>)}
             </ul>
-          </section>
+          </details>
         ) : null}
 
         {extraSections}
