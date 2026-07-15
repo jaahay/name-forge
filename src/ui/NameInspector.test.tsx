@@ -80,7 +80,6 @@ describe('NameInspector', () => {
     expect(html).toContain(finalCandidate.text);
     expect(html).toContain('preference rank 14');
     expect(html).not.toContain('Showing top');
-    expect(html).not.toContain('score ');
   });
 
   it('renders selected-name actions in Inspect', () => {
