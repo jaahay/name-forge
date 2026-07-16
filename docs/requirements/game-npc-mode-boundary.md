@@ -36,10 +36,10 @@ NameRequest
   -> existing criteria compiler
   -> SoundProfile / SegmentSequence
   -> exhaustive supported spelling pool
-  -> deterministic orthographic preference ranking
-  -> selected spelling + NameArtifact
+  -> deterministic rule-weighted orthographic preference ranking
+  -> selected spelling + complete ranked pool on NameArtifact
   -> analyzeNameArtifact
-  -> shared NameArtifactInspector
+  -> shared NameArtifactInspector prefix view
 ```
 
 The mode owns navigation, labels, style-source selection, reroll behavior, and mode-specific surrounding actions. It does not own a second phonological engine, request family, artifact model, analysis model, or artifact renderer.
@@ -61,19 +61,19 @@ It does not expose speculative controls for:
 
 Those labels are not useful merely because internal generator settings or heuristics exist. A user-facing control must correspond to a clear product intent and a defensible model.
 
-The spelling display cap is different. It is a local presentation preference, not a generation criterion. Changing it reveals more or fewer already-ranked spellings without regenerating the sound or changing the selected spelling.
+The spelling display cap is different. It is a local presentation preference, not a generation criterion. Changing it reveals more or fewer already-ranked spellings without regenerating the sound, changing the selected spelling, or altering backend ranking. The inspector retains the user's requested cap across generated artifacts and displays up to that many spellings when the current artifact has enough candidates.
 
 ## Same-sound spelling contract
 
-For one generated sound sequence, Name Forge derives every spelling supported by the current grapheme inventory. The engine ranks the full pool before any display cap is applied.
+For one generated sound sequence, Name Forge derives every spelling supported by the current grapheme inventory. The engine ranks the full pool before any display cap or bounded-result slice is applied.
 
-The ranking is an **orthographic preference**, not a universal beauty score:
+The ranking is a **rule-weighted orthographic preference**, not a universal beauty score:
 
 - conventional segment-to-grapheme mappings carry the strongest base weight;
 - recognizable alternatives follow;
 - unusual or heavily expanded mappings rank lower;
 - profile distinctiveness and texture may reorder otherwise plausible alternatives;
-- deterministic text ordering breaks exact score ties.
+- ordinal text ordering breaks exact score ties without locale-sensitive behavior.
 
 This supports a result shape such as:
 
@@ -89,7 +89,19 @@ less conventional
 
 The specific forms depend on the available segment-to-grapheme rules. “All supported spellings” means every orthographic realization derivable from that inventory, not every spelling a person could invent outside the model.
 
-The inspector defaults to the top **10** same-sound spellings. The user can change the cap from 1 up to the full supported count. The cap affects only rendering and copied details; the complete ranked pool remains attached to the artifact.
+The inspector defaults to the top **10** same-sound spellings. The user can change the requested cap to any positive number. The cap affects only rendering and copied details; the complete ranked pool remains attached to the artifact and may be returned by the API.
+
+### Determinism and prefix invariance
+
+For identical sound candidate, sound profile, spelling-rule inventory, ranking implementation, and ranking options, spelling generation and ranking return the same complete ordered result.
+
+A requested candidate count does not participate in candidate generation, scoring, or sorting. The implementation ranks the complete supported pool and only then takes the requested prefix. Therefore bounded requests are prefix-invariant:
+
+```text
+top10 === top20.slice(0, 10)
+```
+
+Changing only the requested count cannot change the candidates or ordering that appear before the new boundary.
 
 ## Shared artifact rendering contract
 
@@ -104,7 +116,7 @@ Both Fiction Cast and Game NPC render common facts through `NameArtifactInspecto
 - deterministic structure facts;
 - selected spelling;
 - total supported same-sound spelling count;
-- a configurable top-N view of the ranked same-sound spellings;
+- a configurable prefix view of the ranked same-sound spellings;
 - spelling-selection explanation;
 - readability diagnostics;
 - variants;
@@ -188,7 +200,7 @@ same style source + same seed -> same singular artifact
 same style source + fresh seed -> rerolled singular artifact
 ```
 
-Changing the spelling display cap does not alter either mapping.
+Changing the spelling display cap does not alter either mapping. It changes only how much of the artifact's already-ranked spelling list is presented.
 
 ## Implemented in this slice
 
@@ -197,8 +209,11 @@ Changing the spelling display cap does not alter either mapping.
 - style-source selection and reroll;
 - deterministic same-seed artifact test;
 - exhaustive same-sound spelling derivation from the current grapheme inventory;
-- deterministic orthographic preference ranking over the full pool;
-- configurable spelling display cap with a default of 10;
+- deterministic rule-weighted orthographic preference ranking over the full pool;
+- ordinal text comparison for exact ranking ties;
+- complete-result replay and bounded-result prefix-invariance tests;
+- configurable frontend spelling display cap with a default of 10;
+- requested display-cap persistence across generated artifacts;
 - shared `NameArtifactInspector` used by both active modes;
 - shared pure artifact-analysis APIs;
 - deterministic single-artifact structure, spelling, and readability evidence;
@@ -229,4 +244,6 @@ Changing the spelling display cap does not alter either mapping.
 - No derived analysis persisted into the durable artifact without a versioned contract decision.
 - No unsupported linguistic or psychological score presented as objective fact.
 - No display cap applied before full-pool ranking or selected-spelling resolution.
+- No requested candidate count allowed to affect candidate generation, scoring, or ordering.
+- Any bounded spelling result must be an exact prefix of the complete ranked result for identical model inputs.
 - No plural request behavior until the shared quantity/grouping contract is implemented.
