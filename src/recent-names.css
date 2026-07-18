@@ -1,0 +1,9 @@
+.recent-names { display: grid; gap: 0.85rem; }
+.recent-names-layout { display: grid; grid-template-columns: minmax(220px, 300px) minmax(0, 1fr); gap: 0.85rem; align-items: start; }
+.recent-names-list { display: grid; gap: 0.45rem; padding: 0.75rem; max-height: calc(100vh - 8rem); overflow: auto; }
+.recent-name-button { display: grid; gap: 0.2rem; width: 100%; border: 1px solid rgba(240, 184, 95, 0.16); border-radius: 0.9rem; padding: 0.72rem; color: #f2efe6; background: rgba(255, 255, 255, 0.05); box-shadow: none; text-align: left; }
+.recent-name-button:hover, .recent-name-button.active { border-color: rgba(240, 184, 95, 0.62); background: rgba(240, 184, 95, 0.12); }
+.recent-name-button strong { overflow-wrap: anywhere; font-family: Georgia, "Times New Roman", serif; font-size: 1.08rem; }
+.recent-name-button span { color: #f8d99f; font-size: 0.72rem; font-weight: 850; text-transform: uppercase; }
+.recent-name-button small { overflow-wrap: anywhere; color: #a8987e; }
+@media (max-width: 900px) { .recent-names-layout { grid-template-columns: 1fr; } .recent-names-list { max-height: none; } }
