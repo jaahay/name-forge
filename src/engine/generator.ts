@@ -45,7 +45,7 @@ function compileSoundProfileFromSettings(settings: GenerationSettings, silhouett
 export function generateNameCandidateFromSilhouette(silhouette: NameSilhouette, settings: GenerationSettings, random: SeededRandom): NameGenerationCandidate {
   const soundProfile = compileSoundProfileFromSettings(settings, silhouette);
   const sound = generateSound(soundProfile, random);
-  const rankedSpellings = generateRankedSpellingCandidates(sound, soundProfile, { maxCandidates: 12 });
+  const rankedSpellings = generateRankedSpellingCandidates(sound, soundProfile);
   const selection = selectRankedSpellingCandidate(rankedSpellings.candidates, settings);
   const selectedSpelling = selection?.candidate;
 

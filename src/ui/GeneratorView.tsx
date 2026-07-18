@@ -4,14 +4,14 @@ import type { GeneratedEnsemble, GenerationSettings, StylePackSummary } from '..
 import { CastHealthPanel } from './CastHealth';
 import { ConfigureTray } from './ConfigureTray';
 import { ExportMenu } from './ExportMenu';
-import type { NamingModeConfig } from './modes';
+import type { FictionCastModeConfig } from './modes';
 import { NameInspector } from './NameInspector';
 import { NameSelectionSurface } from './NameSelectionSurface';
 import type { ControlKey } from './presentation';
 import { resolveNameSelection, sameNameSelection, selectedNameIdFromView, type NameSelectionView } from './workbenchSelection';
 
 interface GeneratorViewProps {
-  mode: NamingModeConfig;
+  mode: FictionCastModeConfig;
   stylePacks: StylePackSummary[];
   settings: GenerationSettings;
   committedSettings?: GenerationSettings;

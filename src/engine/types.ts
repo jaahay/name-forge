@@ -6,6 +6,8 @@ import type { StyleDescriptor, StylePackSourceDescriptor } from './stylePackType
 
 export { toNameArtifact } from './nameArtifact';
 export type { NameArtifact } from './nameArtifact';
+export { analyzeNameArtifact, analyzeNameArtifactSet } from './nameArtifactAnalysis';
+export type { NameArtifactAnalysis, NameArtifactCollision, NameArtifactCollisionKind, NameArtifactReadabilityAnalysis, NameArtifactSetAnalysis, NameArtifactSpellingAnalysis, NameArtifactStructureAnalysis } from './nameArtifactAnalysis';
 export type { NameCriteria, NameCriteriaClause, NameCriteriaFamily, NameCriteriaPolarity } from './nameCriteria';
 export { compileNameCriteriaToGenerationSettings } from './nameCriteriaCompiler';
 export type { NameCriteriaCompilerBaseSettings } from './nameCriteriaCompiler';

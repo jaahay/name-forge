@@ -150,13 +150,38 @@ describe('spelling generation and ranking', () => {
     expect(rankedCandidate.rank).toBe(1);
   });
 
-  it('keeps the highest-ranked spelling stable across repeated generation and ranking', () => {
+  it('replays the complete ordered spelling result for identical model inputs', () => {
     const profile = compileStyle();
     const sound = generateSound(profile, createSeededRandom('sound-seed:default'));
 
-    expect(generateRankedSpellingCandidates(sound, profile).candidates[0]).toEqual(
-      generateRankedSpellingCandidates(sound, profile).candidates[0],
+    expect(generateRankedSpellingCandidates(sound, profile)).toEqual(
+      generateRankedSpellingCandidates(sound, profile),
     );
+  });
+
+  it('returns smaller requested counts as exact prefixes of larger requested counts', () => {
+    const profile = compileStyle();
+    const sound = generateSound(profile, createSeededRandom('sound-seed:default'));
+    const basePool = generateSpellingCandidatePool(sound);
+    const baseCandidate = basePool.candidates[0];
+
+    expect(baseCandidate).toBeDefined();
+    if (!baseCandidate) throw new Error('Expected a base spelling candidate.');
+
+    const syntheticPool = {
+      ...basePool,
+      candidates: Array.from({ length: 25 }, (_, index) => ({
+        ...baseCandidate,
+        id: `${baseCandidate.id}:prefix-${String(index + 1).padStart(2, '0')}`,
+        text: `Prefix${String(index + 1).padStart(2, '0')}`,
+      })),
+    };
+    const topTwenty = rankSpellingCandidatePool(syntheticPool, profile, { maxCandidates: 20 });
+    const topTen = rankSpellingCandidatePool(syntheticPool, profile, { maxCandidates: 10 });
+
+    expect(topTwenty.candidates).toHaveLength(20);
+    expect(topTen.candidates).toHaveLength(10);
+    expect(topTen.candidates).toEqual(topTwenty.candidates.slice(0, 10));
   });
 
   it('honors an explicit ranking cap when callers need bounded output', () => {

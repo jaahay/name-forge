@@ -201,6 +201,12 @@ function sanitizeMaxCandidates(maxCandidates: number | undefined): number | unde
   return Math.max(1, Math.floor(maxCandidates));
 }
 
+function compareTextOrdinal(left: string, right: string): number {
+  if (left < right) return -1;
+  if (left > right) return 1;
+  return 0;
+}
+
 function capitalizeName(text: string): string {
   return text.length === 0 ? text : `${text[0].toUpperCase()}${text.slice(1)}`;
 }
@@ -299,7 +305,7 @@ export function rankSpellingCandidatePool(
       ...candidate,
       score: roundScore(scoreCandidate(candidate, profile)),
     }))
-    .sort((left, right) => right.score - left.score || left.text.localeCompare(right.text))
+    .sort((left, right) => right.score - left.score || compareTextOrdinal(left.text, right.text))
     .map((candidate, index): RankedSpellingCandidate => ({
       ...candidate,
       rank: index + 1,

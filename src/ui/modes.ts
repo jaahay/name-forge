@@ -1,8 +1,8 @@
 import type { GenerationSettings } from '../engine/types';
 
-export type NamingModeId = 'fiction-cast';
+export type NamingModeId = 'fiction-cast' | 'game-npc';
 
-export interface NamingModeConfig {
+export interface NamingModePresentation {
   id: NamingModeId;
   label: string;
   shortLabel: string;
@@ -12,10 +12,16 @@ export interface NamingModeConfig {
   outputHeading: string;
   exportHeading: string;
   generateLabel: string;
+}
+
+export interface FictionCastModeConfig extends NamingModePresentation {
+  id: 'fiction-cast';
   defaultSettings: (stylePackId: string) => GenerationSettings;
 }
 
-export const fictionCastMode: NamingModeConfig = {
+export type NamingModeConfig = FictionCastModeConfig;
+
+export const fictionCastMode: FictionCastModeConfig = {
   id: 'fiction-cast',
   label: 'Fiction cast',
   shortLabel: 'Cast',
@@ -42,4 +48,16 @@ export const fictionCastMode: NamingModeConfig = {
   }),
 };
 
-export const namingModes = [fictionCastMode] as const;
+export const gameNpcMode: NamingModePresentation = {
+  id: 'game-npc',
+  label: 'Game NPC',
+  shortLabel: 'NPC',
+  description: 'Generate one inspectable NPC name quickly for prep or live play.',
+  heroTitle: 'One generated name, ready to use.',
+  heroCopy: 'Generate from a selected source model, inspect the resulting artifact, copy it, or reroll with a fresh seed.',
+  outputHeading: 'Current NPC name',
+  exportHeading: 'Copy NPC name',
+  generateLabel: 'Reroll NPC name',
+};
+
+export const namingModes = [fictionCastMode, gameNpcMode] as const;
