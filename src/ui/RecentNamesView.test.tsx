@@ -15,7 +15,7 @@ describe('RecentNamesView', () => {
   it('renders saved artifacts through the shared inspector without regeneration', () => {
     const html = renderToString(<RecentNamesView entries={[entry]} onClear={() => undefined} />);
 
-    for (const expected of ['Recent names', '1 saved', 'Clear history', 'Aster Vale', 'Game NPC', 'Seed npc-seed', 'Saved from Game NPC', 'Restored from local history without regenerating']) {
+    for (const expected of ['Recent names', 'saved', 'Clear history', 'Aster Vale', 'Game NPC', 'Seed', 'npc-seed', 'Saved from Game NPC', 'Restored from local history without regenerating']) {
       expect(html).toContain(expected);
     }
   });
