@@ -1,228 +1,164 @@
 # Current product scope
 
-This document records the current working interpretation of the product requirements after the Fiction cast interaction pass, UI decomposition, stylesheet consolidation work, readability diagnostics slice, control-surface cleanup, and NameRequest/criteria planning pass.
+This document is the active scope lens for deciding what Name Forge should build next. The historical requirements remain in [`product-requirements.md`](product-requirements.md).
 
-The original [`product-requirements.md`](product-requirements.md) remains the historical requirements source. This document is the active scope lens for deciding what to build next.
-
-Related decisions:
+Related decisions and boundaries:
 
 - [`decisions/0001-name-artifact-and-request-contract.md`](decisions/0001-name-artifact-and-request-contract.md)
 - [`decisions/0002-criteria-driven-generation.md`](decisions/0002-criteria-driven-generation.md)
 - [`decisions/0003-intent-criteria-compiler-pipeline.md`](decisions/0003-intent-criteria-compiler-pipeline.md)
 - [`decisions/0004-modes-presets-and-grouping.md`](decisions/0004-modes-presets-and-grouping.md)
+- [`requirements/game-npc-mode-boundary.md`](requirements/game-npc-mode-boundary.md)
+- [`requirements/name-grouping-design-boundary.md`](requirements/name-grouping-design-boundary.md)
 
 ## Active product contract
 
-Name Forge is a random-name workbench. Its first serious mode is **Fiction cast**.
+Name Forge is a multi-mode random-name workbench whose durable result is an inspectable `NameArtifact`.
 
-The current product contract is:
+The shared product contract is:
 
-> Generate inspectable `NameArtifact`s that are novel, usable, explainable, reproducible, and tuned to user-declared naming criteria.
+> Generate names that are novel, usable, explainable, reproducible, and tuned through explicit product controls without presenting internal heuristics as universal human truth.
 
-For Fiction cast, that means:
+The two active modes serve different jobs:
 
-> Help me name a cast of characters that feel coherent but distinct.
+- **Fiction Cast:** help build a coherent but distinct ensemble of character names.
+- **Game NPC:** provide one usable generated name quickly for prep or live play, with immediate inspection, copy, and reroll.
 
-The product should remain a generator and evaluation workbench, not a writing assistant that invents character hooks by default.
+The product remains a generator and evaluation workbench. It is not a writing assistant that invents character hooks, biographies, or encounter content by default.
 
-## Current planning contract
+## Current platform contract
 
-The next architecture direction is criteria-driven:
+The shared architecture is criteria-driven and sound-first:
 
 ```text
 Intent surfaces
   -> NameCriteria
   -> compiled criteria
-  -> SoundProfile / spelling preferences / exclusions / selection inputs
-  -> candidate generation and scoring
-  -> NameArtifact
+  -> SoundProfile / SegmentSequence
+  -> complete supported spelling pool
+  -> deterministic orthographic preference ranking
+  -> selected spelling + NameArtifact
+  -> shared Inspect and export surfaces
 ```
 
-The durable request shape is planned as:
+The durable request boundary is implemented as:
 
 ```text
 NameRequest -> NameResponse
 ```
 
-V1 may implement only a single generated name while preserving room for later `quantity` and `grouping`. `mode` may be accepted as optional metadata, but generation should remain criteria-driven rather than mode-driven.
-
-Use `criteria` for the input model. Use `brief` only for a concise downstream summary of configured work or generated results.
+Current v1 runtime semantics remain singular. `NameResponse.names` is structurally plural, but one request currently returns one artifact. `mode` is optional metadata and must not drive core generation behavior.
 
 ## Current shipped baseline
 
-Fiction cast now includes deterministic readability diagnostics, sound-first generated names, spelling candidate retention, browser audition projection, and a selected-name artifact shell.
+Shared platform capabilities now include:
 
-Current baseline capabilities include:
+- deterministic seed resolution and replay through `NameRequest -> NameResponse`;
+- criteria diagnostics and a compiler bridge into current generation settings;
+- sound-first generation through `SoundProfile` and `SegmentSequence`;
+- exhaustive spelling derivation from the current grapheme inventory;
+- deterministic rule-weighted spelling ranking with ordinal tie-breaking;
+- complete ranked spelling retention on `NameArtifact`;
+- exact bounded-result prefix invariance after full-pool ranking;
+- shared `NameArtifactInspector` rendering;
+- deterministic readability observations and browser audition projection;
+- pure single-artifact and artifact-set analysis APIs;
+- source descriptors and built-in style-pack validation;
+- richer variant relationship, confidence, source, and locale metadata where available.
 
-- deterministic seeded cast generation
-- style-pack selection
-- cast size, name format, role mix, slot override, role influence, rarity, and scoring controls
-- lock/select iteration affordances
-- deterministic readability notes for length friction, dense consonant/vowel clusters, repeated letters, and visual misreads
-- Cast Health readability summaries
-- Inspect-panel surfacing for sound, spelling, spelling candidates, readability notes, browser voice draft, and role influence
-- JSON and Markdown export of generated names, role metadata, diagnostics metadata, variants, scores, and provenance
+Fiction Cast additionally includes:
 
-The next scope decisions should treat readability diagnostics, source descriptors, style pack validation, browser audition boundaries, selected-name artifact layout, and richer variant metadata as shipped primitives or near-term hardening targets.
+- deterministic ensemble generation;
+- cast size, format, role mix, slot override, role influence, rarity, and tuning controls;
+- lock and selection iteration;
+- cast-level balancing and collision diagnostics;
+- JSON and Markdown cast export.
 
-## Pronounceability vs pronunciation
+Game NPC additionally includes:
 
-The docs intentionally separate these terms:
+- a minimal singular generation workflow;
+- style-source selection;
+- fast reroll with a fresh seed;
+- shared artifact inspection, copy, and browser voice-draft actions.
 
-| Concept | Current status | Product meaning |
+## Human-facing claims boundary
+
+Name Forge may expose deterministic facts about generated structure, spelling alternatives, and observed read friction. It must not relabel internal weighted heuristics as validated human-facing metrics.
+
+| Concept | Current status | Product boundary |
 | --- | --- | --- |
-| Pronounceability | MVP scoring/control axis | Does the generated name look and sound speakable enough? |
-| Readability diagnostics | Shipped deterministic primitive | Explain likely friction such as length, clusters, repeated letters, or visual misreads. |
-| Browser audition draft | Shipped projection primitive | Approximate browser voice/display guide derived from modeled sound; not canonical pronunciation. |
-| Pronunciation hints | Deferred beyond current audition draft | Optional approximate reading guidance, clearly non-canonical. |
-| IPA / phoneme output | Later | Requires locale assumptions, phoneme inventories, confidence labels, and provider strategy. |
-| Audio / paid TTS provider integration | Later | Selected-name artifact, not default output for every generated candidate. |
+| Readability diagnostics | Shipped deterministic evidence | Reports concrete letter-pattern and structure observations; not a measured ease score. |
+| Browser audition draft | Shipped projection | Approximate browser speech derived from modeled sound; not canonical pronunciation. |
+| Pronounceability | Research only as a human-facing metric | Requires a declared listener population, language assumptions, methodology, and validation. |
+| Familiarity | Research only | Requires a declared corpus or audience. |
+| Memorability | Research only | Requires evidence that the model predicts recall or recognition. |
+| Beauty, realism, cultural authenticity | Unsupported as universal scores | Must not be inferred from internal weights or presented without declared evidence and governance. |
+| IPA or provider audio | Deferred | Requires a separate locale, confidence, and provider strategy. |
 
 The active rule is:
 
-> Name Forge may score and explain pronounceability now. It should not claim canonical pronunciation.
+> Explain modeled structure and deterministic evidence. Do not claim validated human perception without validated human evidence.
 
-## Next feature requirements
+## Next implementation sequence
 
-The next major work should strengthen the criteria/request foundation before broadening product surfaces.
+### 1. Recent generated-name history
 
-### 1. NameRequest v1 contract
+Add client-side persistence for recent durable `NameArtifact` snapshots.
 
-Introduce the singular criteria-driven planning contract without implementing plural or grouped generation yet.
+Required boundary:
 
-Required capabilities:
+- persist explicit user-generated artifacts from active modes;
+- use a versioned browser-storage envelope;
+- keep a bounded recent list;
+- restore artifacts into the shared inspector without regeneration;
+- provide explicit clear-history behavior;
+- ignore malformed or unsupported stored data safely;
+- persist durable product artifacts, not internal runtime handles or unversioned component state.
 
-- Define planning types for `NameRequest`, `NameResponse`, `NameArtifact`, `NameCriteria`, and seeded randomness.
-- Treat `mode` as optional metadata, not a generation switch.
-- Resolve missing seeds and always emit the resolved seed.
-- Preserve same-request, same-seed, same-algorithm reproducibility.
-- Return one generated `NameArtifact` in the first implementation slice.
-- Keep `quantity` and `grouping` documented as future extension points, not required v1 behavior.
+Non-goals:
 
-Validation target:
+- no backend, accounts, sync, or collaboration;
+- no compatibility adapter for obsolete pre-reset shapes;
+- no persistence of internal-only `SoundProfile` state outside the artifact already carrying it intentionally;
+- no generalized application-state framework.
 
-- Same request plus same seed produces deterministic output.
-- Omitted seed produces a fresh emitted seed.
-- `mode` can be echoed or preserved without changing generation behavior.
-- The contract remains singular: no separate `CastRequest`, `ProductNameRequest`, or `NpcRequest` API is introduced.
+### 2. First shared quantity and grouping slice
 
-### 2. Criteria model and compiler bridge
+Implement only an independent exact-size set with deterministic child seeds and explicit grouping metadata.
 
-Move from broad style settings toward explicit user-declared criteria.
+Required boundary:
 
-Required capabilities:
+- keep `NameArtifact` as the individual result unit;
+- produce one atomic grouped operation rather than repeated client-side singular calls;
+- keep mode metadata separate from grouping semantics;
+- return deterministic flat artifacts plus explicit grouping metadata;
+- add exact contract tests for quantity, child seeds, ordering, and replay.
 
-- Define `NameCriteria` and `NameCriteriaClause` as the durable input model.
-- Represent current controls as criteria where practical.
-- Preserve current `StyleInput -> SoundProfile` behavior as an implementation bridge while criteria work matures.
-- Allow accepted-but-unimplemented criteria to be diagnosed rather than causing request failure.
-- Add internal candidate scoring only when it affects selection.
+Deferred from this first slice:
 
-Validation target:
+- cohesion optimization;
+- ranked-alternative semantics;
+- slot-level criteria;
+- partial-result recovery;
+- per-artifact reroll behavior;
+- Fiction Cast assumptions as shared engine behavior.
 
-- Criteria compilation remains deterministic.
-- Unsupported criteria are handled safely and honestly.
-- Public fit percentages or polished Criteria Match UI are not required for this slice.
+### 3. Evidence-led research and later diagnostics
 
-### 3. Intent-family criteria UI discovery
+Human-facing name metrics and same-roster sound proximity remain research or later diagnostic work. They must not block the two implementation slices above.
 
-Explore a structured criteria UI without committing to prompt-first UX.
-
-Required capabilities:
-
-- Treat selected chips, sliders, presets, and future drawer choices as intent surfaces that produce criteria.
-- Keep user-facing criteria families few and legible.
-- Use selected shelves, suggested chips, and structured drawers rather than an always-visible taxonomy wall.
-- Keep LLM parsing out of v1.
-
-Validation target:
-
-- The UI can describe selected criteria compactly.
-- Large chip libraries remain discoverable without overwhelming the primary Configure surface.
-- The generated request shape remains criteria-driven.
-
-### 4. Variant relationship metadata
-
-Spelling variants should become more explicit and more source-aware.
-
-Required capabilities:
-
-- Add a relationship field such as `same_pronunciation`, `near_pronunciation`, `orthographic_variant`, `regional_variant`, `historical_variant`, `transliteration`, `cognate`, `diminutive`, `nickname`, `creative_respelling`, or `alias`.
-- Add confidence metadata for each variant.
-- Preserve whether a variant is listed, curated, generated, or later externally sourced.
-- Include source and optional locale metadata.
-- Keep generated rewrite-rule variants clearly distinct from listed alternates.
-- Include the richer variant metadata in Inspect, JSON export, and Markdown export.
-
-Validation target:
-
-- Existing generated variants map deterministically to relationship and confidence metadata.
-- Listed and generated variants are distinguishable in code, UI, and export.
-- No variant is presented as externally validated unless its source/provenance supports that claim.
-
-### 5. Source descriptor and pack validation
-
-The registry should move from MVP provider lookup toward the future source descriptor contract without adding remote-provider behavior yet.
-
-Required capabilities:
-
-- Define a typed `DataSourceDescriptor` or equivalent contract for built-in, file, HTTP, API, package, and custom/user-pack sources.
-- Add source fields for license, locale, priority, enabled-by-default status, and cache policy where applicable.
-- Attach license/locale/source metadata to built-in style packs when available.
-- Add deterministic validation for built-in style-pack shape.
-- Keep remote/API providers and user-uploaded packs deferred until validation exists.
-
-Validation target:
-
-- Built-in packs validate at startup or in tests.
-- Registry descriptors can represent future local/user, remote, package, and API sources without changing generation semantics.
-- No external network or paid provider is required for this slice.
-
-### 6. Warning and collision scaffolding
-
-Warnings should become a typed product surface before stronger cultural or demographic features are attempted.
-
-Required capabilities:
-
-- Add a cautious warning model for generated names.
-- Add first-pass common-word collision and known-name distance signals using local deterministic data only.
-- Include warnings in Inspect and export only when present.
-- Avoid demographic inference, cultural certainty, or external search.
-- Keep warning language scoped as screening guidance, not truth.
-
-Validation target:
-
-- Warning generation is deterministic for the same seed/settings/output.
-- No warning requires an external database.
-- Warning text is cautious and does not imply demographic classification.
-
-### 7. Game NPC mode discovery
-
-Game NPC remains the likely first second mode, but it should follow criteria/request hardening.
-
-Requirements before implementation:
-
-- The criteria/request contract is stable enough that Game NPC can reuse shared primitives rather than forking them.
-- The mode boundary can support a faster workflow with different controls/result presentation.
-- The first Game NPC slice has a concrete user job, criteria model, validation target, and smoke test.
-
-## Explicit non-goals for the next few slices
+## Explicit non-goals for the next slices
 
 - No baby-name mode.
-- No prompt-first UX.
-- No LLM-driven compilation.
+- No prompt-first UX or LLM-driven criteria compilation.
 - No public criteria-fit percentage.
-- No plural or grouped backend request behavior until the singular request contract is stable.
-- No backend-required `BaseStyle` or `StylePack` field in the criteria contract.
-- No IPA output.
-- No paid TTS/provider integration.
-- No pronunciation dictionaries.
-- No claim of canonical pronunciation for invented names.
+- No mode-specific request or response families.
+- No IPA, paid TTS integration, or pronunciation dictionaries.
 - No external demographic inference.
-- No remote/API provider integration before source descriptors and validation exist.
+- No remote provider integration without an accepted source and validation contract.
 - No broad plugin framework.
-- No selectable placeholder modes.
+- No character biography or encounter generation.
 
 ## Issue hygiene baseline
 
-Active planning should use one canonical issue per coherent slice. Duplicate exploration issues should be closed in favor of the canonical issue, and completed issues should stay closed through their merged implementation PR.
+Use one canonical issue per coherent slice. Completed issues remain closed through their merged implementation PRs. Exploration that is not required for the active slice belongs in a separate issue rather than expanding the current PR.
