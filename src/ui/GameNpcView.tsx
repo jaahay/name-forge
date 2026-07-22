@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { generateNameResponse } from '../engine/nameResponse';
 import type { NameResponse } from '../engine/nameRequest';
+import type { NameArtifact } from '../engine/nameArtifact';
 import type { StylePackSummary } from '../engine/types';
 import { NameArtifactInspector } from './NameArtifactInspector';
 import type { NamingModePresentation } from './modes';
@@ -8,6 +9,7 @@ import type { NamingModePresentation } from './modes';
 interface GameNpcViewProps {
   readonly mode: NamingModePresentation;
   readonly stylePacks: StylePackSummary[];
+  readonly onGenerated?: (artifacts: readonly NameArtifact[], context: { readonly mode: string; readonly seed: string }) => void;
 }
 
 function createRandomSeed(): string {
@@ -33,7 +35,7 @@ export function generateGameNpcResponse(stylePackId: string, seed: string): Name
   }, { stylePackId });
 }
 
-export function GameNpcView({ mode, stylePacks }: GameNpcViewProps) {
+export function GameNpcView({ mode, stylePacks, onGenerated }: GameNpcViewProps) {
   const defaultStylePackId = stylePacks[0]?.id ?? 'british-literary-fantasy';
   const [stylePackId, setStylePackId] = useState(defaultStylePackId);
   const [response, setResponse] = useState(() => generateGameNpcResponse(defaultStylePackId, 'name-forge-npc-001'));
@@ -41,7 +43,9 @@ export function GameNpcView({ mode, stylePacks }: GameNpcViewProps) {
 
   function generate(event?: FormEvent<HTMLFormElement>) {
     event?.preventDefault();
-    setResponse(generateGameNpcResponse(stylePackId, createRandomSeed()));
+    const nextResponse = generateGameNpcResponse(stylePackId, createRandomSeed());
+    setResponse(nextResponse);
+    onGenerated?.(nextResponse.names, { mode: 'game-npc', seed: nextResponse.random.seed });
   }
 
   return (
