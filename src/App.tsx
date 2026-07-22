@@ -28,7 +28,13 @@ const sourceUrl = 'https://github.com/jaahay/name-forge';
 const commitHistoryUrl = `${sourceUrl}/commits/main/`;
 
 function browserStorage(): NameHistoryStorage | undefined {
-  return typeof window === 'undefined' ? undefined : window.localStorage;
+  if (typeof window === 'undefined') return undefined;
+
+  try {
+    return window.localStorage;
+  } catch {
+    return undefined;
+  }
 }
 
 function createRandomSeed(): string {
