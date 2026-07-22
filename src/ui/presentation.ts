@@ -1,6 +1,6 @@
 import type { RarityBand, ScoreKey } from '../engine/types';
 
-export type AppView = 'generator' | 'changelog' | 'about';
+export type AppView = 'generator' | 'recent-names' | 'changelog' | 'about';
 
 export type ControlKey =
   | 'novelty'
