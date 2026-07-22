@@ -1,6 +1,14 @@
 import { FormEvent, useState } from 'react';
-import { createDefaultRegistry } from './engine/registry';
 import { generateEnsemble, type LockedNameSlot } from './engine/ensemble';
+import {
+  addNameHistoryEntries,
+  clearNameHistory,
+  loadNameHistory,
+  saveNameHistory,
+  type NameHistoryStorage,
+} from './engine/nameHistory';
+import { toNameArtifact, type NameArtifact } from './engine/nameArtifact';
+import { createDefaultRegistry } from './engine/registry';
 import type { GeneratedEnsemble, GenerationSettings } from './engine/types';
 import { AboutView } from './ui/AboutView';
 import { ChangelogView } from './ui/ChangelogView';
@@ -8,6 +16,7 @@ import { GameNpcView } from './ui/GameNpcView';
 import { GeneratorView } from './ui/GeneratorView';
 import { fictionCastMode, gameNpcMode, type NamingModeId } from './ui/modes';
 import type { AppView, ControlKey } from './ui/presentation';
+import { RecentNamesView } from './ui/RecentNamesView';
 import { randomizeScoreSettings, randomScore } from './ui/score';
 
 const registry = createDefaultRegistry();
@@ -17,6 +26,10 @@ const initialEnsemble = generateEnsemble(initialSettings, registry);
 const authorSiteUrl = 'https://jameshay.org/';
 const sourceUrl = 'https://github.com/jaahay/name-forge';
 const commitHistoryUrl = `${sourceUrl}/commits/main/`;
+
+function browserStorage(): NameHistoryStorage | undefined {
+  return typeof window === 'undefined' ? undefined : window.localStorage;
+}
 
 function createRandomSeed(): string {
   return `name-forge-${Math.random().toString(36).slice(2, 10)}`;
@@ -38,10 +51,27 @@ export default function App() {
   const [committedSettings, setCommittedSettings] = useState<GenerationSettings>(initialSettings);
   const [ensemble, setEnsemble] = useState<GeneratedEnsemble>(initialEnsemble);
   const [lockedNameIds, setLockedNameIds] = useState<Set<string>>(() => new Set());
+  const [history, setHistory] = useState(() => loadNameHistory(browserStorage()));
 
   function showMode(modeId: NamingModeId) {
     setActiveModeId(modeId);
     setCurrentView('generator');
+  }
+
+  function recordArtifacts(artifacts: readonly NameArtifact[], context: { readonly mode: string; readonly seed: string }) {
+    if (artifacts.length === 0) return;
+    setHistory((current) => {
+      const next = addNameHistoryEntries(current, artifacts, {
+        ...context,
+        savedAt: new Date().toISOString(),
+      });
+      saveNameHistory(browserStorage(), next);
+      return next;
+    });
+  }
+
+  function clearHistory() {
+    setHistory(clearNameHistory(browserStorage()));
   }
 
   function updateSetting<K extends keyof GenerationSettings>(key: K, value: GenerationSettings[K]) {
@@ -53,6 +83,7 @@ export default function App() {
     setCommittedSettings(nextSettings);
     setEnsemble(nextEnsemble);
     setLockedNameIds(retainedLockIds(nextEnsemble, nextLockedNameIds));
+    recordArtifacts(nextEnsemble.names.map(toNameArtifact), { mode: 'fiction-cast', seed: nextSettings.seed });
   }
 
   function generate(event?: FormEvent<HTMLFormElement>) {
@@ -108,6 +139,7 @@ export default function App() {
           </div>
         </div>
         <div className="utility-tabs" aria-label="Project links">
+          <button type="button" className={currentView === 'recent-names' ? 'tab-button active' : 'tab-button'} onClick={() => setCurrentView('recent-names')}>Recent names</button>
           <button type="button" className={currentView === 'changelog' ? 'tab-button active' : 'tab-button'} onClick={() => setCurrentView('changelog')}>Changelog</button>
           <button type="button" className={currentView === 'about' ? 'tab-button active' : 'tab-button'} onClick={() => setCurrentView('about')}>About</button>
           <a className="tab-link" href={sourceUrl} target="_blank" rel="noreferrer">Source</a>
@@ -116,7 +148,7 @@ export default function App() {
 
       {currentView === 'generator' ? (
         activeModeId === 'game-npc' ? (
-          <GameNpcView mode={gameNpcMode} stylePacks={stylePacks} />
+          <GameNpcView mode={gameNpcMode} stylePacks={stylePacks} onGenerated={recordArtifacts} />
         ) : (
           <GeneratorView
             mode={fictionCastMode}
@@ -134,6 +166,8 @@ export default function App() {
             onClearLockedNames={clearLockedNames}
           />
         )
+      ) : currentView === 'recent-names' ? (
+        <RecentNamesView entries={history.entries} onClear={clearHistory} />
       ) : currentView === 'changelog' ? (
         <ChangelogView commitHistoryUrl={commitHistoryUrl} />
       ) : (
