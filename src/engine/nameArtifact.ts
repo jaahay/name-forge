@@ -99,8 +99,7 @@ function isSoundCandidate(value: unknown): boolean {
       && isIndexArray(syllable.coda, segmentCount)
       && isNonEmptyString(syllable.shape)
       && isNonEmptyString(syllable.weight)
-      && Array.isArray(syllable.sonorityProfile)
-      && syllable.sonorityProfile.every(isFiniteNumber)
+      && isNonEmptyString(syllable.sonorityProfile)
       && isNonEmptyString(syllable.stress)
       && isNonEmptyString(syllable.stressSource);
   });
