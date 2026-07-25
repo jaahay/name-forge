@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { deriveNameChildSeed } from './nameRequest';
+import { compileNameCriteriaToGenerationSettings } from './nameCriteriaCompiler';
+import { generateNameFromSilhouette } from './generator';
+import {
+  deriveNameChildSeed,
+  MAX_EXACT_NAME_QUANTITY,
+  resolveNameRequest,
+} from './nameRequest';
 import { generateNameResponse } from './nameResponse';
+import { createSeededRandom } from './random';
+import { createDefaultRegistry } from './registry';
+import { createNameSilhouette } from './silhouettes';
 
 const emptyCriteria = { clauses: [] } as const;
 
@@ -34,13 +43,63 @@ describe('shared exact quantity and grouping', () => {
     });
   });
 
-  it('returns the exact requested number of flat ordered artifacts', () => {
+  it('returns the exact requested number of flat ordered artifacts with index-stable identity', () => {
     const response = exactIndependentSet(4, 'exact-four-seed');
 
     expect(response.names).toHaveLength(4);
     expect(response.grouping.quantity).toBe(4);
     expect(response.grouping.childSeeds).toHaveLength(4);
     expect(response.names.every((artifact) => artifact.displayText.length > 0)).toBe(true);
+    expect(response.names.map((artifact) => artifact.id)).toEqual([
+      expect.stringMatching(/^name-1-/),
+      expect.stringMatching(/^name-2-/),
+      expect.stringMatching(/^name-3-/),
+      expect.stringMatching(/^name-4-/),
+    ]);
+    expect(response.names.map((artifact) => artifact.silhouette?.id)).toEqual([
+      'silhouette-1',
+      'silhouette-2',
+      'silhouette-3',
+      'silhouette-4',
+    ]);
+    expect(new Set(response.names.map((artifact) => artifact.id)).size).toBe(4);
+  });
+
+  it('keeps artifact ids distinct when generated display values collide', () => {
+    const registry = createDefaultRegistry();
+    const stylePackId = registry.listStylePacks()[0]?.id;
+    if (!stylePackId) throw new Error('Expected a default style pack.');
+
+    const pack = registry.getStylePack(stylePackId);
+    const settings = compileNameCriteriaToGenerationSettings(emptyCriteria, {
+      seed: 'duplicate-display-parent',
+      stylePackId,
+    });
+    const silhouette = createNameSilhouette(
+      settings,
+      pack,
+      createSeededRandom('duplicate-display-silhouette'),
+      0,
+    );
+    const first = generateNameFromSilhouette(
+      silhouette,
+      pack,
+      settings,
+      createSeededRandom('duplicate-display-name'),
+      0,
+    );
+    const second = generateNameFromSilhouette(
+      silhouette,
+      pack,
+      settings,
+      createSeededRandom('duplicate-display-name'),
+      1,
+    );
+
+    expect(second.name).toBe(first.name);
+    expect(second.id).not.toBe(first.id);
+    expect(first.id).toMatch(/^name-1-/);
+    expect(second.id).toMatch(/^name-2-/);
   });
 
   it('derives deterministic index-stable child seeds from the parent seed', () => {
@@ -83,11 +142,30 @@ describe('shared exact quantity and grouping', () => {
     expect(fiction.names).toEqual(npc.names);
   });
 
-  it('rejects non-positive and non-integral exact quantities', () => {
-    for (const value of [0, -1, 1.5]) {
-      expect(() => exactIndependentSet(value, `invalid-quantity-${value}`)).toThrow(
-        'Exact name quantity must be a positive safe integer.',
-      );
+  it('accepts the shared maximum exact quantity during request resolution', () => {
+    const resolution = resolveNameRequest({
+      version: 1,
+      criteria: emptyCriteria,
+      quantity: { kind: 'exact', value: MAX_EXACT_NAME_QUANTITY },
+      grouping: { kind: 'independent-set' },
+      random: { seed: 'maximum-quantity-seed' },
+    });
+
+    expect(resolution.request.quantity).toEqual({
+      kind: 'exact',
+      value: MAX_EXACT_NAME_QUANTITY,
+    });
+  });
+
+  it('rejects quantities outside the supported exact range', () => {
+    for (const value of [0, -1, 1.5, MAX_EXACT_NAME_QUANTITY + 1]) {
+      expect(() => resolveNameRequest({
+        version: 1,
+        criteria: emptyCriteria,
+        quantity: { kind: 'exact', value },
+        grouping: { kind: 'independent-set' },
+        random: { seed: `invalid-quantity-${value}` },
+      })).toThrow(`Exact name quantity must be an integer from 1 to ${MAX_EXACT_NAME_QUANTITY}.`);
     }
   });
 });
