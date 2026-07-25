@@ -1,102 +1,93 @@
-# Future NameGrouping design boundary
+# NameGrouping implementation boundary
 
-This design note defines the boundary for future grouping work after the implemented singular NameRequest v1 path.
+This note records the first accepted runtime grouping contract for the shared `NameRequest -> NameResponse` operation.
 
-## Current invariant
+## Implemented invariant
 
-NameRequest v1 is singular today.
+NameRequest v1 supports either the existing singular default or an exact independent set:
 
 ```text
-NameRequest -> NameResponse containing exactly one NameArtifact
+NameRequest
+  -> resolve one parent seed
+  -> derive one deterministic child seed per artifact index
+  -> generate one atomic ordered independent set
+  -> NameResponse with flat NameArtifact[] and grouping metadata
 ```
 
-The current public request shape remains:
+The public request extension is:
 
 ```ts
 {
   version: 1;
   criteria: NameCriteria;
   mode?: string;
+  quantity?: { kind: "exact"; value: number };
+  grouping?: { kind: "independent-set" };
   random?: RandomizationRequest;
 }
 ```
 
-`quantity`, `grouping`, `NameGrouping`, and `NameSetCriteria` are not current API fields.
+Omitting `quantity` and `grouping` resolves to `{ kind: "exact", value: 1 }` and `{ kind: "independent-set" }`, preserving the previous singular generation stream.
 
-## Why grouping is future work
+## Exact quantity
 
-Grouping is a product and contract decision, not just a loop around generation.
+The implemented quantity is exact rather than advisory.
 
-Grouped output may need to represent set intent, slot intent, per-slot criteria, aggregate diagnostics, export behavior, inspect behavior, and persistence behavior. Adding those concepts directly to runtime before the contract is designed would blur the current singular v1 guarantee.
+- Supported values are integers from 1 through `MAX_EXACT_NAME_QUANTITY`.
+- The shared maximum is 100 artifacts per atomic request.
+- Requests outside that range fail before generation.
+- Partial-result recovery is not part of this contract.
 
-## Future concepts
+## Independent-set grouping
 
-These names are design vocabulary only until an implementation slice accepts them.
+`independent-set` means every artifact is generated under the same normalized criteria without cohesion, diversity, ranking, slot, role, or cross-artifact optimization.
 
-### NameQuantity
+The response keeps individual artifacts flat:
 
-Represents requested output count or range.
+```ts
+type NameResponse = {
+  readonly names: readonly NameArtifact[];
+  readonly grouping: {
+    readonly kind: "independent-set";
+    readonly quantity: number;
+    readonly parentSeed: string;
+    readonly childSeeds: readonly string[];
+  };
+};
+```
 
-Open questions:
+`grouping.childSeeds[index]` is the seed used to generate `names[index]`.
 
-- Is quantity exact or advisory?
-- Does quantity apply to artifacts, groups, slots, or candidate pools?
-- How are partial results represented?
+## Determinism
 
-### NameGrouping
+For the same normalized request, parent seed, algorithm version, and engine data:
 
-Represents how multiple names relate to one another.
+- the artifact count is identical;
+- child seeds remain associated with the same indexes;
+- artifact ordering is identical;
+- artifact and silhouette identities use their ordered indexes;
+- replay returns the same ordered artifacts;
+- extending quantity preserves the existing result prefix;
+- adding or changing `mode` metadata alone does not change outputs.
 
-Potential grouping kinds:
-
-- `none`: current singular behavior.
-- `set`: independent names generated under shared criteria.
-- `ranked-list`: multiple alternatives for one naming problem.
-- `slots`: named roles such as given/family/place/team/member.
-- `cast`: product-specific grouped identity surface, not a global engine assumption.
-
-### NameSetCriteria
-
-Represents criteria that apply to a set or group.
-
-Open questions:
-
-- Which criteria are global?
-- Which criteria are per-slot?
-- Which criteria describe contrast, cohesion, diversity, or compatibility across names?
-- How do diagnostics distinguish unsupported global criteria from unsupported slot criteria?
+Index 0 uses the parent seed directly so omitted quantity/grouping preserves the previous singular output stream. Later indexes use deterministic child-seed labels.
 
 ## Boundary rules
 
-- Do not add grouping fields to the current public v1 `NameRequest` until a contract slice is accepted.
-- Do not make `mode` drive grouping behavior.
-- Do not make Fiction Cast concepts global engine assumptions.
-- Do not expose candidate scoring as public group fit scoring.
-- Do not add public Criteria Match or fit percentage UI as part of grouping design.
-- Do not implement runtime grouping in this docs-only slice.
+- `mode` must not drive quantity or grouping behavior.
+- Fiction Cast roles, locks, cohesion, and ensemble scoring are not shared grouping semantics.
+- Game NPC roster presentation is not part of the engine contract.
+- Candidate scoring must not become public group-fit scoring.
+- Grouping does not imply slotted generation, ranked alternatives, or per-artifact reroll.
 
-## Runtime non-goals
+## Deferred grouping kinds
 
-- No runtime grouping.
-- No plural quantity behavior.
-- No slotted generation.
-- No grouped response shape.
-- No new active modes.
-- No UI changes.
-- No persistence changes.
-- No export changes.
-- No LLM prompt-first UI.
+The following remain future contract work:
 
-## Future design questions
-
-- Should grouping be versioned as a v2 request contract or an additive v1 extension?
-- Should grouped responses keep `names` flat or introduce explicit group/set objects?
-- How should diagnostics attach to groups, slots, and individual artifacts?
-- How should random seeds behave across a group?
-- How should exports represent grouped outputs?
-- How should Inspect navigate group-level versus artifact-level facts?
-- Which product surface needs grouping first: richer criteria, persistence, Inspect/export hardening, or a next mode exploration?
-
-## Safe next step after this boundary
-
-A future implementation slice may introduce type-only contract sketches or experimental docs for grouping. Runtime behavior should remain singular until the request/response shape, diagnostics model, and product consumer are explicit.
+- cohesion- or diversity-optimized sets;
+- ranked alternatives for one naming problem;
+- slotted sets and slot-level criteria;
+- aggregate or per-slot diagnostics;
+- partial-result recovery;
+- group persistence, Inspect navigation, and export presentation;
+- per-artifact reroll and child replacement semantics.
