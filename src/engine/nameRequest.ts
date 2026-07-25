@@ -10,6 +10,7 @@ export type NameQuantityKind = 'exact';
 export type NameGroupingKind = 'independent-set';
 
 export const NAME_REQUEST_RANDOMIZATION_ALGORITHM: RandomizationAlgorithm = 'name-forge-v1';
+export const MAX_EXACT_NAME_QUANTITY = 100;
 
 export interface RandomizationRequest {
   readonly seed?: string;
@@ -32,6 +33,7 @@ export interface IndependentSetGrouping {
 export interface NameGroupMetadata extends IndependentSetGrouping {
   readonly quantity: number;
   readonly parentSeed: string;
+  /** `childSeeds[index]` is the seed used to generate `names[index]`. */
   readonly childSeeds: readonly string[];
 }
 
@@ -118,8 +120,13 @@ function resolveRandomization(random?: RandomizationRequest): RandomizationResul
 
 function resolveQuantity(quantity?: ExactNameQuantity): ExactNameQuantity {
   if (quantity === undefined) return DEFAULT_EXACT_QUANTITY;
-  if (quantity.kind !== 'exact' || !Number.isSafeInteger(quantity.value) || quantity.value <= 0) {
-    throw new RangeError('Exact name quantity must be a positive safe integer.');
+  if (
+    quantity.kind !== 'exact'
+    || !Number.isSafeInteger(quantity.value)
+    || quantity.value < 1
+    || quantity.value > MAX_EXACT_NAME_QUANTITY
+  ) {
+    throw new RangeError(`Exact name quantity must be an integer from 1 to ${MAX_EXACT_NAME_QUANTITY}.`);
   }
 
   return { kind: 'exact', value: quantity.value };
