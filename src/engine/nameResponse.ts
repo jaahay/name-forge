@@ -35,19 +35,20 @@ export function generateNameResponse(request: NameRequest, options: NameResponse
     { length: resolution.request.quantity.value },
     (_, index) => deriveNameChildSeed(resolution.random.seed, index),
   );
-  const names = childSeeds.map((childSeed) => {
+  const names = childSeeds.map((childSeed, artifactIndex) => {
+    const childSettings = { ...settings, seed: childSeed };
     const silhouette = createNameSilhouette(
-      settings,
+      childSettings,
       pack,
       createSeededRandom(`${childSeed}:name-request-v1:silhouette:0`),
-      0,
+      artifactIndex,
     );
     const generatedName = generateNameFromSilhouette(
       silhouette,
       pack,
-      settings,
+      childSettings,
       createSeededRandom(`${childSeed}:name-request-v1:name:0`),
-      0,
+      artifactIndex,
     );
 
     return toNameArtifact(generatedName);
