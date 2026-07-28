@@ -2,13 +2,16 @@
 
 ## Purpose
 
-This document turns the NameRequest v1 requirements into a concrete implementation sequence.
+This document records the implementation sequence that established the criteria-driven request contract and the first shared quantity/grouping extension.
 
-It should be read after [`name-request-v1.md`](name-request-v1.md). The goal is to keep each future PR small, reviewable, and tied to the criteria-driven request contract.
+Read the active requirements first:
+
+- [`name-request-v1.md`](name-request-v1.md)
+- [`name-grouping-design-boundary.md`](name-grouping-design-boundary.md)
 
 ## Sequencing principle
 
-Build the contract from the outside inward:
+The contract was built from the outside inward:
 
 ```text
 Types
@@ -18,19 +21,18 @@ Types
   -> criteria bridge
   -> criteria-driven selection
   -> UI criteria controls
+  -> exact quantity and independent-set grouping
 ```
 
-Do not start with plural generation, grouping, Cast refactors, or chip-library UI. Those are downstream of the singular request contract.
+Slices 1-8 established the singular-compatible foundation. Slice 9 records the first accepted plural extension. More expressive grouping remains downstream.
 
 ## Slice 1 - Contract model types
 
 ### Goal
 
-Introduce the planning types with no runtime behavior change.
+Introduce the durable request, response, artifact, criteria, randomization, and diagnostic types without changing runtime behavior.
 
-### Scope
-
-Add types for:
+### Implemented scope
 
 - `NameRequest`
 - `ResolvedNameRequest`
@@ -42,271 +44,192 @@ Add types for:
 - `RandomizationResult`
 - `NameDiagnostic`
 
-### Suggested location
+### Boundary
 
-Likely options:
-
-- `src/engine/nameRequest.ts`
-- `src/engine/nameCriteria.ts`
-- `src/engine/nameArtifact.ts`
-
-The exact split should follow implementation ergonomics, but the types should not be placed in UI modules.
-
-### Acceptance criteria
-
-- Types compile.
-- `criteria` is explicit and structured.
-- `mode` is optional metadata.
-- No `CastRequest`, `ProductNameRequest`, `NpcRequest`, or mode-specific API types are added.
-- No behavior changes.
-
-### Non-goals
-
-- No generator adapter.
-- No criteria compilation.
-- No UI change.
-- No grouping implementation.
+Types live in engine modules rather than UI modules. No mode-specific request family was introduced.
 
 ## Slice 2 - Request resolver and seed handling
 
 ### Goal
 
-Resolve a raw `NameRequest` into a deterministic `ResolvedNameRequest`.
+Resolve a raw request into a deterministic `ResolvedNameRequest`.
 
-### Scope
+### Implemented scope
 
-- Resolve missing `random.seed`.
-- Preserve supplied seed.
-- Preserve optional `mode` metadata.
-- Normalize missing or empty criteria.
-- Attach `RandomizationResult` metadata.
+- resolve missing `random.seed`;
+- preserve supplied seed;
+- preserve optional `mode` metadata;
+- normalize missing or empty criteria;
+- attach `RandomizationResult` metadata.
 
-### Acceptance criteria
+### Contract
 
-- Same request with same seed resolves identically.
-- Request without seed receives a resolved seed.
-- Response-facing random metadata always includes a seed.
-- Two requests differing only by `mode` resolve to equivalent generation inputs.
-
-### Tests
-
-Use positive deterministic assertions:
-
-- provided seed is preserved
-- omitted seed is filled
-- `mode` is present in resolved metadata but not in generation-driving fields
+The same request and seed resolve identically. `mode` is retained as metadata but excluded from generation-driving behavior.
 
 ## Slice 3 - NameArtifact mapper
 
 ### Goal
 
-Map the current selected-name model into the future `NameArtifact` noun without flattening it to plain text.
+Map selected generator output into the durable `NameArtifact` noun without flattening it to plain text.
 
-### Scope
+### Implemented scope
 
-- Map current `GeneratedName` display text.
-- Preserve current sound metadata.
-- Preserve selected spelling metadata.
-- Preserve ranked spelling alternatives where available.
-- Preserve diagnostics or warnings where already available.
-- Keep Cast role/ensemble metadata out of the universal artifact core unless represented as optional context.
+- display text;
+- sound and silhouette metadata;
+- selected spelling and retained ranked spellings;
+- identity and variant metadata where available;
+- current diagnostics and warnings.
 
-### Acceptance criteria
-
-- A mapped artifact includes display text.
-- Sound and spelling metadata survive the mapping.
-- Cast-specific metadata is not required for all artifacts.
-- Existing Inspect/export needs are not weakened by the mapping.
-
-### Non-goals
-
-- No new Criteria Match UI.
-- No fit percentage.
-- No new scoring model.
+Cast role and ensemble metadata are not intrinsic to every artifact.
 
 ## Slice 4 - Singular NameRequest adapter
 
 ### Goal
 
-Create the first `NameRequest -> NameResponse` behavior by adapting the current generator path.
+Create the first `NameRequest -> NameResponse` runtime behavior over the current generator path.
 
-### Scope
+### Implemented scope
 
-- Accept `NameRequest`.
-- Resolve request and seed.
-- Bridge criteria into the current generation path with minimal behavior change.
-- Generate/select one current name.
-- Map it to `NameArtifact`.
-- Return `NameResponse` with `names.length === 1`.
+- resolve request and seed;
+- bridge criteria into current generation settings;
+- generate and select one name;
+- map it to `NameArtifact`;
+- return `NameResponse` with one artifact.
 
-### Acceptance criteria
-
-- Same request plus same seed produces the same response artifact.
-- Omitted seed is emitted and can reproduce the run.
-- `mode` does not alter output when criteria and seed are unchanged.
-- Response contains exactly one name artifact.
-
-### Non-goals
-
-- No plural count support.
-- No grouping.
-- No Cast ensemble behavior through this API.
+This singular path remains the compatibility baseline used when quantity and grouping are omitted.
 
 ## Slice 5 - Criteria diagnostics bridge
 
 ### Goal
 
-Make accepted-but-unimplemented criteria explicit without blocking generation.
+Make accepted-but-unimplemented criteria explicit without blocking ordinary generation.
 
-### Scope
+### Implemented scope
 
-- Identify which criteria families or targets are supported by the adapter.
-- Emit diagnostics for unsupported or partially implemented criteria.
-- Keep generation best-effort.
+- classify supported, partially implemented, and unsupported criteria;
+- return deterministic diagnostics;
+- keep generation best-effort.
 
-### Acceptance criteria
+Diagnostics do not substitute for functional support and do not expose public fit percentages.
 
-- Unsupported criteria do not crash ordinary requests.
-- Diagnostics identify unsupported or partially supported criteria.
-- Supported criteria are not mislabeled as unsupported.
-- Diagnostics are deterministic for the same request.
-
-### Non-goals
-
-- No public criteria match score.
-- No request failure for ordinary taste conflicts.
-
-## Slice 6 - Criteria-to-current-compiler mapping
+## Slice 6 - Criteria-to-generator compiler
 
 ### Goal
 
-Start making `NameCriteria` functionally affect generation beyond diagnostics.
+Make a small high-value subset of `NameCriteria` affect generation.
 
-### Scope
+### Implemented scope
 
-Map a small, high-value subset of criteria to the existing compiler/generator path.
+Current supported targets compile into `GenerationSettings`, including selected sound, practical, spelling, and avoidance pressures where implemented.
 
-Candidate first criteria:
-
-- sound: `soft`, `crisp`, `flowing`, `clipped`
-- practical: `easy-to-say`, `easy-to-spell`
-- spelling: `plain`, `distinctive`
-- avoid: a small deterministic fragment list, if the current generator path can enforce or penalize it safely
-
-### Acceptance criteria
-
-- Chosen criteria produce deterministic, observable generation differences.
-- Tests assert exact positive behavior for deterministic fixtures.
-- Unsupported criteria still produce diagnostics rather than pretending to work.
-
-### Non-goals
-
-- No large chip taxonomy.
-- No LLM.
-- No cultural/language authenticity claims.
-- No public fit percentage.
+Unsupported targets continue to produce diagnostics rather than pretending to work.
 
 ## Slice 7 - Internal candidate scoring boundary
 
 ### Goal
 
-Introduce or clarify where functional candidate scoring belongs when criteria need selection pressure.
+Define where criteria-driven selection pressure belongs.
 
-### Scope
+### Implemented scope
 
-- Evaluate generated candidates against compiled criteria.
-- Use score to select the returned artifact.
-- Keep score internal or debug-facing.
-- Preserve ranked spelling candidate behavior.
+- evaluate candidates against compiled settings;
+- use deterministic score components for internal selection;
+- preserve ranked spelling behavior;
+- keep scores internal or debug-facing.
 
-### Acceptance criteria
+Candidate scores are not public Criteria Match percentages.
 
-- Scoring affects selection where implemented.
-- Score components are deterministic.
-- Score is not exposed as a public fit percentage.
-- Tests assert selected output for deterministic candidate pools.
-
-### Non-goals
-
-- No polished Criteria Match UI.
-- No 0%/100% fit language.
-
-## Slice 8 - Configure criteria surface exploration
+## Slice 8 - Configure criteria surface
 
 ### Goal
 
-Begin aligning the UI with criteria without building the full drawer/chip system.
+Align bounded UI controls with criteria language without introducing prompt-first or LLM behavior.
 
-### Scope
+### Implemented boundary
 
-- Reframe current Configure controls around criteria language where practical.
-- Keep existing Fiction cast workflow intact.
-- Introduce a small selected-criteria or run-summary concept only if it reduces ambiguity.
-- Defer large chip libraries and drawers unless the generator can already honor the criteria.
+- current Fiction Cast workflow remains intact;
+- controls remain bounded and understandable;
+- UI language does not claim unsupported criteria behavior;
+- no public fit percentage or large universal chip taxonomy was added.
 
-### Acceptance criteria
-
-- UI still supports current Fiction cast generation.
-- Criteria language does not imply free-form prompt input.
-- Controls remain bounded and understandable.
-- No LLM surface appears.
-
-### Non-goals
-
-- No full chip library.
-- No hundreds-of-chips drawer.
-- No new mode implementation.
-
-## Slice 9 - Grouping design spike only
+## Slice 9 - Exact independent-set grouping
 
 ### Goal
 
-Prepare for future Cast/ensemble extraction without implementing it.
+Add the first shared quantity and grouping behavior without importing Fiction Cast semantics into the universal engine contract.
 
-### Scope
+### Implemented request fields
 
-- Document how current `GeneratedEnsemble` behavior could map to future `NameGrouping`.
-- Identify which current Cast-specific concepts are UI-only and which are engine invariants.
-- Identify possible `NameSetCriteria` fields from existing ensemble behavior.
+```ts
+quantity?: { readonly kind: "exact"; readonly value: number };
+grouping?: { readonly kind: "independent-set" };
+```
 
-### Acceptance criteria
+Omitted values resolve to exact quantity 1 and `independent-set`, preserving singular compatibility.
 
-- No runtime behavior change.
-- No public API grouping support yet.
-- The spike identifies a concrete future implementation path.
+### Implemented runtime behavior
 
-## Explicitly deferred beyond these slices
+- validate exact quantity from 1 through 100;
+- resolve one parent seed per request;
+- derive one deterministic child seed per artifact index;
+- generate all requested artifacts inside one atomic engine operation;
+- return flat ordered `NameArtifact[]` output;
+- return grouping metadata with quantity, parent seed, and child seeds;
+- preserve `grouping.childSeeds[index] -> names[index]` association;
+- use artifact indexes for artifact and silhouette identity;
+- preserve deterministic replay and quantity-prefix stability;
+- keep `mode` metadata non-semantic.
 
-- Plural `quantity` behavior.
-- `grouping` behavior.
-- Slotted set generation.
-- New active modes.
-- LLM-assisted criteria filling.
-- Public Criteria Match UI.
-- Fit percentages.
-- Domain/trademark/availability checks.
-- Baby-name mode.
+### Acceptance contract
 
-## Suggested issue decomposition
+- `names.length` equals resolved exact quantity;
+- child-seed count equals artifact count;
+- omitted quantity/grouping returns the previous singular deterministic output;
+- equal display values retain distinct durable IDs;
+- requests differing only by `mode` return identical artifacts and grouping metadata;
+- out-of-range quantities fail before generation.
 
-Each slice can become one canonical issue. Avoid creating implementation issues that mix:
+### Explicit non-goals
 
-- type contracts with UI changes
-- request resolution with criteria scoring
-- singular request work with grouping
-- criteria UI with LLM parsing
-- Cast extraction with NameRequest v1
+- cohesion or diversity optimization;
+- ranked alternatives for one naming problem;
+- slotted sets and slot-level criteria;
+- aggregate or per-slot diagnostics;
+- partial-result recovery;
+- per-artifact reroll or child replacement;
+- Fiction Cast roles, locks, or ensemble scoring as shared engine behavior;
+- Game NPC roster UI.
 
-The first issue should probably be:
+## Deferred beyond the implemented slices
 
-> Add NameRequest v1 model contracts
+- optimized set relationships such as cohesion, contrast, or diversity;
+- ranked-list grouping;
+- slotted generation;
+- group-level persistence, Inspect, and export behavior;
+- new active modes;
+- LLM-assisted criteria filling;
+- public Criteria Match UI or fit percentages;
+- domain, trademark, or availability checks;
+- baby-name mode.
 
-The second issue should probably be:
+## Validation discipline
 
-> Resolve NameRequest seeds and mode metadata
+Each behavior slice must preserve deterministic positive contracts through exact tests. The exact independent-set slice covers:
 
-The third issue should probably be:
+- default singular resolution;
+- exact count;
+- supported quantity bounds;
+- deterministic child-seed sequence;
+- child-seed positional association;
+- replay;
+- prefix stability;
+- indexed artifact and silhouette identity;
+- duplicate display-value identity safety;
+- mode neutrality;
+- typed request/response fixtures.
 
-> Map GeneratedName to NameArtifact
+Repository CI must run TypeScript/Vite build and Vitest against the exact pull-request head.
 
-That sequence keeps the product architecture executable without skipping ahead to the more speculative surfaces.
+## Follow-up risk
+
+Supported-target knowledge remains duplicated between `nameCriteriaCompiler.ts` and `nameCriteriaDiagnostics.ts`. Centralizing that knowledge should be a separate coherent cleanup before substantially expanding criteria targets.
