@@ -1,93 +1,154 @@
 # Model and Module Contracts
 
-This document describes the current Name Forge models and modules as contracts. It answers three practical questions:
+This document describes the current Name Forge models and modules as executable contracts.
 
-1. What models do we have?
+It answers:
+
+1. What durable models exist?
 2. Which module owns each behavior?
-3. What does each module take as input and return as output?
+3. What does each module accept and return?
+4. What does collection order mean at each boundary?
 
-It also calls out collection semantics explicitly, because `T[]` is always ordered in JavaScript/TypeScript. The important design question is what the order means at a module boundary.
-
-Related decisions:
+Related decisions and requirements:
 
 - [`decisions/0001-name-artifact-and-request-contract.md`](decisions/0001-name-artifact-and-request-contract.md)
 - [`decisions/0002-criteria-driven-generation.md`](decisions/0002-criteria-driven-generation.md)
 - [`decisions/0003-intent-criteria-compiler-pipeline.md`](decisions/0003-intent-criteria-compiler-pipeline.md)
 - [`decisions/0004-modes-presets-and-grouping.md`](decisions/0004-modes-presets-and-grouping.md)
-- [`requirements/name-request-v1-checkpoint.md`](requirements/name-request-v1-checkpoint.md)
+- [`requirements/name-request-v1.md`](requirements/name-request-v1.md)
 - [`requirements/name-grouping-design-boundary.md`](requirements/name-grouping-design-boundary.md)
 
 ## Reading rule
 
-A module contract should be read as:
+A module contract is written as:
 
 ```text
 input model(s) -> module behavior -> output model(s)
 ```
 
-When a module exposes a collection, the collection order must mean one of these things:
+Collection order must have explicit meaning:
 
 | Order kind | Meaning |
 | --- | --- |
 | `source-order` | Same order as an input source or user-facing list. |
-| `generation-order` | Deterministic traversal order from the generator, not quality ranking. |
-| `rank-order` | Best-to-worst or most-preferred-to-least-preferred order. |
+| `generation-order` | Deterministic traversal order, not quality ranking. |
+| `rank-order` | Best-to-worst or most-preferred-to-least-preferred. |
 | `display-order` | Chosen for UI readability, not necessarily model priority. |
 
-If ranking matters, prefer a named model or explicit `rank` field over expecting callers to remember what a raw array means.
+When ranking matters, prefer a named model or explicit `rank` field instead of relying on an undocumented array convention.
 
-## Implemented v1 request/criteria contracts
-
-These are now implemented v1 contracts, not merely planning types. The contract is intentionally singular: it returns exactly one `NameArtifact` today while leaving future quantity and grouping as separate extensions.
+## Implemented v1 request contract
 
 ### `NameRequest`
 
-`NameRequest` is the durable naming operation input.
+`NameRequest` is the durable naming-operation input.
 
 ```ts
 type NameRequest = {
   readonly version: 1;
   readonly criteria: NameCriteria;
   readonly mode?: string;
+  readonly quantity?: {
+    readonly kind: "exact";
+    readonly value: number;
+  };
+  readonly grouping?: {
+    readonly kind: "independent-set";
+  };
   readonly random?: RandomizationRequest;
 };
 ```
 
-Plain meaning:
+Meaning:
 
-- `criteria` declares what the generated name should satisfy.
-- `mode` is optional UI/product metadata and must not drive v1 generation behavior.
-- `random.seed` is optional; the response always emits the resolved seed.
-- `quantity`, `grouping`, `NameGrouping`, and `NameSetCriteria` are not current API fields. They remain future concepts.
+- `criteria` declares what each generated name should satisfy;
+- `mode` is optional product/UI metadata and must not drive generation or grouping;
+- omitted quantity resolves to exact quantity 1;
+- omitted grouping resolves to `independent-set`;
+- exact quantity is currently supported from 1 through 100;
+- `random.seed` is optional and becomes the resolved parent seed.
+
+### `ResolvedNameRequest`
+
+`ResolvedNameRequest` contains normalized criteria, explicit quantity/grouping, and resolved randomization metadata.
+
+```ts
+type ResolvedNameRequest = {
+  readonly version: 1;
+  readonly criteria: NameCriteria;
+  readonly mode?: string;
+  readonly quantity: {
+    readonly kind: "exact";
+    readonly value: number;
+  };
+  readonly grouping: {
+    readonly kind: "independent-set";
+  };
+  readonly random: RandomizationResult;
+};
+```
 
 ### `NameResponse`
 
-`NameResponse` is the durable naming operation output.
+`NameResponse` is the durable naming-operation output.
 
 ```ts
 type NameResponse = {
   readonly version: 1;
   readonly request: ResolvedNameRequest;
   readonly names: readonly NameArtifact[];
+  readonly grouping: {
+    readonly kind: "independent-set";
+    readonly quantity: number;
+    readonly parentSeed: string;
+    readonly childSeeds: readonly string[];
+  };
   readonly random: RandomizationResult;
   readonly diagnostics?: readonly NameDiagnostic[];
 };
 ```
 
-Plain meaning:
+Contract:
 
-- `names` is always an array, but v1 currently returns exactly one artifact.
-- There is no current public `group` field.
-- `random.seed` is always present.
-- `diagnostics` are honest notes about fallback, unsupported criteria, or partial implementation. They are not public fit scores and not a Criteria Match UI.
+- `names` is a flat ordered artifact array;
+- `names.length` equals resolved exact quantity;
+- `grouping.childSeeds.length` equals `names.length`;
+- `grouping.childSeeds[index]` generated `names[index]`;
+- order is deterministic generation order, not rank order;
+- `random.seed` is the parent seed and is always present;
+- diagnostics report fallback or criteria support honestly; they are not public fit scores.
+
+### `NameGroupMetadata`
+
+The first grouping model is deliberately narrow.
+
+```ts
+type NameGroupMetadata = {
+  readonly kind: "independent-set";
+  readonly quantity: number;
+  readonly parentSeed: string;
+  readonly childSeeds: readonly string[];
+};
+```
+
+`independent-set` means that each artifact uses the same normalized criteria but does not participate in cohesion, contrast, diversity, slot, role, or cross-artifact optimization.
+
+Index 0 uses the parent seed directly to preserve the previous singular deterministic stream. Later indexes use deterministic child-seed labels. Increasing quantity therefore preserves the existing artifact prefix.
 
 ### `NameArtifact`
 
-`NameArtifact` is the primary product artifact.
+`NameArtifact` is the primary durable result unit.
 
-`NameArtifact` preserves the richness currently carried by selected `GeneratedName` results: display text, sound plan, selected spelling, retained spelling alternatives, identity data where applicable, diagnostics, and exportable metadata.
+It preserves selected generator richness such as:
 
-`GeneratedName` remains the current app-facing selected result inside the generator path. `NameArtifact` is the stable request/response artifact noun.
+- display text;
+- sound and silhouette data;
+- selected spelling;
+- retained ranked spellings;
+- identity data where available;
+- variants, provenance, diagnostics, and exportable metadata.
+
+A group does not replace individual artifacts with a set wrapper. Equal display values must still have distinct durable IDs through indexed identity.
 
 ### `NameCriteria`
 
@@ -114,11 +175,9 @@ type NameCriteriaClause = {
 };
 ```
 
-Criteria are produced by user-facing controls, presets, selected chips, structured drawers, saved preferences, or future assistive parsing. Criteria compile into lower-level generation and selection concerns. They should not be treated as free-form prose.
+Criteria are structured data produced by controls, presets, saved preferences, or future assistive parsing. They are not free-form prompt text.
 
-### `RandomizationRequest` and `RandomizationResult`
-
-Randomness is intentional but reproducible.
+### Randomization models
 
 ```ts
 type RandomizationRequest = {
@@ -131,43 +190,21 @@ type RandomizationResult = {
 };
 ```
 
-If the request omits a seed, the engine resolves a fresh one and emits it. The same request, same resolved seed, and same algorithm version should reproduce the same name artifact.
+The same normalized request, parent seed, algorithm version, and engine data must reproduce the same ordered response.
 
-## Future quantity and grouping contracts
+## Deferred grouping contracts
 
-Runtime quantity, grouping, and slotted generation are deferred. Do not add these to the public v1 API until a dedicated grouping design slice accepts the contract. The current docs-only boundary is [`requirements/name-grouping-design-boundary.md`](requirements/name-grouping-design-boundary.md).
+The following are not implemented by `independent-set`:
 
-Future concept names include:
+- cohesion- or diversity-optimized sets;
+- ranked alternatives for one naming problem;
+- slotted sets and slot-level criteria;
+- aggregate or per-slot diagnostics;
+- partial-result recovery;
+- per-artifact reroll or child replacement;
+- group persistence, Inspect navigation, or export presentation.
 
-```ts
-type NameQuantity = {
-  readonly count: number;
-};
-
-type NameGrouping =
-  | { readonly kind: "none" }
-  | { readonly kind: "set"; readonly criteria?: NameSetCriteria }
-  | { readonly kind: "ranked-list" }
-  | { readonly kind: "slots"; readonly slots: readonly NameSlotRequest[] };
-```
-
-Meanings:
-
-- `none`: the current singular behavior.
-- `set`: independent names generated under shared criteria.
-- `ranked-list`: multiple alternatives for one naming problem.
-- `slots`: named roles such as given/family/place/team/member.
-
-`NameSetCriteria` is future vocabulary for criteria that apply across a set or group. It is where cohesion, contrast, diversity, compatibility, and aggregate diagnostics questions can be designed without changing the current request shape.
-
-Boundary rules:
-
-- Do not add grouping fields to the current public v1 `NameRequest` until a contract slice is accepted.
-- Do not make `mode` drive grouping behavior.
-- Do not make Fiction Cast concepts global engine assumptions.
-- Do not expose candidate scoring as public group fit scoring.
-- Do not add public Criteria Match or fit percentage UI as part of grouping design.
-- Do not implement runtime grouping in a docs-only slice.
+Fiction Cast concepts such as roles, locks, and ensemble scoring remain product-specific unless a later shared contract explicitly accepts them.
 
 ## Current model inventory
 
@@ -175,276 +212,179 @@ Boundary rules:
 
 | Model | Current owner | Plain meaning |
 | --- | --- | --- |
-| `NameRequest` | `nameRequest.ts` | Implemented v1 request contract for one naming operation. |
-| `ResolvedNameRequest` | `nameRequest.ts` | Request with normalized criteria and resolved randomization. |
-| `NameResponse` | `nameRequest.ts` | Implemented v1 response contract with exactly one `NameArtifact` today. |
-| `NameCriteria` | `nameCriteria.ts` | Stable criteria input model. |
-| `GenerationSettings` | `types.ts` / app state | Current user-facing controls for one Fiction cast generation run. |
+| `NameRequest` | `nameRequest.ts` | Durable naming-operation input with optional exact quantity/grouping. |
+| `ResolvedNameRequest` | `nameRequest.ts` | Normalized criteria, explicit quantity/grouping, and resolved parent seed. |
+| `NameResponse` | `nameRequest.ts` | Flat ordered artifacts plus grouping and randomization metadata. |
+| `NameGroupMetadata` | `nameRequest.ts` | Positional parent/child seed contract for an independent set. |
+| `NameCriteria` | `nameCriteria.ts` | Stable structured intent model. |
+| `GenerationSettings` | `types.ts` / app state | Current lower-level generator settings. |
 | `StyleInput` | `styleCompiler.ts` | Current ergonomic style bridge before compilation. |
-| `StylePack` | `types.ts` / `data/stylePacks.ts` | Built-in style data and source metadata; future preset-like data should not be required by the backend request. |
+| `StylePack` | `types.ts` / `data/stylePacks.ts` | Built-in style/source data. |
 | `SoundProfile` | `soundProfile.ts` | Compiled internal sound recipe. |
 
 ### Sound models
 
 | Model | Current owner | Plain meaning |
 | --- | --- | --- |
-| `SoundSegmentId` | `starterSoundInventory.ts` | Stable id for one engine-known sound segment. |
-| `SegmentSyllable` | `soundGenerator.ts` | Syllable span and onset/nucleus/coda indexes over a flat segment list. |
+| `SoundSegmentId` | `starterSoundInventory.ts` | Stable ID for an engine-known sound segment. |
+| `SegmentSyllable` | `soundGenerator.ts` | Syllable span and onset/nucleus/coda indexes. |
 | `SegmentSequence` | `soundGenerator.ts` | One pre-spelling sound plan. |
-| `SoundCandidate` | `soundGenerator.ts` | Generated sound plan plus cadence and transcription/debug display. |
+| `SoundCandidate` | `soundGenerator.ts` | Generated sound plan plus cadence and debug display. |
 
 ### Spelling models
 
 | Model | Current owner | Plain meaning |
 | --- | --- | --- |
-| `SpellingSegmentMapping` | `spellingGenerator.ts` | Link from one segment to its generated letters. |
-| `SpellingCandidate` | `spellingGenerator.ts` | One possible written form for a sound candidate. |
-| `SpellingCandidatePool` | `spellingGenerator.ts` | Projection result containing every generated spelling candidate for one sound candidate. |
-| `RankedSpellingCandidate` | `spellingGenerator.ts` | A spelling candidate after scoring/ranking. |
-| `RankedSpellingCandidateList` | `spellingGenerator.ts` | Ranked spelling alternatives for one sound candidate. |
+| `SpellingSegmentMapping` | `spellingGenerator.ts` | Link from a sound segment to generated letters. |
+| `SpellingCandidate` | `spellingGenerator.ts` | One possible written form. |
+| `SpellingCandidatePool` | `spellingGenerator.ts` | Complete generated spelling pool for one sound candidate. |
+| `RankedSpellingCandidate` | `spellingGenerator.ts` | Spelling candidate after scoring and ranking. |
+| `RankedSpellingCandidateList` | `spellingGenerator.ts` | Rank-ordered spelling alternatives. |
 
 ### App-facing name models
 
 | Model | Current owner | Plain meaning |
 | --- | --- | --- |
-| `NameGenerationCandidate` | `generator.ts` | Pre-selection candidate with sound and ranked spelling list. |
-| `GeneratedName` | `types.ts` / `generator.ts` | Current selected app-facing name with sound, selected spelling, scores, variants, and identity. |
-| `NameArtifact` | `nameArtifact.ts` | Stable product artifact mapped from one selected `GeneratedName`. |
-| `NameIdentity` | `identity.ts` / `types.ts` | Display composition plus materialized phrase parts from generated/profile-licensed parts. |
-| `GeneratedEnsemble` | `ensemble.ts` / `types.ts` | Current Cast-level result set and diagnostics. |
+| `NameGenerationCandidate` | `generator.ts` | Pre-selection candidate with sound and ranked spellings. |
+| `GeneratedName` | `types.ts` / `generator.ts` | Selected app-facing name with current generator metadata. |
+| `NameArtifact` | `nameArtifact.ts` | Stable durable result mapped from one selected `GeneratedName`. |
+| `NameIdentity` | `identity.ts` / `types.ts` | Display composition and materialized phrase parts. |
+| `GeneratedEnsemble` | `ensemble.ts` / `types.ts` | Existing Fiction Cast result and diagnostics, separate from shared grouping. |
 
 ### Audition/projection models
 
 | Model | Current owner | Plain meaning |
 | --- | --- | --- |
-| `AuditionPhonology` | `auditionPhonology.ts` | Renderer-neutral sound presentation structure derived from a segment sequence. |
-| `BrowserAuditionCue` | `browserAuditionProjection.ts` | Browser/display projection for sound guide and voice draft. |
-| `NameAuditionCue` | `audition.ts` | Current UI composition of audition phonology and browser cue. |
-| `IdentityAuditionPhrase` | `identityAudition.ts` | Renderer-neutral phrase-level audition projection from materialized identity phrase parts. |
+| `AuditionPhonology` | `auditionPhonology.ts` | Renderer-neutral sound presentation. |
+| `BrowserAuditionCue` | `browserAuditionProjection.ts` | Browser/display projection for speech and guide text. |
+| `NameAuditionCue` | `audition.ts` | Current UI audition composition. |
+| `IdentityAuditionPhrase` | `identityAudition.ts` | Phrase-level audition projection. |
 
-## Current and future module seams
+## Current module seams
 
-### Criteria diagnostics and compiler
-
-```text
-NameCriteria -> diagnostics
-NameCriteria + base request settings -> GenerationSettings
-```
-
-Owns:
-
-- resolving supported criteria clauses into current generator settings
-- producing deterministic compiler output
-- diagnosing accepted-but-unimplemented criteria
-- keeping v1 honest about partial implementation
-
-Does not own:
-
-- UI chips or drawer behavior
-- random candidate generation
-- public criteria-match explanation
-- public fit percentages
-
-Follow-up risk: supported-target knowledge is duplicated between `nameCriteriaCompiler.ts` and `nameCriteriaDiagnostics.ts`. Before expanding criteria targets, centralize supported-target metadata or add a shared helper such as `isCriteriaClauseCompiled(...)`.
-
-### Name request adapter/service
-
-```text
-NameRequest -> NameResponse
-```
-
-Owns:
-
-- resolving missing seed
-- preserving optional mode metadata without using it as a generation branch
-- invoking criteria diagnostics
-- compiling criteria into current generator settings
-- invoking candidate generation and selection
-- mapping the selected `GeneratedName` to one `NameArtifact`
-- returning exactly one artifact in v1
-
-Does not own:
-
-- runtime grouping
-- plural quantity behavior
-- slotted generation
-- grouped response shape
-- new active modes
-
-### Candidate scoring
-
-```text
-candidate + compiled criteria/settings -> internal candidate score -> selected result
-```
-
-Owns:
-
-- functional selection scoring
-- spelling candidate selection pressure when criteria request it
-- decomposed score components when useful for debugging or future Inspect surfaces
-
-Does not own:
-
-- public fit percentages
-- polished Criteria Match UI
-- treating taste criteria as hard failure by default
-
-Candidate scoring is internal selection machinery only. It must not leak into public response artifacts as a fit percentage or public match score.
-
-## Module contract map
-
-### `styleCompiler.ts`
-
-```text
-StyleInput -> compileStyle -> SoundProfile
-```
-
-Owns current translation from ergonomic style intent into an engine-readable sound recipe. It does not own all future intent surfaces, generated names, browser voice text, or spelling ranking.
-
-Design note: `StyleInput` is now best understood as the current implementation bridge. Future criteria work should not expand `StyleInput` into a universal user-intent model; richer surfaces should produce `NameCriteria`.
-
-### `nameRequest.ts`
+### Request resolver
 
 ```text
 NameRequestInput -> resolveNameRequest -> ResolvedNameRequest + RandomizationResult
 ```
 
-Owns request normalization, seed resolution, algorithm tagging, and the exported v1 request/response contracts.
+Owns:
 
-### `nameCriteriaCompiler.ts`
+- criteria normalization;
+- parent-seed resolution;
+- algorithm tagging;
+- exact quantity validation;
+- grouping default/validation;
+- preserving optional mode metadata.
 
-```text
-NameCriteria + NameCriteriaCompilerBaseSettings -> compileNameCriteriaToGenerationSettings -> GenerationSettings
-```
+Does not own:
 
-Owns the small current bridge from supported criteria targets to current generator settings. It does not own public criteria scoring or the full future criteria taxonomy.
+- candidate generation;
+- cohesion or slot semantics;
+- product-specific mode behavior.
 
-### `nameCriteriaDiagnostics.ts`
-
-```text
-NameCriteria -> diagnosticsForNameCriteria -> NameDiagnostic[]
-```
-
-Owns support classification and fallback/partial-implementation diagnostics. It does not own compiler behavior, public fit percentages, or UI wording beyond diagnostic messages.
-
-### `nameArtifact.ts`
+### Name response adapter/service
 
 ```text
-GeneratedName + ResolvedNameRequest -> NameArtifact
+NameRequest -> generateNameResponse -> NameResponse
 ```
 
-Owns mapping selected app-facing names into the stable product artifact shape. It should not invent generation facts that were not present on the selected result.
+Owns:
 
-### `soundProfile.ts`
+- resolving the request;
+- invoking criteria diagnostics once;
+- compiling criteria once;
+- deriving ordered child seeds;
+- creating child-local settings;
+- generating each artifact with its ordered index;
+- mapping selected names to `NameArtifact`;
+- returning flat artifacts and positional grouping metadata.
+
+Does not own:
+
+- cohesion optimization;
+- ranked-list or slot grouping;
+- partial results;
+- per-artifact reroll;
+- new active modes.
+
+### Criteria diagnostics and compiler
 
 ```text
-compiled profile data -> SoundProfile helpers/types
+NameCriteria -> diagnostics
+NameCriteria + base settings -> GenerationSettings
 ```
 
-Owns the internal sound recipe contract, phonotactic preference fields, cadence and texture targets, and profile-licensed title/epithet lexemes. It does not own random generation behavior, generated segment sequences, or UI copy.
+Owns:
 
-### `soundGenerator.ts`
+- support classification;
+- deterministic compiler output;
+- honest fallback/partial diagnostics;
+- current criteria-to-settings mappings.
+
+Does not own UI chips, random generation, public match percentages, or universal taste claims.
+
+Follow-up risk: supported-target knowledge is duplicated between `nameCriteriaCompiler.ts` and `nameCriteriaDiagnostics.ts` and should be centralized before major target expansion.
+
+### Candidate scoring
+
+```text
+candidate + compiled settings -> internal score -> selected result
+```
+
+Owns deterministic internal selection pressure and debug-useful components. It does not own public fit percentages or hard failure for ordinary taste conflicts.
+
+### Name artifact mapper
+
+```text
+GeneratedName -> toNameArtifact -> NameArtifact
+```
+
+Owns faithful mapping from selected generator output into the durable artifact shape. It must not invent facts absent from the generated result.
+
+### Sound generator
 
 ```text
 SoundProfile + SeededRandom -> SoundCandidate
 ```
 
-Internally:
-
-```text
-SoundProfile + SeededRandom
-  -> syllable count
-  -> cadence
-  -> syllable shapes
-  -> SegmentSequence
-  -> SoundCandidate
-```
-
-Owns choosing sound segments, creating syllable spans, assigning onset/nucleus/coda indexes, producing `SegmentSequence`, and producing `SoundCandidate`.
+Owns syllable count, cadence, shapes, segment sequence, and sound candidate construction.
 
 Collection semantics:
 
-- `SegmentSequence.segments` is source-order: exact sound order.
-- `SegmentSequence.syllables` is source-order: exact syllable order.
+- `SegmentSequence.segments` is source-order;
+- `SegmentSequence.syllables` is source-order.
 
-### `spellingGenerator.ts`
-
-Current module contains two separable public behaviors:
+### Spelling generator
 
 ```text
-SoundCandidate -> generateSpellingCandidatePool -> SpellingCandidatePool
-SpellingCandidatePool + SoundProfile -> rankSpellingCandidatePool -> RankedSpellingCandidateList
-SoundCandidate + SoundProfile -> generateRankedSpellingCandidates -> RankedSpellingCandidateList
+SoundCandidate -> SpellingCandidatePool
+SpellingCandidatePool + SoundProfile -> RankedSpellingCandidateList
 ```
 
-Owns projecting sound segments into written letters, preserving segment-to-letter mappings, scoring spellings against profile preferences, and adding explicit rank after scoring.
+Owns sound-to-letter projection, segment mappings, scoring, and rank assignment.
 
 Collection semantics:
 
-| Function | Output | Collection meaning |
-| --- | --- | --- |
-| `generateSpellingCandidatePool(sound)` | `SpellingCandidatePool` | `.candidates` is deterministic generation order, not quality ranking. |
-| `rankSpellingCandidatePool(pool, profile)` | `RankedSpellingCandidateList` | `.candidates` is rank order; each item also has `rank` and `score`. |
-| `generateRankedSpellingCandidates(sound, profile)` | `RankedSpellingCandidateList` | `.candidates` is rank order. |
+- raw pool candidates are deterministic generation-order;
+- ranked candidates are rank-order with explicit rank.
 
-### `generator.ts`
+### Generator
 
 ```text
-GenerationSettings + NameSourceProvider -> GeneratedName[] / NameGenerationCandidate[]
+GenerationSettings + source provider -> GeneratedName / NameGenerationCandidate
 ```
 
-Owns materializing current name candidates from settings, profiles, sound, spellings, scoring, diagnostics, and variants. It may select a ranked spelling as the display name, including criteria-compiled selection pressure, but that selection remains an internal implementation detail.
+Owns current name materialization, candidate selection, scores, variants, identity, and indexed durable identity inputs.
 
-Important model boundary: `NameGenerationCandidate.rankedSpellings` is a `RankedSpellingCandidateList`. `GeneratedName.spellingCandidates` remains the app-facing ranked candidate array for UI/export convenience; it does not expose raw unranked spelling projections.
+For grouped generation, each child receives a child-local seed and its ordered artifact index.
 
-### `identity.ts`
+### Identity and audition modules
 
-```text
-GeneratedName + optional supporting GeneratedName + NameFormatKind -> NameIdentity
-```
+- `identity.ts` arranges licensed generated/profile parts into display identities.
+- `auditionPhonology.ts` derives renderer-neutral sound presentation.
+- `browserAuditionProjection.ts` creates browser-speech-friendly projection.
+- `audition.ts` composes UI-facing audition conveniences.
+- `identityAudition.ts` projects materialized identity phrase parts while preserving provenance.
 
-Owns arranging already licensed parts into display identity forms, choosing title/epithet lexemes from the compiled profile lexicon, using generated supporting names for family/place components, and materializing phrase structure as `NameIdentity.phraseParts`.
-
-It does not own inventing arbitrary suffixes or epithets by string surgery, phrase-level audio/prosody, or browser projection.
-
-### `auditionPhonology.ts`
-
-```text
-SegmentSequence -> AuditionPhonology
-```
-
-Owns renderer-neutral sound presentation structure, segment slices per syllable, onset/nucleus/coda segment ids, and current fallback stress hints.
-
-Collection semantics:
-
-- `AuditionPhonology.syllables` is source-order: exact syllable order from the source segment sequence.
-
-### `browserAuditionProjection.ts`
-
-```text
-AuditionPhonology -> BrowserAuditionCue
-```
-
-Owns browser-speech-friendly `speechText`, human-readable guide syllables, display guide text, and browser/display compromises. It does not own generated sound truth, stress truth, phonotactic validity, or canonical pronunciation.
-
-Collection semantics:
-
-- `syllableText` is source-order: browser speech text per syllable.
-- `guideSyllables` is source-order: human guide text per syllable.
-
-### `audition.ts`
-
-```text
-SegmentSequence -> NameAuditionCue
-NameIdentity + source generated names -> IdentityAuditionPhrase
-```
-
-Owns current UI convenience composition and re-exporting audition and projection functions/types. This file should remain boring.
-
-### `identityAudition.ts`
-
-```text
-NameIdentity + source generated names -> IdentityAuditionPhrase
-```
-
-Owns projecting materialized identity phrase parts into sound, text, or literal audition parts, preserving per-part speech/display provenance, and reusing generated source-name sound for sound-backed identity parts.
+These modules do not own request quantity, grouping semantics, or group-level optimization.
