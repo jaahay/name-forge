@@ -47,13 +47,16 @@ The durable request boundary is implemented as:
 NameRequest -> NameResponse
 ```
 
-Current v1 runtime semantics remain singular. `NameResponse.names` is structurally plural, but one request currently returns one artifact. `mode` is optional metadata and must not drive core generation behavior.
+V1 supports the existing singular default and an exact independent set. Omitted quantity/grouping returns one artifact through the previous singular seed stream; an explicit exact quantity returns a flat ordered `NameArtifact[]` with deterministic child seeds and grouping metadata. `mode` is optional metadata and must not drive core generation or grouping behavior.
 
 ## Current shipped baseline
 
 Shared platform capabilities now include:
 
-- deterministic seed resolution and replay through `NameRequest -> NameResponse`;
+- deterministic parent-seed resolution and replay through `NameRequest -> NameResponse`;
+- exact independent-set quantities from 1 through 100;
+- deterministic index-stable child seeds, ordered artifacts, and grouping metadata;
+- singular-compatible defaults when quantity and grouping are omitted;
 - criteria diagnostics and a compiler bridge into current generation settings;
 - sound-first generation through `SoundProfile` and `SegmentSequence`;
 - exhaustive spelling derivation from the current grapheme inventory;
@@ -122,19 +125,20 @@ Non-goals:
 - no persistence of internal-only `SoundProfile` state outside the artifact already carrying it intentionally;
 - no generalized application-state framework.
 
-### 2. First shared quantity and grouping slice
+### 2. First shared quantity and grouping slice — implemented
 
-Implement only an independent exact-size set with deterministic child seeds and explicit grouping metadata.
+The shared request operation now supports an exact independent set with deterministic child seeds and explicit grouping metadata.
 
-Required boundary:
+Implemented boundary:
 
-- keep `NameArtifact` as the individual result unit;
-- produce one atomic grouped operation rather than repeated client-side singular calls;
-- keep mode metadata separate from grouping semantics;
-- return deterministic flat artifacts plus explicit grouping metadata;
-- add exact contract tests for quantity, child seeds, ordering, and replay.
+- `NameArtifact` remains the individual result unit;
+- plural output is produced by one atomic engine operation rather than repeated client-side singular calls;
+- mode metadata remains separate from grouping semantics;
+- output is a deterministic flat artifact array plus explicit grouping metadata;
+- exact quantity is bounded from 1 through 100;
+- contract tests cover quantity, child seeds, ordering, replay, prefix stability, indexed identity, and mode neutrality.
 
-Deferred from this first slice:
+Still deferred:
 
 - cohesion optimization;
 - ranked-alternative semantics;
@@ -145,7 +149,7 @@ Deferred from this first slice:
 
 ### 3. Evidence-led research and later diagnostics
 
-Human-facing name metrics and same-roster sound proximity remain research or later diagnostic work. They must not block the two implementation slices above.
+Human-facing name metrics and same-roster sound proximity remain research or later diagnostic work. They must not block the implementation slices above.
 
 ## Explicit non-goals for the next slices
 
