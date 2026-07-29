@@ -67,7 +67,10 @@ Shared platform capabilities now include:
 - deterministic readability observations and browser audition projection;
 - pure single-artifact and artifact-set analysis APIs;
 - source descriptors and built-in style-pack validation;
-- richer variant relationship, confidence, source, and locale metadata where available.
+- richer variant relationship, confidence, source, and locale metadata where available;
+- versioned, bounded browser persistence for explicit user-generated `NameArtifact` snapshots;
+- a Recent names surface that restores saved artifacts into the shared inspector without regeneration;
+- explicit clear-history behavior and safe handling of malformed, unsupported, or unavailable browser storage.
 
 Fiction Cast additionally includes:
 
@@ -104,54 +107,65 @@ The active rule is:
 
 ## Next implementation sequence
 
-### 1. Recent generated-name history
+### 1. Same-roster sound proximity diagnostics — issue #154
 
-Add client-side persistence for recent durable `NameArtifact` snapshots.
+The exact independent-set contract now provides the prerequisites for a bounded same-operation diagnostic slice:
+
+- one atomic exact-size operation;
+- deterministic artifact ordering and child-seed replay;
+- a stable `NameArtifact[]` analysis boundary.
 
 Required boundary:
 
-- persist explicit user-generated artifacts from active modes;
-- use a versioned browser-storage envelope;
-- keep a bounded recent list;
-- restore artifacts into the shared inspector without regeneration;
-- provide explicit clear-history behavior;
-- ignore malformed or unsupported stored data safely;
-- persist durable product artifacts, not internal runtime handles or unversioned component state.
+- operate on artifacts produced by the same grouped operation;
+- report transparent structural evidence such as identical sound, small segment edits, shared onset, shared ending, or shared cadence;
+- identify the compared artifacts and the exact evidence relationship;
+- use deterministic fixtures for every reported relationship;
+- remain advisory and non-blocking.
 
 Non-goals:
 
-- no backend, accounts, sync, or collaboration;
-- no compatibility adapter for obsolete pre-reset shapes;
-- no persistence of internal-only `SoundProfile` state outside the artifact already carrying it intentionally;
-- no generalized application-state framework.
+- no universal confusion, similarity, quality, or fit score;
+- no claim that people will confuse two names;
+- no automatic rejection, reranking, regeneration, or cohesion optimization;
+- no Fiction Cast- or Game NPC-specific engine contract;
+- no public percentage derived from internal heuristics.
 
-### 2. First shared quantity and grouping slice — implemented
+A documentation/research spike or a pure deterministic comparison helper is an acceptable first outcome. Any user-facing presentation requires a separate bounded issue after the evidence contract is stable.
 
-The shared request operation now supports an exact independent set with deterministic child seeds and explicit grouping metadata.
+### 2. Prune and select the next product slice
 
-Implemented boundary:
+After #154 is completed or deliberately returned to backlog, prune this document again before authorizing another implementation slice. Do not infer the next UI, mode, grouping, scoring, or provider feature from deferred architecture vocabulary alone.
 
-- `NameArtifact` remains the individual result unit;
-- plural output is produced by one atomic engine operation rather than repeated client-side singular calls;
-- mode metadata remains separate from grouping semantics;
-- output is a deterministic flat artifact array plus explicit grouping metadata;
-- exact quantity is bounded from 1 through 100;
-- contract tests cover quantity, child seeds, ordering, replay, prefix stability, indexed identity, and mode neutrality.
+## Research-only backlog
 
-Still deferred:
+### Human-facing name metrics — issue #152
 
-- cohesion optimization;
-- ranked-alternative semantics;
-- slot-level criteria;
+Issue #152 is the governance boundary for claims such as pronounceability, familiarity, memorability, beauty, realism, or cultural authenticity. It is not part of the active implementation sequence.
+
+A metric may move into a separate bounded implementation issue only after it has:
+
+- a declared audience, listener population, language, locale, genre, or corpus;
+- an exact construct and methodology;
+- validation data or expert evidence;
+- confidence, limitations, and known failure cases;
+- a concrete user decision it improves;
+- accurate UX copy explaining what is and is not being estimated.
+
+## Deferred product and grouping work
+
+The following remain possible later slices but are not authorized by this document:
+
+- cohesion or diversity optimization;
+- ranked-alternative grouping semantics;
+- slot-level criteria or slotted sets;
 - partial-result recovery;
 - per-artifact reroll behavior;
-- Fiction Cast assumptions as shared engine behavior.
+- Fiction Cast assumptions as shared engine behavior;
+- Game NPC roster UI;
+- broader shell or visual-system redesign.
 
-### 3. Evidence-led research and later diagnostics
-
-Human-facing name metrics and same-roster sound proximity remain research or later diagnostic work. They must not block the implementation slices above.
-
-## Explicit non-goals for the next slices
+## Explicit non-goals for the next slice
 
 - No baby-name mode.
 - No prompt-first UX or LLM-driven criteria compilation.
