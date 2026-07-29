@@ -7,7 +7,18 @@ import type { StyleDescriptor, StylePackSourceDescriptor } from './stylePackType
 export { toNameArtifact } from './nameArtifact';
 export type { NameArtifact } from './nameArtifact';
 export { analyzeNameArtifact, analyzeNameArtifactSet, analyzeNameArtifactSoundRelationships } from './nameArtifactAnalysis';
-export type { NameArtifactAnalysis, NameArtifactCollision, NameArtifactCollisionKind, NameArtifactReadabilityAnalysis, NameArtifactSetAnalysis, NameArtifactSoundRelationship, NameArtifactSoundRelationshipKind, NameArtifactSpellingAnalysis, NameArtifactStructureAnalysis } from './nameArtifactAnalysis';
+export type {
+  NameArtifactAnalysis,
+  NameArtifactCollision,
+  NameArtifactCollisionKind,
+  NameArtifactReadabilityAnalysis,
+  NameArtifactSetAnalysis,
+  NameArtifactSoundEdit,
+  NameArtifactSoundRelationship,
+  NameArtifactSoundRelationshipKind,
+  NameArtifactSpellingAnalysis,
+  NameArtifactStructureAnalysis,
+} from './nameArtifactAnalysis';
 export type { NameCriteria, NameCriteriaClause, NameCriteriaFamily, NameCriteriaPolarity } from './nameCriteria';
 export { compileNameCriteriaToGenerationSettings } from './nameCriteriaCompiler';
 export type { NameCriteriaCompilerBaseSettings } from './nameCriteriaCompiler';
