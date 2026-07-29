@@ -28,6 +28,7 @@ export { generateNameResponse } from './nameResponse';
 export type { NameResponseAdapterOptions } from './nameResponse';
 export type { AssetKind, CachePolicy, SourceChannel, SourceDescriptor, SourceValidationIssue, SourceValidationSeverity, StylePackValidationResult } from './sourceTypes';
 export type { StyleDescriptor, StylePackSourceDescriptor } from './stylePackTypes';
+export type { SoundSegmentId } from './starterSoundInventory';
 
 export type ScoreKey =
   | 'pronounceability'
