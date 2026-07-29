@@ -1,4 +1,7 @@
 import type { NameArtifact } from './nameArtifact';
+import type { SyllableStress } from './soundGenerator';
+import type { SoundProfileCadence } from './soundProfile';
+import type { SoundSegmentId } from './starterSoundInventory';
 
 export interface NameArtifactStructureAnalysis {
   readonly segmentCount: number;
@@ -42,20 +45,72 @@ export interface NameArtifactCollision {
   readonly evidence: string;
 }
 
-export type NameArtifactSoundRelationshipKind =
-  | 'identical-sound'
-  | 'one-segment-edit'
-  | 'shared-onset'
-  | 'shared-final-syllable'
-  | 'shared-coda'
-  | 'shared-cadence';
-
-export interface NameArtifactSoundRelationship {
-  readonly kind: NameArtifactSoundRelationshipKind;
+interface NameArtifactSoundRelationshipBase {
   readonly artifactIds: readonly [string, string];
   readonly displayTexts: readonly [string, string];
   readonly evidence: string;
 }
+
+export type NameArtifactSoundEdit =
+  | {
+    readonly kind: 'insertion';
+    readonly index: number;
+    readonly segment: SoundSegmentId;
+  }
+  | {
+    readonly kind: 'deletion';
+    readonly index: number;
+    readonly segment: SoundSegmentId;
+  }
+  | {
+    readonly kind: 'substitution';
+    readonly index: number;
+    readonly leftSegment: SoundSegmentId;
+    readonly rightSegment: SoundSegmentId;
+  };
+
+export type NameArtifactSoundRelationship =
+  | (NameArtifactSoundRelationshipBase & {
+    readonly kind: 'identical-sound';
+    readonly details: {
+      readonly segments: readonly SoundSegmentId[];
+    };
+  })
+  | (NameArtifactSoundRelationshipBase & {
+    readonly kind: 'one-segment-edit';
+    readonly details: {
+      readonly leftSegments: readonly SoundSegmentId[];
+      readonly rightSegments: readonly SoundSegmentId[];
+      readonly edit: NameArtifactSoundEdit;
+    };
+  })
+  | (NameArtifactSoundRelationshipBase & {
+    readonly kind: 'shared-onset';
+    readonly details: {
+      readonly segments: readonly SoundSegmentId[];
+    };
+  })
+  | (NameArtifactSoundRelationshipBase & {
+    readonly kind: 'shared-final-syllable';
+    readonly details: {
+      readonly segments: readonly SoundSegmentId[];
+    };
+  })
+  | (NameArtifactSoundRelationshipBase & {
+    readonly kind: 'shared-coda';
+    readonly details: {
+      readonly segments: readonly SoundSegmentId[];
+    };
+  })
+  | (NameArtifactSoundRelationshipBase & {
+    readonly kind: 'matching-cadence-pattern';
+    readonly details: {
+      readonly cadence: SoundProfileCadence;
+      readonly stressPattern: readonly SyllableStress[];
+    };
+  });
+
+export type NameArtifactSoundRelationshipKind = NameArtifactSoundRelationship['kind'];
 
 export interface NameArtifactSetAnalysis {
   readonly artifactCount: number;
@@ -85,12 +140,6 @@ function cadenceKey(artifact: NameArtifact): string | undefined {
   const silhouette = artifact.silhouette;
   if (!silhouette) return undefined;
   return `${silhouette.stressPattern}:${silhouette.syllableCount}:${silhouette.rhythm}`;
-}
-
-function soundCadenceKey(artifact: NameArtifact): string | undefined {
-  const sound = artifact.sound;
-  if (!sound) return undefined;
-  return `${sound.cadence}:${sound.sequence.syllables.map((syllable) => syllable.stress).join(',')}`;
 }
 
 function countRepeated(values: readonly string[]): number {
@@ -124,18 +173,59 @@ function arraysEqual<T>(left: readonly T[], right: readonly T[]): boolean {
   return left.length === right.length && left.every((value, index) => value === right[index]);
 }
 
-function indexedSegments(artifact: NameArtifact, indexes: readonly number[]): readonly string[] | undefined {
+function firstDifferenceIndex<T>(left: readonly T[], right: readonly T[]): number {
+  const sharedLength = Math.min(left.length, right.length);
+  for (let index = 0; index < sharedLength; index += 1) {
+    if (left[index] !== right[index]) return index;
+  }
+  return sharedLength;
+}
+
+function findSingleSegmentEdit(
+  left: readonly SoundSegmentId[],
+  right: readonly SoundSegmentId[],
+): NameArtifactSoundEdit | undefined {
+  if (left.length === right.length) {
+    const index = firstDifferenceIndex(left, right);
+    if (index >= left.length || !arraysEqual(left.slice(index + 1), right.slice(index + 1))) return undefined;
+    return {
+      kind: 'substitution',
+      index,
+      leftSegment: left[index],
+      rightSegment: right[index],
+    };
+  }
+
+  if (right.length === left.length + 1) {
+    const index = firstDifferenceIndex(left, right);
+    if (!arraysEqual(left.slice(index), right.slice(index + 1))) return undefined;
+    return { kind: 'insertion', index, segment: right[index] };
+  }
+
+  if (left.length === right.length + 1) {
+    const index = firstDifferenceIndex(left, right);
+    if (!arraysEqual(left.slice(index + 1), right.slice(index))) return undefined;
+    return { kind: 'deletion', index, segment: left[index] };
+  }
+
+  return undefined;
+}
+
+function indexedSegments(
+  artifact: NameArtifact,
+  indexes: readonly number[],
+): readonly SoundSegmentId[] | undefined {
   const segments = artifact.sound?.sequence.segments;
   if (!segments || indexes.length === 0) return undefined;
   return indexes.map((index) => segments[index]);
 }
 
-function firstOnset(artifact: NameArtifact): readonly string[] | undefined {
+function firstOnset(artifact: NameArtifact): readonly SoundSegmentId[] | undefined {
   const firstSyllable = artifact.sound?.sequence.syllables[0];
   return firstSyllable ? indexedSegments(artifact, firstSyllable.onset) : undefined;
 }
 
-function finalSyllable(artifact: NameArtifact): readonly string[] | undefined {
+function finalSyllable(artifact: NameArtifact): readonly SoundSegmentId[] | undefined {
   const sound = artifact.sound;
   const syllables = sound?.sequence.syllables;
   const final = syllables?.[syllables.length - 1];
@@ -143,14 +233,33 @@ function finalSyllable(artifact: NameArtifact): readonly string[] | undefined {
   return sound.sequence.segments.slice(final.start, final.end);
 }
 
-function finalCoda(artifact: NameArtifact): readonly string[] | undefined {
+function finalCoda(artifact: NameArtifact): readonly SoundSegmentId[] | undefined {
   const syllables = artifact.sound?.sequence.syllables;
   const final = syllables?.[syllables.length - 1];
   return final ? indexedSegments(artifact, final.coda) : undefined;
 }
 
-function formatSegments(segments: readonly string[]): string {
+function soundCadencePattern(artifact: NameArtifact): {
+  readonly cadence: SoundProfileCadence;
+  readonly stressPattern: readonly SyllableStress[];
+} | undefined {
+  const sound = artifact.sound;
+  if (!sound) return undefined;
+  return {
+    cadence: sound.cadence,
+    stressPattern: sound.sequence.syllables.map((syllable) => syllable.stress),
+  };
+}
+
+function formatSegments(segments: readonly SoundSegmentId[]): string {
   return `[${segments.join(' ')}]`;
+}
+
+function describeEdit(edit: NameArtifactSoundEdit): string {
+  if (edit.kind === 'substitution') {
+    return `one substitution at index ${edit.index} (${edit.leftSegment} -> ${edit.rightSegment})`;
+  }
+  return `one ${edit.kind} at index ${edit.index} (${edit.segment})`;
 }
 
 function pairIdentity(left: NameArtifact, right: NameArtifact): {
@@ -173,16 +282,23 @@ function analyzeSoundPair(left: NameArtifact, right: NameArtifact): readonly Nam
     return [{
       kind: 'identical-sound',
       ...identity,
+      details: { segments: [...leftSegments] },
       evidence: `Modeled segment sequences are identical: ${formatSegments(leftSegments)}.`,
     }];
   }
 
   const relationships: NameArtifactSoundRelationship[] = [];
-  if (editDistance(leftSegments, rightSegments) === 1) {
+  const edit = findSingleSegmentEdit(leftSegments, rightSegments);
+  if (edit) {
     relationships.push({
       kind: 'one-segment-edit',
       ...identity,
-      evidence: `Modeled segment sequences differ by one insertion, deletion, or substitution: ${formatSegments(leftSegments)} vs ${formatSegments(rightSegments)}.`,
+      details: {
+        leftSegments: [...leftSegments],
+        rightSegments: [...rightSegments],
+        edit,
+      },
+      evidence: `Modeled segment sequences differ by ${describeEdit(edit)}: ${formatSegments(leftSegments)} vs ${formatSegments(rightSegments)}.`,
     });
   }
 
@@ -192,6 +308,7 @@ function analyzeSoundPair(left: NameArtifact, right: NameArtifact): readonly Nam
     relationships.push({
       kind: 'shared-onset',
       ...identity,
+      details: { segments: [...leftOnset] },
       evidence: `First-syllable onsets are identical: ${formatSegments(leftOnset)}.`,
     });
   }
@@ -202,6 +319,7 @@ function analyzeSoundPair(left: NameArtifact, right: NameArtifact): readonly Nam
     relationships.push({
       kind: 'shared-final-syllable',
       ...identity,
+      details: { segments: [...leftFinalSyllable] },
       evidence: `Final modeled syllables are identical: ${formatSegments(leftFinalSyllable)}.`,
     });
   } else {
@@ -211,18 +329,28 @@ function analyzeSoundPair(left: NameArtifact, right: NameArtifact): readonly Nam
       relationships.push({
         kind: 'shared-coda',
         ...identity,
+        details: { segments: [...leftCoda] },
         evidence: `Final-syllable codas are identical: ${formatSegments(leftCoda)}.`,
       });
     }
   }
 
-  const leftCadence = soundCadenceKey(left);
-  const rightCadence = soundCadenceKey(right);
-  if (leftCadence && leftCadence === rightCadence) {
+  const leftCadence = soundCadencePattern(left);
+  const rightCadence = soundCadencePattern(right);
+  if (
+    leftCadence
+    && rightCadence
+    && leftCadence.cadence === rightCadence.cadence
+    && arraysEqual(leftCadence.stressPattern, rightCadence.stressPattern)
+  ) {
     relationships.push({
-      kind: 'shared-cadence',
+      kind: 'matching-cadence-pattern',
       ...identity,
-      evidence: `Modeled cadence and syllable stress pattern are identical: ${leftCadence}.`,
+      details: {
+        cadence: leftCadence.cadence,
+        stressPattern: [...leftCadence.stressPattern],
+      },
+      evidence: `Modeled cadence and syllable stress pattern are identical: ${leftCadence.cadence}:${leftCadence.stressPattern.join(',')}.`,
     });
   }
 
@@ -268,6 +396,11 @@ export function analyzeNameArtifact(artifact: NameArtifact): NameArtifactAnalysi
   };
 }
 
+/**
+ * Compares the artifacts exactly as supplied. Callers that present these records as
+ * same-roster evidence must pass artifacts from one grouped NameResponse operation;
+ * this pure helper intentionally does not infer or validate operation provenance.
+ */
 export function analyzeNameArtifactSoundRelationships(
   artifacts: readonly NameArtifact[],
 ): readonly NameArtifactSoundRelationship[] {
