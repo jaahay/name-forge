@@ -42,6 +42,21 @@ export interface NameArtifactCollision {
   readonly evidence: string;
 }
 
+export type NameArtifactSoundRelationshipKind =
+  | 'identical-sound'
+  | 'one-segment-edit'
+  | 'shared-onset'
+  | 'shared-final-syllable'
+  | 'shared-coda'
+  | 'shared-cadence';
+
+export interface NameArtifactSoundRelationship {
+  readonly kind: NameArtifactSoundRelationshipKind;
+  readonly artifactIds: readonly [string, string];
+  readonly displayTexts: readonly [string, string];
+  readonly evidence: string;
+}
+
 export interface NameArtifactSetAnalysis {
   readonly artifactCount: number;
   readonly repeatedInitials: number;
@@ -50,6 +65,7 @@ export interface NameArtifactSetAnalysis {
   readonly exactDuplicateCount: number;
   readonly nearSpellingPairCount: number;
   readonly collisions: readonly NameArtifactCollision[];
+  readonly soundRelationships: readonly NameArtifactSoundRelationship[];
 }
 
 function normalizeText(value: string): string {
@@ -71,6 +87,12 @@ function cadenceKey(artifact: NameArtifact): string | undefined {
   return `${silhouette.stressPattern}:${silhouette.syllableCount}:${silhouette.rhythm}`;
 }
 
+function soundCadenceKey(artifact: NameArtifact): string | undefined {
+  const sound = artifact.sound;
+  if (!sound) return undefined;
+  return `${sound.cadence}:${sound.sequence.syllables.map((syllable) => syllable.stress).join(',')}`;
+}
+
 function countRepeated(values: readonly string[]): number {
   const seen = new Set<string>();
   let repeated = 0;
@@ -81,7 +103,7 @@ function countRepeated(values: readonly string[]): number {
   return repeated;
 }
 
-function editDistance(left: string, right: string): number {
+function editDistance<T>(left: readonly T[], right: readonly T[]): number {
   const previous = Array.from({ length: right.length + 1 }, (_, index) => index);
   for (let leftIndex = 1; leftIndex <= left.length; leftIndex += 1) {
     const current = [leftIndex];
@@ -96,6 +118,115 @@ function editDistance(left: string, right: string): number {
     previous.splice(0, previous.length, ...current);
   }
   return previous[right.length];
+}
+
+function arraysEqual<T>(left: readonly T[], right: readonly T[]): boolean {
+  return left.length === right.length && left.every((value, index) => value === right[index]);
+}
+
+function indexedSegments(artifact: NameArtifact, indexes: readonly number[]): readonly string[] | undefined {
+  const segments = artifact.sound?.sequence.segments;
+  if (!segments || indexes.length === 0) return undefined;
+  return indexes.map((index) => segments[index]);
+}
+
+function firstOnset(artifact: NameArtifact): readonly string[] | undefined {
+  const firstSyllable = artifact.sound?.sequence.syllables[0];
+  return firstSyllable ? indexedSegments(artifact, firstSyllable.onset) : undefined;
+}
+
+function finalSyllable(artifact: NameArtifact): readonly string[] | undefined {
+  const sound = artifact.sound;
+  const syllables = sound?.sequence.syllables;
+  const final = syllables?.[syllables.length - 1];
+  if (!sound || !final || final.end <= final.start) return undefined;
+  return sound.sequence.segments.slice(final.start, final.end);
+}
+
+function finalCoda(artifact: NameArtifact): readonly string[] | undefined {
+  const syllables = artifact.sound?.sequence.syllables;
+  const final = syllables?.[syllables.length - 1];
+  return final ? indexedSegments(artifact, final.coda) : undefined;
+}
+
+function formatSegments(segments: readonly string[]): string {
+  return `[${segments.join(' ')}]`;
+}
+
+function pairIdentity(left: NameArtifact, right: NameArtifact): {
+  readonly artifactIds: readonly [string, string];
+  readonly displayTexts: readonly [string, string];
+} {
+  return {
+    artifactIds: [left.id, right.id],
+    displayTexts: [left.displayText, right.displayText],
+  };
+}
+
+function analyzeSoundPair(left: NameArtifact, right: NameArtifact): readonly NameArtifactSoundRelationship[] {
+  const leftSegments = left.sound?.sequence.segments;
+  const rightSegments = right.sound?.sequence.segments;
+  if (!leftSegments || !rightSegments) return [];
+
+  const identity = pairIdentity(left, right);
+  if (arraysEqual(leftSegments, rightSegments)) {
+    return [{
+      kind: 'identical-sound',
+      ...identity,
+      evidence: `Modeled segment sequences are identical: ${formatSegments(leftSegments)}.`,
+    }];
+  }
+
+  const relationships: NameArtifactSoundRelationship[] = [];
+  if (editDistance(leftSegments, rightSegments) === 1) {
+    relationships.push({
+      kind: 'one-segment-edit',
+      ...identity,
+      evidence: `Modeled segment sequences differ by one insertion, deletion, or substitution: ${formatSegments(leftSegments)} vs ${formatSegments(rightSegments)}.`,
+    });
+  }
+
+  const leftOnset = firstOnset(left);
+  const rightOnset = firstOnset(right);
+  if (leftOnset && rightOnset && arraysEqual(leftOnset, rightOnset)) {
+    relationships.push({
+      kind: 'shared-onset',
+      ...identity,
+      evidence: `First-syllable onsets are identical: ${formatSegments(leftOnset)}.`,
+    });
+  }
+
+  const leftFinalSyllable = finalSyllable(left);
+  const rightFinalSyllable = finalSyllable(right);
+  if (leftFinalSyllable && rightFinalSyllable && arraysEqual(leftFinalSyllable, rightFinalSyllable)) {
+    relationships.push({
+      kind: 'shared-final-syllable',
+      ...identity,
+      evidence: `Final modeled syllables are identical: ${formatSegments(leftFinalSyllable)}.`,
+    });
+  } else {
+    const leftCoda = finalCoda(left);
+    const rightCoda = finalCoda(right);
+    if (leftCoda && rightCoda && arraysEqual(leftCoda, rightCoda)) {
+      relationships.push({
+        kind: 'shared-coda',
+        ...identity,
+        evidence: `Final-syllable codas are identical: ${formatSegments(leftCoda)}.`,
+      });
+    }
+  }
+
+  const leftCadence = soundCadenceKey(left);
+  const rightCadence = soundCadenceKey(right);
+  if (leftCadence && leftCadence === rightCadence) {
+    relationships.push({
+      kind: 'shared-cadence',
+      ...identity,
+      evidence: `Modeled cadence and syllable stress pattern are identical: ${leftCadence}.`,
+    });
+  }
+
+  return relationships;
 }
 
 export function analyzeNameArtifact(artifact: NameArtifact): NameArtifactAnalysis {
@@ -137,6 +268,18 @@ export function analyzeNameArtifact(artifact: NameArtifact): NameArtifactAnalysi
   };
 }
 
+export function analyzeNameArtifactSoundRelationships(
+  artifacts: readonly NameArtifact[],
+): readonly NameArtifactSoundRelationship[] {
+  const relationships: NameArtifactSoundRelationship[] = [];
+  for (let leftIndex = 0; leftIndex < artifacts.length; leftIndex += 1) {
+    for (let rightIndex = leftIndex + 1; rightIndex < artifacts.length; rightIndex += 1) {
+      relationships.push(...analyzeSoundPair(artifacts[leftIndex], artifacts[rightIndex]));
+    }
+  }
+  return relationships;
+}
+
 export function analyzeNameArtifactSet(artifacts: readonly NameArtifact[]): NameArtifactSetAnalysis {
   const collisions: NameArtifactCollision[] = [];
 
@@ -151,7 +294,7 @@ export function analyzeNameArtifactSet(artifacts: readonly NameArtifact[]): Name
 
       if (leftText && leftText === rightText) {
         collisions.push({ kind: 'exact-text', artifactIds: ids, displayTexts, evidence: 'Normalized display text is identical.' });
-      } else if (leftText && rightText && editDistance(leftText, rightText) === 1) {
+      } else if (leftText && rightText && editDistance([...leftText], [...rightText]) === 1) {
         collisions.push({ kind: 'near-spelling', artifactIds: ids, displayTexts, evidence: 'Normalized display text differs by one insertion, deletion, or substitution.' });
       }
 
@@ -164,7 +307,7 @@ export function analyzeNameArtifactSet(artifacts: readonly NameArtifact[]): Name
       const leftEnding = endingKey(left.displayText);
       const rightEnding = endingKey(right.displayText);
       if (leftEnding && leftEnding === rightEnding) {
-        collisions.push({ kind: 'shared-ending', artifactIds: ids, displayTexts, evidence: `Both normalized names end in “${leftEnding}”.` });
+        collisions.push({ kind: 'shared-ending', artifactIds: ids, displayTexts, evidence: `Both normalized names end in "${leftEnding}".` });
       }
 
       const leftCadence = cadenceKey(left);
@@ -183,5 +326,6 @@ export function analyzeNameArtifactSet(artifacts: readonly NameArtifact[]): Name
     exactDuplicateCount: collisions.filter((collision) => collision.kind === 'exact-text').length,
     nearSpellingPairCount: collisions.filter((collision) => collision.kind === 'near-spelling').length,
     collisions,
+    soundRelationships: analyzeNameArtifactSoundRelationships(artifacts),
   };
 }
