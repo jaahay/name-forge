@@ -15,6 +15,8 @@ function requireValue<T>(value: T | undefined, label: string): T {
 function generationDrivingFields(resolution: NameRequestResolution) {
   return {
     criteria: resolution.request.criteria,
+    quantity: resolution.request.quantity,
+    grouping: resolution.request.grouping,
     random: resolution.request.random,
   };
 }
@@ -48,7 +50,7 @@ describe('NameRequest v1 contracts', () => {
     expect(request.mode).toBe('fiction-cast');
   });
 
-  it('represents a resolved response with name artifacts, an emitted seed, and criteria diagnostics', () => {
+  it('represents a resolved response with grouping, name artifacts, an emitted seed, and criteria diagnostics', () => {
     const artifact: NameArtifact = {
       id: 'name-artifact-1',
       displayText: 'Aurel',
@@ -59,12 +61,20 @@ describe('NameRequest v1 contracts', () => {
       request: {
         version: 1,
         criteria: { clauses: [] },
+        quantity: { kind: 'exact', value: 1 },
+        grouping: { kind: 'independent-set' },
         random: {
           seed: 'resolved-seed',
           algorithm: 'name-forge-v1',
         },
       },
       names: [artifact],
+      grouping: {
+        kind: 'independent-set',
+        quantity: 1,
+        parentSeed: 'resolved-seed',
+        childSeeds: ['resolved-seed'],
+      },
       random: {
         seed: 'resolved-seed',
         algorithm: 'name-forge-v1',
@@ -90,6 +100,7 @@ describe('NameRequest v1 contracts', () => {
     };
 
     expect(response.names).toHaveLength(1);
+    expect(response.grouping.childSeeds[0]).toBe('resolved-seed');
 
     const firstArtifact = requireValue(response.names[0], 'first name artifact');
     expect(firstArtifact).toBe(artifact);
@@ -127,6 +138,8 @@ describe('resolveNameRequest', () => {
     expect(firstResolution.random.seed).toBe('supplied-seed');
     expect(firstResolution.random.algorithm).toBe('name-forge-v1');
     expect(firstResolution.request.random).toEqual(firstResolution.random);
+    expect(firstResolution.request.quantity).toEqual({ kind: 'exact', value: 1 });
+    expect(firstResolution.request.grouping).toEqual({ kind: 'independent-set' });
   });
 
   it('fills an omitted seed and exposes it on the resolved request and random result', () => {

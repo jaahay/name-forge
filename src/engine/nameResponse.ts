@@ -2,7 +2,7 @@ import { compileNameCriteriaToGenerationSettings } from './nameCriteriaCompiler'
 import { diagnosticsForNameCriteria } from './nameCriteriaDiagnostics';
 import { generateNameFromSilhouette } from './generator';
 import { toNameArtifact } from './nameArtifact';
-import { resolveNameRequest } from './nameRequest';
+import { deriveNameChildSeed, resolveNameRequest } from './nameRequest';
 import type { NameRequest, NameResponse } from './nameRequest';
 import { createSeededRandom } from './random';
 import { createDefaultRegistry, type SourceRegistry } from './registry';
@@ -31,25 +31,39 @@ export function generateNameResponse(request: NameRequest, options: NameResponse
     },
   );
   const pack = registry.getStylePack(settings.stylePackId);
-  const silhouette = createNameSilhouette(
-    settings,
-    pack,
-    createSeededRandom(`${resolution.random.seed}:name-request-v1:silhouette:0`),
-    0,
+  const childSeeds = Array.from(
+    { length: resolution.request.quantity.value },
+    (_, index) => deriveNameChildSeed(resolution.random.seed, index),
   );
-  const generatedName = generateNameFromSilhouette(
-    silhouette,
-    pack,
-    settings,
-    createSeededRandom(`${resolution.random.seed}:name-request-v1:name:0`),
-    0,
-  );
-  const artifact = toNameArtifact(generatedName);
+  const names = childSeeds.map((childSeed, artifactIndex) => {
+    const childSettings = { ...settings, seed: childSeed };
+    const silhouette = createNameSilhouette(
+      childSettings,
+      pack,
+      createSeededRandom(`${childSeed}:name-request-v1:silhouette:0`),
+      artifactIndex,
+    );
+    const generatedName = generateNameFromSilhouette(
+      silhouette,
+      pack,
+      childSettings,
+      createSeededRandom(`${childSeed}:name-request-v1:name:0`),
+      artifactIndex,
+    );
+
+    return toNameArtifact(generatedName);
+  });
 
   return {
     version: 1,
     request: resolution.request,
-    names: [artifact],
+    names,
+    grouping: {
+      kind: resolution.request.grouping.kind,
+      quantity: resolution.request.quantity.value,
+      parentSeed: resolution.random.seed,
+      childSeeds,
+    },
     random: resolution.random,
     ...(diagnostics.length === 0 ? {} : { diagnostics }),
   };
