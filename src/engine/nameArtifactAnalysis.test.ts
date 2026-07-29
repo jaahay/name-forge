@@ -1,9 +1,48 @@
 import { describe, expect, it } from 'vitest';
 import type { NameArtifact } from './nameArtifact';
-import { analyzeNameArtifact, analyzeNameArtifactSet } from './nameArtifactAnalysis';
+import {
+  analyzeNameArtifact,
+  analyzeNameArtifactSet,
+  analyzeNameArtifactSoundRelationships,
+} from './nameArtifactAnalysis';
 import type { SoundProfileCadence } from './soundProfile';
+import type { SoundSegmentId } from './starterSoundInventory';
 
-function artifact(id: string, displayText: string, cadence: SoundProfileCadence = 'balanced'): NameArtifact {
+type TestSyllable = NonNullable<NameArtifact['sound']>['sequence']['syllables'][number];
+
+interface ArtifactOptions {
+  readonly cadence?: SoundProfileCadence;
+  readonly segments?: readonly SoundSegmentId[];
+  readonly syllables?: readonly TestSyllable[];
+}
+
+function syllable(
+  start: number,
+  end: number,
+  onset: readonly number[],
+  nucleus: readonly number[],
+  coda: readonly number[],
+  stress: TestSyllable['stress'] = 'primary',
+): TestSyllable {
+  return {
+    start,
+    end,
+    onset,
+    nucleus,
+    coda,
+    shape: coda.length > 0 ? 'CVC' : 'CV',
+    weight: coda.length > 0 ? 'heavy' : 'light',
+    sonorityProfile: 'rise-fall',
+    stress,
+    stressSource: 'sequence',
+  };
+}
+
+function artifact(id: string, displayText: string, options: ArtifactOptions = {}): NameArtifact {
+  const cadence = options.cadence ?? 'balanced';
+  const segments = options.segments ?? ['m', 'a', 'r'];
+  const syllables = options.syllables ?? [syllable(0, segments.length, [0], [1], [segments.length - 1])];
+
   return {
     id,
     displayText,
@@ -18,23 +57,10 @@ function artifact(id: string, displayText: string, cadence: SoundProfileCadence 
         version: 1,
         id: `sequence-${id}`,
         profileId: 'profile-test',
-        segments: ['m', 'a', 'r'],
-        syllables: [
-          {
-            start: 0,
-            end: 3,
-            onset: [0],
-            nucleus: [1],
-            coda: [2],
-            shape: 'CVC',
-            weight: 'heavy',
-            sonorityProfile: 'rise-fall',
-            stress: 'primary',
-            stressSource: 'sequence',
-          },
-        ],
+        segments: [...segments],
+        syllables: [...syllables],
       },
-      transcription: 'mar',
+      transcription: segments.join(''),
     },
     spelling: {
       contract: 'SpellingCandidate',
@@ -76,10 +102,10 @@ function artifact(id: string, displayText: string, cadence: SoundProfileCadence 
     ],
     silhouette: {
       id: `silhouette-${id}`,
-      syllableCount: 1,
-      stressPattern: 'primary-final',
-      rhythm: 'balanced',
-      shape: ['CVC'],
+      syllableCount: syllables.length,
+      stressPattern: syllables.map((entry) => entry.stress).join('-'),
+      rhythm: cadence,
+      shape: syllables.map((entry) => entry.shape),
       rarityBand: 'common',
       texture: 'balanced',
       targetNovelty: 0.5,
@@ -123,6 +149,112 @@ describe('analyzeNameArtifact', () => {
   });
 });
 
+describe('analyzeNameArtifactSoundRelationships', () => {
+  it('reports identical modeled sound without a human-confusion claim', () => {
+    expect(analyzeNameArtifactSoundRelationships([
+      artifact('mara', 'Mara'),
+      artifact('marah', 'Marah'),
+    ])).toEqual([
+      {
+        kind: 'identical-sound',
+        artifactIds: ['mara', 'marah'],
+        displayTexts: ['Mara', 'Marah'],
+        evidence: 'Modeled segment sequences are identical: [m a r].',
+      },
+    ]);
+  });
+
+  it('reports a one-segment edit, shared onset, and shared cadence as separate evidence', () => {
+    expect(analyzeNameArtifactSoundRelationships([
+      artifact('mar', 'Mar', { segments: ['m', 'a', 'r'] }),
+      artifact('mal', 'Mal', { segments: ['m', 'a', 'l'] }),
+    ])).toEqual([
+      {
+        kind: 'one-segment-edit',
+        artifactIds: ['mar', 'mal'],
+        displayTexts: ['Mar', 'Mal'],
+        evidence: 'Modeled segment sequences differ by one insertion, deletion, or substitution: [m a r] vs [m a l].',
+      },
+      {
+        kind: 'shared-onset',
+        artifactIds: ['mar', 'mal'],
+        displayTexts: ['Mar', 'Mal'],
+        evidence: 'First-syllable onsets are identical: [m].',
+      },
+      {
+        kind: 'shared-cadence',
+        artifactIds: ['mar', 'mal'],
+        displayTexts: ['Mar', 'Mal'],
+        evidence: 'Modeled cadence and syllable stress pattern are identical: balanced:primary.',
+      },
+    ]);
+  });
+
+  it('reports an exact shared final syllable', () => {
+    expect(analyzeNameArtifactSoundRelationships([
+      artifact('kali', 'Kali', {
+        cadence: 'compact',
+        segments: ['k', 'a', 'l', 'i'],
+        syllables: [syllable(0, 2, [0], [1], []), syllable(2, 4, [2], [3], [])],
+      }),
+      artifact('moli', 'Moli', {
+        cadence: 'open',
+        segments: ['m', 'o', 'l', 'i'],
+        syllables: [syllable(0, 2, [0], [1], []), syllable(2, 4, [2], [3], [])],
+      }),
+    ])).toEqual([
+      {
+        kind: 'shared-final-syllable',
+        artifactIds: ['kali', 'moli'],
+        displayTexts: ['Kali', 'Moli'],
+        evidence: 'Final modeled syllables are identical: [l i].',
+      },
+    ]);
+  });
+
+  it('reports an exact shared coda when the final syllables differ', () => {
+    expect(analyzeNameArtifactSoundRelationships([
+      artifact('taren', 'Taren', {
+        cadence: 'compact',
+        segments: ['t', 'a', 'r', 'e', 'n'],
+        syllables: [syllable(0, 2, [0], [1], []), syllable(2, 5, [2], [3], [4])],
+      }),
+      artifact('molun', 'Molun', {
+        cadence: 'rolling',
+        segments: ['m', 'o', 'l', 'u', 'n'],
+        syllables: [syllable(0, 2, [0], [1], []), syllable(2, 5, [2], [3], [4])],
+      }),
+    ])).toEqual([
+      {
+        kind: 'shared-coda',
+        artifactIds: ['taren', 'molun'],
+        displayTexts: ['Taren', 'Molun'],
+        evidence: 'Final-syllable codas are identical: [n].',
+      },
+    ]);
+  });
+
+  it('reports shared cadence independently from segment similarity', () => {
+    expect(analyzeNameArtifactSoundRelationships([
+      artifact('maro', 'Maro', {
+        segments: ['m', 'a', 'r', 'o'],
+        syllables: [syllable(0, 2, [0], [1], []), syllable(2, 4, [2], [3], [], 'secondary')],
+      }),
+      artifact('tovin', 'Tovin', {
+        segments: ['t', 'o', 'v', 'i', 'n'],
+        syllables: [syllable(0, 2, [0], [1], []), syllable(2, 5, [2], [3], [4], 'secondary')],
+      }),
+    ])).toEqual([
+      {
+        kind: 'shared-cadence',
+        artifactIds: ['maro', 'tovin'],
+        displayTexts: ['Maro', 'Tovin'],
+        evidence: 'Modeled cadence and syllable stress pattern are identical: balanced:primary,secondary.',
+      },
+    ]);
+  });
+});
+
 describe('analyzeNameArtifactSet', () => {
   it('reports exact pairwise collisions without a subjective fit score', () => {
     const analysis = analyzeNameArtifactSet([
@@ -145,5 +277,7 @@ describe('analyzeNameArtifactSet', () => {
       'shared-cadence',
       'shared-cadence',
     ]);
+    expect(analysis.soundRelationships).toHaveLength(3);
+    expect(analysis.soundRelationships.every((relationship) => relationship.kind === 'identical-sound')).toBe(true);
   });
 });
