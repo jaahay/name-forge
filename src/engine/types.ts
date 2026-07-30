@@ -6,8 +6,19 @@ import type { StyleDescriptor, StylePackSourceDescriptor } from './stylePackType
 
 export { toNameArtifact } from './nameArtifact';
 export type { NameArtifact } from './nameArtifact';
-export { analyzeNameArtifact, analyzeNameArtifactSet } from './nameArtifactAnalysis';
-export type { NameArtifactAnalysis, NameArtifactCollision, NameArtifactCollisionKind, NameArtifactReadabilityAnalysis, NameArtifactSetAnalysis, NameArtifactSpellingAnalysis, NameArtifactStructureAnalysis } from './nameArtifactAnalysis';
+export { analyzeNameArtifact, analyzeNameArtifactSet, analyzeNameArtifactSoundRelationships } from './nameArtifactAnalysis';
+export type {
+  NameArtifactAnalysis,
+  NameArtifactCollision,
+  NameArtifactCollisionKind,
+  NameArtifactReadabilityAnalysis,
+  NameArtifactSetAnalysis,
+  NameArtifactSoundEdit,
+  NameArtifactSoundRelationship,
+  NameArtifactSoundRelationshipKind,
+  NameArtifactSpellingAnalysis,
+  NameArtifactStructureAnalysis,
+} from './nameArtifactAnalysis';
 export type { NameCriteria, NameCriteriaClause, NameCriteriaFamily, NameCriteriaPolarity } from './nameCriteria';
 export { compileNameCriteriaToGenerationSettings } from './nameCriteriaCompiler';
 export type { NameCriteriaCompilerBaseSettings } from './nameCriteriaCompiler';
@@ -17,6 +28,7 @@ export { generateNameResponse } from './nameResponse';
 export type { NameResponseAdapterOptions } from './nameResponse';
 export type { AssetKind, CachePolicy, SourceChannel, SourceDescriptor, SourceValidationIssue, SourceValidationSeverity, StylePackValidationResult } from './sourceTypes';
 export type { StyleDescriptor, StylePackSourceDescriptor } from './stylePackTypes';
+export type { SoundSegmentId } from './starterSoundInventory';
 
 export type ScoreKey =
   | 'pronounceability'
