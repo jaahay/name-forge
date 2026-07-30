@@ -67,7 +67,7 @@ Shared platform capabilities now include:
 - shared `NameArtifactInspector` rendering;
 - deterministic readability observations and browser audition projection;
 - pure single-artifact and artifact-set analysis APIs;
-- deterministic same-operation sound-relationship evidence with typed details, exact pair identity, and fixed precedence and ordering;
+- deterministic same-roster sound-relationship evidence with typed details, exact pair identity, and fixed precedence and ordering;
 - source descriptors and built-in style-pack validation;
 - richer variant relationship, confidence, source, and locale metadata where available;
 - versioned, bounded browser persistence for explicit user-generated `NameArtifact` snapshots;
@@ -97,7 +97,7 @@ Name Forge may expose deterministic facts about generated structure, spelling al
 | --- | --- | --- |
 | Readability diagnostics | Shipped deterministic evidence | Reports concrete letter-pattern and structure observations; not a measured ease score. |
 | Browser audition draft | Shipped projection | Approximate browser speech derived from modeled sound; not canonical pronunciation. |
-| Same-roster sound relationships | Shipped deterministic engine evidence | Reports exact modeled relationships between artifacts from one grouped operation; not measured human similarity or confusion. |
+| Same-roster sound relationships | Shipped deterministic engine evidence | Reports exact modeled relationships between artifacts from one explicit roster snapshot; not measured human similarity or confusion. |
 | Pronounceability | Research only as a human-facing metric | Requires a declared listener population, language assumptions, methodology, and validation. |
 | Familiarity | Research only | Requires a declared corpus or audience. |
 | Memorability | Research only | Requires evidence that the model predicts recall or recognition. |
@@ -119,7 +119,7 @@ Issue #154 and PR #161 established the shared evidence contract:
 - deterministic relationship ordering;
 - exact insertion, deletion, and substitution details;
 - explicit precedence and suppression rules;
-- a caller-owned same-operation provenance boundary.
+- a caller-owned roster-snapshot provenance boundary.
 
 The next bounded slice is presentation only. Fiction Cast should expose this evidence in its existing ensemble diagnostics or inspection context so users can understand exact modeled relationships among names in the active cast.
 
@@ -136,7 +136,7 @@ Required boundary:
 
 - consume the shared engine relationship contract rather than adding mode-specific evidence types;
 - use `kind` and `details` as canonical data and never parse `evidence` to recover structure;
-- compare only artifacts from the same grouped `NameResponse` operation;
+- compare only artifacts from one explicit active-roster snapshot;
 - describe modeled structure without claiming human confusion, similarity, quality, cohesion, or fit;
 - preserve existing generation, rejection, reranking, regeneration, export, and persistence behavior.
 

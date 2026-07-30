@@ -50,13 +50,13 @@ These are output-contract rules, not scores or rankings of user-perceived import
 
 `analyzeNameArtifactSoundRelationships` compares artifacts exactly as supplied. It does not infer or validate that they came from the same request, response, roster, mode, or generation operation.
 
-A caller presenting results as same-roster evidence must pass artifacts from one grouped `NameResponse` operation and retain that provenance outside this pure helper.
+A caller presenting results as same-roster evidence must pass artifacts from one explicit roster snapshot and retain that scope outside this pure helper. A grouped `NameResponse` and the current `GeneratedEnsemble` returned for an active Fiction Cast roster are valid examples. Callers must not silently combine artifacts from unrelated snapshots.
 
 ## Presentation and scale
 
 The analyzer returns all applicable pairwise facts. It does not group, prioritize, truncate, paginate, or summarize results for a user interface.
 
-Any future UI may collapse redundant presentation, group by artifact pair, impose display limits, or prioritize evidence kinds. Those choices are presentation policy and must not change the deterministic engine evidence returned for the same input.
+A UI may collapse redundant presentation, group by artifact pair, impose display limits, or prioritize evidence kinds. Those choices are presentation policy and must not change the deterministic engine evidence returned for the same input.
 
 ## Non-goals
 
