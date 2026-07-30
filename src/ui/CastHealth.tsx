@@ -1,4 +1,7 @@
+import { analyzeNameArtifactSoundRelationships } from '../engine/nameArtifactAnalysis';
+import { toNameArtifact } from '../engine/nameArtifact';
 import type { GeneratedEnsemble, RarityBand } from '../engine/types';
+import { SoundRelationshipsPanel } from './SoundRelationshipsPanel';
 
 type CastHealthTone = 'good' | 'warn';
 
@@ -70,6 +73,8 @@ function castHealthFor(ensemble: GeneratedEnsemble, lockedNameIds: Set<string>):
 
 export function CastHealthPanel({ ensemble, lockedNameIds }: CastHealthPanelProps) {
   const healthItems = castHealthFor(ensemble, lockedNameIds);
+  // The current GeneratedEnsemble is the explicit active-roster snapshot for this presentation.
+  const soundRelationships = analyzeNameArtifactSoundRelationships(ensemble.names.map(toNameArtifact));
 
   return (
     <section className="cast-health" aria-label="Cast health">
@@ -85,6 +90,7 @@ export function CastHealthPanel({ ensemble, lockedNameIds }: CastHealthPanelProp
           </li>
         ))}
       </ul>
+      <SoundRelationshipsPanel relationships={soundRelationships} />
     </section>
   );
 }
