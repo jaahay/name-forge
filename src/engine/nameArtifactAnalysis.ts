@@ -398,8 +398,8 @@ export function analyzeNameArtifact(artifact: NameArtifact): NameArtifactAnalysi
 
 /**
  * Compares the artifacts exactly as supplied. Callers that present these records as
- * same-roster evidence must pass artifacts from one grouped NameResponse operation;
- * this pure helper intentionally does not infer or validate operation provenance.
+ * same-roster evidence must pass artifacts from one explicit roster snapshot;
+ * this pure helper intentionally does not infer or validate snapshot provenance.
  */
 export function analyzeNameArtifactSoundRelationships(
   artifacts: readonly NameArtifact[],
