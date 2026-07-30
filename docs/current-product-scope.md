@@ -10,6 +10,7 @@ Related decisions and boundaries:
 - [`decisions/0004-modes-presets-and-grouping.md`](decisions/0004-modes-presets-and-grouping.md)
 - [`requirements/game-npc-mode-boundary.md`](requirements/game-npc-mode-boundary.md)
 - [`requirements/name-grouping-design-boundary.md`](requirements/name-grouping-design-boundary.md)
+- [`implementation/sound-proximity-diagnostics.md`](implementation/sound-proximity-diagnostics.md)
 
 ## Active product contract
 
@@ -47,7 +48,7 @@ The durable request boundary is implemented as:
 NameRequest -> NameResponse
 ```
 
-V1 supports the existing singular default and an exact independent set. Omitted quantity/grouping returns one artifact through the previous singular seed stream; an explicit exact quantity returns a flat ordered `NameArtifact[]` with deterministic child seeds and grouping metadata. `mode` is optional metadata and must not drive core generation or grouping behavior.
+The request contract supports the existing singular default and an exact independent set. Omitted quantity/grouping returns one artifact through the previous singular seed stream; an explicit exact quantity returns a flat ordered `NameArtifact[]` with deterministic child seeds and grouping metadata. `mode` is optional metadata and must not drive core generation or grouping behavior.
 
 ## Current shipped baseline
 
@@ -66,6 +67,7 @@ Shared platform capabilities now include:
 - shared `NameArtifactInspector` rendering;
 - deterministic readability observations and browser audition projection;
 - pure single-artifact and artifact-set analysis APIs;
+- deterministic same-operation sound-relationship evidence with typed details, exact pair identity, and fixed precedence and ordering;
 - source descriptors and built-in style-pack validation;
 - richer variant relationship, confidence, source, and locale metadata where available;
 - versioned, bounded browser persistence for explicit user-generated `NameArtifact` snapshots;
@@ -95,6 +97,7 @@ Name Forge may expose deterministic facts about generated structure, spelling al
 | --- | --- | --- |
 | Readability diagnostics | Shipped deterministic evidence | Reports concrete letter-pattern and structure observations; not a measured ease score. |
 | Browser audition draft | Shipped projection | Approximate browser speech derived from modeled sound; not canonical pronunciation. |
+| Same-roster sound relationships | Shipped deterministic engine evidence | Reports exact modeled relationships between artifacts from one grouped operation; not measured human similarity or confusion. |
 | Pronounceability | Research only as a human-facing metric | Requires a declared listener population, language assumptions, methodology, and validation. |
 | Familiarity | Research only | Requires a declared corpus or audience. |
 | Memorability | Research only | Requires evidence that the model predicts recall or recognition. |
@@ -107,35 +110,48 @@ The active rule is:
 
 ## Next implementation sequence
 
-### 1. Same-roster sound proximity diagnostics — issue #154
+### 1. Present same-roster sound diagnostics in Fiction Cast — issue #162
 
-The exact independent-set contract now provides the prerequisites for a bounded same-operation diagnostic slice:
+Issue #154 and PR #161 established the shared evidence contract:
 
-- one atomic exact-size operation;
-- deterministic artifact ordering and child-seed replay;
-- a stable `NameArtifact[]` analysis boundary.
+- typed `NameArtifactSoundRelationship` records;
+- exact artifact-pair identity;
+- deterministic relationship ordering;
+- exact insertion, deletion, and substitution details;
+- explicit precedence and suppression rules;
+- a caller-owned same-operation provenance boundary.
+
+The next bounded slice is presentation only. Fiction Cast should expose this evidence in its existing ensemble diagnostics or inspection context so users can understand exact modeled relationships among names in the active cast.
+
+Required user-facing behavior:
+
+- show a restrained **Sound relationships** section only when evidence exists;
+- identify the exact pair of names for every record;
+- render concise copy from each record's `kind` and typed `details`;
+- distinguish identical sound, one-segment edits, shared onset, shared final syllable, shared coda, and matching cadence/stress;
+- update or disappear when the active cast changes;
+- remain secondary to generation, selection, locking, and inspection.
 
 Required boundary:
 
-- operate on artifacts produced by the same grouped operation;
-- report transparent structural evidence such as identical sound, small segment edits, shared onset, shared ending, or shared cadence;
-- identify the compared artifacts and the exact evidence relationship;
-- use deterministic fixtures for every reported relationship;
-- remain advisory and non-blocking.
+- consume the shared engine relationship contract rather than adding mode-specific evidence types;
+- use `kind` and `details` as canonical data and never parse `evidence` to recover structure;
+- compare only artifacts from the same grouped `NameResponse` operation;
+- describe modeled structure without claiming human confusion, similarity, quality, cohesion, or fit;
+- preserve existing generation, rejection, reranking, regeneration, export, and persistence behavior.
 
 Non-goals:
 
-- no universal confusion, similarity, quality, or fit score;
+- no score or public percentage;
 - no claim that people will confuse two names;
-- no automatic rejection, reranking, regeneration, or cohesion optimization;
-- no Fiction Cast- or Game NPC-specific engine contract;
-- no public percentage derived from internal heuristics.
-
-A documentation/research spike or a pure deterministic comparison helper is an acceptable first outcome. Any user-facing presentation requires a separate bounded issue after the evidence contract is stable.
+- no automatic cast optimization;
+- no Game NPC roster or diagnostics UI;
+- no shell or visual-system redesign;
+- no new persistence, export, IPA, audio-provider, or pronunciation-dictionary contract.
 
 ### 2. Prune and select the next product slice
 
-After #154 is completed or deliberately returned to backlog, prune this document again before authorizing another implementation slice. Do not infer the next UI, mode, grouping, scoring, or provider feature from deferred architecture vocabulary alone.
+After #162 is completed or deliberately returned to backlog, prune this document again before authorizing another implementation slice. Do not infer broader evaluation, optimization, mode, grouping, provider, or shell work from deferred architecture vocabulary alone.
 
 ## Research-only backlog
 
