@@ -220,6 +220,134 @@
   border: 1px solid rgba(255, 173, 74, 0.3);
 }
 
+.sound-relationships {
+  display: grid;
+  gap: 0.65rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid rgba(240, 184, 95, 0.16);
+}
+
+.sound-relationships-heading {
+  display: flex;
+  gap: 0.7rem;
+  align-items: end;
+  justify-content: space-between;
+}
+
+.sound-relationships-heading > div {
+  display: grid;
+  gap: 0.18rem;
+}
+
+.sound-relationships-heading h3 {
+  margin: 0;
+  color: var(--text);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sound-relationships-count,
+.sound-relationship-pair-count {
+  color: #b8a88e;
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.sound-relationship-pairs,
+.sound-relationship-facts {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sound-relationship-pairs {
+  gap: 0.58rem;
+}
+
+.sound-relationship-pair {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.68rem 0.72rem;
+  border: 1px solid rgba(240, 184, 95, 0.14);
+  border-radius: 0.82rem;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.sound-relationship-pair-heading {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.48rem;
+  align-items: center;
+}
+
+.sound-relationship-marker {
+  width: 0.58rem;
+  height: 0.58rem;
+  border: 1px solid rgba(240, 184, 95, 0.48);
+  border-radius: 999px;
+  background: rgba(240, 184, 95, 0.12);
+  box-shadow: inset 0 0 0 2px rgba(10, 9, 8, 0.45);
+}
+
+.sound-relationship-pair-heading h4 {
+  margin: 0;
+  min-width: 0;
+  color: #f8d99f;
+  font-size: 0.84rem;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.sound-relationship-pair-heading h4 span {
+  color: #9f8f75;
+  font-weight: 650;
+}
+
+.sound-relationship-facts {
+  gap: 0.48rem;
+}
+
+.sound-relationship-fact {
+  position: relative;
+  display: grid;
+  gap: 0.12rem;
+  padding-left: 1.05rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+.sound-relationship-fact::before {
+  position: absolute;
+  top: 0.42rem;
+  left: 0.14rem;
+  width: 0.34rem;
+  height: 1px;
+  background: rgba(240, 184, 95, 0.48);
+  content: '';
+}
+
+.sound-relationship-fact strong {
+  color: var(--text);
+  font-size: 0.77rem;
+}
+
+.sound-relationship-summary {
+  color: #cfc2ae;
+}
+
+.sound-relationship-technical {
+  color: #9f9078;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.01em;
+  overflow-wrap: anywhere;
+}
+
 /* Name cards */
 .name-grid {
   grid-template-columns: repeat(2, minmax(220px, 1fr));
@@ -510,5 +638,17 @@
   .selection-kind-all .selected-name-panel,
   .selection-kind-all .inspector-empty-panel {
     display: none;
+  }
+
+  .sound-relationships-heading {
+    align-items: start;
+  }
+
+  .sound-relationship-pair-heading {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .sound-relationship-pair-count {
+    grid-column: 2;
   }
 }
