@@ -143,10 +143,7 @@ export function SoundRelationshipsPanel({ relationships }: SoundRelationshipsPan
           <li key={group.key} className="sound-relationship-pair">
             <div className="sound-relationship-pair-heading">
               <span className="sound-relationship-marker" aria-hidden="true" />
-              <h4>{group.displayTexts[0]} <span aria-hidden="true">+</span> {group.displayTexts[1]}</h4>
-              <span className="sound-relationship-pair-count">
-                {group.relationships.length} {group.relationships.length === 1 ? 'detail' : 'details'}
-              </span>
+              <h4>{group.displayTexts[0]} <span>and</span> {group.displayTexts[1]}</h4>
             </div>
             <ul className="sound-relationship-facts">
               {group.relationships.map((relationship, index) => {
