@@ -57,8 +57,8 @@ describe('SoundRelationshipsPanel', () => {
     ];
 
     const html = renderRelationships(relationships);
-    const marPair = 'Mar <span aria-hidden="true">+</span> Mal';
-    const kaliPair = 'Kali <span aria-hidden="true">+</span> Moli';
+    const marPair = 'Mar <span>and</span> Mal';
+    const kaliPair = 'Kali <span>and</span> Moli';
 
     expect(html).toContain('<section class="sound-relationships"');
     expect(html).toContain('<h3 id="sound-relationships-heading">Sound relationships</h3>');
@@ -66,6 +66,8 @@ describe('SoundRelationshipsPanel', () => {
     expect(html.split(marPair)).toHaveLength(2);
     expect(html.split(kaliPair)).toHaveLength(2);
     expect(html.indexOf(marPair)).toBeLessThan(html.indexOf(kaliPair));
+    expect(html).not.toContain('sound-relationship-pair-count');
+    expect(html).not.toContain('3 details');
 
     const editIndex = html.indexOf('One sound differs');
     const openingIndex = html.indexOf('Same opening sound');
