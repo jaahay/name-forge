@@ -80,6 +80,7 @@ Fiction Cast additionally includes:
 - cast size, format, role mix, slot override, role influence, rarity, and tuning controls;
 - lock and selection iteration;
 - cast-level balancing and collision diagnostics;
+- pair-grouped same-roster sound relationships with plain-language labels and typed technical evidence;
 - JSON and Markdown cast export.
 
 Game NPC additionally includes:
@@ -97,7 +98,7 @@ Name Forge may expose deterministic facts about generated structure, spelling al
 | --- | --- | --- |
 | Readability diagnostics | Shipped deterministic evidence | Reports concrete letter-pattern and structure observations; not a measured ease score. |
 | Browser audition draft | Shipped projection | Approximate browser speech derived from modeled sound; not canonical pronunciation. |
-| Same-roster sound relationships | Shipped deterministic engine evidence | Reports exact modeled relationships between artifacts from one explicit roster snapshot; not measured human similarity or confusion. |
+| Same-roster sound relationships | Shipped deterministic evidence and Fiction Cast presentation | Reports exact modeled relationships between artifacts from one explicit roster snapshot; not measured human similarity or confusion. |
 | Pronounceability | Research only as a human-facing metric | Requires a declared listener population, language assumptions, methodology, and validation. |
 | Familiarity | Research only | Requires a declared corpus or audience. |
 | Memorability | Research only | Requires evidence that the model predicts recall or recognition. |
@@ -110,48 +111,43 @@ The active rule is:
 
 ## Next implementation sequence
 
-### 1. Present same-roster sound diagnostics in Fiction Cast — issue #162
+### 1. Add selected-name reroll to Fiction Cast — issue #167
 
-Issue #154 and PR #161 established the shared evidence contract:
-
-- typed `NameArtifactSoundRelationship` records;
-- exact artifact-pair identity;
-- deterministic relationship ordering;
-- exact insertion, deletion, and substitution details;
-- explicit precedence and suppression rules;
-- a caller-owned roster-snapshot provenance boundary.
-
-The next bounded slice is presentation only. Fiction Cast should expose this evidence in its existing ensemble diagnostics or inspection context so users can understand exact modeled relationships among names in the active cast.
+Fiction Cast already has deterministic slot-aware ensemble generation, explicit name selection, lock controls, and an inspector centered on the selected name. The next bounded slice is to let a user replace that selected slot without disturbing the rest of the cast.
 
 Required user-facing behavior:
 
-- show a restrained **Sound relationships** section only when evidence exists;
-- identify the exact pair of names for every record;
-- render concise copy from each record's `kind` and typed `details`;
-- distinguish identical sound, one-segment edits, shared onset, shared final syllable, shared coda, and matching cadence/stress;
-- update or disappear when the active cast changes;
-- remain secondary to generation, selection, locking, and inspection.
+- add a restrained **Reroll this name** action in the selected-name inspector;
+- replace only the selected cast slot;
+- preserve every other visible name exactly;
+- keep inspection focused on the replacement in the same slot after its generated name ID changes;
+- recompute Cast Health and sound relationships against the resulting active roster;
+- keep the replacement aligned with the current cast settings, slot role, and name format;
+- require a locked selected name to be unlocked before rerolling so lock retains one predictable meaning.
 
 Required boundary:
 
-- consume the shared engine relationship contract rather than adding mode-specific evidence types;
-- use `kind` and `details` as canonical data and never parse `evidence` to recover structure;
-- compare only artifacts from one explicit active-roster snapshot;
-- describe modeled structure without claiming human confusion, similarity, quality, cohesion, or fit;
-- preserve existing generation, rejection, reranking, regeneration, export, and persistence behavior.
+- preserve non-target slots through the existing locked-slot ensemble contract rather than introducing a second cast-generation model;
+- use a fresh seed for the replacement operation while leaving existing whole-cast generation semantics unchanged;
+- preserve lock state for unaffected names and leave the replacement unlocked;
+- record only the newly generated replacement in Recent names for this operation rather than duplicating unchanged cast members;
+- treat selected-name reroll as explicit slot replacement, not as a new cohesion or global cast-optimization system;
+- retain existing generation, configuration, export, persistence, and Game NPC behavior.
 
 Non-goals:
 
-- no score or public percentage;
-- no claim that people will confuse two names;
-- no automatic cast optimization;
-- no Game NPC roster or diagnostics UI;
+- no new scoring or cohesion model;
+- no attempt to optimize the replacement against later slots beyond existing deterministic ensemble-generation semantics;
+- no multi-select reroll;
+- no undo stack;
+- no new persistence model;
+- no Game NPC reroll change;
 - no shell or visual-system redesign;
-- no new persistence, export, IPA, audio-provider, or pronunciation-dictionary contract.
+- no human-similarity or confusion claims.
 
 ### 2. Prune and select the next product slice
 
-After #162 is completed or deliberately returned to backlog, prune this document again before authorizing another implementation slice. Do not infer broader evaluation, optimization, mode, grouping, provider, or shell work from deferred architecture vocabulary alone.
+After #167 is completed or deliberately returned to backlog, prune this document again before authorizing another implementation slice. Do not infer broader evaluation, optimization, mode, grouping, provider, or shell work from deferred architecture vocabulary alone.
 
 ## Research-only backlog
 
@@ -176,7 +172,6 @@ The following remain possible later slices but are not authorized by this docume
 - ranked-alternative grouping semantics;
 - slot-level criteria or slotted sets;
 - partial-result recovery;
-- per-artifact reroll behavior;
 - Fiction Cast assumptions as shared engine behavior;
 - Game NPC roster UI;
 - broader shell or visual-system redesign.
