@@ -10,6 +10,7 @@ import {
 import { toNameArtifact, type NameArtifact } from './engine/nameArtifact';
 import { createDefaultRegistry } from './engine/registry';
 import type { GeneratedEnsemble, GenerationSettings } from './engine/types';
+import { rerollSelectedCastName } from './fictionCastReroll';
 import { AboutView } from './ui/AboutView';
 import { ChangelogView } from './ui/ChangelogView';
 import { GameNpcView } from './ui/GameNpcView';
@@ -116,6 +117,27 @@ export default function App() {
     commitGeneration(nextSettings);
   }
 
+  function rerollSelectedName(id: string): string | undefined {
+    const result = rerollSelectedCastName(
+      ensemble,
+      id,
+      lockedNameIds,
+      createRandomSeed(),
+      registry,
+    );
+    if (!result) return undefined;
+
+    setSettings((current) => ({ ...current, seed: result.committedSettings.seed }));
+    setCommittedSettings(result.committedSettings);
+    setEnsemble(result.ensemble);
+    setLockedNameIds(result.lockedNameIds);
+    recordArtifacts(result.historyArtifacts, {
+      mode: 'fiction-cast',
+      seed: result.committedSettings.seed,
+    });
+    return result.replacementId;
+  }
+
   function toggleLockedName(id: string) {
     setLockedNameIds((current) => {
       const next = new Set(current);
@@ -168,6 +190,7 @@ export default function App() {
             onCommitSettings={commitCurrentSettings}
             onRandomizeSliders={randomizeSliders}
             onRandomizeSlider={randomizeSlider}
+            onRerollName={rerollSelectedName}
             onToggleLockedName={toggleLockedName}
             onClearLockedNames={clearLockedNames}
           />
