@@ -307,6 +307,33 @@
   font-weight: 650;
 }
 
+.sound-relationship-name {
+  display: inline;
+  margin: 0;
+  border: 0;
+  border-radius: 0.2rem;
+  padding: 0;
+  color: #f8d99f;
+  background: transparent;
+  box-shadow: none;
+  font: inherit;
+  font-weight: inherit;
+  text-align: inherit;
+  text-decoration: underline;
+  text-decoration-color: rgba(240, 184, 95, 0.38);
+  text-underline-offset: 0.14em;
+}
+
+.sound-relationship-name:hover {
+  color: #fff1cf;
+  text-decoration-color: currentColor;
+}
+
+.sound-relationship-name:focus-visible {
+  outline: 2px solid rgba(240, 184, 95, 0.72);
+  outline-offset: 0.18rem;
+}
+
 .sound-relationship-facts {
   gap: 0.48rem;
 }
