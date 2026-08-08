@@ -91,6 +91,7 @@ describe('rerollSelectedCastName', () => {
     const beforeHtml = renderToString(createElement(CastHealthPanel, {
       ensemble: beforeWithSentinel,
       lockedNameIds: new Set<string>(),
+      onSelectName: () => {},
     }));
 
     expect(beforeRelationships.some((relationship) => relationship.artifactIds.includes(sentinelTarget.id))).toBe(true);
@@ -112,6 +113,7 @@ describe('rerollSelectedCastName', () => {
     const afterHtml = renderToString(createElement(CastHealthPanel, {
       ensemble: result.ensemble,
       lockedNameIds: result.lockedNameIds,
+      onSelectName: () => {},
     }));
 
     expect(activeIds.has(sentinelTarget.id)).toBe(false);
