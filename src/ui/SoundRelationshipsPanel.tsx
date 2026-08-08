@@ -2,10 +2,12 @@ import type { NameArtifactSoundRelationship, SoundSegmentId } from '../engine/ty
 
 interface SoundRelationshipsPanelProps {
   relationships: readonly NameArtifactSoundRelationship[];
+  onSelectName: (id: string) => void;
 }
 
 interface SoundRelationshipPairGroup {
   key: string;
+  artifactIds: readonly [string, string];
   displayTexts: readonly [string, string];
   relationships: NameArtifactSoundRelationship[];
 }
@@ -105,6 +107,7 @@ function groupSoundRelationships(
     if (!group) {
       group = {
         key,
+        artifactIds: relationship.artifactIds,
         displayTexts: relationship.displayTexts,
         relationships: [],
       };
@@ -122,7 +125,7 @@ export function describeSoundRelationship(relationship: NameArtifactSoundRelatio
   return `${presentation.label}. ${presentation.summary} ${presentation.technical}`;
 }
 
-export function SoundRelationshipsPanel({ relationships }: SoundRelationshipsPanelProps) {
+export function SoundRelationshipsPanel({ relationships, onSelectName }: SoundRelationshipsPanelProps) {
   if (relationships.length === 0) return null;
 
   const groups = groupSoundRelationships(relationships);
@@ -143,7 +146,25 @@ export function SoundRelationshipsPanel({ relationships }: SoundRelationshipsPan
           <li key={group.key} className="sound-relationship-pair">
             <div className="sound-relationship-pair-heading">
               <span className="sound-relationship-marker" aria-hidden="true" />
-              <h4>{group.displayTexts[0]} <span>and</span> {group.displayTexts[1]}</h4>
+              <h4>
+                <button
+                  type="button"
+                  className="sound-relationship-name"
+                  aria-label={`Select ${group.displayTexts[0]} from sound relationships`}
+                  onClick={() => onSelectName(group.artifactIds[0])}
+                >
+                  {group.displayTexts[0]}
+                </button>{' '}
+                <span>and</span>{' '}
+                <button
+                  type="button"
+                  className="sound-relationship-name"
+                  aria-label={`Select ${group.displayTexts[1]} from sound relationships`}
+                  onClick={() => onSelectName(group.artifactIds[1])}
+                >
+                  {group.displayTexts[1]}
+                </button>
+              </h4>
             </div>
             <ul className="sound-relationship-facts">
               {group.relationships.map((relationship, index) => {

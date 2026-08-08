@@ -1,10 +1,27 @@
+import { Children, isValidElement, type ReactElement, type ReactNode } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import type { NameArtifactSoundRelationship } from '../engine/types';
 import { SoundRelationshipsPanel } from './SoundRelationshipsPanel';
 
 function renderRelationships(relationships: readonly NameArtifactSoundRelationship[]): string {
-  return renderToStaticMarkup(<SoundRelationshipsPanel relationships={relationships} />);
+  return renderToStaticMarkup(<SoundRelationshipsPanel relationships={relationships} onSelectName={() => {}} />);
+}
+
+type SelectButtonElement = ReactElement<{
+  children?: ReactNode;
+  onClick?: () => void;
+  'aria-label'?: string;
+}>;
+
+function collectSelectButtons(node: ReactNode, buttons: SelectButtonElement[] = []): SelectButtonElement[] {
+  Children.forEach(node, (child) => {
+    if (!isValidElement(child)) return;
+    const element = child as SelectButtonElement;
+    if (element.type === 'button') buttons.push(element);
+    collectSelectButtons(element.props.children, buttons);
+  });
+  return buttons;
 }
 
 describe('SoundRelationshipsPanel', () => {
@@ -57,15 +74,16 @@ describe('SoundRelationshipsPanel', () => {
     ];
 
     const html = renderRelationships(relationships);
-    const marPair = 'Mar <span>and</span> Mal';
-    const kaliPair = 'Kali <span>and</span> Moli';
+    const marIndex = html.indexOf('>Mar</button>');
+    const kaliIndex = html.indexOf('>Kali</button>');
 
     expect(html).toContain('<section class="sound-relationships"');
     expect(html).toContain('<h3 id="sound-relationships-heading">Sound relationships</h3>');
     expect(html).toContain('2 pairs');
-    expect(html.split(marPair)).toHaveLength(2);
-    expect(html.split(kaliPair)).toHaveLength(2);
-    expect(html.indexOf(marPair)).toBeLessThan(html.indexOf(kaliPair));
+    expect(html.match(/class="sound-relationship-pair"/g)).toHaveLength(2);
+    expect(marIndex).toBeGreaterThan(-1);
+    expect(kaliIndex).toBeGreaterThan(-1);
+    expect(marIndex).toBeLessThan(kaliIndex);
     expect(html).not.toContain('sound-relationship-pair-count');
     expect(html).not.toContain('3 details');
 
@@ -75,6 +93,47 @@ describe('SoundRelationshipsPanel', () => {
     expect(editIndex).toBeGreaterThan(-1);
     expect(editIndex).toBeLessThan(openingIndex);
     expect(openingIndex).toBeLessThan(cadenceIndex);
+  });
+
+  it('selects either grouped pair member by artifact id without mutating relationship evidence', () => {
+    const relationships: readonly NameArtifactSoundRelationship[] = [
+      {
+        kind: 'shared-onset',
+        artifactIds: ['mar-id', 'mal-id'],
+        displayTexts: ['Mar', 'Mal'],
+        details: { segments: ['m'] },
+        evidence: 'stable evidence',
+      },
+      {
+        kind: 'matching-cadence-pattern',
+        artifactIds: ['mar-id', 'mal-id'],
+        displayTexts: ['Mar', 'Mal'],
+        details: {
+          cadence: 'balanced',
+          stressPattern: ['primary'],
+        },
+        evidence: 'stable evidence',
+      },
+    ];
+    const before = JSON.stringify(relationships);
+    const selectedIds: string[] = [];
+    const panel = SoundRelationshipsPanel({
+      relationships,
+      onSelectName: (id) => selectedIds.push(id),
+    });
+    const buttons = collectSelectButtons(panel);
+
+    expect(buttons).toHaveLength(2);
+    expect(buttons.map((button) => button.props['aria-label'])).toEqual([
+      'Select Mar from sound relationships',
+      'Select Mal from sound relationships',
+    ]);
+
+    buttons[0]?.props.onClick?.();
+    buttons[1]?.props.onClick?.();
+
+    expect(selectedIds).toEqual(['mar-id', 'mal-id']);
+    expect(JSON.stringify(relationships)).toBe(before);
   });
 
   it('uses plain-language labels with typed technical detail', () => {

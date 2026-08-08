@@ -175,7 +175,7 @@ export function GeneratorView({
               >
                 {inspector}
               </NameSelectionSurface>
-              <CastHealthPanel ensemble={ensemble} lockedNameIds={lockedNameIds} />
+              <CastHealthPanel ensemble={ensemble} lockedNameIds={lockedNameIds} onSelectName={selectName} />
             </>
           ) : (
             <div className="empty-state panel">Generate names to fill this cast.</div>

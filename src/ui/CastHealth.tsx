@@ -15,6 +15,7 @@ interface CastHealthItem {
 interface CastHealthPanelProps {
   ensemble: GeneratedEnsemble;
   lockedNameIds: Set<string>;
+  onSelectName: (id: string) => void;
 }
 
 const spotlightRarityBands: RarityBand[] = ['rare', 'epic', 'legendary'];
@@ -71,7 +72,7 @@ function castHealthFor(ensemble: GeneratedEnsemble, lockedNameIds: Set<string>):
   ];
 }
 
-export function CastHealthPanel({ ensemble, lockedNameIds }: CastHealthPanelProps) {
+export function CastHealthPanel({ ensemble, lockedNameIds, onSelectName }: CastHealthPanelProps) {
   const healthItems = castHealthFor(ensemble, lockedNameIds);
   // The current GeneratedEnsemble is the explicit active-roster snapshot for this presentation.
   const soundRelationships = analyzeNameArtifactSoundRelationships(ensemble.names.map(toNameArtifact));
@@ -90,7 +91,7 @@ export function CastHealthPanel({ ensemble, lockedNameIds }: CastHealthPanelProp
           </li>
         ))}
       </ul>
-      <SoundRelationshipsPanel relationships={soundRelationships} />
+      <SoundRelationshipsPanel relationships={soundRelationships} onSelectName={onSelectName} />
     </section>
   );
 }
