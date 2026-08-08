@@ -62,6 +62,7 @@ function renderInspector(name: GeneratedName, isLocked = false): string {
     <NameInspector
       name={name}
       isLocked={isLocked}
+      onRerollName={() => undefined}
       onToggleLockedName={() => undefined}
     />,
   );
@@ -110,6 +111,9 @@ describe('NameInspector', () => {
     expect(html).toContain(`${name.name} selected-name actions`);
     expect(html).toContain(`aria-label="Copy name ${name.name}"`);
     expect(html).toContain(`aria-label="Copy details ${name.name}"`);
+    expect(html).toContain('selected-name-reroll-action');
+    expect(html).toContain(`aria-label="Reroll ${name.name}"`);
+    expect(html).toContain('Reroll this name');
     expect(html).toContain(`aria-label="Lock ${name.name}"`);
     expect(html).toContain('aria-pressed="false"');
   });
@@ -139,10 +143,14 @@ describe('NameInspector', () => {
     expect(html).toContain('Play voice draft');
   });
 
-  it('reflects the locked state in the Inspect lock action', () => {
+  it('reflects the locked state and disables selected-name reroll', () => {
     const name = fixtureName();
     const html = renderInspector(name, true);
 
+    expect(html).toContain('selected-name-reroll-action');
+    expect(html).toContain(`aria-label="Reroll ${name.name}"`);
+    expect(html).toContain('disabled=""');
+    expect(html).toContain('title="Unlock this name to reroll it."');
     expect(html).toContain('selected-name-lock-action');
     expect(html).toContain(`aria-label="Unlock ${name.name}"`);
     expect(html).toContain('aria-pressed="true"');
