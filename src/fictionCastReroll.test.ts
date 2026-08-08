@@ -1,9 +1,13 @@
+import { createElement } from 'react';
+import { renderToString } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { generateEnsemble } from './engine/ensemble';
+import { analyzeNameArtifactSoundRelationships } from './engine/nameArtifactAnalysis';
 import { toNameArtifact } from './engine/nameArtifact';
 import { createDefaultRegistry } from './engine/registry';
 import type { GenerationSettings } from './engine/types';
 import { rerollSelectedCastName } from './fictionCastReroll';
+import { CastHealthPanel } from './ui/CastHealth';
 import { resolveNameSelection, selectedNameIdFromView } from './ui/workbenchSelection';
 
 const settings: GenerationSettings = {
@@ -61,6 +65,60 @@ describe('rerollSelectedCastName', () => {
     expect(result.lockedNameIds.has(result.replacementId)).toBe(false);
     expect(result.historyArtifacts).toEqual([toNameArtifact(replacement)]);
     expect(result.ensemble.diagnostics).not.toBe(before.diagnostics);
+  });
+
+  it('refreshes sound relationships from the post-reroll active roster', () => {
+    const registry = createDefaultRegistry();
+    const before = generateEnsemble(settings, registry);
+    const anchor = before.names[0];
+    const target = before.names[1];
+
+    if (!anchor || !target || !anchor.sound) throw new Error('Expected generated sound fixtures.');
+
+    const sentinelName = 'Retired Target Sentinel';
+    const sentinelTarget = {
+      ...target,
+      id: 'name-reroll-retired-target',
+      name: sentinelName,
+      sound: anchor.sound,
+      ...(target.identity ? { identity: { ...target.identity, displayName: sentinelName } } : {}),
+    };
+    const beforeWithSentinel = {
+      ...before,
+      names: before.names.map((name, index) => (index === 1 ? sentinelTarget : name)),
+    };
+    const beforeRelationships = analyzeNameArtifactSoundRelationships(beforeWithSentinel.names.map(toNameArtifact));
+    const beforeHtml = renderToString(createElement(CastHealthPanel, {
+      ensemble: beforeWithSentinel,
+      lockedNameIds: new Set<string>(),
+    }));
+
+    expect(beforeRelationships.some((relationship) => relationship.artifactIds.includes(sentinelTarget.id))).toBe(true);
+    expect(beforeHtml).toContain(sentinelName);
+
+    const result = rerollSelectedCastName(
+      beforeWithSentinel,
+      sentinelTarget.id,
+      new Set(),
+      'selected-reroll-sound-after',
+      registry,
+    );
+
+    expect(result).toBeDefined();
+    if (!result) throw new Error('Expected selected-name reroll to succeed.');
+
+    const activeIds = new Set(result.ensemble.names.map((name) => name.id));
+    const afterRelationships = analyzeNameArtifactSoundRelationships(result.ensemble.names.map(toNameArtifact));
+    const afterHtml = renderToString(createElement(CastHealthPanel, {
+      ensemble: result.ensemble,
+      lockedNameIds: result.lockedNameIds,
+    }));
+
+    expect(activeIds.has(sentinelTarget.id)).toBe(false);
+    expect(activeIds.has(result.replacementId)).toBe(true);
+    expect(afterRelationships.every((relationship) => relationship.artifactIds.every((id) => activeIds.has(id)))).toBe(true);
+    expect(afterRelationships.some((relationship) => relationship.artifactIds.includes(sentinelTarget.id))).toBe(false);
+    expect(afterHtml).not.toContain(sentinelName);
   });
 
   it('returns the replacement id so inspection can remain on the same slot after identity changes', () => {
