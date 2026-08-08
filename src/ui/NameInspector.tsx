@@ -8,6 +8,7 @@ import { labelFor } from './namePresentation';
 interface NameInspectorProps {
   name: GeneratedName;
   isLocked: boolean;
+  onRerollName: () => void;
   onToggleLockedName: (id: string) => void;
 }
 
@@ -69,20 +70,32 @@ function castSections(name: GeneratedName) {
   );
 }
 
-export function NameInspector({ name, isLocked, onToggleLockedName }: NameInspectorProps) {
+export function NameInspector({ name, isLocked, onRerollName, onToggleLockedName }: NameInspectorProps) {
   return (
     <NameArtifactInspector
       artifact={toNameArtifact(name)}
       extraActions={(
-        <button
-          type="button"
-          className="secondary selected-name-lock-action"
-          aria-pressed={isLocked}
-          aria-label={`${isLocked ? 'Unlock' : 'Lock'} ${name.name}`}
-          onClick={() => onToggleLockedName(name.id)}
-        >
-          {isLocked ? 'Unlock' : 'Lock'}
-        </button>
+        <>
+          <button
+            type="button"
+            className="secondary selected-name-reroll-action"
+            aria-label={`Reroll ${name.name}`}
+            disabled={isLocked}
+            title={isLocked ? 'Unlock this name to reroll it.' : undefined}
+            onClick={onRerollName}
+          >
+            Reroll this name
+          </button>
+          <button
+            type="button"
+            className="secondary selected-name-lock-action"
+            aria-pressed={isLocked}
+            aria-label={`${isLocked ? 'Unlock' : 'Lock'} ${name.name}`}
+            onClick={() => onToggleLockedName(name.id)}
+          >
+            {isLocked ? 'Unlock' : 'Lock'}
+          </button>
+        </>
       )}
       extraSections={castSections(name)}
     />

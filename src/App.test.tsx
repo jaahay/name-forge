@@ -6,7 +6,7 @@ describe('App', () => {
   it('renders the fiction cast workbench with shared artifact and history surfaces', () => {
     const html = renderToString(<App />);
 
-    for (const expected of ['Name Forge', 'Fiction Cast', 'Recent names', 'Configure criteria', 'Criteria summary', 'Tune criteria', 'Regenerate', 'Names', 'Name selection', 'Previous', 'Next', 'Inspect', 'Sound', 'Selected spelling', 'Top same-sound spellings', 'Spelling display cap', 'Readability', 'Cast context', 'Generated shape', 'Cast health', 'Export']) {
+    for (const expected of ['Name Forge', 'Fiction Cast', 'Recent names', 'Configure criteria', 'Criteria summary', 'Tune criteria', 'Regenerate', 'Names', 'Name selection', 'Previous', 'Next', 'Inspect', 'Reroll this name', 'Sound', 'Selected spelling', 'Top same-sound spellings', 'Spelling display cap', 'Readability', 'Cast context', 'Generated shape', 'Cast health', 'Export']) {
       expect(html).toContain(expected);
     }
 
