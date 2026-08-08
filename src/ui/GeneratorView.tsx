@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { serializeCastAsJson, serializeCastAsMarkdown } from '../engine/export';
 import type { GeneratedEnsemble, GenerationSettings, StylePackSummary } from '../engine/types';
 import { CastHealthPanel } from './CastHealth';
@@ -61,6 +61,7 @@ export function GeneratorView({
 }: GeneratorViewProps) {
   const [selection, setSelection] = useState<NameSelectionView>(() => ({ kind: 'name', nameId: '' }));
   const [isConfigureOpen, setIsConfigureOpen] = useState(() => ensemble.names.length === 0);
+  const inspectorRegionRef = useRef<HTMLDivElement>(null);
   const jsonExport = serializeCastAsJson(ensemble);
   const markdownExport = serializeCastAsMarkdown(ensemble);
   const modeTitle = titleCaseLabel(mode.label);
@@ -81,6 +82,11 @@ export function GeneratorView({
 
   function selectName(id: string) {
     setSelection({ kind: 'name', nameId: id });
+  }
+
+  function selectRelationshipName(id: string) {
+    selectName(id);
+    inspectorRegionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   function selectAllNames() {
@@ -173,9 +179,11 @@ export function GeneratorView({
                 onSelectNextName={selectNextName}
                 onToggleLockedName={onToggleLockedName}
               >
-                {inspector}
+                <div ref={inspectorRegionRef}>
+                  {inspector}
+                </div>
               </NameSelectionSurface>
-              <CastHealthPanel ensemble={ensemble} lockedNameIds={lockedNameIds} onSelectName={selectName} />
+              <CastHealthPanel ensemble={ensemble} lockedNameIds={lockedNameIds} onSelectName={selectRelationshipName} />
             </>
           ) : (
             <div className="empty-state panel">Generate names to fill this cast.</div>
