@@ -82,6 +82,7 @@ Fiction Cast additionally includes:
 - selected-name single-slot reroll with non-target preservation, lock semantics, selection continuity, and targeted Recent names recording (issue #167);
 - cast-level balancing and collision diagnostics;
 - pair-grouped same-roster sound relationships with plain-language labels and typed technical evidence;
+- direct artifact-ID navigation from either sound-relationship name into the existing selected-name Inspect, Lock, and reroll workflow (issue #170);
 - JSON and Markdown cast export.
 
 Game NPC additionally includes:
@@ -112,45 +113,9 @@ The active rule is:
 
 ## Next implementation sequence
 
-### 1. Make Fiction Cast sound relationships navigable to selected names — issue #170
+### 1. Prune and select the next product slice
 
-Fiction Cast now has deterministic same-roster sound-relationship evidence, pair-grouped presentation, selected-name inspection, locking, and single-slot reroll. The next bounded slice is to connect those existing surfaces so either name in a rendered relationship pair can select that exact active-roster artifact and route the user into the existing selected-name workflow.
-
-Required user-facing behavior:
-
-- render each cast name in a Sound relationships pair as a restrained selection control;
-- activating either name selects that exact active-roster artifact;
-- update the existing selected-name inspector to the chosen name;
-- keep Inspect, Lock, and **Reroll this name** as the existing action surface for the selected name;
-- support keyboard interaction and stable accessible labeling for relationship-name controls;
-- preserve existing relationship labels, evidence, grouping, pair ordering, and pair counts.
-
-Required boundary:
-
-- select names through the relationship `artifactIds`; do not infer identity from display text;
-- keep `GeneratorView`'s existing name-selection state as the selection authority;
-- keep sound-relationship analysis pure and unchanged unless a narrowly necessary type or plumbing adjustment is required;
-- treat this as navigation into existing controls, not an automatic recommendation, correction, scoring, or optimization workflow;
-- selecting from a relationship must not mutate the ensemble, generation seed, settings, locks, persistence, export state, or Recent names;
-- preserve existing behavior when a cast has no sound relationships;
-- retain existing whole-cast generation, selected-name reroll, and Game NPC behavior.
-
-Non-goals:
-
-- no automatic reroll from the Sound relationships panel;
-- no recommendation of which name should change;
-- no severity, similarity, confusion, cohesion, or quality score;
-- no new relationship ranking or ordering;
-- no global or pairwise cast optimization;
-- no multi-select behavior;
-- no new persistence or undo model;
-- no export changes;
-- no shell or visual-system redesign;
-- no human-similarity or confusion claims.
-
-### 2. Prune and select the next product slice
-
-After #170 is completed or deliberately returned to backlog, prune this document again before authorizing another implementation slice. Do not infer broader evaluation, optimization, mode, grouping, provider, or shell work from deferred architecture vocabulary alone.
+Issues #167 and #170 are part of the shipped Fiction Cast baseline. Before authorizing another implementation slice, prune this document again and select one bounded next step explicitly. Do not infer broader evaluation, optimization, mode, grouping, provider, or shell work from deferred architecture vocabulary alone.
 
 ## Research-only backlog
 
