@@ -22,6 +22,7 @@ interface GeneratorViewProps {
   onCommitSettings: () => void;
   onRandomizeSliders: () => void;
   onRandomizeSlider: (key: ControlKey) => void;
+  onRerollName: (id: string) => string | undefined;
   onToggleLockedName: (id: string) => void;
   onClearLockedNames: () => void;
 }
@@ -54,6 +55,7 @@ export function GeneratorView({
   onCommitSettings,
   onRandomizeSliders,
   onRandomizeSlider,
+  onRerollName,
   onToggleLockedName,
   onClearLockedNames,
 }: GeneratorViewProps) {
@@ -107,10 +109,17 @@ export function GeneratorView({
     onRandomizeSliders();
   }
 
+  function rerollSelectedName() {
+    if (!selectedName) return;
+    const replacementId = onRerollName(selectedName.id);
+    if (replacementId) selectName(replacementId);
+  }
+
   const inspector = selectedName ? (
     <NameInspector
       name={selectedName}
       isLocked={lockedNameIds.has(selectedName.id)}
+      onRerollName={rerollSelectedName}
       onToggleLockedName={onToggleLockedName}
     />
   ) : <EmptyInspector />;
