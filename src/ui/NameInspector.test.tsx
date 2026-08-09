@@ -4,7 +4,7 @@ import { generateEnsemble } from '../engine/ensemble';
 import { toNameArtifact } from '../engine/nameArtifact';
 import { createDefaultRegistry } from '../engine/registry';
 import type { GeneratedName, GenerationSettings } from '../engine/types';
-import { browserVoiceDraftText } from './NameArtifactInspector';
+import { browserVoiceDraftSegments, browserVoiceDraftText } from './NameArtifactInspector';
 import { NameInspector } from './NameInspector';
 
 const settings: GenerationSettings = {
@@ -99,7 +99,7 @@ describe('NameInspector', () => {
     }
   });
 
-  it('shows only modeled generated sound parts for composed identities', () => {
+  it('shows only modeled generated sound parts with an audition action for each component', () => {
     const name = fixtureName({ nameFormat: 'epithet-place', seed: 'name-inspector-composed-sound' });
     const soundParts = name.identityAudition?.parts.filter((part) => part.kind === 'sound') ?? [];
     const html = renderInspector(name);
@@ -110,11 +110,13 @@ describe('NameInspector', () => {
     expect(html).toContain('modeled parts');
     expect(html).toContain('inspector-sound-components');
     expect(html).not.toContain(name.identityAudition?.displayText ?? 'missing audition display');
+    expect((html.match(/inspector-component-play/g) ?? [])).toHaveLength(soundParts.length);
 
     for (const part of soundParts) {
       if (part.kind !== 'sound') continue;
       expect(html).toContain(part.value);
       expect(html).toContain(part.displayText);
+      expect(html).toContain(`Browser voice draft unavailable for ${part.value}`);
     }
   });
 
@@ -157,13 +159,20 @@ describe('NameInspector', () => {
     expect(html).toContain('Play name');
   });
 
-  it('uses the persisted phrase audition for full identity voice drafts', () => {
-    const composed = fixtureName({ nameFormat: 'given-family', seed: 'name-inspector-voice-phrase' });
+  it('uses semantic phrase chunks for paced full-identity voice drafts', () => {
+    const composed = fixtureName({ nameFormat: 'epithet-place', seed: 'name-inspector-voice-phrase' });
     const artifact = toNameArtifact(composed);
+    const soundParts = artifact.identityAudition?.parts.filter((part) => part.kind === 'sound') ?? [];
+    const segments = browserVoiceDraftSegments(artifact, 'fallback');
 
     expect(artifact.identityAudition).toBeDefined();
     expect(browserVoiceDraftText(artifact, 'fallback')).toBe(artifact.identityAudition?.speechText);
-    expect(browserVoiceDraftText({ id: 'simple', displayText: 'Na' }, 'nah')).toBe('nah');
+    expect(soundParts).toHaveLength(2);
+    expect(segments).toHaveLength(3);
+    expect(segments[0]).toBe(soundParts[0]?.speechText);
+    expect(segments[1]).toContain('of');
+    expect(segments[2]).toBe(soundParts[1]?.speechText);
+    expect(browserVoiceDraftSegments({ id: 'simple', displayText: 'Na' }, 'nah')).toEqual(['nah']);
   });
 
   it('reflects the locked state and disables selected-name reroll', () => {
