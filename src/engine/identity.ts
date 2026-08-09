@@ -22,8 +22,25 @@ export function requiresSupportingName(format: MaterializedNameFormatKind): bool
   return format === 'given-family' || format === 'initials-family' || format === 'epithet-place';
 }
 
+function isSoundBackedRole(role: GeneratedNamePart['role']): role is 'given' | 'family' | 'place' {
+  return role === 'given' || role === 'family' || role === 'place';
+}
+
 function createPart(role: GeneratedNamePart['role'], value: string, sourceName: GeneratedName): GeneratedNamePart {
-  return { id: `${sourceName.id}:${role}`, role, value, sourceNameId: sourceName.id, sourceName: sourceName.name };
+  return {
+    id: `${sourceName.id}:${role}`,
+    role,
+    value,
+    sourceNameId: sourceName.id,
+    sourceName: sourceName.name,
+    ...(isSoundBackedRole(role) && value === sourceName.name ? {
+      generation: {
+        soundProfile: sourceName.soundProfile,
+        sound: sourceName.sound,
+        spelling: sourceName.spelling,
+      },
+    } : {}),
+  };
 }
 
 function phrasePart(part: GeneratedNamePart): NameIdentityPhrasePart {
