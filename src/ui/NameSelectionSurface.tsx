@@ -44,7 +44,7 @@ export function NameSelectionSurface({
   }
 
   const nameRail = (
-    <section className="roster-panel name-rail panel" aria-label="Name roster">
+    <section className="roster-panel name-rail" aria-label="Name roster">
       <div className="rail-heading">
         <h2>Names</h2>
         <span>{ensemble.names.length} generated</span>
@@ -80,8 +80,10 @@ export function NameSelectionSurface({
           <button type="button" className="secondary" onClick={onSelectNextName} disabled={!hasNextName}>Next</button>
         </div>
       </section>
-      {nameRail}
-      {children}
+      <div className="cast-workbench-surface panel">
+        {nameRail}
+        <div className="cast-workbench-inspector">{children}</div>
+      </div>
     </div>
   );
 }
