@@ -1,4 +1,4 @@
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { generateEnsemble, type LockedNameSlot } from './engine/ensemble';
 import {
   addNameHistoryEntries,
@@ -19,6 +19,18 @@ import { fictionCastMode, gameNpcMode, type NamingModeId } from './ui/modes';
 import type { AppView, ControlKey } from './ui/presentation';
 import { RecentNamesView } from './ui/RecentNamesView';
 import { randomizeScoreSettings, randomScore } from './ui/score';
+
+interface NameForgeDebugSnapshot {
+  readonly settings: GenerationSettings;
+  readonly committedSettings: GenerationSettings;
+  readonly ensemble: GeneratedEnsemble;
+}
+
+declare global {
+  interface Window {
+    __NAME_FORGE_DEBUG__?: NameForgeDebugSnapshot;
+  }
+}
 
 const registry = createDefaultRegistry();
 const stylePacks = registry.listStylePacks();
@@ -59,6 +71,10 @@ export default function App() {
   const [ensemble, setEnsemble] = useState<GeneratedEnsemble>(initialEnsemble);
   const [lockedNameIds, setLockedNameIds] = useState<Set<string>>(() => new Set());
   const [history, setHistory] = useState(() => loadNameHistory(browserStorage()));
+
+  useEffect(() => {
+    window.__NAME_FORGE_DEBUG__ = { settings, committedSettings, ensemble };
+  }, [settings, committedSettings, ensemble]);
 
   function showMode(modeId: NamingModeId) {
     setActiveModeId(modeId);
