@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { renderToString } from 'react-dom/server';
-import { renderAuditionCue } from '../engine/audition';
 import { generateEnsemble } from '../engine/ensemble';
+import type { NameArtifact } from '../engine/nameArtifact';
 import { createDefaultRegistry } from '../engine/registry';
 import type { GeneratedName, GenerationSettings } from '../engine/types';
-import { defaultSameSoundSpellingLimit } from './NameArtifactInspector';
+import { browserVoiceDraftText } from './NameArtifactInspector';
 import { NameInspector } from './NameInspector';
 
 const settings: GenerationSettings = {
@@ -69,38 +69,28 @@ function renderInspector(name: GeneratedName, isLocked = false): string {
 }
 
 describe('NameInspector', () => {
-  it('shows the top ten ranked same-sound spellings by default', () => {
-    const candidateCount = defaultSameSoundSpellingLimit + 4;
-    const name = withSpellingCandidateCount(fixtureName(), candidateCount);
-    const finalVisibleCandidate = name.spellingCandidates[defaultSameSoundSpellingLimit - 1];
-    const firstHiddenCandidate = name.spellingCandidates[defaultSameSoundSpellingLimit];
+  it('keeps the primary sound and spelling surfaces concise', () => {
+    const name = withSpellingCandidateCount(fixtureName(), 4);
     const html = renderInspector(name);
 
-    expect(finalVisibleCandidate).toBeDefined();
-    expect(firstHiddenCandidate).toBeDefined();
-    if (!finalVisibleCandidate || !firstHiddenCandidate) throw new Error('Expected spelling-cap fixture candidates.');
+    expect(html).toContain('Sound sketch');
+    expect(html).toContain('Selected spelling');
+    expect(html).toContain('Other spellings (3)');
+    expect(html).toContain('SameSound2');
+    expect(html).toContain('SameSound4');
 
-    expect(html).toContain('Top same-sound spellings');
-    expect(html).toContain(`${defaultSameSoundSpellingLimit}<!-- --> of <!-- -->${candidateCount}`);
-    expect(html).toContain('Spelling display cap');
-    expect(html).toContain(finalVisibleCandidate.text);
-    expect(html).not.toContain(firstHiddenCandidate.text);
-    expect(html).toContain('4<!-- --> lower-ranked same-sound spelling');
-    expect(html).toContain('hidden by the current display cap.');
-    expect(html).toContain('preference rank 10');
+    for (const removed of ['Pronunciation guide', 'Playback', 'Technical sound structure', 'Preference rank', 'Supported spellings', 'Next option', 'Spelling display cap', 'preference rank 2']) {
+      expect(html).not.toContain(removed);
+    }
   });
 
-  it('renders every spelling when the supported pool is below the default cap', () => {
-    const name = withSpellingCandidateCount(fixtureName(), 4);
-    const finalCandidate = name.spellingCandidates[3];
-    const html = renderInspector(name);
+  it('renders secondary inspector information as closed disclosures', () => {
+    const html = renderInspector(fixtureName());
 
-    expect(finalCandidate).toBeDefined();
-    if (!finalCandidate) throw new Error('Expected final supported spelling.');
-
-    expect(html).toContain('4<!-- --> of <!-- -->4');
-    expect(html).toContain(finalCandidate.text);
-    expect(html).not.toContain('hidden by the current display cap');
+    for (const summary of ['Readability', 'Cast context', 'Generated shape', 'Score detail', 'Name parts']) {
+      expect(html).toContain(`<summary>${summary}</summary>`);
+    }
+    expect(html).not.toContain('<details open');
   });
 
   it('renders selected-name actions in Inspect', () => {
@@ -116,31 +106,19 @@ describe('NameInspector', () => {
     expect(html).toContain('Reroll this name');
     expect(html).toContain(`aria-label="Lock ${name.name}"`);
     expect(html).toContain('aria-pressed="false"');
-  });
-
-  it('aligns selected spelling terminology with the bounded spelling view', () => {
-    const name = fixtureName();
-    const html = renderInspector(name);
-
-    expect(html).toContain('Selected spelling');
-    expect(html).toContain('Supported spellings');
-    expect(html).toContain('Top same-sound spellings');
-  });
-
-  it('renders a sound-derived pronunciation guide and browser voice draft state', () => {
-    const name = fixtureName();
-    const auditionCue = renderAuditionCue(name.sound.sequence);
-    const html = renderInspector(name);
-
-    expect(auditionCue.source).toBe('sound-sequence');
-    expect(auditionCue.displayText.length).toBeGreaterThan(0);
-    expect(auditionCue.displayText).not.toBe(auditionCue.speechText);
-    expect(html).toContain('Pronunciation guide');
-    expect(html).toContain(auditionCue.displayText);
-    expect(html).toContain('Browser voice unavailable');
-    expect(html).toContain('Guide is generated from the sound model. Browser voice is an approximation, not a canonical pronunciation.');
     expect(html).toContain(`aria-label="Browser voice draft unavailable for ${name.name}"`);
     expect(html).toContain('Play voice draft');
+  });
+
+  it('uses the full displayed identity for identity voice drafts', () => {
+    const artifact = {
+      id: 'identity-voice-test',
+      displayText: 'Archivist Na of Westmere',
+      identity: {},
+    } as unknown as NameArtifact;
+
+    expect(browserVoiceDraftText(artifact, 'na')).toBe('Archivist Na of Westmere');
+    expect(browserVoiceDraftText({ id: 'simple', displayText: 'Na' }, 'nah')).toBe('nah');
   });
 
   it('reflects the locked state and disables selected-name reroll', () => {
