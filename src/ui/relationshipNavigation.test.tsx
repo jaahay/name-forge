@@ -122,6 +122,7 @@ describe('sound relationship navigation integration', () => {
 
     expect(html).toContain(`artifact-heading-${right.id}`);
     expect(html).toContain(`${right.name} selected-name actions`);
-    expect(html).toContain('Reroll this name');
+    expect(html).toContain(`aria-label="Reroll ${right.name}"`);
+    expect(html).toContain('>Reroll</button>');
   });
 });
