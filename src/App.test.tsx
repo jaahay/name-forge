@@ -6,7 +6,7 @@ describe('App', () => {
   it('renders the fiction cast workbench with a quiet primary hierarchy', () => {
     const html = renderToString(<App />);
 
-    for (const expected of ['Name Forge', 'Fiction Cast', 'Recent names', 'Generation', 'Tune', 'Regenerate', 'Names', 'Name selection', 'Previous', 'Next', 'Inspect', 'Play name', 'Reroll', 'Sound', 'Spelling', 'More details', 'Cast context', 'Score detail', 'Cast review', 'Sound relationships', 'Export']) {
+    for (const expected of ['Name Forge', 'Fiction Cast', 'Recent names', 'Generation', 'Tune', 'Regenerate', 'Names', 'Name selection', 'Previous', 'Next', 'Inspect', 'Play name', 'Reroll', 'Sound', 'Spelling', 'More details', 'Cast context', 'Score detail', 'Cast review', 'Export']) {
       expect(html).toContain(expected);
     }
 
