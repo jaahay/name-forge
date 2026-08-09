@@ -65,10 +65,81 @@ export interface IdentityAuditionPhrase {
 }
 
 const soundBackedRoles: ReadonlySet<NamePartRole> = new Set(['given', 'family', 'place']);
+const identityRoles: ReadonlySet<NamePartRole> = new Set(['given', 'family', 'initial', 'title', 'epithet', 'place']);
+const identityFormatKinds: ReadonlySet<NameIdentity['format']['kind']> = new Set(['given-only', 'given-family', 'initials-family', 'title-name', 'epithet-place']);
 const punctuationLiterals = new Set([',', '.', ':', ';', '-', '(', ')', '[', ']', '/', '&']);
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === 'string' && value.length > 0;
+}
+
+function isNamePartRole(value: unknown): value is NamePartRole {
+  return typeof value === 'string' && identityRoles.has(value as NamePartRole);
+}
 
 function isSoundBackedRole(role: NamePartRole): role is IdentityAuditionSoundPart['role'] {
   return soundBackedRoles.has(role);
+}
+
+function isIdentityAuditionPart(value: unknown): value is IdentityAuditionPart {
+  if (!isRecord(value)
+    || !Number.isInteger(value.index)
+    || (value.index as number) < 0
+    || !isNonEmptyString(value.value)
+    || !isNonEmptyString(value.speechText)
+    || !isNonEmptyString(value.displayText)) {
+    return false;
+  }
+
+  if (value.kind === 'sound') {
+    return isNamePartRole(value.role)
+      && isSoundBackedRole(value.role)
+      && value.speechSource === 'generated-sound'
+      && value.displaySource === 'generated-sound'
+      && isNonEmptyString(value.sourceNameId)
+      && isNonEmptyString(value.sourceName)
+      && isNonEmptyString(value.transcription)
+      && isRecord(value.cue)
+      && value.cue.contract === 'NameAuditionCue'
+      && isNonEmptyString(value.cue.speechText)
+      && isNonEmptyString(value.cue.displayText);
+  }
+
+  if (value.kind === 'text') {
+    return isNamePartRole(value.role)
+      && value.speechSource === 'identity-text'
+      && value.displaySource === 'identity-text'
+      && isNonEmptyString(value.sourceNameId)
+      && isNonEmptyString(value.sourceName);
+  }
+
+  if (value.kind === 'literal') {
+    return value.role === 'literal'
+      && value.speechSource === 'format-literal'
+      && value.displaySource === 'format-literal';
+  }
+
+  return false;
+}
+
+export function isIdentityAuditionPhrase(value: unknown): value is IdentityAuditionPhrase {
+  return isRecord(value)
+    && value.contract === 'IdentityAuditionPhrase'
+    && value.version === 1
+    && value.source === 'name-identity'
+    && isNonEmptyString(value.formatId)
+    && typeof value.formatKind === 'string'
+    && identityFormatKinds.has(value.formatKind as NameIdentity['format']['kind'])
+    && isNonEmptyString(value.identityText)
+    && isNonEmptyString(value.speechText)
+    && isNonEmptyString(value.displayText)
+    && Array.isArray(value.parts)
+    && value.parts.length > 0
+    && value.parts.every(isIdentityAuditionPart);
 }
 
 function sourceNameById(sourceNames: readonly IdentityAuditionSourceName[]): ReadonlyMap<string, IdentityAuditionSourceName> {
