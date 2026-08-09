@@ -65,26 +65,40 @@ function castHealthFor(ensemble: GeneratedEnsemble, lockedNameIds: Set<string>):
   ];
 }
 
+function relationshipPairCount(relationships: ReturnType<typeof analyzeNameArtifactSoundRelationships>): number {
+  return new Set(relationships.map((relationship) => JSON.stringify(relationship.artifactIds))).size;
+}
+
 export function CastHealthPanel({ ensemble, lockedNameIds, onSelectName }: CastHealthPanelProps) {
-  const healthItems = castHealthFor(ensemble, lockedNameIds);
+  const warningItems = castHealthFor(ensemble, lockedNameIds).filter((item) => item.tone === 'warn');
   // The current GeneratedEnsemble is the explicit active-roster snapshot for this presentation.
   const soundRelationships = analyzeNameArtifactSoundRelationships(ensemble.names.map(toNameArtifact));
+  const pairCount = relationshipPairCount(soundRelationships);
 
   return (
-    <section className="cast-health" aria-label="Cast health">
-      <div className="cast-health-heading">
-        <h2>Cast health</h2>
-        <p>Table-read checks for spotlight, sound overlap, readability, and roster memory.</p>
+    <details className="cast-review" aria-label="Cast review">
+      <summary>
+        <span>Cast review</span>
+        <small>
+          {warningItems.length} {warningItems.length === 1 ? 'note' : 'notes'} · {pairCount} sound {pairCount === 1 ? 'pair' : 'pairs'}
+        </small>
+      </summary>
+      <div className="cast-review-body">
+        {warningItems.length > 0 ? (
+          <section className="cast-review-notes" aria-label="Cast notes">
+            <h2>Cast notes</h2>
+            <ul className="cast-health-list">
+              {warningItems.map((item) => (
+                <li key={item.id} className="cast-health-item warn">
+                  <span className="cast-health-status" aria-hidden="true">⚠</span>
+                  <span><strong>{item.label}</strong>{item.detail}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+        <SoundRelationshipsPanel relationships={soundRelationships} onSelectName={onSelectName} />
       </div>
-      <ul className="cast-health-list">
-        {healthItems.map((item) => (
-          <li key={item.id} className={`cast-health-item ${item.tone}`}>
-            <span className="cast-health-status" aria-hidden="true">{item.tone === 'good' ? '✓' : '⚠'}</span>
-            <span><strong>{item.label}</strong>{item.detail}</span>
-          </li>
-        ))}
-      </ul>
-      <SoundRelationshipsPanel relationships={soundRelationships} onSelectName={onSelectName} />
-    </section>
+    </details>
   );
 }
