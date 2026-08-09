@@ -38,6 +38,10 @@ function playVoiceDraft(speechText: string) {
   window.speechSynthesis.speak(new SpeechSynthesisUtterance(speechText));
 }
 
+export function browserVoiceDraftText(artifact: NameArtifact, soundSpeechText?: string): string {
+  return artifact.identity ? artifact.displayText : soundSpeechText ?? artifact.displayText;
+}
+
 function detailsText(artifact: NameArtifact, pronunciationGuide?: string): string {
   const analysis = analyzeNameArtifact(artifact);
   const spellings = (artifact.spellingCandidates ?? [])
@@ -63,7 +67,7 @@ export function NameArtifactInspector({ artifact, eyebrow = 'Inspect', extraActi
   const readNotes = artifact.readabilityDiagnostics ?? [];
   const variants = artifact.variants ?? [];
   const auditionCue = artifact.sound ? renderAuditionCue(artifact.sound.sequence) : undefined;
-  const voiceDraftText = artifact.identity ? artifact.displayText : auditionCue?.speechText ?? artifact.displayText;
+  const voiceDraftText = browserVoiceDraftText(artifact, auditionCue?.speechText);
   const browserSpeechAvailable = canUseBrowserSpeech();
   const displayName = protectInitialBreaks(artifact.displayText);
   const displayLength = getNameDisplayLength(artifact.displayText);
