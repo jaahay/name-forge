@@ -67,6 +67,7 @@ Shared platform capabilities now include:
 - shared `NameArtifactInspector` rendering;
 - deterministic readability observations and browser audition projection;
 - provenance-preserving identity audition phrases for composed names, retaining generated sound evidence for sound-backed given, family, and place parts while leaving lexical text and literals explicit (issue #174);
+- sound-backed identity parts retain their own generation provenance bundle, including the exact compiled `SoundProfile`, `SoundCandidate`, and selected spelling used for that component rather than treating a compound identity as if one top-level profile described every part (issue #178);
 - semantic phrase-chunk browser audition for composed identities, allowing short inter-part pacing without changing or claiming a canonical pronunciation (issue #178);
 - semantic component-generation contexts for given, family, and place sound-backed parts, with current defaults preserving existing generation behavior while establishing a future internal override seam (issue #176);
 - pure single-artifact and artifact-set analysis APIs;
