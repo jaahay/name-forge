@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { renderAuditionCue } from '../engine/audition';
 import type { NameArtifact } from '../engine/nameArtifact';
 import { analyzeNameArtifact } from '../engine/nameArtifactAnalysis';
@@ -12,8 +12,6 @@ interface NameArtifactInspectorProps {
   readonly extraSections?: ReactNode;
 }
 
-export const defaultSameSoundSpellingLimit = 10;
-
 type SpellingCandidate = NonNullable<NameArtifact['spellingCandidates']>[number];
 
 function variantMetadataLabel(variant: NameVariant): string {
@@ -24,15 +22,6 @@ function variantMetadataLabel(variant: NameVariant): string {
 
 function sameSoundSpellingMetadataLabel(candidate: SpellingCandidate, selectedSpellingId: string | undefined): string {
   return candidate.id === selectedSpellingId ? `selected; preference rank ${candidate.rank}` : `preference rank ${candidate.rank}`;
-}
-
-function sanitizeRequestedSpellingLimit(value: number): number {
-  if (!Number.isFinite(value)) return defaultSameSoundSpellingLimit;
-  return Math.max(1, Math.floor(value));
-}
-
-function effectiveSpellingLimit(requestedLimit: number, availableCount: number): number {
-  return Math.min(sanitizeRequestedSpellingLimit(requestedLimit), availableCount);
 }
 
 function copyText(value: string) {
@@ -49,9 +38,9 @@ function playVoiceDraft(speechText: string) {
   window.speechSynthesis.speak(new SpeechSynthesisUtterance(speechText));
 }
 
-function detailsText(artifact: NameArtifact, visibleSpellings: readonly SpellingCandidate[], totalSpellingCount: number, pronunciationGuide?: string): string {
+function detailsText(artifact: NameArtifact, pronunciationGuide?: string): string {
   const analysis = analyzeNameArtifact(artifact);
-  const spellings = visibleSpellings
+  const spellings = (artifact.spellingCandidates ?? [])
     .map((candidate) => `${candidate.text} (${sameSoundSpellingMetadataLabel(candidate, artifact.spelling?.id)})`)
     .join(', ') || 'None';
 
@@ -62,8 +51,7 @@ function detailsText(artifact: NameArtifact, visibleSpellings: readonly Spelling
     analysis.structure ? `Structure: ${analysis.structure.syllableCount} syllable(s); ${analysis.structure.segmentCount} segments; ${analysis.structure.syllableShapes.join('-')}` : undefined,
     artifact.spelling ? `Selected spelling: ${artifact.spelling.text} (preference rank ${artifact.spelling.rank})` : undefined,
     analysis.spelling?.selectionSummary,
-    `Same-sound spellings shown: ${spellings}`,
-    visibleSpellings.length < totalSpellingCount ? `${totalSpellingCount - visibleSpellings.length} lower-ranked same-sound spelling(s) hidden by the current display cap.` : undefined,
+    `Same-sound spellings: ${spellings}`,
     `Read status: ${analysis.readability.diagnosticCount === 0 ? 'No deterministic read-friction notes' : `${analysis.readability.diagnosticCount} read notes`}`,
   ].filter(Boolean).join('\n');
 }
@@ -71,14 +59,12 @@ function detailsText(artifact: NameArtifact, visibleSpellings: readonly Spelling
 export function NameArtifactInspector({ artifact, eyebrow = 'Inspect', extraActions, extraSections }: NameArtifactInspectorProps) {
   const analysis = analyzeNameArtifact(artifact);
   const sameSoundSpellings = artifact.spellingCandidates ?? [];
-  const [requestedSpellingLimit, setRequestedSpellingLimit] = useState(defaultSameSoundSpellingLimit);
-  const visibleSpellingLimit = effectiveSpellingLimit(requestedSpellingLimit, sameSoundSpellings.length);
-  const visibleSameSoundSpellings = sameSoundSpellings.slice(0, visibleSpellingLimit);
-  const hiddenSpellingCount = Math.max(0, sameSoundSpellings.length - visibleSameSoundSpellings.length);
+  const otherSpellings = sameSoundSpellings.filter((candidate) => candidate.id !== artifact.spelling?.id);
   const readNotes = artifact.readabilityDiagnostics ?? [];
   const variants = artifact.variants ?? [];
   const auditionCue = artifact.sound ? renderAuditionCue(artifact.sound.sequence) : undefined;
-  const browserSpeechAvailable = Boolean(auditionCue) && canUseBrowserSpeech();
+  const voiceDraftText = artifact.identity ? artifact.displayText : auditionCue?.speechText ?? artifact.displayText;
+  const browserSpeechAvailable = canUseBrowserSpeech();
   const displayName = protectInitialBreaks(artifact.displayText);
   const displayLength = getNameDisplayLength(artifact.displayText);
   const playVoiceDraftLabel = browserSpeechAvailable
@@ -95,8 +81,8 @@ export function NameArtifactInspector({ artifact, eyebrow = 'Inspect', extraActi
         <div className="selected-name-heading-tools">
           <div className="selected-name-actions" aria-label={`${artifact.displayText} selected-name actions`}>
             <button type="button" className="secondary" aria-label={`Copy name ${artifact.displayText}`} onClick={() => copyText(artifact.displayText)}>Copy name</button>
-            <button type="button" className="secondary" aria-label={`Copy details ${artifact.displayText}`} onClick={() => copyText(detailsText(artifact, visibleSameSoundSpellings, sameSoundSpellings.length, auditionCue?.displayText))}>Copy details</button>
-            {auditionCue ? <button type="button" className="secondary" aria-label={playVoiceDraftLabel} disabled={!browserSpeechAvailable} onClick={() => playVoiceDraft(auditionCue.speechText)}>Play voice draft</button> : null}
+            <button type="button" className="secondary" aria-label={`Copy details ${artifact.displayText}`} onClick={() => copyText(detailsText(artifact, auditionCue?.displayText))}>Copy details</button>
+            <button type="button" className="secondary" aria-label={playVoiceDraftLabel} disabled={!browserSpeechAvailable} onClick={() => playVoiceDraft(voiceDraftText)}>Play voice draft</button>
             {extraActions}
           </div>
         </div>
@@ -107,58 +93,27 @@ export function NameArtifactInspector({ artifact, eyebrow = 'Inspect', extraActi
           <h3>Sound</h3>
           <dl className="artifact-fact-list">
             <div><dt>Sound sketch</dt><dd>{artifact.sound?.transcription ?? 'Not available'}</dd></div>
-            <div><dt>Pronunciation guide</dt><dd>{auditionCue?.displayText ?? 'Not available'}</dd></div>
-            <div><dt>Playback</dt><dd>{browserSpeechAvailable ? 'Browser voice draft available' : 'Browser voice unavailable'}</dd></div>
           </dl>
-          <p className="section-note">Guide is generated from the sound model. Browser voice is an approximation, not a canonical pronunciation. Neither is a measured ease score.</p>
         </section>
-
-        {analysis.structure ? (
-          <details className="detail-block artifact-detail-block">
-            <summary>Technical sound structure</summary>
-            <dl className="artifact-fact-list">
-              <div><dt>Segments</dt><dd>{analysis.structure.segmentCount}</dd></div>
-              <div><dt>Syllables</dt><dd>{analysis.structure.syllableCount}</dd></div>
-              <div><dt>Shapes</dt><dd>{analysis.structure.syllableShapes.join(' · ')}</dd></div>
-              <div><dt>Stress</dt><dd>{analysis.structure.stressPattern.join(' · ')}</dd></div>
-              {analysis.structure.cadence ? <div><dt>Cadence</dt><dd>{analysis.structure.cadence}</dd></div> : null}
-            </dl>
-          </details>
-        ) : null}
 
         <section className="detail-block artifact-detail-block">
           <h3>Selected spelling</h3>
           <dl className="artifact-fact-list">
             <div><dt>Spelling</dt><dd>{artifact.spelling?.text ?? artifact.displayText}</dd></div>
-            <div><dt>Preference rank</dt><dd>{artifact.spelling?.rank ?? 'Not ranked'}</dd></div>
-            <div><dt>Supported spellings</dt><dd>{sameSoundSpellings.length}</dd></div>
-            {analysis.spelling?.runnerUpText ? <div><dt>Next option</dt><dd>{analysis.spelling.runnerUpText}</dd></div> : null}
           </dl>
-          {analysis.spelling ? <p className="section-note">{analysis.spelling.selectionSummary}</p> : null}
         </section>
 
-        <details className="detail-block artifact-detail-block">
-          <summary>Top same-sound spellings ({visibleSameSoundSpellings.length} of {sameSoundSpellings.length})</summary>
-          <label>
-            <span>Spelling display cap</span>
-            <input
-              type="number"
-              min="1"
-              value={requestedSpellingLimit}
-              onChange={(event) => setRequestedSpellingLimit(sanitizeRequestedSpellingLimit(Number(event.target.value)))}
-            />
-          </label>
-          <p className="section-note">The engine ranks the complete supported pool before this display cap is applied. The requested cap persists across generated artifacts and the current view shows up to that many available spellings.</p>
-          {visibleSameSoundSpellings.length > 0 ? (
-            <ul className="variants detail-variants" aria-label={`${artifact.displayText} top same-sound spellings`}>
-              {visibleSameSoundSpellings.map((candidate) => <li key={`${artifact.id}-${candidate.id}`}><span>{candidate.text}</span><em>{sameSoundSpellingMetadataLabel(candidate, artifact.spelling?.id)}</em></li>)}
+        {otherSpellings.length > 0 ? (
+          <details className="detail-block artifact-detail-block">
+            <summary>Other spellings ({otherSpellings.length})</summary>
+            <ul className="variants detail-variants" aria-label={`${artifact.displayText} other spellings`}>
+              {otherSpellings.map((candidate) => <li key={`${artifact.id}-${candidate.id}`}><span>{candidate.text}</span></li>)}
             </ul>
-          ) : <p className="section-note">No supported same-sound spellings.</p>}
-          {hiddenSpellingCount > 0 ? <p className="section-note">{hiddenSpellingCount} lower-ranked same-sound spelling{hiddenSpellingCount === 1 ? '' : 's'} hidden by the current display cap.</p> : null}
-        </details>
+          </details>
+        ) : null}
 
-        <section className="detail-block artifact-detail-block">
-          <h3>Readability</h3>
+        <details className="detail-block artifact-detail-block">
+          <summary>Readability</summary>
           <dl className="artifact-fact-list">
             <div><dt>Notices</dt><dd>{analysis.readability.noticeCount}</dd></div>
             <div><dt>Warnings</dt><dd>{analysis.readability.warningCount}</dd></div>
@@ -167,8 +122,8 @@ export function NameArtifactInspector({ artifact, eyebrow = 'Inspect', extraActi
             <ul className="readability-list" aria-label={`${artifact.displayText} readability notes`}>
               {readNotes.map((diagnostic) => <li key={`${artifact.id}-${diagnostic.id}`} className={`readability-note ${diagnostic.severity}`}><strong>{diagnostic.label}</strong><span>{diagnostic.detail}</span></li>)}
             </ul>
-          ) : <p className="section-note">No deterministic read-friction notes. This does not establish pronunciation ease or familiarity.</p>}
-        </section>
+          ) : <p className="section-note">No deterministic read-friction notes.</p>}
+        </details>
 
         {variants.length > 0 ? (
           <details className="detail-block">
