@@ -40,7 +40,7 @@ function playVoiceDraft(speechText: string) {
 }
 
 export function browserVoiceDraftText(artifact: NameArtifact, soundSpeechText?: string): string {
-  return artifact.identityAudition?.speechText ?? (artifact.identity ? artifact.displayText : soundSpeechText ?? artifact.displayText);
+  return artifact.identityAudition?.speechText ?? soundSpeechText ?? artifact.displayText;
 }
 
 function modeledSoundParts(artifact: NameArtifact): readonly IdentityAuditionSoundPart[] {
