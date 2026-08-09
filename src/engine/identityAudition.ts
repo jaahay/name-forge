@@ -30,6 +30,7 @@ export interface IdentityAuditionSoundPart extends IdentityAuditionBasePart {
   readonly displaySource: 'generated-sound';
   readonly sourceNameId: string;
   readonly sourceName: string;
+  readonly transcription: string;
   readonly cue: NameAuditionCue;
 }
 
@@ -146,6 +147,7 @@ function renderIdentityPart(
       displaySource: 'generated-sound',
       sourceNameId: part.sourceNameId,
       sourceName: sourceName.name,
+      transcription: sourceName.sound.transcription,
       cue,
     };
   }
