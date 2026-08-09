@@ -3,14 +3,14 @@ import { renderToString } from 'react-dom/server';
 import App from './App';
 
 describe('App', () => {
-  it('renders the fiction cast workbench with shared artifact and history surfaces', () => {
+  it('renders the fiction cast workbench with a coherent primary inspector', () => {
     const html = renderToString(<App />);
 
-    for (const expected of ['Name Forge', 'Fiction Cast', 'Recent names', 'Configure criteria', 'Criteria summary', 'Tune criteria', 'Regenerate', 'Names', 'Name selection', 'Previous', 'Next', 'Inspect', 'Reroll this name', 'Sound', 'Selected spelling', 'Readability', 'Cast context', 'Generated shape', 'Cast health', 'Export']) {
+    for (const expected of ['Name Forge', 'Fiction Cast', 'Recent names', 'Configure criteria', 'Criteria summary', 'Tune criteria', 'Regenerate', 'Names', 'Name selection', 'Previous', 'Next', 'Inspect', 'Play name', 'Reroll', 'Sound', 'Spelling', 'More details', 'Cast context', 'Score detail', 'Cast health', 'Export']) {
       expect(html).toContain(expected);
     }
 
-    for (const removed of ['Top same-sound spellings', 'Spelling display cap', 'Pronunciation guide', 'Playback', 'Technical sound structure', 'Supported spellings', 'repeated initials']) {
+    for (const removed of ['Reroll this name', 'Selected spelling', 'Other spellings (', 'Top same-sound spellings', 'Spelling display cap', 'Pronunciation guide', 'Playback', 'Technical sound structure', 'Supported spellings', 'Generated shape', 'repeated initials']) {
       expect(html).not.toContain(removed);
     }
 
