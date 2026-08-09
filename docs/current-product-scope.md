@@ -85,7 +85,7 @@ Fiction Cast additionally includes:
 - lock and selection iteration;
 - selected-name single-slot reroll with non-target preservation, lock semantics, selection continuity, and targeted Recent names recording (issue #167);
 - full-card collapsed-name selection with a separately actionable bottom-right lock control (issues #172 and #178);
-- an integrated Names + Inspect workbench with a bounded responsive roster width so inspector-density changes do not repeatedly distort the visual balance between selection and inspection (issues #176 and #178);
+- an integrated Names + Inspect workbench whose desktop regions share a stable vertical frame; roster overflow and expanded secondary details stay within their own panes so either side does not repeatedly become much longer than the other (issues #176 and #178);
 - a decision-oriented primary inspector centered on modeled sound parts and base spelling, with readability notes, variants, cast context, composition, and scoring consolidated behind one `More details` disclosure (issues #174 and #176);
 - composed-name sound presentation that exposes only generated sound-backed components in the visible Sound surface while full phrase-level browser playback retains lexical and literal connective text (issue #176);
 - per-component browser audition actions for generated sound-backed given, family, and place parts, alongside paced whole-identity playback (issue #178);
