@@ -4,7 +4,12 @@ import { createNameSilhouette } from './silhouettes';
 import { generateNameFromSilhouette } from './generator';
 import { createNameIdentity, requiresSupportingName, resolveMaterializedFormatKind } from './identity';
 import { renderIdentityAuditionPhrase } from './identityAudition';
-import { isRoleInfluenceActive, resolveCastRole, roleInfluencedSettings } from './roles';
+import {
+  resolveNameComponentGenerationContext,
+  supportingComponentKindForFormat,
+  type NameComponentKind,
+} from './componentGenerationContext';
+import { isRoleInfluenceActive, resolveCastRole } from './roles';
 import { combineOverallFit } from './scoring';
 import type { CastRoleAssignment, GeneratedEnsemble, GeneratedName, GenerationSettings, NameSilhouette } from './types';
 import type { SourceRegistry } from './registry';
@@ -16,11 +21,19 @@ function cadenceKey(name: GeneratedName): string { return `${name.silhouette.str
 function countRepeated(values: string[]): number { const seen = new Set<string>(); let repeated = 0; for (const value of values) { if (seen.has(value)) repeated += 1; seen.add(value); } return repeated; }
 function roleSeedSegment(settings: GenerationSettings, role?: CastRoleAssignment): string { return role && isRoleInfluenceActive(settings) ? `:role-${role.role}` : ''; }
 function ensembleFitScore(candidate: GeneratedName, selected: GeneratedName[]): number { const initials = new Set(selected.map((name) => name.name.charAt(0).toLowerCase())); const endings = new Set(selected.map((name) => endingKey(name.name))); const cadences = new Set(selected.map(cadenceKey)); const rarities = new Set(selected.map((name) => name.silhouette.rarityBand)); const names = new Set(selected.map((name) => name.name.toLowerCase())); const penalty = (initials.has(candidate.name.charAt(0).toLowerCase()) ? 0.24 : 0) + (endings.has(endingKey(candidate.name)) ? 0.22 : 0) + (cadences.has(cadenceKey(candidate)) ? 0.16 : 0) + (rarities.has(candidate.silhouette.rarityBand) ? 0.08 : 0) + (names.has(candidate.name.toLowerCase()) ? 1 : 0); return clamp(1 - penalty); }
-function withEnsembleFit(candidate: GeneratedName, selected: GeneratedName[], settings: GenerationSettings): GeneratedName { const ensembleFit = ensembleFitScore(candidate, selected); const scores = { ...candidate.scores, ensembleFit }; const scoringSettings = roleInfluencedSettings(settings, candidate.role); return { ...candidate, scores: { ...scores, overallFit: combineOverallFit(scores, scoringSettings) } }; }
+function withEnsembleFit(candidate: GeneratedName, selected: GeneratedName[], settings: GenerationSettings): GeneratedName { const ensembleFit = ensembleFitScore(candidate, selected); const scores = { ...candidate.scores, ensembleFit }; const scoringSettings = resolveNameComponentGenerationContext(settings, candidate.role, 'given').settings; return { ...candidate, scores: { ...scores, overallFit: combineOverallFit(scores, scoringSettings) } }; }
 
-function createBalancedSilhouette(settings: GenerationSettings, randomLabel: string, registry: SourceRegistry, index: number, role?: CastRoleAssignment): NameSilhouette {
+function createBalancedSilhouette(
+  settings: GenerationSettings,
+  randomLabel: string,
+  registry: SourceRegistry,
+  index: number,
+  role?: CastRoleAssignment,
+  componentKind: NameComponentKind = 'given',
+): NameSilhouette {
   const pack = registry.getStylePack(settings.stylePackId);
-  const influencedSettings = roleInfluencedSettings(settings, role);
+  const componentContext = resolveNameComponentGenerationContext(settings, role, componentKind);
+  const influencedSettings = componentContext.settings;
   const random = createSeededRandom(`${settings.seed}${roleSeedSegment(settings, role)}:${randomLabel}:${index}`);
   return createNameSilhouette({ ...influencedSettings, novelty: clamp(influencedSettings.novelty + ((index % 5) - 2) * 0.06) }, pack, random, index, role);
 }
@@ -28,12 +41,15 @@ function createBalancedSilhouette(settings: GenerationSettings, randomLabel: str
 function withNameIdentity(candidate: GeneratedName, settings: GenerationSettings, registry: SourceRegistry, index: number, attempt: number): GeneratedName {
   const formatKind = resolveMaterializedFormatKind(settings.nameFormat, index);
   const pack = registry.getStylePack(settings.stylePackId);
-  const influencedSettings = roleInfluencedSettings(settings, candidate.role);
-  const supportingName = requiresSupportingName(formatKind)
+  const supportingKind = supportingComponentKindForFormat(formatKind);
+  const supportingContext = supportingKind
+    ? resolveNameComponentGenerationContext(settings, candidate.role, supportingKind)
+    : undefined;
+  const supportingName = requiresSupportingName(formatKind) && supportingKind && supportingContext
     ? generateNameFromSilhouette(
-      createBalancedSilhouette(settings, `slot-${index}:supporting-${attempt}`, registry, index + 1000, candidate.role),
+      createBalancedSilhouette(settings, `slot-${index}:supporting-${attempt}`, registry, index + 1000, candidate.role, supportingKind),
       pack,
-      influencedSettings,
+      supportingContext.settings,
       createSeededRandom(`${settings.seed}${roleSeedSegment(settings, candidate.role)}:supporting:${index}:${attempt}`),
       index + 1000,
     )
@@ -88,11 +104,11 @@ export function generateEnsemble(settings: GenerationSettings, registry: SourceR
     }
 
     const role = resolveCastRole(safeSettings, index);
-    const influencedSettings = roleInfluencedSettings(safeSettings, role);
+    const primaryContext = resolveNameComponentGenerationContext(safeSettings, role, 'given');
     const candidates = Array.from({ length: 16 }, (_, attempt) => {
-      const silhouette = createBalancedSilhouette(safeSettings, `slot-${index}:attempt-${attempt}`, registry, index, role);
+      const silhouette = createBalancedSilhouette(safeSettings, `slot-${index}:attempt-${attempt}`, registry, index, role, primaryContext.kind);
       const random = createSeededRandom(`${settings.seed}${roleSeedSegment(safeSettings, role)}:name:${index}:${attempt}`);
-      const baseName = { ...generateNameFromSilhouette(silhouette, pack, influencedSettings, random, index), role };
+      const baseName = { ...generateNameFromSilhouette(silhouette, pack, primaryContext.settings, random, index), role };
       return withEnsembleFit(withNameIdentity(baseName, safeSettings, registry, index, attempt), selected, safeSettings);
     });
     candidates.sort((left, right) => right.scores.overallFit - left.scores.overallFit);
