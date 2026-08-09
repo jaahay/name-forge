@@ -1,6 +1,52 @@
 import { describe, expect, it } from 'vitest';
 import { isNameArtifact } from './nameArtifact';
 
+const validIdentityAudition = {
+  contract: 'IdentityAuditionPhrase',
+  version: 1,
+  source: 'name-identity',
+  formatId: 'format:given-family',
+  formatKind: 'given-family',
+  identityText: 'Aster Vale',
+  speechText: 'as ter vayl',
+  displayText: 'AS · ter VAYL',
+  parts: [{
+    index: 0,
+    kind: 'sound',
+    role: 'given',
+    value: 'Aster',
+    speechText: 'as ter',
+    displayText: 'AS · ter',
+    speechSource: 'generated-sound',
+    displaySource: 'generated-sound',
+    sourceNameId: 'source-aster',
+    sourceName: 'Aster',
+    transcription: 'as.ter',
+    cue: {
+      contract: 'NameAuditionCue',
+      speechText: 'as ter',
+      displayText: 'AS · ter',
+    },
+  }, {
+    index: 1,
+    kind: 'sound',
+    role: 'family',
+    value: 'Vale',
+    speechText: 'vayl',
+    displayText: 'VAYL',
+    speechSource: 'generated-sound',
+    displaySource: 'generated-sound',
+    sourceNameId: 'source-vale',
+    sourceName: 'Vale',
+    transcription: 'veɪl',
+    cue: {
+      contract: 'NameAuditionCue',
+      speechText: 'vayl',
+      displayText: 'VAYL',
+    },
+  }],
+};
+
 const validArtifact = {
   id: 'artifact-1',
   displayText: 'Aster Vale',
@@ -45,6 +91,7 @@ const validArtifact = {
     label: 'Long name',
     detail: 'The display form is relatively long.',
   }],
+  identityAudition: validIdentityAudition,
 };
 
 describe('isNameArtifact', () => {
@@ -60,6 +107,24 @@ describe('isNameArtifact', () => {
     expect(isNameArtifact({
       ...validArtifact,
       variants: [{ relationship: 3, source: null }],
+    })).toBe(false);
+  });
+
+  it('rejects malformed persisted identity audition data', () => {
+    expect(isNameArtifact({
+      ...validArtifact,
+      identityAudition: {},
+    })).toBe(false);
+
+    expect(isNameArtifact({
+      ...validArtifact,
+      identityAudition: {
+        ...validIdentityAudition,
+        parts: [{
+          ...validIdentityAudition.parts[0],
+          transcription: null,
+        }],
+      },
     })).toBe(false);
   });
 });
