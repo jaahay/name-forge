@@ -67,6 +67,7 @@ Shared platform capabilities now include:
 - shared `NameArtifactInspector` rendering;
 - deterministic readability observations and browser audition projection;
 - provenance-preserving identity audition phrases for composed names, retaining generated sound evidence for sound-backed given, family, and place parts while leaving lexical text and literals explicit (issue #174);
+- semantic component-generation contexts for given, family, and place sound-backed parts, with current defaults preserving existing generation behavior while establishing a future internal override seam (issue #176);
 - pure single-artifact and artifact-set analysis APIs;
 - deterministic same-roster sound-relationship evidence with typed details, exact pair identity, and fixed precedence and ordering;
 - source descriptors and built-in style-pack validation;
@@ -79,13 +80,16 @@ Fiction Cast additionally includes:
 
 - deterministic ensemble generation;
 - cast size, format, role mix, slot override, role influence, rarity, and tuning controls;
+- a compact post-generation summary bar that keeps Tune and Regenerate available without leaving the full criteria summary in the primary reading path (issue #176);
 - lock and selection iteration;
 - selected-name single-slot reroll with non-target preservation, lock semantics, selection continuity, and targeted Recent names recording (issue #167);
 - full-card collapsed-name selection with a separately actionable lock control;
-- a decision-oriented primary inspector centered on whole-name sound, base spelling, inline spelling alternatives, and actual readability notes, with all secondary context consolidated behind one `More details` disclosure (issue #174);
-- composed-name sound presentation that exposes a whole-name audition draft plus the modeled transcription for each generated sound-backed component (issue #174);
+- an integrated Names + Inspect workbench with the roster and selected artifact presented as two regions of one surface (issue #176);
+- a decision-oriented primary inspector centered on modeled sound parts and base spelling, with readability notes, variants, cast context, composition, and scoring consolidated behind one `More details` disclosure (issues #174 and #176);
+- composed-name sound presentation that exposes only generated sound-backed components in the visible Sound surface while full phrase-level browser playback retains lexical and literal connective text (issue #176);
 - full phrase-level browser voice drafts for composed identities while retaining modeled sound projection for simple names (issue #174);
 - cast-level balancing and collision diagnostics without repeated-initials presentation chrome;
+- a collapsed Cast review surface that exposes actionable cast notes and same-roster sound relationships without permanently presenting healthy diagnostic prose (issue #176);
 - pair-grouped same-roster sound relationships with plain-language labels and typed technical evidence;
 - direct artifact-ID navigation from either sound-relationship name into the existing selected-name Inspect, Lock, and reroll workflow (issue #170);
 - JSON and Markdown cast export.
@@ -120,7 +124,7 @@ The active rule is:
 
 ### 1. Prune and select the next product slice
 
-Issues #167, #170, #172, and #174 are part of the shipped Fiction Cast baseline. Before authorizing another implementation slice, prune this document again and select one bounded next step explicitly. Do not infer broader evaluation, optimization, mode, grouping, provider, help-system, or shell work from deferred architecture vocabulary alone.
+Issues #167, #170, #172, #174, and #176 are part of the shipped Fiction Cast baseline. Before authorizing another implementation slice, prune this document again and select one bounded next step explicitly. Do not infer broader evaluation, optimization, mode, grouping, provider, help-system, per-component control, or shell work from deferred architecture vocabulary alone.
 
 ## Research-only backlog
 
@@ -144,6 +148,7 @@ The following remain possible later slices but are not authorized by this docume
 - cohesion or diversity optimization;
 - ranked-alternative grouping semantics;
 - slot-level criteria or slotted sets;
+- explicit per-component given/family/place tuning controls or public request overrides;
 - partial-result recovery;
 - Fiction Cast assumptions as shared engine behavior;
 - Game NPC roster UI;
@@ -161,6 +166,7 @@ The following remain possible later slices but are not authorized by this docume
 - No remote provider integration without an accepted source and validation contract.
 - No broad plugin framework.
 - No character biography or encounter generation.
+- No per-component tuning UI without a separately authorized user-facing contract.
 
 ## Issue hygiene baseline
 

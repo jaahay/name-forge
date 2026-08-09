@@ -50,10 +50,6 @@ function labelForFormat(value: NameFormatKind | undefined): string {
   return formatOptions.find((option) => option.value === (value ?? 'given-only'))?.label ?? 'Given name only';
 }
 
-function labelForRolePreset(value: CastRolePresetKind | undefined): string {
-  return castRolePresetOptions.find((option) => option.value === (value ?? 'none'))?.label ?? 'No role mix';
-}
-
 function tierLabel(value: number, low: string, middle: string, high: string): string {
   if (value < 0.38) return low;
   if (value > 0.62) return high;
@@ -90,7 +86,7 @@ export function ConfigureTray({
   const selectedRoleInfluence = roleInfluenceOptions.find((option) => option.value === (settings.roleInfluence ?? 'off'));
   const summarySettings = committedSettings ?? settings;
   const summaryStylePack = stylePacks.find((pack) => pack.id === summarySettings.stylePackId)?.label ?? summarySettings.stylePackId;
-  const summaryItems = [summaryStylePack, `${clampCastSize(summarySettings.castSize)} names`, labelForFormat(summarySettings.nameFormat), labelForRolePreset(summarySettings.rolePreset)];
+  const summaryItems = [summaryStylePack, `${clampCastSize(summarySettings.castSize)} names`, labelForFormat(summarySettings.nameFormat)];
   const criteriaItems = criteriaSummaryItems(summarySettings, summaryStylePack);
   const hasLockedNames = lockedCount > 0;
   const castSizeLabel = `${mode.shortLabel} size`;
@@ -109,18 +105,20 @@ export function ConfigureTray({
     <form className={`controls configure-tray panel ${isOpen ? 'expanded' : 'collapsed'}`} onSubmit={onGenerate}>
       <div className="configure-summary" aria-label="Current generation settings">
         <div className="configure-summary-copy">
-          <p className="eyebrow">Configure criteria</p>
+          <p className="eyebrow">{isOpen ? 'Configure criteria' : 'Generation'}</p>
           <strong>{summaryItems.join(' · ')}</strong>
-          <div aria-label="Criteria summary">
-            <p className="eyebrow">Criteria summary</p>
-            <p className="section-note">Bounded criteria signals for this cast.</p>
-            <ul className="criteria-summary-list">
-              {criteriaItems.map((item) => <li key={item}>{item}</li>)}
-            </ul>
-          </div>
+          {isOpen ? (
+            <div aria-label="Criteria summary">
+              <p className="eyebrow">Criteria summary</p>
+              <p className="section-note">Bounded criteria signals for this cast.</p>
+              <ul className="criteria-summary-list">
+                {criteriaItems.map((item) => <li key={item}>{item}</li>)}
+              </ul>
+            </div>
+          ) : null}
         </div>
         <div className="configure-summary-actions" aria-label="Configure actions">
-          <button type="button" className="secondary" onClick={onToggleOpen}>{isOpen ? 'Hide settings' : 'Tune criteria'}</button>
+          <button type="button" className="secondary" onClick={onToggleOpen}>{isOpen ? 'Hide settings' : 'Tune'}</button>
           <button type="submit">Regenerate</button>
         </div>
       </div>

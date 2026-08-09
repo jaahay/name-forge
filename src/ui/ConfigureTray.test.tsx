@@ -11,7 +11,7 @@ const stylePacks = registry.listStylePacks();
 const stylePackId = stylePacks[0]?.id ?? 'british-literary-fantasy';
 const settings = fictionCastMode.defaultSettings(stylePackId);
 
-function renderConfigureTray(overrides: Partial<GenerationSettings> = {}): string {
+function renderConfigureTray(overrides: Partial<GenerationSettings> = {}, isOpen = true): string {
   const renderedSettings = { ...settings, ...overrides };
 
   return renderToStaticMarkup(
@@ -20,7 +20,7 @@ function renderConfigureTray(overrides: Partial<GenerationSettings> = {}): strin
       stylePacks={stylePacks}
       settings={renderedSettings}
       committedSettings={renderedSettings}
-      isOpen
+      isOpen={isOpen}
       lockedCount={0}
       onToggleOpen={() => {}}
       onUpdateSetting={() => {}}
@@ -34,7 +34,7 @@ function renderConfigureTray(overrides: Partial<GenerationSettings> = {}): strin
 }
 
 describe('ConfigureTray criteria surface', () => {
-  it('keeps the existing generation controls visible', () => {
+  it('keeps the existing generation controls visible when tuning', () => {
     const html = renderConfigureTray();
 
     expect(html).toContain('Cast size');
@@ -61,6 +61,19 @@ describe('ConfigureTray criteria surface', () => {
     expect(html).toContain('Rarity target');
     expect(html).toContain('Readability target');
     expect(html).toContain('Spelling criterion');
+  });
+
+  it('collapses to one compact generation summary after generation', () => {
+    const html = renderConfigureTray({ castSize: 8, nameFormat: 'mixed' }, false);
+
+    expect(html).toContain('Generation');
+    expect(html).toContain('8 names');
+    expect(html).toContain('Mixed cast formats');
+    expect(html).toContain('>Tune</button>');
+    expect(html).toContain('Regenerate');
+    expect(html).not.toContain('Configure criteria');
+    expect(html).not.toContain('Criteria summary');
+    expect(html).not.toContain('Rarity target:');
   });
 
   it('does not require a new mode or free-form text surface to generate names', () => {

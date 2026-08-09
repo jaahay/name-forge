@@ -1,0 +1,285 @@
+/* Issue #176: make Fiction Cast read as one cast workbench rather than stacked dashboards. */
+
+.configure-tray.collapsed {
+  gap: 0;
+  padding: 0.58rem 0.72rem;
+  border-color: rgba(240, 184, 95, 0.11);
+  background: rgba(255, 255, 255, 0.022);
+  box-shadow: none;
+}
+
+.configure-tray.collapsed .configure-summary {
+  gap: 0.7rem;
+}
+
+.configure-tray.collapsed .configure-summary-copy {
+  display: flex;
+  gap: 0.58rem;
+  align-items: baseline;
+  min-width: 0;
+}
+
+.configure-tray.collapsed .configure-summary-copy .eyebrow {
+  flex: 0 0 auto;
+  margin: 0;
+  color: #8f806b;
+  font-size: 0.61rem;
+}
+
+.configure-tray.collapsed .configure-summary-copy strong {
+  min-width: 0;
+  color: #cfc2ae;
+  font-size: 0.78rem;
+  font-weight: 760;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.configure-tray.collapsed .configure-summary-actions {
+  gap: 0.38rem;
+}
+
+.configure-tray.collapsed .configure-summary-actions button {
+  padding: 0.42rem 0.68rem;
+  font-size: 0.68rem;
+}
+
+/* Names and Inspect are two regions of one object. */
+.results-layout.inspector-rail-layout {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.7rem;
+}
+
+.cast-workbench-surface {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(215px, 248px) minmax(0, 1fr);
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+  border-color: rgba(240, 184, 95, 0.18);
+  background: rgba(15, 12, 9, 0.24);
+}
+
+.cast-workbench-surface .name-rail {
+  align-self: stretch;
+  gap: 0.68rem;
+  padding: 0.72rem;
+  border: 0;
+  border-right: 1px solid rgba(240, 184, 95, 0.13);
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.cast-workbench-surface .name-grid {
+  gap: 0.56rem;
+}
+
+.cast-workbench-surface .name-rail .name-card-button,
+.cast-workbench-surface .name-rail .name-card.selected .name-card-button {
+  min-height: 4.75rem;
+  padding: 0.7rem 0.78rem 2.55rem;
+}
+
+.cast-workbench-surface .name-rail .name-card[data-name-length='very-long'] .name-card-button {
+  min-height: 5.65rem;
+}
+
+.cast-workbench-inspector {
+  min-width: 0;
+}
+
+.cast-workbench-surface .selected-name-panel,
+.cast-workbench-surface .inspector-empty-panel {
+  min-height: 100%;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.cast-workbench-surface .selected-name-panel {
+  padding: 1.05rem 1.15rem 1.15rem;
+}
+
+/* Composed identities show only the parts that actually have modeled sound. */
+.inspector-sound-components {
+  display: grid;
+  gap: 0;
+}
+
+.inspector-sound-components li {
+  display: grid;
+  grid-template-columns: minmax(5.8rem, auto) minmax(0, 1fr);
+  gap: 0.68rem;
+  align-items: baseline;
+  border: 0;
+  border-radius: 0;
+  padding: 0.38rem 0;
+  background: transparent;
+}
+
+.inspector-sound-components li + li {
+  border-top: 1px solid rgba(255, 255, 255, 0.055);
+}
+
+.inspector-sound-components strong {
+  color: #e6dac8;
+  font-size: 0.76rem;
+}
+
+.inspector-sound-components span {
+  color: #f7f0e3;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 0.96rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.inspector-read-details {
+  grid-column: 1 / -1;
+}
+
+.inspector-read-note-list {
+  display: grid;
+  gap: 0.44rem;
+}
+
+.inspector-read-note-list p {
+  display: grid;
+  gap: 0.08rem;
+  margin: 0;
+  color: #aa9b84;
+  font-size: 0.72rem;
+  line-height: 1.38;
+}
+
+.inspector-read-note-list p strong {
+  color: #e9dfd0;
+  font-size: 0.74rem;
+}
+
+.inspector-read-note-list p.warning {
+  color: #efc486;
+}
+
+/* Cast diagnostics stay available without becoming a second dashboard. */
+.cast-review {
+  overflow: hidden;
+  border: 1px solid rgba(240, 184, 95, 0.12);
+  border-radius: 0.9rem;
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.cast-review > summary {
+  position: relative;
+  display: flex;
+  gap: 0.72rem;
+  align-items: baseline;
+  padding: 0.62rem 2.35rem 0.62rem 0.78rem;
+  color: #bdae97;
+  cursor: pointer;
+  list-style: none;
+}
+
+.cast-review > summary::-webkit-details-marker {
+  display: none;
+}
+
+.cast-review > summary::after {
+  position: absolute;
+  top: 50%;
+  right: 0.82rem;
+  color: #8f806b;
+  content: '+';
+  transform: translateY(-52%);
+}
+
+.cast-review[open] > summary::after {
+  content: '−';
+}
+
+.cast-review > summary:hover {
+  color: #f4d59c;
+  background: rgba(240, 184, 95, 0.035);
+}
+
+.cast-review > summary span {
+  color: inherit;
+  font-size: 0.73rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.cast-review > summary small {
+  color: #82745f;
+  font-size: 0.66rem;
+  font-weight: 700;
+}
+
+.cast-review-body {
+  display: grid;
+  gap: 0.78rem;
+  padding: 0 0.78rem 0.78rem;
+}
+
+.cast-review-notes {
+  display: grid;
+  gap: 0.52rem;
+  padding-top: 0.68rem;
+  border-top: 1px solid rgba(240, 184, 95, 0.1);
+}
+
+.cast-review-notes h2 {
+  margin: 0;
+  color: #f0b85f;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.cast-review .cast-health-list {
+  gap: 0.42rem;
+}
+
+.cast-review .sound-relationships {
+  padding-top: 0.7rem;
+  border-top-color: rgba(240, 184, 95, 0.1);
+}
+
+@media (max-width: 900px) {
+  .configure-tray.collapsed .configure-summary-copy {
+    display: grid;
+    gap: 0.12rem;
+  }
+
+  .configure-tray.collapsed .configure-summary-copy strong {
+    white-space: normal;
+  }
+
+  .cast-workbench-surface {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cast-workbench-surface .name-rail {
+    border-right: 0;
+  }
+
+  .selection-kind-name .cast-workbench-surface .name-rail {
+    display: none;
+  }
+
+  .cast-review > summary {
+    display: grid;
+    gap: 0.12rem;
+  }
+}
+
+@media (max-width: 560px) {
+  .inspector-sound-components li {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.12rem;
+  }
+}
