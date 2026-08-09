@@ -99,7 +99,7 @@ describe('NameInspector', () => {
     }
   });
 
-  it('shows whole-name sound and every modeled generated sound part for composed identities', () => {
+  it('shows only modeled generated sound parts for composed identities', () => {
     const name = fixtureName({ nameFormat: 'epithet-place', seed: 'name-inspector-composed-sound' });
     const soundParts = name.identityAudition?.parts.filter((part) => part.kind === 'sound') ?? [];
     const html = renderInspector(name);
@@ -107,17 +107,18 @@ describe('NameInspector', () => {
     expect(name.identity?.format.kind).toBe('epithet-place');
     expect(name.identityAudition).toBeDefined();
     expect(soundParts).toHaveLength(2);
-    expect(html).toContain('whole name');
-    expect(html).toContain(name.identityAudition?.displayText ?? 'missing audition display');
+    expect(html).toContain('modeled parts');
+    expect(html).toContain('inspector-sound-components');
+    expect(html).not.toContain(name.identityAudition?.displayText ?? 'missing audition display');
 
     for (const part of soundParts) {
       if (part.kind !== 'sound') continue;
       expect(html).toContain(part.value);
-      expect(html).toContain(part.transcription);
+      expect(html).toContain(part.displayText);
     }
   });
 
-  it('surfaces readability only when there is an actual note', () => {
+  it('keeps readability notes inside More details', () => {
     const cleanName = { ...fixtureName(), readabilityDiagnostics: [] };
     const notedName = {
       ...cleanName,
@@ -130,9 +131,11 @@ describe('NameInspector', () => {
       }],
     };
 
-    expect(renderInspector(cleanName)).not.toContain('inspector-read-note');
+    expect(renderInspector(cleanName)).not.toContain('Read notes</h3>');
     const notedHtml = renderInspector(notedName);
-    expect(notedHtml).toContain('inspector-read-note');
+    expect(notedHtml).not.toContain('class="inspector-read-note"');
+    expect(notedHtml).toContain('inspector-read-details');
+    expect(notedHtml).toContain('Read notes</h3>');
     expect(notedHtml).toContain('Long read');
     expect(notedHtml).toContain('This display name may take a second pass.');
   });
