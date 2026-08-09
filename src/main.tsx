@@ -6,6 +6,7 @@ import './card-locks.css';
 import './cast-mode.css';
 import './inspect-actions.css';
 import './recent-names.css';
+import './cast-workbench.css';
 
 const root = document.getElementById('root');
 
