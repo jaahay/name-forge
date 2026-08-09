@@ -78,12 +78,12 @@
 
 .cast-workbench-surface .name-rail .name-card-button,
 .cast-workbench-surface .name-rail .name-card.selected .name-card-button {
-  min-height: 4.35rem;
-  padding: 0.72rem 0.78rem;
+  min-height: 4.75rem;
+  padding: 0.7rem 0.78rem 2.55rem;
 }
 
 .cast-workbench-surface .name-rail .name-card[data-name-length='very-long'] .name-card-button {
-  min-height: 5.15rem;
+  min-height: 5.65rem;
 }
 
 .cast-workbench-inspector {
