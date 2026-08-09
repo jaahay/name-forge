@@ -22,49 +22,49 @@ function castSections(name: GeneratedName) {
 
   return (
     <>
-      <section className="detail-block artifact-detail-block">
-        <h3>Cast context</h3>
+      <details className="detail-block artifact-detail-block">
+        <summary>Cast context</summary>
         <dl className="artifact-fact-list">
           <div><dt>Role</dt><dd>{roleLabel}</dd></div>
           <div><dt>Influence</dt><dd>{roleInfluenceLabel}</dd></div>
           <div><dt>Format</dt><dd>{formatLabel}</dd></div>
         </dl>
-      </section>
+      </details>
 
-      <section className="detail-block artifact-detail-block">
-        <h3>Generated shape</h3>
+      <details className="detail-block artifact-detail-block">
+        <summary>Generated shape</summary>
         <dl className="artifact-fact-list">
           <div><dt>Texture</dt><dd>{textureLabel}</dd></div>
           <div><dt>Rarity</dt><dd>{rarity.label}</dd></div>
           <div><dt>Syllables</dt><dd>{name.silhouette.syllableCount}</dd></div>
         </dl>
-      </section>
+      </details>
 
-      <section className="detail-block" aria-label={`${name.name} score breakdown`}>
-        <h3>Score detail</h3>
+      <details className="detail-block" aria-label={`${name.name} score breakdown`}>
+        <summary>Score detail</summary>
         <dl className="score-list detail-score-list">
           {scorePresentation.map((score) => <div key={`${name.id}-${score.key}`}><dt>{score.label}</dt><dd>{formatScore(name.scores[score.key])}</dd></div>)}
         </dl>
-      </section>
+      </details>
 
       {identity ? (
-        <section className="detail-block">
-          <h3>Name parts</h3>
+        <details className="detail-block">
+          <summary>Name parts</summary>
           <ul className="variants detail-variants">
             {identity.parts.map((part) => <li key={part.id}><span>{part.value}</span><em>{part.role}</em></li>)}
           </ul>
-        </section>
+        </details>
       ) : null}
 
       {name.roleInfluence ? (
-        <section className="detail-block">
-          <h3>Role cue</h3>
+        <details className="detail-block">
+          <summary>Role cue</summary>
           <dl className="artifact-fact-list">
             <div><dt>Label</dt><dd>{name.roleInfluence.label}</dd></div>
             <div><dt>Strength</dt><dd>{name.roleInfluence.level}</dd></div>
             <div><dt>Effects</dt><dd>{name.roleInfluence.effects.join(', ')}</dd></div>
           </dl>
-        </section>
+        </details>
       ) : null}
     </>
   );

@@ -25,7 +25,6 @@ function castHealthFor(ensemble: GeneratedEnsemble, lockedNameIds: Set<string>):
   const spotlightCount = names.filter((name) => spotlightRarityBands.includes(name.silhouette.rarityBand)).length;
   const groundedCount = names.length - spotlightCount;
   const spotlightBudget = Math.max(1, Math.ceil(names.length * 0.33));
-  const initialIssueCount = ensemble.diagnostics.repeatedInitials;
   const endingIssueCount = ensemble.diagnostics.repeatedEndings;
   const cadenceIssueCount = ensemble.diagnostics.repeatedCadences;
   const readIssueCount = ensemble.diagnostics.readabilityIssues;
@@ -38,12 +37,6 @@ function castHealthFor(ensemble: GeneratedEnsemble, lockedNameIds: Set<string>):
       tone: spotlightCount <= spotlightBudget ? 'good' : 'warn',
       label: spotlightCount <= spotlightBudget ? 'Spotlight budget held' : 'Spotlight budget crowded',
       detail: `${groundedCount} grounded names and ${spotlightCount} rare+ names; aim for ${spotlightBudget} or fewer spotlight names in this cast.`,
-    },
-    {
-      id: 'initials',
-      tone: initialIssueCount === 0 ? 'good' : 'warn',
-      label: initialIssueCount === 0 ? 'Distinct initials' : 'Repeated initials',
-      detail: initialIssueCount === 0 ? 'First-letter scan is clean across the roster.' : `${initialIssueCount} initial pattern${initialIssueCount === 1 ? '' : 's'} may blur at the table.`,
     },
     {
       id: 'endings',

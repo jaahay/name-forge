@@ -139,7 +139,6 @@ export function GeneratorView({
         </div>
         <div className="hero-stats" aria-label="Generation summary">
           <span>{ensemble.names.length} names</span>
-          <span>{ensemble.diagnostics.repeatedInitials} repeated initials</span>
           <span>{ensemble.diagnostics.repeatedEndings} repeated endings</span>
           <span>{ensemble.diagnostics.readabilityIssues} read notes</span>
           {hasLockedNames ? <span>{lockedCount} locked</span> : null}
