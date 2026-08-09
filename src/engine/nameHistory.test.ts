@@ -88,17 +88,29 @@ describe('nameHistory', () => {
       seed: 'seed-valid',
       savedAt: '2026-07-18T21:00:00.000Z',
     };
-    const malformedEntry = {
+    const malformedVariantEntry = {
       ...validEntry,
-      id: 'saved-malformed',
+      id: 'saved-malformed-variant',
       artifact: {
-        id: 'malformed',
-        displayText: 'Broken',
+        id: 'malformed-variant',
+        displayText: 'Broken variant',
         variants: [{ relationship: 3, source: null }],
       },
     };
+    const malformedAuditionEntry = {
+      ...validEntry,
+      id: 'saved-malformed-audition',
+      artifact: {
+        id: 'malformed-audition',
+        displayText: 'Broken audition',
+        identityAudition: {},
+      },
+    };
 
-    expect(parseNameHistory(JSON.stringify({ version: 1, entries: [validEntry, malformedEntry] }))).toEqual({
+    expect(parseNameHistory(JSON.stringify({
+      version: 1,
+      entries: [validEntry, malformedVariantEntry, malformedAuditionEntry],
+    }))).toEqual({
       version: 1,
       entries: [validEntry],
     });

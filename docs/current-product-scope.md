@@ -66,6 +66,7 @@ Shared platform capabilities now include:
 - exact bounded-result prefix invariance after full-pool ranking;
 - shared `NameArtifactInspector` rendering;
 - deterministic readability observations and browser audition projection;
+- provenance-preserving identity audition phrases for composed names, retaining generated sound evidence for sound-backed given, family, and place parts while leaving lexical text and literals explicit (issue #174);
 - pure single-artifact and artifact-set analysis APIs;
 - deterministic same-roster sound-relationship evidence with typed details, exact pair identity, and fixed precedence and ordering;
 - source descriptors and built-in style-pack validation;
@@ -81,8 +82,9 @@ Fiction Cast additionally includes:
 - lock and selection iteration;
 - selected-name single-slot reroll with non-target preservation, lock semantics, selection continuity, and targeted Recent names recording (issue #167);
 - full-card collapsed-name selection with a separately actionable lock control;
-- a concise primary inspector that keeps sound and selected spelling prominent while collapsing extended readability, cast, shape, score, variant, and role detail (issue #172);
-- full displayed-identity browser voice drafts when an identity is present, while retaining modeled sound projection for simple names (issue #172);
+- a decision-oriented primary inspector centered on whole-name sound, base spelling, inline spelling alternatives, and actual readability notes, with all secondary context consolidated behind one `More details` disclosure (issue #174);
+- composed-name sound presentation that exposes a whole-name audition draft plus the modeled transcription for each generated sound-backed component (issue #174);
+- full phrase-level browser voice drafts for composed identities while retaining modeled sound projection for simple names (issue #174);
 - cast-level balancing and collision diagnostics without repeated-initials presentation chrome;
 - pair-grouped same-roster sound relationships with plain-language labels and typed technical evidence;
 - direct artifact-ID navigation from either sound-relationship name into the existing selected-name Inspect, Lock, and reroll workflow (issue #170);
@@ -102,7 +104,7 @@ Name Forge may expose deterministic facts about generated structure, spelling al
 | Concept | Current status | Product boundary |
 | --- | --- | --- |
 | Readability diagnostics | Shipped deterministic evidence | Reports concrete letter-pattern and structure observations; not a measured ease score. |
-| Browser audition draft | Shipped projection | Approximate browser speech derived from modeled sound or the full displayed identity when present; not canonical pronunciation. |
+| Browser audition draft | Shipped projection | Approximate browser speech derived from modeled sound and provenance-preserving composed-name phrase projection; not canonical pronunciation. |
 | Same-roster sound relationships | Shipped deterministic evidence and Fiction Cast presentation | Reports exact modeled relationships between artifacts from one explicit roster snapshot; not measured human similarity or confusion. |
 | Pronounceability | Research only as a human-facing metric | Requires a declared listener population, language assumptions, methodology, and validation. |
 | Familiarity | Research only | Requires a declared corpus or audience. |
@@ -118,7 +120,7 @@ The active rule is:
 
 ### 1. Prune and select the next product slice
 
-Issues #167, #170, and #172 are part of the shipped Fiction Cast baseline. Before authorizing another implementation slice, prune this document again and select one bounded next step explicitly. Do not infer broader evaluation, optimization, mode, grouping, provider, help-system, or shell work from deferred architecture vocabulary alone.
+Issues #167, #170, #172, and #174 are part of the shipped Fiction Cast baseline. Before authorizing another implementation slice, prune this document again and select one bounded next step explicitly. Do not infer broader evaluation, optimization, mode, grouping, provider, help-system, or shell work from deferred architecture vocabulary alone.
 
 ## Research-only backlog
 

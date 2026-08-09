@@ -48,6 +48,23 @@ describe('generateEnsemble role and rarity controls', () => {
     expect(ensemble.names.map((name) => name.silhouette.rarityBand)).toEqual(['common', 'uncommon', 'rare', 'epic', 'legendary']);
   });
 
+  it('preserves modeled sounds for every sound-backed part of a composed identity', () => {
+    const registry = createDefaultRegistry();
+    const ensemble = generateEnsemble({ ...baseSettings, castSize: 1, nameFormat: 'epithet-place', seed: 'identity-audition-evidence' }, registry);
+    const name = ensemble.names[0];
+
+    expect(name.identity?.format.kind).toBe('epithet-place');
+    expect(name.identityAudition?.identityText).toBe(name.name);
+    const soundParts = name.identityAudition?.parts.filter((part) => part.kind === 'sound') ?? [];
+    expect(soundParts).toHaveLength(2);
+    for (const part of soundParts) {
+      if (part.kind !== 'sound') continue;
+      expect(part.transcription.length).toBeGreaterThan(0);
+      expect(name.identityAudition?.displayText).toContain(part.displayText);
+      expect(name.identityAudition?.speechText).toContain(part.speechText);
+    }
+  });
+
   it('preserves locked names in their slots while rerolling unlocked names', () => {
     const registry = createDefaultRegistry();
     const first = generateEnsemble({ ...baseSettings, castSize: 4, seed: 'locked-before' }, registry);

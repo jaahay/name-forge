@@ -3,6 +3,7 @@ import { castReadabilityDiagnostics, diagnoseNameReadability, readabilitySummary
 import { createNameSilhouette } from './silhouettes';
 import { generateNameFromSilhouette } from './generator';
 import { createNameIdentity, requiresSupportingName, resolveMaterializedFormatKind } from './identity';
+import { renderIdentityAuditionPhrase } from './identityAudition';
 import { isRoleInfluenceActive, resolveCastRole, roleInfluencedSettings } from './roles';
 import { combineOverallFit } from './scoring';
 import type { CastRoleAssignment, GeneratedEnsemble, GeneratedName, GenerationSettings, NameSilhouette } from './types';
@@ -38,12 +39,14 @@ function withNameIdentity(candidate: GeneratedName, settings: GenerationSettings
     )
     : undefined;
   const identity = createNameIdentity(candidate, supportingName, formatKind);
+  const identityAudition = renderIdentityAuditionPhrase(identity, supportingName ? [candidate, supportingName] : [candidate]);
   const safeDisplaySlug = identity.displayName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   return {
     ...candidate,
     id: `name-${index + 1}-${safeDisplaySlug}`,
     name: identity.displayName,
     identity,
+    identityAudition,
     readabilityDiagnostics: diagnoseNameReadability(identity.displayName),
   };
 }

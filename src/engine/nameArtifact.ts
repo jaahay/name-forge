@@ -1,3 +1,4 @@
+import { isIdentityAuditionPhrase, type IdentityAuditionPhrase } from './identityAudition';
 import type { SoundCandidate } from './soundGenerator';
 import type { SoundProfile } from './soundProfile';
 import type { RankedSpellingCandidate } from './spellingGenerator';
@@ -22,6 +23,7 @@ export interface NameArtifact {
   readonly variants?: readonly NameVariant[];
   readonly readabilityDiagnostics?: readonly ReadabilityDiagnostic[];
   readonly identity?: NameIdentity;
+  readonly identityAudition?: IdentityAuditionPhrase;
   readonly role?: CastRoleAssignment;
   readonly roleInfluence?: RoleInfluenceMetadata;
 }
@@ -120,6 +122,7 @@ export function isNameArtifact(value: unknown): value is NameArtifact {
     && (value.soundProfile === undefined || isRecord(value.soundProfile))
     && (value.silhouette === undefined || isRecord(value.silhouette))
     && (value.identity === undefined || isRecord(value.identity))
+    && (value.identityAudition === undefined || isIdentityAuditionPhrase(value.identityAudition))
     && (value.role === undefined || isRecord(value.role))
     && (value.roleInfluence === undefined || isRecord(value.roleInfluence));
 }
@@ -136,6 +139,7 @@ export function toNameArtifact(generatedName: GeneratedName): NameArtifact {
     variants: generatedName.variants,
     readabilityDiagnostics: generatedName.readabilityDiagnostics,
     ...(generatedName.identity === undefined ? {} : { identity: generatedName.identity }),
+    ...(generatedName.identityAudition === undefined ? {} : { identityAudition: generatedName.identityAudition }),
     ...(generatedName.role === undefined ? {} : { role: generatedName.role }),
     ...(generatedName.roleInfluence === undefined ? {} : { roleInfluence: generatedName.roleInfluence }),
   };

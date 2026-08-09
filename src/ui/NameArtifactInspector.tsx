@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { renderAuditionCue } from '../engine/audition';
+import type { IdentityAuditionSoundPart } from '../engine/identityAudition';
 import type { NameArtifact } from '../engine/nameArtifact';
 import { analyzeNameArtifact } from '../engine/nameArtifactAnalysis';
 import type { NameVariant } from '../engine/types';
@@ -39,7 +40,11 @@ function playVoiceDraft(speechText: string) {
 }
 
 export function browserVoiceDraftText(artifact: NameArtifact, soundSpeechText?: string): string {
-  return artifact.identity ? artifact.displayText : soundSpeechText ?? artifact.displayText;
+  return artifact.identityAudition?.speechText ?? soundSpeechText ?? artifact.displayText;
+}
+
+function modeledSoundParts(artifact: NameArtifact): readonly IdentityAuditionSoundPart[] {
+  return artifact.identityAudition?.parts.filter((part): part is IdentityAuditionSoundPart => part.kind === 'sound') ?? [];
 }
 
 function detailsText(artifact: NameArtifact, pronunciationGuide?: string): string {
@@ -47,11 +52,17 @@ function detailsText(artifact: NameArtifact, pronunciationGuide?: string): strin
   const spellings = (artifact.spellingCandidates ?? [])
     .map((candidate) => `${candidate.text} (${sameSoundSpellingMetadataLabel(candidate, artifact.spelling?.id)})`)
     .join(', ') || 'None';
+  const phraseSound = artifact.identityAudition?.displayText;
+  const soundParts = modeledSoundParts(artifact)
+    .map((part) => `${part.value}: ${part.transcription}`)
+    .join(', ');
 
   return [
     artifact.displayText,
-    artifact.sound ? `Sound sketch: ${artifact.sound.transcription}` : undefined,
-    pronunciationGuide ? `Pronunciation guide: ${pronunciationGuide}` : undefined,
+    phraseSound ? `Whole-name sound draft: ${phraseSound}` : undefined,
+    soundParts ? `Modeled sound parts: ${soundParts}` : undefined,
+    !phraseSound && artifact.sound ? `Sound sketch: ${artifact.sound.transcription}` : undefined,
+    !phraseSound && pronunciationGuide ? `Pronunciation guide: ${pronunciationGuide}` : undefined,
     analysis.structure ? `Structure: ${analysis.structure.syllableCount} syllable(s); ${analysis.structure.segmentCount} segments; ${analysis.structure.syllableShapes.join('-')}` : undefined,
     artifact.spelling ? `Selected spelling: ${artifact.spelling.text} (preference rank ${artifact.spelling.rank})` : undefined,
     analysis.spelling?.selectionSummary,
@@ -61,12 +72,13 @@ function detailsText(artifact: NameArtifact, pronunciationGuide?: string): strin
 }
 
 export function NameArtifactInspector({ artifact, eyebrow = 'Inspect', extraActions, extraSections }: NameArtifactInspectorProps) {
-  const analysis = analyzeNameArtifact(artifact);
   const sameSoundSpellings = artifact.spellingCandidates ?? [];
   const otherSpellings = sameSoundSpellings.filter((candidate) => candidate.id !== artifact.spelling?.id);
   const readNotes = artifact.readabilityDiagnostics ?? [];
   const variants = artifact.variants ?? [];
   const auditionCue = artifact.sound ? renderAuditionCue(artifact.sound.sequence) : undefined;
+  const soundParts = modeledSoundParts(artifact);
+  const soundDescription = artifact.identityAudition?.displayText ?? auditionCue?.displayText ?? artifact.sound?.transcription;
   const voiceDraftText = browserVoiceDraftText(artifact, auditionCue?.speechText);
   const browserSpeechAvailable = canUseBrowserSpeech();
   const displayName = protectInitialBreaks(artifact.displayText);
@@ -74,6 +86,8 @@ export function NameArtifactInspector({ artifact, eyebrow = 'Inspect', extraActi
   const playVoiceDraftLabel = browserSpeechAvailable
     ? `Play browser voice draft for ${artifact.displayText}`
     : `Browser voice draft unavailable for ${artifact.displayText}`;
+  const hasMoreDetails = variants.length > 0 || Boolean(extraSections);
+  const spellingLabel = artifact.identity && artifact.identity.format.kind !== 'given-only' ? 'Base spelling' : 'Spelling';
 
   return (
     <aside className="selected-name-panel panel" aria-labelledby={`artifact-heading-${artifact.id}`}>
@@ -84,62 +98,85 @@ export function NameArtifactInspector({ artifact, eyebrow = 'Inspect', extraActi
         </div>
         <div className="selected-name-heading-tools">
           <div className="selected-name-actions" aria-label={`${artifact.displayText} selected-name actions`}>
-            <button type="button" className="secondary" aria-label={`Copy name ${artifact.displayText}`} onClick={() => copyText(artifact.displayText)}>Copy name</button>
-            <button type="button" className="secondary" aria-label={`Copy details ${artifact.displayText}`} onClick={() => copyText(detailsText(artifact, auditionCue?.displayText))}>Copy details</button>
-            <button type="button" className="secondary" aria-label={playVoiceDraftLabel} disabled={!browserSpeechAvailable} onClick={() => playVoiceDraft(voiceDraftText)}>Play voice draft</button>
+            <button type="button" className="secondary inspector-voice-action" aria-label={playVoiceDraftLabel} disabled={!browserSpeechAvailable} onClick={() => playVoiceDraft(voiceDraftText)}>Play name</button>
             {extraActions}
+          </div>
+          <div className="selected-name-utilities" aria-label={`${artifact.displayText} copy actions`}>
+            <button type="button" aria-label={`Copy name ${artifact.displayText}`} onClick={() => copyText(artifact.displayText)}>Copy name</button>
+            <button type="button" aria-label={`Copy details ${artifact.displayText}`} onClick={() => copyText(detailsText(artifact, auditionCue?.displayText))}>Copy details</button>
           </div>
         </div>
       </header>
 
-      <div className="name-detail-grid" aria-label={`Selected details for ${artifact.displayText}`}>
-        <section className="detail-block artifact-detail-block">
-          <h3>Sound</h3>
-          <dl className="artifact-fact-list">
-            <div><dt>Sound sketch</dt><dd>{artifact.sound?.transcription ?? 'Not available'}</dd></div>
-          </dl>
+      <div className="inspector-primary" aria-label={`Selected details for ${artifact.displayText}`}>
+        <section className="inspector-essential inspector-sound" aria-labelledby={`sound-heading-${artifact.id}`}>
+          <div className="inspector-essential-heading">
+            <h3 id={`sound-heading-${artifact.id}`}>Sound</h3>
+            {artifact.identityAudition && artifact.identityAudition.parts.length > 1 ? <span>whole name</span> : null}
+          </div>
+          <p className="inspector-sound-description">{soundDescription ?? 'Sound not available'}</p>
+          {soundParts.length > 0 ? (
+            <ul className="inspector-sound-parts" aria-label={`${artifact.displayText} modeled sound parts`}>
+              {soundParts.map((part) => (
+                <li key={`${artifact.id}-${part.index}-${part.sourceNameId}`}>
+                  <strong>{part.value}</strong>
+                  <span>{part.transcription}</span>
+                </li>
+              ))}
+            </ul>
+          ) : artifact.sound ? <p className="inspector-transcription">{artifact.sound.transcription}</p> : null}
         </section>
 
-        <section className="detail-block artifact-detail-block">
-          <h3>Selected spelling</h3>
-          <dl className="artifact-fact-list">
-            <div><dt>Spelling</dt><dd>{artifact.spelling?.text ?? artifact.displayText}</dd></div>
-          </dl>
+        <section className="inspector-essential inspector-spelling" aria-labelledby={`spelling-heading-${artifact.id}`}>
+          <div className="inspector-essential-heading">
+            <h3 id={`spelling-heading-${artifact.id}`}>{spellingLabel}</h3>
+            {artifact.identity && artifact.identity.format.kind !== 'given-only' ? <span>generated core</span> : null}
+          </div>
+          <p className="inspector-spelling-primary">{artifact.spelling?.text ?? artifact.displayText}</p>
+          {otherSpellings.length > 0 ? (
+            <div className="inspector-alternates">
+              <span>Alternates</span>
+              <ul aria-label={`${artifact.displayText} other spellings`}>
+                {otherSpellings.map((candidate) => <li key={`${artifact.id}-${candidate.id}`}>{candidate.text}</li>)}
+              </ul>
+            </div>
+          ) : null}
         </section>
-
-        {otherSpellings.length > 0 ? (
-          <details className="detail-block artifact-detail-block">
-            <summary>Other spellings ({otherSpellings.length})</summary>
-            <ul className="variants detail-variants" aria-label={`${artifact.displayText} other spellings`}>
-              {otherSpellings.map((candidate) => <li key={`${artifact.id}-${candidate.id}`}><span>{candidate.text}</span></li>)}
-            </ul>
-          </details>
-        ) : null}
-
-        <details className="detail-block artifact-detail-block">
-          <summary>Readability</summary>
-          <dl className="artifact-fact-list">
-            <div><dt>Notices</dt><dd>{analysis.readability.noticeCount}</dd></div>
-            <div><dt>Warnings</dt><dd>{analysis.readability.warningCount}</dd></div>
-          </dl>
-          {readNotes.length > 0 ? (
-            <ul className="readability-list" aria-label={`${artifact.displayText} readability notes`}>
-              {readNotes.map((diagnostic) => <li key={`${artifact.id}-${diagnostic.id}`} className={`readability-note ${diagnostic.severity}`}><strong>{diagnostic.label}</strong><span>{diagnostic.detail}</span></li>)}
-            </ul>
-          ) : <p className="section-note">No deterministic read-friction notes.</p>}
-        </details>
-
-        {variants.length > 0 ? (
-          <details className="detail-block">
-            <summary>Other variants</summary>
-            <ul className="variants detail-variants" aria-label={`${artifact.displayText} variants`}>
-              {variants.map((variant) => <li key={`${artifact.id}-${variant.value}`}><span>{variant.value}</span><em>{variantMetadataLabel(variant)}</em></li>)}
-            </ul>
-          </details>
-        ) : null}
-
-        {extraSections}
       </div>
+
+      {readNotes.length > 0 ? (
+        <section className="inspector-read-note" aria-label={`${artifact.displayText} readability notes`}>
+          <span className="inspector-read-note-label">Read note</span>
+          <div>
+            {readNotes.map((diagnostic) => (
+              <p key={`${artifact.id}-${diagnostic.id}`} className={diagnostic.severity}>
+                <strong>{diagnostic.label}</strong>
+                <span>{diagnostic.detail}</span>
+              </p>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {hasMoreDetails ? (
+        <details className="inspector-more">
+          <summary>
+            <span>More details</span>
+            <small>Context, variants, structure and scoring</small>
+          </summary>
+          <div className="inspector-more-body">
+            {variants.length > 0 ? (
+              <section className="inspector-detail-group">
+                <h3>Variants</h3>
+                <ul className="variants detail-variants" aria-label={`${artifact.displayText} variants`}>
+                  {variants.map((variant) => <li key={`${artifact.id}-${variant.value}`}><span>{variant.value}</span><em>{variantMetadataLabel(variant)}</em></li>)}
+                </ul>
+              </section>
+            ) : null}
+            {extraSections}
+          </div>
+        </details>
+      ) : null}
     </aside>
   );
 }
