@@ -78,7 +78,8 @@ export function NameArtifactInspector({ artifact, eyebrow = 'Inspect', extraActi
   const variants = artifact.variants ?? [];
   const auditionCue = artifact.sound ? renderAuditionCue(artifact.sound.sequence) : undefined;
   const soundParts = modeledSoundParts(artifact);
-  const soundDescription = artifact.identityAudition?.displayText ?? auditionCue?.displayText ?? artifact.sound?.transcription;
+  const showComponentSounds = Boolean(artifact.identity && artifact.identity.format.kind !== 'given-only' && soundParts.length > 0);
+  const soundDescription = auditionCue?.displayText ?? artifact.sound?.transcription;
   const voiceDraftText = browserVoiceDraftText(artifact, auditionCue?.speechText);
   const browserSpeechAvailable = canUseBrowserSpeech();
   const displayName = protectInitialBreaks(artifact.displayText);
@@ -86,7 +87,7 @@ export function NameArtifactInspector({ artifact, eyebrow = 'Inspect', extraActi
   const playVoiceDraftLabel = browserSpeechAvailable
     ? `Play browser voice draft for ${artifact.displayText}`
     : `Browser voice draft unavailable for ${artifact.displayText}`;
-  const hasMoreDetails = variants.length > 0 || Boolean(extraSections);
+  const hasMoreDetails = readNotes.length > 0 || variants.length > 0 || Boolean(extraSections);
   const spellingLabel = artifact.identity && artifact.identity.format.kind !== 'given-only' ? 'Base spelling' : 'Spelling';
 
   return (
@@ -112,19 +113,23 @@ export function NameArtifactInspector({ artifact, eyebrow = 'Inspect', extraActi
         <section className="inspector-essential inspector-sound" aria-labelledby={`sound-heading-${artifact.id}`}>
           <div className="inspector-essential-heading">
             <h3 id={`sound-heading-${artifact.id}`}>Sound</h3>
-            {artifact.identityAudition && artifact.identityAudition.parts.length > 1 ? <span>whole name</span> : null}
+            {showComponentSounds ? <span>modeled parts</span> : null}
           </div>
-          <p className="inspector-sound-description">{soundDescription ?? 'Sound not available'}</p>
-          {soundParts.length > 0 ? (
-            <ul className="inspector-sound-parts" aria-label={`${artifact.displayText} modeled sound parts`}>
+          {showComponentSounds ? (
+            <ul className="inspector-sound-parts inspector-sound-components" aria-label={`${artifact.displayText} modeled sound parts`}>
               {soundParts.map((part) => (
                 <li key={`${artifact.id}-${part.index}-${part.sourceNameId}`}>
                   <strong>{part.value}</strong>
-                  <span>{part.transcription}</span>
+                  <span>{part.displayText}</span>
                 </li>
               ))}
             </ul>
-          ) : artifact.sound ? <p className="inspector-transcription">{artifact.sound.transcription}</p> : null}
+          ) : (
+            <>
+              <p className="inspector-sound-description">{soundDescription ?? 'Sound not available'}</p>
+              {artifact.sound ? <p className="inspector-transcription">{artifact.sound.transcription}</p> : null}
+            </>
+          )}
         </section>
 
         <section className="inspector-essential inspector-spelling" aria-labelledby={`spelling-heading-${artifact.id}`}>
@@ -144,27 +149,26 @@ export function NameArtifactInspector({ artifact, eyebrow = 'Inspect', extraActi
         </section>
       </div>
 
-      {readNotes.length > 0 ? (
-        <section className="inspector-read-note" aria-label={`${artifact.displayText} readability notes`}>
-          <span className="inspector-read-note-label">Read note</span>
-          <div>
-            {readNotes.map((diagnostic) => (
-              <p key={`${artifact.id}-${diagnostic.id}`} className={diagnostic.severity}>
-                <strong>{diagnostic.label}</strong>
-                <span>{diagnostic.detail}</span>
-              </p>
-            ))}
-          </div>
-        </section>
-      ) : null}
-
       {hasMoreDetails ? (
         <details className="inspector-more">
           <summary>
             <span>More details</span>
-            <small>Context, variants, structure and scoring</small>
+            <small>Read notes, context, variants and scoring</small>
           </summary>
           <div className="inspector-more-body">
+            {readNotes.length > 0 ? (
+              <section className="inspector-detail-group inspector-read-details" aria-label={`${artifact.displayText} readability notes`}>
+                <h3>Read notes</h3>
+                <div className="inspector-read-note-list">
+                  {readNotes.map((diagnostic) => (
+                    <p key={`${artifact.id}-${diagnostic.id}`} className={diagnostic.severity}>
+                      <strong>{diagnostic.label}</strong>
+                      <span>{diagnostic.detail}</span>
+                    </p>
+                  ))}
+                </div>
+              </section>
+            ) : null}
             {variants.length > 0 ? (
               <section className="inspector-detail-group">
                 <h3>Variants</h3>
