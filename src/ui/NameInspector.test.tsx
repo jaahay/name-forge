@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { renderToString } from 'react-dom/server';
 import { generateEnsemble } from '../engine/ensemble';
-import type { NameArtifact } from '../engine/nameArtifact';
+import { toNameArtifact } from '../engine/nameArtifact';
 import { createDefaultRegistry } from '../engine/registry';
 import type { GeneratedName, GenerationSettings } from '../engine/types';
 import { browserVoiceDraftText } from './NameArtifactInspector';
@@ -21,8 +21,8 @@ const settings: GenerationSettings = {
 
 type SpellingCandidate = GeneratedName['spellingCandidates'][number];
 
-function fixtureName(): GeneratedName {
-  const ensemble = generateEnsemble(settings, createDefaultRegistry());
+function fixtureName(overrides: Partial<GenerationSettings> = {}): GeneratedName {
+  const ensemble = generateEnsemble({ ...settings, ...overrides }, createDefaultRegistry());
   const [name] = ensemble.names;
 
   expect(name).toBeDefined();
@@ -69,55 +69,97 @@ function renderInspector(name: GeneratedName, isLocked = false): string {
 }
 
 describe('NameInspector', () => {
-  it('keeps the primary sound and spelling surfaces concise', () => {
+  it('keeps the primary inspector focused on sound and spelling', () => {
     const name = withSpellingCandidateCount(fixtureName(), 4);
     const html = renderInspector(name);
 
-    expect(html).toContain('Sound sketch');
-    expect(html).toContain('Selected spelling');
-    expect(html).toContain('Other spellings (3)');
+    expect(html).toContain('inspector-primary');
+    expect(html).toContain('Sound');
+    expect(html).toContain('Spelling');
     expect(html).toContain('SameSound2');
     expect(html).toContain('SameSound4');
+    expect(html).toContain('Alternates');
 
-    for (const removed of ['Pronunciation guide', 'Playback', 'Technical sound structure', 'Preference rank', 'Supported spellings', 'Next option', 'Spelling display cap', 'preference rank 2']) {
+    for (const removed of ['Other spellings (', 'Pronunciation guide', 'Playback', 'Technical sound structure', 'Preference rank', 'Supported spellings', 'Next option', 'Spelling display cap']) {
       expect(html).not.toContain(removed);
     }
   });
 
-  it('renders secondary inspector information as closed disclosures', () => {
+  it('uses one disclosure for all secondary inspector information', () => {
     const html = renderInspector(fixtureName());
 
-    for (const summary of ['Readability', 'Cast context', 'Generated shape', 'Score detail', 'Name parts']) {
-      expect(html).toContain(`<summary>${summary}</summary>`);
+    expect(html).toContain('More details');
+    expect(html).toContain('Cast context');
+    expect(html).toContain('Composition');
+    expect(html).toContain('Score detail');
+    expect((html.match(/<summary/g) ?? [])).toHaveLength(1);
+
+    for (const oldDisclosure of ['<summary>Readability</summary>', '<summary>Other variants</summary>', '<summary>Cast context</summary>', '<summary>Generated shape</summary>', '<summary>Score detail</summary>', '<summary>Name parts</summary>', '<summary>Role cue</summary>']) {
+      expect(html).not.toContain(oldDisclosure);
     }
-    expect(html).not.toContain('<details open');
   });
 
-  it('renders selected-name actions in Inspect', () => {
+  it('shows whole-name sound and every modeled generated sound part for composed identities', () => {
+    const name = fixtureName({ nameFormat: 'epithet-place', seed: 'name-inspector-composed-sound' });
+    const soundParts = name.identityAudition?.parts.filter((part) => part.kind === 'sound') ?? [];
+    const html = renderInspector(name);
+
+    expect(name.identity?.format.kind).toBe('epithet-place');
+    expect(name.identityAudition).toBeDefined();
+    expect(soundParts).toHaveLength(2);
+    expect(html).toContain('whole name');
+    expect(html).toContain(name.identityAudition?.displayText ?? 'missing audition display');
+
+    for (const part of soundParts) {
+      if (part.kind !== 'sound') continue;
+      expect(html).toContain(part.value);
+      expect(html).toContain(part.transcription);
+    }
+  });
+
+  it('surfaces readability only when there is an actual note', () => {
+    const cleanName = { ...fixtureName(), readabilityDiagnostics: [] };
+    const notedName = {
+      ...cleanName,
+      readabilityDiagnostics: [{
+        id: 'test-read-note',
+        scope: 'name' as const,
+        severity: 'notice' as const,
+        label: 'Long read',
+        detail: 'This display name may take a second pass.',
+      }],
+    };
+
+    expect(renderInspector(cleanName)).not.toContain('inspector-read-note');
+    const notedHtml = renderInspector(notedName);
+    expect(notedHtml).toContain('inspector-read-note');
+    expect(notedHtml).toContain('Long read');
+    expect(notedHtml).toContain('This display name may take a second pass.');
+  });
+
+  it('renders selected-name actions with copy utilities visually separated', () => {
     const name = fixtureName();
     const html = renderInspector(name);
 
     expect(html).toContain('selected-name-actions');
-    expect(html).toContain(`${name.name} selected-name actions`);
+    expect(html).toContain('selected-name-utilities');
     expect(html).toContain(`aria-label="Copy name ${name.name}"`);
     expect(html).toContain(`aria-label="Copy details ${name.name}"`);
     expect(html).toContain('selected-name-reroll-action');
     expect(html).toContain(`aria-label="Reroll ${name.name}"`);
-    expect(html).toContain('Reroll this name');
+    expect(html).toContain('>Reroll</button>');
     expect(html).toContain(`aria-label="Lock ${name.name}"`);
     expect(html).toContain('aria-pressed="false"');
     expect(html).toContain(`aria-label="Browser voice draft unavailable for ${name.name}"`);
-    expect(html).toContain('Play voice draft');
+    expect(html).toContain('Play name');
   });
 
-  it('uses the full displayed identity for identity voice drafts', () => {
-    const artifact = {
-      id: 'identity-voice-test',
-      displayText: 'Archivist Na of Westmere',
-      identity: {},
-    } as unknown as NameArtifact;
+  it('uses the persisted phrase audition for full identity voice drafts', () => {
+    const composed = fixtureName({ nameFormat: 'given-family', seed: 'name-inspector-voice-phrase' });
+    const artifact = toNameArtifact(composed);
 
-    expect(browserVoiceDraftText(artifact, 'na')).toBe('Archivist Na of Westmere');
+    expect(artifact.identityAudition).toBeDefined();
+    expect(browserVoiceDraftText(artifact, 'fallback')).toBe(artifact.identityAudition?.speechText);
     expect(browserVoiceDraftText({ id: 'simple', displayText: 'Na' }, 'nah')).toBe('nah');
   });
 
