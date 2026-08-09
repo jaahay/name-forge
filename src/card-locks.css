@@ -58,18 +58,28 @@
 }
 
 .name-card-actions {
-  position: relative;
-  z-index: 2;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  z-index: 3;
   display: flex;
   gap: 0.45rem;
   align-items: center;
   justify-content: flex-start;
-  margin: 0 0.88rem 0.82rem;
+  margin: 0;
+  padding: 0 0.88rem 0.82rem;
+  pointer-events: none;
 }
 
 .name-card-actions .lock-toggle {
   flex: 0 0 auto;
   margin: 0;
+  pointer-events: auto;
+}
+
+.name-card-select-control {
+  min-height: 100%;
+  padding-bottom: 3.35rem;
 }
 
 .name-card-lock-control {
