@@ -45,8 +45,8 @@
   font-size: 0.68rem;
 }
 
-/* Names and Inspect are two regions of one object. Keep the rail bounded so
-   changes in inspector density do not make either side visually dominant. */
+/* Names and Inspect are two regions of one object. Their horizontal split stays
+   familiar; the desktop frame below keeps their vertical extent stable. */
 .results-layout.inspector-rail-layout {
   grid-template-columns: minmax(0, 1fr);
   gap: 0.7rem;
@@ -55,7 +55,7 @@
 .cast-workbench-surface {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: clamp(250px, 27vw, 320px) minmax(0, 1fr);
+  grid-template-columns: minmax(215px, 248px) minmax(0, 1fr);
   gap: 0;
   padding: 0;
   overflow: hidden;
@@ -324,6 +324,69 @@
 .cast-review .sound-relationships {
   padding-top: 0.7rem;
   border-top-color: rgba(240, 184, 95, 0.1);
+}
+
+/* On desktop the workbench is a shared-height master/detail frame. The roster
+   and inspector keep the same vertical extent; opening secondary details uses
+   the inspector's remaining space instead of making that column arbitrarily
+   longer than the roster. */
+@media (min-width: 901px) {
+  .cast-workbench-surface {
+    height: clamp(34rem, 60vh, 46rem);
+    min-height: 0;
+  }
+
+  .cast-workbench-surface .name-rail {
+    grid-template-rows: auto minmax(0, 1fr);
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .cast-workbench-surface .name-grid {
+    min-height: 0;
+    overflow-y: auto;
+    padding-right: 0.18rem;
+    scrollbar-gutter: stable;
+  }
+
+  .cast-workbench-inspector {
+    display: flex;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .cast-workbench-surface .selected-name-panel,
+  .cast-workbench-surface .inspector-empty-panel {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 0;
+  }
+
+  .cast-workbench-surface .selected-name-panel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .cast-workbench-surface .selected-name-panel > .inspector-more {
+    margin-top: auto;
+    min-height: 0;
+  }
+
+  .cast-workbench-surface .selected-name-panel > .inspector-more[open] {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    margin-top: 0;
+  }
+
+  .cast-workbench-surface .selected-name-panel > .inspector-more[open] .inspector-more-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+    overscroll-behavior: contain;
+  }
 }
 
 @media (max-width: 900px) {
