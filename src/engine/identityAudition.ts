@@ -2,15 +2,13 @@ import type { NameAuditionCue } from './audition';
 import { createAuditionPhonology } from './auditionPhonology';
 import { renderBrowserAuditionCue } from './browserAuditionProjection';
 import type { SegmentSequence } from './soundGenerator';
-import type { GeneratedName, GeneratedNamePart, NameIdentity, NameIdentityPhrasePart, NamePartRole } from './types';
+import type { GeneratedNamePart, NameIdentity, NameIdentityPhrasePart, NamePartRole } from './types';
 
 export type IdentityAuditionPhraseContract = 'IdentityAuditionPhrase';
 export type IdentityAuditionPhraseSource = 'name-identity';
 export type IdentityAuditionPartKind = 'sound' | 'text' | 'literal';
 export type IdentityAuditionPartRole = NamePartRole | 'literal';
 export type IdentityAuditionTextSource = 'generated-sound' | 'identity-text' | 'format-literal';
-
-export type IdentityAuditionSourceName = Pick<GeneratedName, 'id' | 'name' | 'sound'>;
 
 export interface IdentityAuditionBasePart {
   readonly index: number;
@@ -142,10 +140,6 @@ export function isIdentityAuditionPhrase(value: unknown): value is IdentityAudit
     && value.parts.every(isIdentityAuditionPart);
 }
 
-function sourceNameById(sourceNames: readonly IdentityAuditionSourceName[]): ReadonlyMap<string, IdentityAuditionSourceName> {
-  return new Map(sourceNames.map((sourceName) => [sourceName.id, sourceName]));
-}
-
 function identityPartById(identity: NameIdentity): ReadonlyMap<string, GeneratedNamePart> {
   return new Map(identity.parts.map((part) => [part.id, part]));
 }
@@ -193,7 +187,6 @@ function renderIdentityPart(
   index: number,
   phrasePart: NameIdentityPhrasePart,
   partsById: ReadonlyMap<string, GeneratedNamePart>,
-  sources: ReadonlyMap<string, IdentityAuditionSourceName>,
 ): IdentityAuditionPart | undefined {
   if (phrasePart.kind === 'literal') {
     return renderLiteralPart(index, phrasePart.value);
@@ -202,10 +195,8 @@ function renderIdentityPart(
   const part = partsById.get(phrasePart.partId);
   if (!part) return undefined;
 
-  const sourceName = sources.get(part.sourceNameId);
-
-  if (sourceName && isSoundBackedRole(part.role) && part.value === sourceName.name) {
-    const cue = renderNameAuditionCue(sourceName.sound.sequence);
+  if (part.generation && isSoundBackedRole(part.role) && part.value === part.sourceName) {
+    const cue = renderNameAuditionCue(part.generation.sound.sequence);
 
     return {
       index,
@@ -217,8 +208,8 @@ function renderIdentityPart(
       speechSource: 'generated-sound',
       displaySource: 'generated-sound',
       sourceNameId: part.sourceNameId,
-      sourceName: sourceName.name,
-      transcription: sourceName.sound.transcription,
+      sourceName: part.sourceName,
+      transcription: part.generation.sound.transcription,
       cue,
     };
   }
@@ -234,16 +225,12 @@ function phraseText(parts: readonly IdentityAuditionPart[], field: 'speechText' 
   }, '');
 }
 
-export function renderIdentityAuditionPhrase(
-  identity: NameIdentity,
-  sourceNames: readonly IdentityAuditionSourceName[],
-): IdentityAuditionPhrase {
-  const sources = sourceNameById(sourceNames);
+export function renderIdentityAuditionPhrase(identity: NameIdentity): IdentityAuditionPhrase {
   const partsById = identityPartById(identity);
   const parts: IdentityAuditionPart[] = [];
 
   for (const phrasePart of identity.phraseParts) {
-    const auditionPart = renderIdentityPart(parts.length, phrasePart, partsById, sources);
+    const auditionPart = renderIdentityPart(parts.length, phrasePart, partsById);
     if (auditionPart) parts.push(auditionPart);
   }
 
