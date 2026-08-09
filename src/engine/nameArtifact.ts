@@ -1,4 +1,4 @@
-import type { IdentityAuditionPhrase } from './identityAudition';
+import { isIdentityAuditionPhrase, type IdentityAuditionPhrase } from './identityAudition';
 import type { SoundCandidate } from './soundGenerator';
 import type { SoundProfile } from './soundProfile';
 import type { RankedSpellingCandidate } from './spellingGenerator';
@@ -122,7 +122,7 @@ export function isNameArtifact(value: unknown): value is NameArtifact {
     && (value.soundProfile === undefined || isRecord(value.soundProfile))
     && (value.silhouette === undefined || isRecord(value.silhouette))
     && (value.identity === undefined || isRecord(value.identity))
-    && (value.identityAudition === undefined || isRecord(value.identityAudition))
+    && (value.identityAudition === undefined || isIdentityAuditionPhrase(value.identityAudition))
     && (value.role === undefined || isRecord(value.role))
     && (value.roleInfluence === undefined || isRecord(value.roleInfluence));
 }
