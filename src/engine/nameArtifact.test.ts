@@ -16,11 +16,6 @@ const generatedName: GeneratedName = {
   soundProfile: {
     contract: 'SoundProfile',
     version: 1,
-    id: 'profile-soft',
-    source: {
-      kind: 'style-input',
-      compiler: 'name-forge:style-compiler@0.1.0',
-    },
     targets: {
       length: 'medium',
       syllableCount: {
@@ -45,13 +40,11 @@ const generatedName: GeneratedName = {
     contract: 'SoundCandidate',
     version: 1,
     id: 'sound-aurel',
-    profileId: 'profile-soft',
     cadence: 'balanced',
     sequence: {
       contract: 'SegmentSequence',
       version: 1,
       id: 'sequence-aurel',
-      profileId: 'profile-soft',
       segments: ['l', 'a', 'r'],
       syllables: [
         {
@@ -75,7 +68,6 @@ const generatedName: GeneratedName = {
     version: 1,
     id: 'spelling-aurel-primary',
     soundCandidateId: 'sound-aurel',
-    profileId: 'profile-soft',
     sequenceId: 'sequence-aurel',
     text: 'Aurel',
     mappings: [
@@ -116,7 +108,6 @@ const generatedName: GeneratedName = {
       version: 1,
       id: 'spelling-aurel-primary',
       soundCandidateId: 'sound-aurel',
-      profileId: 'profile-soft',
       sequenceId: 'sequence-aurel',
       text: 'Aurel',
       mappings: [],
@@ -128,7 +119,6 @@ const generatedName: GeneratedName = {
       version: 1,
       id: 'spelling-orel-secondary',
       soundCandidateId: 'sound-aurel',
-      profileId: 'profile-soft',
       sequenceId: 'sequence-aurel',
       text: 'Orel',
       mappings: [],
