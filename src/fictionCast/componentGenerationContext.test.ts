@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import {
-  resolveFictionCastComponentGenerationPolicy,
-  supportingComponentKindForFormat,
-} from './componentGenerationPolicy';
 import type { GenerationSettings } from '../engine/types';
+import {
+  resolveFictionCastComponentGenerationContext,
+  supportingComponentKindForFormat,
+} from './componentGenerationContext';
 
 const settings: GenerationSettings = {
   castSize: 4,
@@ -13,10 +13,10 @@ const settings: GenerationSettings = {
   culturalAnchoring: 0.65,
   orthographicWeirdness: 0.25,
   stylePackId: 'british-literary-fantasy',
-  seed: 'component-policy',
+  seed: 'component-context',
 };
 
-describe('Fiction Cast component generation policy', () => {
+describe('Fiction Cast component generation context', () => {
   it('maps compound formats to semantic supporting component kinds', () => {
     expect(supportingComponentKindForFormat('given-family')).toBe('family');
     expect(supportingComponentKindForFormat('initials-family')).toBe('family');
@@ -26,9 +26,9 @@ describe('Fiction Cast component generation policy', () => {
   });
 
   it('preserves current generation settings while carrying product component semantics', () => {
-    const given = resolveFictionCastComponentGenerationPolicy(settings, undefined, 'given');
-    const family = resolveFictionCastComponentGenerationPolicy(settings, undefined, 'family');
-    const place = resolveFictionCastComponentGenerationPolicy(settings, undefined, 'place');
+    const given = resolveFictionCastComponentGenerationContext(settings, undefined, 'given');
+    const family = resolveFictionCastComponentGenerationContext(settings, undefined, 'family');
+    const place = resolveFictionCastComponentGenerationContext(settings, undefined, 'place');
 
     expect(given.kind).toBe('given');
     expect(family.kind).toBe('family');

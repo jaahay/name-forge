@@ -4,7 +4,7 @@ export type SoundProfileCadence = 'compact' | 'balanced' | 'open' | 'rolling';
 
 interface CompiledStyleSource {
   readonly kind: 'style-input';
-  readonly compiler: 'name-forge:style-compiler@0.1.0';
+  readonly compiler: string;
 }
 
 interface SoundProfileTargets {

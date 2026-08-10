@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
+import { compileStyle } from '../styleCompilation/styleCompiler';
 import { createSeededRandom } from './random';
 import { generateSound } from './soundGenerator';
 import { generateRankedSpellingCandidates, generateSpellingCandidatePool, rankSpellingCandidatePool } from './spellingGenerator';
-import { compileStyle } from './styleCompiler';
 
 describe('spelling generation and ranking', () => {
   it('generates every viable spelling projection for one sound candidate as a candidate pool', () => {
@@ -29,10 +29,10 @@ describe('spelling generation and ranking', () => {
     expect(pool.candidates[0]).toEqual({
       contract: 'SpellingCandidate',
       version: 1,
-      id: 'spelling-candidate:sound-candidate:sound-profile:balanced:medium:balanced:t-o-l-w-ay:tolway',
-      soundCandidateId: 'sound-candidate:sound-profile:balanced:medium:balanced:t-o-l-w-ay',
-      profileId: 'sound-profile:balanced:medium:balanced',
-      sequenceId: 'segment-sequence:sound-profile:balanced:medium:balanced:t-o-l-w-ay',
+      id: `spelling-candidate:${sound.id}:tolway`,
+      soundCandidateId: sound.id,
+      profileId: profile.id,
+      sequenceId: sound.sequence.id,
       text: 'Tolway',
       mappings: [
         {

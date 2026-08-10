@@ -4,7 +4,7 @@ import type { CastRoleAssignment, GenerationSettings, NameFormatKind } from '../
 export type FictionCastSoundComponentKind = 'given' | 'family' | 'place';
 export type MaterializedComponentFormat = Exclude<NameFormatKind, 'mixed'>;
 
-export interface FictionCastComponentGenerationPolicy {
+export interface FictionCastComponentGenerationContext {
   readonly kind: FictionCastSoundComponentKind;
   readonly settings: GenerationSettings;
 }
@@ -15,11 +15,11 @@ export function supportingComponentKindForFormat(format: MaterializedComponentFo
   return undefined;
 }
 
-export function resolveFictionCastComponentGenerationPolicy(
+export function resolveFictionCastComponentGenerationContext(
   settings: GenerationSettings,
   role: CastRoleAssignment | undefined,
   kind: FictionCastSoundComponentKind,
-): FictionCastComponentGenerationPolicy {
+): FictionCastComponentGenerationContext {
   return {
     kind,
     settings: roleInfluencedSettings(settings, role),

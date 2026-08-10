@@ -1,16 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import type { SoundProfile } from './soundProfile';
-import { compileStyle, type StyleInput } from './styleCompiler';
+import type { SoundProfile } from '../engine/soundProfile';
+import { basicStyleCompiler, compileStyle, type StyleCompiler, type StyleInput } from './styleCompiler';
 
 describe('compileStyle', () => {
   it('compiles the default style input into a deterministic standalone SoundProfile', () => {
     const input: StyleInput = {};
     const profile: SoundProfile = compileStyle(input);
 
-    expect(profile).toEqual({
+    expect(profile).toMatchObject({
       contract: 'SoundProfile',
       version: 1,
-      id: 'sound-profile:balanced:medium:balanced',
       source: {
         kind: 'style-input',
         compiler: 'name-forge:style-compiler@0.1.0',
@@ -35,6 +34,9 @@ describe('compileStyle', () => {
         clusterTolerance: 0.22,
       },
     });
+    expect(profile.id).toMatch(/^[0-9a-f]{8}$/);
+    expect(profile.id).toBe(compileStyle(input).id);
+    expect(profile.id).not.toContain('balanced');
   });
 
   it('keeps user-facing style input ergonomic while compiling internal sound targets', () => {
@@ -45,7 +47,10 @@ describe('compileStyle', () => {
     };
     const profile = compileStyle(input);
 
-    expect(profile.id).toBe('sound-profile:lyrical:long:distinctive');
+    expect(profile.id).toMatch(/^[0-9a-f]{8}$/);
+    expect(profile.id).not.toContain('lyrical');
+    expect(profile.id).not.toContain('long');
+    expect(profile.id).not.toContain('distinctive');
     expect(profile.targets).toEqual({
       length: 'long',
       syllableCount: {
@@ -67,5 +72,14 @@ describe('compileStyle', () => {
     });
     expect(Object.prototype.hasOwnProperty.call(profile, 'lexicon')).toBe(false);
     expect(Object.prototype.hasOwnProperty.call(profile.source, 'job')).toBe(false);
+  });
+
+  it('exposes style compilation as a generic style-to-profile contract', () => {
+    const compiler: StyleCompiler<{ mood: 'lyrical' }> = {
+      compile: ({ mood }) => compileStyle({ feel: mood }),
+    };
+
+    expect(compiler.compile({ mood: 'lyrical' }).targets.texture).toBe('fluid');
+    expect(basicStyleCompiler.compile({ feel: 'gentle' })).toEqual(compileStyle({ feel: 'gentle' }));
   });
 });
