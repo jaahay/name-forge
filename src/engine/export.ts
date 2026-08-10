@@ -9,7 +9,7 @@ export interface ExportedSpellingCandidate { id: string; text: string; rank: num
 export interface ExportedSelectedSpelling extends ExportedSpellingCandidate { selected: true; }
 export interface ExportedSound { profile: SoundProfile; candidateId: string; sequenceId: string; transcription: string; selectedSpelling: ExportedSelectedSpelling; spellingCandidates: ExportedSpellingCandidate[]; }
 export interface ExportedName { id: string; name: string; role?: string; roleInfluence?: ExportedRoleInfluence; readabilityDiagnostics: ExportedReadabilityDiagnostic[]; score: number; scores: GeneratedName['scores']; sound: ExportedSound; silhouette: Pick<NameSilhouette, 'syllableCount' | 'stressPattern' | 'rhythm' | 'rarityBand' | 'texture' | 'targetNovelty' | 'targetLength'>; format: string; parts: ExportedNamePart[]; variants: ExportedNameVariant[]; seed: string; warnings: string[]; }
-export interface CastExportPayload { exportVersion: 'name-forge.cast.v1'; generatedBy: 'Name Forge'; seed: string; settings: GeneratedEnsemble['settings']; sourcePack: GeneratedEnsemble['sourcePack']; diagnostics: GeneratedEnsemble['diagnostics']; names: ExportedName[]; }
+export interface CastExportPayload { exportVersion: 'name-forge.cast.v2'; generatedBy: 'Name Forge'; seed: string; settings: GeneratedEnsemble['settings']; sourcePack: GeneratedEnsemble['sourcePack']; diagnostics: GeneratedEnsemble['diagnostics']; names: ExportedName[]; }
 
 type RetainedSpellingCandidate = GeneratedName['spellingCandidates'][number];
 
@@ -50,7 +50,7 @@ function exportName(name: GeneratedName, seed: string): ExportedName {
 }
 
 export function createCastExportPayload(ensemble: GeneratedEnsemble): CastExportPayload {
-  return { exportVersion: 'name-forge.cast.v1', generatedBy: 'Name Forge', seed: ensemble.settings.seed, settings: ensemble.settings, sourcePack: ensemble.sourcePack, diagnostics: ensemble.diagnostics, names: ensemble.names.map((name) => exportName(name, ensemble.settings.seed)) };
+  return { exportVersion: 'name-forge.cast.v2', generatedBy: 'Name Forge', seed: ensemble.settings.seed, settings: ensemble.settings, sourcePack: ensemble.sourcePack, diagnostics: ensemble.diagnostics, names: ensemble.names.map((name) => exportName(name, ensemble.settings.seed)) };
 }
 
 export function serializeCastAsJson(ensemble: GeneratedEnsemble): string { return JSON.stringify(createCastExportPayload(ensemble), null, 2) + '\n'; }
