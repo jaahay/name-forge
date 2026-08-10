@@ -38,7 +38,6 @@ function fixtureName(): GeneratedName {
     id: 'sound-profile:test',
     source: {
       kind: 'style-input' as const,
-      job: 'fiction-cast' as const,
       compiler: 'name-forge:style-compiler@0.1.0' as const,
     },
     targets: {
@@ -55,10 +54,6 @@ function fixtureName(): GeneratedName {
       liquidWeight: 0.34,
       glideWeight: 0.18,
       clusterTolerance: 0.22,
-    },
-    lexicon: {
-      titles: [{ id: 'title:archivist', kind: 'title' as const, text: 'Archivist' }],
-      epithets: [{ id: 'epithet:the-ashen', kind: 'epithet' as const, text: 'the Ashen' }],
     },
   };
   const sound = {
