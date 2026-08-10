@@ -1,5 +1,5 @@
 import { FormEvent, useState } from 'react';
-import { generateEnsemble, type LockedNameSlot } from './engine/ensemble';
+import { generateEnsemble, type LockedNameSlot } from './fictionCast/ensemble';
 import {
   addNameHistoryEntries,
   clearNameHistory,
