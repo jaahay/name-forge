@@ -29,10 +29,10 @@ describe('spelling generation and ranking', () => {
     expect(pool.candidates[0]).toEqual({
       contract: 'SpellingCandidate',
       version: 1,
-      id: 'spelling-candidate:sound-candidate:sound-profile:fiction-cast:balanced:medium:balanced:t-o-l-w-ay:tolway',
-      soundCandidateId: 'sound-candidate:sound-profile:fiction-cast:balanced:medium:balanced:t-o-l-w-ay',
-      profileId: 'sound-profile:fiction-cast:balanced:medium:balanced',
-      sequenceId: 'segment-sequence:sound-profile:fiction-cast:balanced:medium:balanced:t-o-l-w-ay',
+      id: 'spelling-candidate:sound-candidate:sound-profile:balanced:medium:balanced:t-o-l-w-ay:tolway',
+      soundCandidateId: 'sound-candidate:sound-profile:balanced:medium:balanced:t-o-l-w-ay',
+      profileId: 'sound-profile:balanced:medium:balanced',
+      sequenceId: 'segment-sequence:sound-profile:balanced:medium:balanced:t-o-l-w-ay',
       text: 'Tolway',
       mappings: [
         {
