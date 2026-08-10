@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { generateEnsemble } from './ensemble';
+import { generateEnsemble } from '../fictionCast/ensemble';
 import { createCastExportPayload, serializeCastAsJson, serializeCastAsMarkdown } from './export';
 import { createDefaultRegistry } from './registry';
 import type { GenerationSettings } from './types';
