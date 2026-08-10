@@ -35,11 +35,6 @@ function fixtureName(): GeneratedName {
   const soundProfile = {
     contract: 'SoundProfile' as const,
     version: 1 as const,
-    id: 'sound-profile:test',
-    source: {
-      kind: 'style-input' as const,
-      compiler: 'name-forge:style-compiler@0.1.0' as const,
-    },
     targets: {
       length: 'medium' as const,
       syllableCount: { min: 2, max: 3, preferred: 3 },
@@ -59,15 +54,13 @@ function fixtureName(): GeneratedName {
   const sound = {
     contract: 'SoundCandidate' as const,
     version: 1 as const,
-    id: 'sound-candidate:test-profile:a-v-e-l-i-n',
-    profileId: soundProfile.id,
+    id: 'sound-candidate:a-v-e-l-i-n',
     cadence: 'balanced' as const,
     transcription: '/a.ve.lin/',
     sequence: {
       contract: 'SegmentSequence' as const,
       version: 1 as const,
-      id: 'segment-sequence:test-profile:a-v-e-l-i-n',
-      profileId: soundProfile.id,
+      id: 'segment-sequence:a-v-e-l-i-n',
       segments: ['a', 'v', 'e', 'l', 'i', 'n'] as const,
       syllables: [
         {
@@ -112,9 +105,8 @@ function fixtureName(): GeneratedName {
   const spelling = {
     contract: 'SpellingCandidate' as const,
     version: 1 as const,
-    id: 'spelling-candidate:test-profile:aveline',
+    id: 'spelling-candidate:aveline',
     soundCandidateId: sound.id,
-    profileId: sound.profileId,
     sequenceId: sound.sequence.id,
     text: 'Aveline',
     mappings: [],
