@@ -1,4 +1,4 @@
-import { generateEnsemble, type LockedNameSlot } from './engine/ensemble';
+import { generateEnsemble, type LockedNameSlot } from './fictionCast/ensemble';
 import { toNameArtifact, type NameArtifact } from './engine/nameArtifact';
 import type { SourceRegistry } from './engine/registry';
 import type { GeneratedEnsemble, GenerationSettings } from './engine/types';
