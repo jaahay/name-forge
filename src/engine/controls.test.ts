@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { generateNameFromSilhouette } from './generator';
+import { generateNameFromSilhouette } from '../naming/generator';
 import { createDefaultRegistry } from './registry';
 import type { SeededRandom } from './random';
 import { scoreName } from './scoring';
