@@ -50,7 +50,7 @@ describe('cast export serialization', () => {
     expect(firstName.roleInfluence?.profileId).toBe('role-profile:protagonist');
     expect(firstName.score).toBe(sourceName.scores.overallFit);
     expect(firstName.scores.roleFit).toBe(sourceName.scores.roleFit);
-    expect(firstName.sound.profileId).toBe(sourceName.soundProfile.id);
+    expect(firstName.sound.profile).toEqual(sourceName.soundProfile);
     expect(firstName.sound.candidateId).toBe(sourceName.sound.id);
     expect(firstName.sound.sequenceId).toBe(sourceName.sound.sequence.id);
     expect(firstName.sound.transcription).toBe(sourceName.sound.transcription);
