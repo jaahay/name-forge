@@ -11,14 +11,14 @@ describe('generateSound', () => {
     expect(sound).toEqual({
       contract: 'SoundCandidate',
       version: 1,
-      id: 'sound-candidate:sound-profile:fiction-cast:balanced:medium:balanced:t-o-l-w-ay',
-      profileId: 'sound-profile:fiction-cast:balanced:medium:balanced',
+      id: 'sound-candidate:sound-profile:balanced:medium:balanced:t-o-l-w-ay',
+      profileId: 'sound-profile:balanced:medium:balanced',
       cadence: 'open',
       sequence: {
         contract: 'SegmentSequence',
         version: 1,
-        id: 'segment-sequence:sound-profile:fiction-cast:balanced:medium:balanced:t-o-l-w-ay',
-        profileId: 'sound-profile:fiction-cast:balanced:medium:balanced',
+        id: 'segment-sequence:sound-profile:balanced:medium:balanced:t-o-l-w-ay',
+        profileId: 'sound-profile:balanced:medium:balanced',
         segments: ['t', 'o', 'l', 'w', 'ay'],
         syllables: [
           {
@@ -71,14 +71,14 @@ describe('generateSound', () => {
     expect(sound).toEqual({
       contract: 'SoundCandidate',
       version: 1,
-      id: 'sound-candidate:sound-profile:fiction-cast:lyrical:long:distinctive:r-u-r-ey-l-y-a-r',
-      profileId: 'sound-profile:fiction-cast:lyrical:long:distinctive',
+      id: 'sound-candidate:sound-profile:lyrical:long:distinctive:r-u-r-ey-l-y-a-r',
+      profileId: 'sound-profile:lyrical:long:distinctive',
       cadence: 'open',
       sequence: {
         contract: 'SegmentSequence',
         version: 1,
-        id: 'segment-sequence:sound-profile:fiction-cast:lyrical:long:distinctive:r-u-r-ey-l-y-a-r',
-        profileId: 'sound-profile:fiction-cast:lyrical:long:distinctive',
+        id: 'segment-sequence:sound-profile:lyrical:long:distinctive:r-u-r-ey-l-y-a-r',
+        profileId: 'sound-profile:lyrical:long:distinctive',
         segments: ['r', 'u', 'r', 'ey', 'l', 'y', 'a', 'r'],
         syllables: [
           {
