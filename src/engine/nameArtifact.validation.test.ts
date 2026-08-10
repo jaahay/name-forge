@@ -50,11 +50,6 @@ const validIdentityAudition = {
 const validSoundProfile = {
   contract: 'SoundProfile',
   version: 1,
-  id: 'profile-1',
-  source: {
-    kind: 'style-input',
-    compiler: 'name-forge:style-compiler@0.1.0',
-  },
   targets: {
     length: 'medium',
     syllableCount: { min: 2, max: 3, preferred: 2 },
@@ -76,13 +71,11 @@ const validSound = {
   contract: 'SoundCandidate',
   version: 1,
   id: 'sound-1',
-  profileId: 'profile-1',
   cadence: 'balanced',
   sequence: {
     contract: 'SegmentSequence',
     version: 1,
     id: 'sequence-1',
-    profileId: 'profile-1',
     segments: ['l', 'a', 'r'],
     syllables: [{
       start: 0,
@@ -105,7 +98,6 @@ const validLinkedSpelling = {
   version: 1,
   id: 'spelling-1',
   soundCandidateId: 'sound-1',
-  profileId: 'profile-1',
   sequenceId: 'sequence-1',
   text: 'Aster',
   mappings: [],
@@ -178,7 +170,7 @@ describe('isNameArtifact', () => {
     })).toBe(true);
   });
 
-  it('accepts SoundProfile provenance from a different style compiler', () => {
+  it('accepts structurally distinct pure SoundProfile provenance', () => {
     expect(isNameArtifact({
       ...validArtifact,
       identity: {
@@ -189,9 +181,10 @@ describe('isNameArtifact', () => {
             ...validIdentity.parts[0].generation,
             soundProfile: {
               ...validSoundProfile,
-              source: {
-                ...validSoundProfile.source,
-                compiler: 'example:place-name-style-compiler@1.0.0',
+              targets: {
+                ...validSoundProfile.targets,
+                texture: 'fluid',
+                distinctiveness: 0.72,
               },
             },
           },
@@ -234,7 +227,7 @@ describe('isNameArtifact', () => {
           ...validIdentity.parts[0],
           generation: {
             ...validIdentity.parts[0].generation,
-            soundProfile: { id: 'profile-1' },
+            soundProfile: { contract: 'SoundProfile', version: 1 },
           },
         }],
       },
@@ -250,7 +243,24 @@ describe('isNameArtifact', () => {
             ...validIdentity.parts[0].generation,
             spelling: {
               ...validLinkedSpelling,
-              profileId: 'profile-other',
+              soundCandidateId: 'sound-other',
+            },
+          },
+        }],
+      },
+    })).toBe(false);
+
+    expect(isNameArtifact({
+      ...validArtifact,
+      identity: {
+        ...validIdentity,
+        parts: [{
+          ...validIdentity.parts[0],
+          generation: {
+            ...validIdentity.parts[0].generation,
+            spelling: {
+              ...validLinkedSpelling,
+              sequenceId: 'sequence-other',
             },
           },
         }],
