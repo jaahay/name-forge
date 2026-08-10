@@ -1,7 +1,7 @@
 import { Children, isValidElement, type ReactElement, type ReactNode } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import { generateEnsemble } from '../engine/ensemble';
+import { generateEnsemble } from '../fictionCast/ensemble';
 import { createDefaultRegistry } from '../engine/registry';
 import type { GenerationSettings } from '../engine/types';
 import { CastHealthPanel } from './CastHealth';

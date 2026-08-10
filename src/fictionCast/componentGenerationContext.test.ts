@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
+import type { GenerationSettings } from '../engine/types';
 import {
-  resolveNameComponentGenerationContext,
+  resolveFictionCastComponentGenerationContext,
   supportingComponentKindForFormat,
 } from './componentGenerationContext';
-import type { GenerationSettings } from './types';
 
 const settings: GenerationSettings = {
   castSize: 4,
@@ -16,7 +16,7 @@ const settings: GenerationSettings = {
   seed: 'component-context',
 };
 
-describe('name component generation context', () => {
+describe('Fiction Cast component generation context', () => {
   it('maps compound formats to semantic supporting component kinds', () => {
     expect(supportingComponentKindForFormat('given-family')).toBe('family');
     expect(supportingComponentKindForFormat('initials-family')).toBe('family');
@@ -25,10 +25,10 @@ describe('name component generation context', () => {
     expect(supportingComponentKindForFormat('title-name')).toBeUndefined();
   });
 
-  it('preserves current generation settings while carrying component identity', () => {
-    const given = resolveNameComponentGenerationContext(settings, undefined, 'given');
-    const family = resolveNameComponentGenerationContext(settings, undefined, 'family');
-    const place = resolveNameComponentGenerationContext(settings, undefined, 'place');
+  it('preserves current generation settings while carrying product component semantics', () => {
+    const given = resolveFictionCastComponentGenerationContext(settings, undefined, 'given');
+    const family = resolveFictionCastComponentGenerationContext(settings, undefined, 'family');
+    const place = resolveFictionCastComponentGenerationContext(settings, undefined, 'place');
 
     expect(given.kind).toBe('given');
     expect(family.kind).toBe('family');

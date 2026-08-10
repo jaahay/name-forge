@@ -1,18 +1,18 @@
-import { createSeededRandom, clamp } from './random';
-import { castReadabilityDiagnostics, diagnoseNameReadability, readabilitySummary } from './diagnostics';
-import { createNameSilhouette } from './silhouettes';
-import { generateNameFromSilhouette } from './generator';
-import { createNameIdentity, requiresSupportingName, resolveMaterializedFormatKind } from './identity';
-import { renderIdentityAuditionPhrase } from './identityAudition';
+import { createSeededRandom, clamp } from '../engine/random';
+import { castReadabilityDiagnostics, diagnoseNameReadability, readabilitySummary } from '../engine/diagnostics';
+import { createNameSilhouette } from '../engine/silhouettes';
+import { generateNameFromSilhouette } from '../engine/generator';
+import { renderIdentityAuditionPhrase } from '../engine/identityAudition';
+import { isRoleInfluenceActive, resolveCastRole } from '../engine/roles';
+import { combineOverallFit } from '../engine/scoring';
+import type { CastRoleAssignment, GeneratedEnsemble, GeneratedName, GenerationSettings, NameSilhouette } from '../engine/types';
+import type { SourceRegistry } from '../engine/registry';
 import {
-  resolveNameComponentGenerationContext,
+  resolveFictionCastComponentGenerationContext,
   supportingComponentKindForFormat,
-  type NameComponentKind,
+  type FictionCastSoundComponentKind,
 } from './componentGenerationContext';
-import { isRoleInfluenceActive, resolveCastRole } from './roles';
-import { combineOverallFit } from './scoring';
-import type { CastRoleAssignment, GeneratedEnsemble, GeneratedName, GenerationSettings, NameSilhouette } from './types';
-import type { SourceRegistry } from './registry';
+import { createNameIdentity, requiresSupportingName, resolveMaterializedFormatKind } from './identity';
 
 export interface LockedNameSlot { index: number; name: GeneratedName; }
 
@@ -21,7 +21,7 @@ function cadenceKey(name: GeneratedName): string { return `${name.silhouette.str
 function countRepeated(values: string[]): number { const seen = new Set<string>(); let repeated = 0; for (const value of values) { if (seen.has(value)) repeated += 1; seen.add(value); } return repeated; }
 function roleSeedSegment(settings: GenerationSettings, role?: CastRoleAssignment): string { return role && isRoleInfluenceActive(settings) ? `:role-${role.role}` : ''; }
 function ensembleFitScore(candidate: GeneratedName, selected: GeneratedName[]): number { const initials = new Set(selected.map((name) => name.name.charAt(0).toLowerCase())); const endings = new Set(selected.map((name) => endingKey(name.name))); const cadences = new Set(selected.map(cadenceKey)); const rarities = new Set(selected.map((name) => name.silhouette.rarityBand)); const names = new Set(selected.map((name) => name.name.toLowerCase())); const penalty = (initials.has(candidate.name.charAt(0).toLowerCase()) ? 0.24 : 0) + (endings.has(endingKey(candidate.name)) ? 0.22 : 0) + (cadences.has(cadenceKey(candidate)) ? 0.16 : 0) + (rarities.has(candidate.silhouette.rarityBand) ? 0.08 : 0) + (names.has(candidate.name.toLowerCase()) ? 1 : 0); return clamp(1 - penalty); }
-function withEnsembleFit(candidate: GeneratedName, selected: GeneratedName[], settings: GenerationSettings): GeneratedName { const ensembleFit = ensembleFitScore(candidate, selected); const scores = { ...candidate.scores, ensembleFit }; const scoringSettings = resolveNameComponentGenerationContext(settings, candidate.role, 'given').settings; return { ...candidate, scores: { ...scores, overallFit: combineOverallFit(scores, scoringSettings) } }; }
+function withEnsembleFit(candidate: GeneratedName, selected: GeneratedName[], settings: GenerationSettings): GeneratedName { const ensembleFit = ensembleFitScore(candidate, selected); const scores = { ...candidate.scores, ensembleFit }; const scoringSettings = resolveFictionCastComponentGenerationContext(settings, candidate.role, 'given').settings; return { ...candidate, scores: { ...scores, overallFit: combineOverallFit(scores, scoringSettings) } }; }
 
 function createBalancedSilhouette(
   settings: GenerationSettings,
@@ -29,10 +29,10 @@ function createBalancedSilhouette(
   registry: SourceRegistry,
   index: number,
   role?: CastRoleAssignment,
-  componentKind: NameComponentKind = 'given',
+  componentKind: FictionCastSoundComponentKind = 'given',
 ): NameSilhouette {
   const pack = registry.getStylePack(settings.stylePackId);
-  const componentContext = resolveNameComponentGenerationContext(settings, role, componentKind);
+  const componentContext = resolveFictionCastComponentGenerationContext(settings, role, componentKind);
   const influencedSettings = componentContext.settings;
   const random = createSeededRandom(`${settings.seed}${roleSeedSegment(settings, role)}:${randomLabel}:${index}`);
   return createNameSilhouette({ ...influencedSettings, novelty: clamp(influencedSettings.novelty + ((index % 5) - 2) * 0.06) }, pack, random, index, role);
@@ -43,7 +43,7 @@ function withNameIdentity(candidate: GeneratedName, settings: GenerationSettings
   const pack = registry.getStylePack(settings.stylePackId);
   const supportingKind = supportingComponentKindForFormat(formatKind);
   const supportingContext = supportingKind
-    ? resolveNameComponentGenerationContext(settings, candidate.role, supportingKind)
+    ? resolveFictionCastComponentGenerationContext(settings, candidate.role, supportingKind)
     : undefined;
   const supportingName = requiresSupportingName(formatKind) && supportingKind && supportingContext
     ? generateNameFromSilhouette(
@@ -104,7 +104,7 @@ export function generateEnsemble(settings: GenerationSettings, registry: SourceR
     }
 
     const role = resolveCastRole(safeSettings, index);
-    const primaryContext = resolveNameComponentGenerationContext(safeSettings, role, 'given');
+    const primaryContext = resolveFictionCastComponentGenerationContext(safeSettings, role, 'given');
     const candidates = Array.from({ length: 16 }, (_, attempt) => {
       const silhouette = createBalancedSilhouette(safeSettings, `slot-${index}:attempt-${attempt}`, registry, index, role, primaryContext.kind);
       const random = createSeededRandom(`${settings.seed}${roleSeedSegment(safeSettings, role)}:name:${index}:${attempt}`);

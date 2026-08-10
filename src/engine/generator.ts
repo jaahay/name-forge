@@ -8,8 +8,8 @@ import { diagnoseNameReadability } from './diagnostics';
 import { clamp } from './random';
 import { scoreName } from './scoring';
 import { generateSound } from './soundGenerator';
-import type { StyleInput } from './styleCompiler';
-import { compileStyle } from './styleCompiler';
+import type { StyleInput } from '../styleCompilation/styleCompiler';
+import { compileStyle } from '../styleCompilation/styleCompiler';
 import { generateRankedSpellingCandidates } from './spellingGenerator';
 import { generateVariants } from './variants';
 

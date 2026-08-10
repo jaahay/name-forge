@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import { compileStyle } from '../styleCompilation/styleCompiler';
 import { createSeededRandom } from './random';
 import { generateSound, renderSegmentSequenceTranscription } from './soundGenerator';
-import { compileStyle } from './styleCompiler';
 
 describe('generateSound', () => {
   it('generates a deterministic sound candidate from a fixed seed and default SoundProfile', () => {
@@ -11,14 +11,14 @@ describe('generateSound', () => {
     expect(sound).toEqual({
       contract: 'SoundCandidate',
       version: 1,
-      id: 'sound-candidate:sound-profile:fiction-cast:balanced:medium:balanced:t-o-l-w-ay',
-      profileId: 'sound-profile:fiction-cast:balanced:medium:balanced',
+      id: `sound-candidate:${profile.id}:t-o-l-w-ay`,
+      profileId: profile.id,
       cadence: 'open',
       sequence: {
         contract: 'SegmentSequence',
         version: 1,
-        id: 'segment-sequence:sound-profile:fiction-cast:balanced:medium:balanced:t-o-l-w-ay',
-        profileId: 'sound-profile:fiction-cast:balanced:medium:balanced',
+        id: `segment-sequence:${profile.id}:t-o-l-w-ay`,
+        profileId: profile.id,
         segments: ['t', 'o', 'l', 'w', 'ay'],
         syllables: [
           {
@@ -71,14 +71,14 @@ describe('generateSound', () => {
     expect(sound).toEqual({
       contract: 'SoundCandidate',
       version: 1,
-      id: 'sound-candidate:sound-profile:fiction-cast:lyrical:long:distinctive:r-u-r-ey-l-y-a-r',
-      profileId: 'sound-profile:fiction-cast:lyrical:long:distinctive',
+      id: `sound-candidate:${profile.id}:r-u-r-ey-l-y-a-r`,
+      profileId: profile.id,
       cadence: 'open',
       sequence: {
         contract: 'SegmentSequence',
         version: 1,
-        id: 'segment-sequence:sound-profile:fiction-cast:lyrical:long:distinctive:r-u-r-ey-l-y-a-r',
-        profileId: 'sound-profile:fiction-cast:lyrical:long:distinctive',
+        id: `segment-sequence:${profile.id}:r-u-r-ey-l-y-a-r`,
+        profileId: profile.id,
         segments: ['r', 'u', 'r', 'ey', 'l', 'y', 'a', 'r'],
         syllables: [
           {

@@ -53,7 +53,6 @@ const validSoundProfile = {
   id: 'profile-1',
   source: {
     kind: 'style-input',
-    job: 'fiction-cast',
     compiler: 'name-forge:style-compiler@0.1.0',
   },
   targets: {
@@ -70,10 +69,6 @@ const validSoundProfile = {
     liquidWeight: 0.34,
     glideWeight: 0.18,
     clusterTolerance: 0.22,
-  },
-  lexicon: {
-    titles: [{ id: 'title:captain', kind: 'title', text: 'Captain' }],
-    epithets: [{ id: 'epithet:the-bright', kind: 'epithet', text: 'the Bright' }],
   },
 };
 
@@ -180,6 +175,28 @@ describe('isNameArtifact', () => {
     expect(isNameArtifact({
       ...validArtifact,
       identity: validIdentity,
+    })).toBe(true);
+  });
+
+  it('accepts SoundProfile provenance from a different style compiler', () => {
+    expect(isNameArtifact({
+      ...validArtifact,
+      identity: {
+        ...validIdentity,
+        parts: [{
+          ...validIdentity.parts[0],
+          generation: {
+            ...validIdentity.parts[0].generation,
+            soundProfile: {
+              ...validSoundProfile,
+              source: {
+                ...validSoundProfile.source,
+                compiler: 'example:place-name-style-compiler@1.0.0',
+              },
+            },
+          },
+        }, validIdentity.parts[1]],
+      },
     })).toBe(true);
   });
 

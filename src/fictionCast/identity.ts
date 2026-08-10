@@ -1,5 +1,16 @@
-import type { GeneratedName, GeneratedNamePart, NameFormatKind, NameFormatRule, NameIdentity, NameIdentityPhrasePart } from './types';
-import type { SoundProfileLexeme } from './soundProfile';
+import type {
+  GeneratedName,
+  GeneratedNamePart,
+  NameFormatKind,
+  NameFormatRule,
+  NameIdentity,
+  NameIdentityPhrasePart,
+} from '../engine/types';
+import {
+  fictionCastEpithetLexemes,
+  fictionCastTitleLexemes,
+  type FictionCastIdentityLexeme,
+} from './identityLexicon';
 
 export type MaterializedNameFormatKind = Exclude<NameFormatKind, 'mixed'>;
 
@@ -64,12 +75,12 @@ function fingerprint(value: string): number {
   return [...value].reduce((total, character, index) => total + character.charCodeAt(0) * (index + 1), 0);
 }
 
-function pickProfileLexeme(options: readonly SoundProfileLexeme[], key: string, role: SoundProfileLexeme['kind']): SoundProfileLexeme {
+function pickLexeme(options: readonly FictionCastIdentityLexeme[], key: string, role: FictionCastIdentityLexeme['kind']): FictionCastIdentityLexeme {
   const matchingOptions = options.filter((option) => option.kind === role);
   const selected = matchingOptions[fingerprint(key) % matchingOptions.length];
 
   if (!selected) {
-    throw new Error(`SoundProfile has no ${role} lexemes available for identity construction.`);
+    throw new Error(`Fiction Cast has no ${role} lexemes available for identity construction.`);
   }
 
   return selected;
@@ -84,8 +95,8 @@ export function createNameIdentity(given: GeneratedName, supportingName: Generat
   const givenPart = createPart('given', given.name, given);
   const familyPart = supportingName ? createPart('family', supportingName.name, supportingName) : undefined;
   const initialPart = createPart('initial', initialsFor(given.name), given);
-  const titleLexeme = pickProfileLexeme(given.soundProfile.lexicon.titles, given.name, 'title');
-  const epithetLexeme = pickProfileLexeme(given.soundProfile.lexicon.epithets, given.name, 'epithet');
+  const titleLexeme = pickLexeme(fictionCastTitleLexemes, given.name, 'title');
+  const epithetLexeme = pickLexeme(fictionCastEpithetLexemes, given.name, 'epithet');
   const titlePart = createPart('title', titleLexeme.text, given);
   const epithetPart = createPart('epithet', epithetLexeme.text, given);
 

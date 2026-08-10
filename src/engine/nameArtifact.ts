@@ -36,7 +36,7 @@ function isNonEmptyString(value: unknown): value is string {
   return typeof value === 'string' && value.length > 0;
 }
 
-function isFiniteNumber(value: unknown): value is number {
+function isFiniteNumber(value: unknown): boolean {
   return typeof value === 'number' && Number.isFinite(value);
 }
 
@@ -119,22 +119,14 @@ function isSoundCandidate(value: unknown): value is SoundCandidate {
   });
 }
 
-function isSoundProfileLexeme(value: unknown): boolean {
-  return isRecord(value)
-    && isNonEmptyString(value.id)
-    && (value.kind === 'title' || value.kind === 'epithet')
-    && isNonEmptyString(value.text);
-}
-
 function isSoundProfile(value: unknown): value is SoundProfile {
-  if (!isRecord(value) || !isRecord(value.source) || !isRecord(value.targets) || !isRecord(value.phonotactics) || !isRecord(value.lexicon)) return false;
+  if (!isRecord(value) || !isRecord(value.source) || !isRecord(value.targets) || !isRecord(value.phonotactics)) return false;
   if (!isRecord(value.targets.syllableCount)) return false;
 
   return value.contract === 'SoundProfile'
     && value.version === 1
     && isNonEmptyString(value.id)
     && value.source.kind === 'style-input'
-    && isNonEmptyString(value.source.job)
     && isNonEmptyString(value.source.compiler)
     && isNonEmptyString(value.targets.length)
     && Number.isInteger(value.targets.syllableCount.min)
@@ -150,11 +142,7 @@ function isSoundProfile(value: unknown): value is SoundProfile {
     && isFiniteNumber(value.phonotactics.codaWeight)
     && isFiniteNumber(value.phonotactics.liquidWeight)
     && isFiniteNumber(value.phonotactics.glideWeight)
-    && isFiniteNumber(value.phonotactics.clusterTolerance)
-    && Array.isArray(value.lexicon.titles)
-    && value.lexicon.titles.every(isSoundProfileLexeme)
-    && Array.isArray(value.lexicon.epithets)
-    && value.lexicon.epithets.every(isSoundProfileLexeme);
+    && isFiniteNumber(value.phonotactics.clusterTolerance);
 }
 
 function isGeneratedNamePartGeneration(value: unknown): boolean {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { renderToString } from 'react-dom/server';
-import { generateEnsemble } from '../engine/ensemble';
+import { generateEnsemble } from '../fictionCast/ensemble';
 import { toNameArtifact } from '../engine/nameArtifact';
 import { createDefaultRegistry } from '../engine/registry';
 import type { GeneratedName, GenerationSettings } from '../engine/types';
