@@ -36,7 +36,7 @@ function isNonEmptyString(value: unknown): value is string {
   return typeof value === 'string' && value.length > 0;
 }
 
-function isFiniteNumber(value: unknown): value is number {
+function isFiniteNumber(value: unknown): boolean {
   return typeof value === 'number' && Number.isFinite(value);
 }
 
@@ -52,6 +52,16 @@ function isSpellingCandidate(value: unknown): boolean {
     && Array.isArray(value.mappings)
     && isFiniteNumber(value.rank)
     && isFiniteNumber(value.score);
+}
+
+function isLinkedSpellingCandidate(value: unknown): value is RankedSpellingCandidate {
+  return isSpellingCandidate(value)
+    && isRecord(value)
+    && value.contract === 'SpellingCandidate'
+    && value.version === 1
+    && isNonEmptyString(value.soundCandidateId)
+    && isNonEmptyString(value.profileId)
+    && isNonEmptyString(value.sequenceId);
 }
 
 function isReadabilityDiagnostic(value: unknown): boolean {
@@ -79,10 +89,12 @@ function isNameVariant(value: unknown): boolean {
     && (value.locale === undefined || typeof value.locale === 'string');
 }
 
-function isSoundCandidate(value: unknown): boolean {
+function isSoundCandidate(value: unknown): value is SoundCandidate {
   if (!isRecord(value) || !isRecord(value.sequence)) return false;
+  if (value.contract !== 'SoundCandidate' || value.version !== 1) return false;
   if (!isNonEmptyString(value.id) || !isNonEmptyString(value.profileId)) return false;
   if (!isNonEmptyString(value.cadence) || !isNonEmptyString(value.transcription)) return false;
+  if (value.sequence.contract !== 'SegmentSequence' || value.sequence.version !== 1) return false;
   if (!isNonEmptyString(value.sequence.id) || !isNonEmptyString(value.sequence.profileId)) return false;
   if (!Array.isArray(value.sequence.segments) || !value.sequence.segments.every((segment) => typeof segment === 'string')) return false;
   if (!Array.isArray(value.sequence.syllables)) return false;
@@ -107,6 +119,75 @@ function isSoundCandidate(value: unknown): boolean {
   });
 }
 
+function isSoundProfile(value: unknown): value is SoundProfile {
+  if (!isRecord(value) || !isRecord(value.source) || !isRecord(value.targets) || !isRecord(value.phonotactics)) return false;
+  if (!isRecord(value.targets.syllableCount)) return false;
+
+  return value.contract === 'SoundProfile'
+    && value.version === 1
+    && isNonEmptyString(value.id)
+    && value.source.kind === 'style-input'
+    && value.source.compiler === 'name-forge:style-compiler@0.1.0'
+    && isNonEmptyString(value.targets.length)
+    && Number.isInteger(value.targets.syllableCount.min)
+    && Number.isInteger(value.targets.syllableCount.max)
+    && Number.isInteger(value.targets.syllableCount.preferred)
+    && isNonEmptyString(value.targets.texture)
+    && isFiniteNumber(value.targets.distinctiveness)
+    && Array.isArray(value.targets.cadences)
+    && value.targets.cadences.every(isNonEmptyString)
+    && Array.isArray(value.phonotactics.preferredSyllableShapes)
+    && value.phonotactics.preferredSyllableShapes.every(isNonEmptyString)
+    && isFiniteNumber(value.phonotactics.onsetWeight)
+    && isFiniteNumber(value.phonotactics.codaWeight)
+    && isFiniteNumber(value.phonotactics.liquidWeight)
+    && isFiniteNumber(value.phonotactics.glideWeight)
+    && isFiniteNumber(value.phonotactics.clusterTolerance);
+}
+
+function isGeneratedNamePartGeneration(value: unknown): boolean {
+  if (!isRecord(value)) return false;
+  if (!isSoundProfile(value.soundProfile) || !isSoundCandidate(value.sound) || !isLinkedSpellingCandidate(value.spelling)) return false;
+
+  return value.sound.profileId === value.soundProfile.id
+    && value.sound.sequence.profileId === value.soundProfile.id
+    && value.spelling.profileId === value.soundProfile.id
+    && value.spelling.soundCandidateId === value.sound.id
+    && value.spelling.sequenceId === value.sound.sequence.id;
+}
+
+const namePartRoles = new Set(['given', 'family', 'initial', 'title', 'epithet', 'place']);
+const materializedFormatKinds = new Set(['given-only', 'given-family', 'initials-family', 'title-name', 'epithet-place']);
+
+function isNameIdentity(value: unknown): value is NameIdentity {
+  if (!isRecord(value) || !isRecord(value.format)) return false;
+  if (!isNonEmptyString(value.displayName) || !isNonEmptyString(value.format.id) || !isNonEmptyString(value.format.kind) || !isNonEmptyString(value.format.label)) return false;
+  if (!materializedFormatKinds.has(value.format.kind)) return false;
+  if (!Array.isArray(value.parts) || !Array.isArray(value.phraseParts)) return false;
+
+  const partsById = new Map<string, string>();
+  for (const part of value.parts) {
+    if (!isRecord(part)
+      || !isNonEmptyString(part.id)
+      || !isNonEmptyString(part.role)
+      || !namePartRoles.has(part.role)
+      || !isNonEmptyString(part.value)
+      || !isNonEmptyString(part.sourceNameId)
+      || !isNonEmptyString(part.sourceName)
+      || (part.generation !== undefined && !isGeneratedNamePartGeneration(part.generation))) {
+      return false;
+    }
+    partsById.set(part.id, part.role);
+  }
+
+  return value.phraseParts.every((part) => {
+    if (!isRecord(part) || !isNonEmptyString(part.kind)) return false;
+    if (part.kind === 'literal') return isNonEmptyString(part.value);
+    if (part.kind !== 'part' || !isNonEmptyString(part.partId) || !isNonEmptyString(part.role)) return false;
+    return namePartRoles.has(part.role) && partsById.get(part.partId) === part.role;
+  });
+}
+
 export function isNameArtifact(value: unknown): value is NameArtifact {
   return isRecord(value)
     && isNonEmptyString(value.id)
@@ -119,9 +200,9 @@ export function isNameArtifact(value: unknown): value is NameArtifact {
       || (Array.isArray(value.variants) && value.variants.every(isNameVariant)))
     && (value.readabilityDiagnostics === undefined
       || (Array.isArray(value.readabilityDiagnostics) && value.readabilityDiagnostics.every(isReadabilityDiagnostic)))
-    && (value.soundProfile === undefined || isRecord(value.soundProfile))
+    && (value.soundProfile === undefined || isSoundProfile(value.soundProfile))
     && (value.silhouette === undefined || isRecord(value.silhouette))
-    && (value.identity === undefined || isRecord(value.identity))
+    && (value.identity === undefined || isNameIdentity(value.identity))
     && (value.identityAudition === undefined || isIdentityAuditionPhrase(value.identityAudition))
     && (value.role === undefined || isRecord(value.role))
     && (value.roleInfluence === undefined || isRecord(value.roleInfluence));
