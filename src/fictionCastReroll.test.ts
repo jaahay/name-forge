@@ -1,7 +1,7 @@
 import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import { generateEnsemble } from './engine/ensemble';
+import { generateEnsemble } from './fictionCast/ensemble';
 import { analyzeNameArtifactSoundRelationships } from './engine/nameArtifactAnalysis';
 import { toNameArtifact } from './engine/nameArtifact';
 import { createDefaultRegistry } from './engine/registry';
