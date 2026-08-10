@@ -12,7 +12,6 @@ describe('spelling generation and ranking', () => {
 
     expect(pool).toMatchObject({
       soundCandidateId: sound.id,
-      profileId: sound.profileId,
       sequenceId: sound.sequence.id,
     });
     expect(pool.candidates.map((candidate) => candidate.text)).toEqual([
@@ -31,7 +30,6 @@ describe('spelling generation and ranking', () => {
       version: 1,
       id: `spelling-candidate:${sound.id}:tolway`,
       soundCandidateId: sound.id,
-      profileId: profile.id,
       sequenceId: sound.sequence.id,
       text: 'Tolway',
       mappings: [
@@ -92,7 +90,6 @@ describe('spelling generation and ranking', () => {
 
     expect(ranked).toMatchObject({
       soundCandidateId: sound.id,
-      profileId: sound.profileId,
       sequenceId: sound.sequence.id,
     });
     expect(ranked.candidates.map((candidate) => candidate.text)).toEqual([
