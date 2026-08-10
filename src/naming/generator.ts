@@ -1,17 +1,17 @@
-import { selectRankedSpellingCandidate } from './candidateSelection';
-import type { SoundCandidate } from './soundGenerator';
-import type { SoundProfile } from './soundProfile';
-import type { RankedSpellingCandidate, RankedSpellingCandidateList } from './spellingGenerator';
-import type { GeneratedName, GenerationSettings, NameSilhouette, StylePack } from './types';
-import type { SeededRandom } from './random';
-import { diagnoseNameReadability } from './diagnostics';
-import { clamp } from './random';
-import { scoreName } from './scoring';
-import { generateSound } from './soundGenerator';
+import { selectRankedSpellingCandidate } from '../engine/candidateSelection';
+import type { SoundCandidate } from '../engine/soundGenerator';
+import type { SoundProfile } from '../engine/soundProfile';
+import type { RankedSpellingCandidate, RankedSpellingCandidateList } from '../engine/spellingGenerator';
+import type { GeneratedName, GenerationSettings, NameSilhouette, StylePack } from '../engine/types';
+import type { SeededRandom } from '../engine/random';
+import { diagnoseNameReadability } from '../engine/diagnostics';
+import { clamp } from '../engine/random';
+import { scoreName } from '../engine/scoring';
+import { generateSound } from '../engine/soundGenerator';
 import type { StyleInput } from '../styleCompilation/styleCompiler';
 import { compileStyle } from '../styleCompilation/styleCompiler';
-import { generateRankedSpellingCandidates } from './spellingGenerator';
-import { generateVariants } from './variants';
+import { generateRankedSpellingCandidates } from '../engine/spellingGenerator';
+import { generateVariants } from '../engine/variants';
 
 export interface NameGenerationCandidate {
   readonly soundProfile: SoundProfile;
@@ -34,7 +34,7 @@ function spellingDistinctivenessFor(settings: GenerationSettings): StyleInput['d
   return 'balanced';
 }
 
-function compileSoundProfileFromSettings(settings: GenerationSettings, silhouette: NameSilhouette): SoundProfile {
+export function compileSoundProfileForName(settings: GenerationSettings, silhouette: NameSilhouette): SoundProfile {
   return compileStyle({
     feel: feelFor(silhouette),
     length: silhouette.targetLength,
@@ -43,7 +43,7 @@ function compileSoundProfileFromSettings(settings: GenerationSettings, silhouett
 }
 
 export function generateNameCandidateFromSilhouette(silhouette: NameSilhouette, settings: GenerationSettings, random: SeededRandom): NameGenerationCandidate {
-  const soundProfile = compileSoundProfileFromSettings(settings, silhouette);
+  const soundProfile = compileSoundProfileForName(settings, silhouette);
   const sound = generateSound(soundProfile, random);
   const rankedSpellings = generateRankedSpellingCandidates(sound, soundProfile);
   const selection = selectRankedSpellingCandidate(rankedSpellings.candidates, settings);

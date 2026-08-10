@@ -29,7 +29,6 @@ export interface AuditionPhonology {
   readonly version: 1;
   readonly source: AuditionPhonologySource;
   readonly sequenceId: string;
-  readonly profileId: string;
   readonly syllables: readonly AuditionSyllable[];
 }
 
@@ -71,7 +70,6 @@ export function createAuditionPhonology(sequence: SegmentSequence): AuditionPhon
     version: 1,
     source: 'sound-sequence',
     sequenceId: sequence.id,
-    profileId: sequence.profileId,
     syllables: sequence.syllables.map((syllable, index): AuditionSyllable => {
       const stress = auditionStressFor(syllable, index, sequence.syllables.length);
 

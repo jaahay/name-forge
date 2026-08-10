@@ -1,6 +1,6 @@
 import { compileNameCriteriaToGenerationSettings } from './nameCriteriaCompiler';
 import { diagnosticsForNameCriteria } from './nameCriteriaDiagnostics';
-import { generateNameFromSilhouette } from './generator';
+import { generateNameFromSilhouette } from '../naming/generator';
 import { toNameArtifact } from './nameArtifact';
 import { deriveNameChildSeed, resolveNameRequest } from './nameRequest';
 import type { NameRequest, NameResponse } from './nameRequest';

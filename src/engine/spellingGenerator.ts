@@ -24,7 +24,6 @@ export interface SpellingCandidate {
   readonly version: 1;
   readonly id: string;
   readonly soundCandidateId: string;
-  readonly profileId: string;
   readonly sequenceId: string;
   readonly text: string;
   readonly mappings: readonly SpellingSegmentMapping[];
@@ -37,14 +36,12 @@ export interface RankedSpellingCandidate extends SpellingCandidate {
 
 export interface SpellingCandidatePool {
   readonly soundCandidateId: string;
-  readonly profileId: string;
   readonly sequenceId: string;
   readonly candidates: readonly SpellingCandidate[];
 }
 
 export interface RankedSpellingCandidateList {
   readonly soundCandidateId: string;
-  readonly profileId: string;
   readonly sequenceId: string;
   readonly candidates: readonly RankedSpellingCandidate[];
 }
@@ -239,7 +236,6 @@ function materializeCandidate(sound: SoundCandidate, candidate: PartialSpellingC
     version: 1,
     id: `spelling-candidate:${sound.id}:${spellingKey(text)}`,
     soundCandidateId: sound.id,
-    profileId: sound.profileId,
     sequenceId: sound.sequence.id,
     text,
     mappings,
@@ -288,7 +284,6 @@ function generateSpellingCandidates(sound: SoundCandidate): readonly SpellingCan
 export function generateSpellingCandidatePool(sound: SoundCandidate): SpellingCandidatePool {
   return {
     soundCandidateId: sound.id,
-    profileId: sound.profileId,
     sequenceId: sound.sequence.id,
     candidates: generateSpellingCandidates(sound),
   };
@@ -313,7 +308,6 @@ export function rankSpellingCandidatePool(
 
   return {
     soundCandidateId: pool.soundCandidateId,
-    profileId: pool.profileId,
     sequenceId: pool.sequenceId,
     candidates: maxCandidates === undefined ? ranked : ranked.slice(0, maxCandidates),
   };
