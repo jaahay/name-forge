@@ -30,7 +30,7 @@ describe('cast export serialization', () => {
     const payload = JSON.parse(firstJson) as ReturnType<typeof createCastExportPayload>;
 
     expect(secondJson).toBe(firstJson);
-    expect(payload.exportVersion).toBe('name-forge.cast.v1');
+    expect(payload.exportVersion).toBe('name-forge.cast.v2');
     expect(payload.generatedBy).toBe('Name Forge');
     expect(payload.seed).toBe(settings.seed);
     expect(payload.settings.seed).toBe(settings.seed);
