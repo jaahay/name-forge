@@ -178,6 +178,28 @@ describe('isNameArtifact', () => {
     })).toBe(true);
   });
 
+  it('accepts SoundProfile provenance from a different style compiler', () => {
+    expect(isNameArtifact({
+      ...validArtifact,
+      identity: {
+        ...validIdentity,
+        parts: [{
+          ...validIdentity.parts[0],
+          generation: {
+            ...validIdentity.parts[0].generation,
+            soundProfile: {
+              ...validSoundProfile,
+              source: {
+                ...validSoundProfile.source,
+                compiler: 'example:place-name-style-compiler@1.0.0',
+              },
+            },
+          },
+        }, validIdentity.parts[1]],
+      },
+    })).toBe(true);
+  });
+
   it('rejects malformed inspector-facing nested data', () => {
     expect(isNameArtifact({
       ...validArtifact,
