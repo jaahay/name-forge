@@ -68,7 +68,7 @@ Every sound-backed identity part retains the exact `SoundProfile` used to genera
 
 A compound identity does not have one authoritative aggregate profile merely because it has one displayed string. If a phrase contains two independently generated sound-backed parts, it retains two independently resolved profiles.
 
-Top-level legacy `GeneratedName.soundProfile` fields may continue to describe the primary generated component until the app-facing result model is simplified, but they must not be interpreted as describing the full compound identity.
+The current top-level `GeneratedName.soundProfile` field may continue to describe the primary generated component until the app-facing result model is simplified, but it must not be interpreted as describing the full compound identity.
 
 ### 6. SoundProfile contains mechanics, not semantic meaning
 
@@ -85,6 +85,12 @@ A `SoundProfile` contains the resolved sound targets and phonotactic preferences
 Compiler provenance may remain attached to a profile, but the `SoundProfile` contract does not restrict compilation to one concrete compiler implementation.
 
 The current short Fiction Cast title and epithet lists remain product-owned lexical data. They may later be replaced by generated semantic capabilities, a provider, or another lexical source without changing the generic sound contract.
+
+### 7. Ownership moves are direct while contracts are unstable
+
+The current codebase does not need compatibility aliases for internal module moves. When ownership changes, callers move to the owning module and the obsolete path is removed.
+
+Compatibility facades should be introduced only when a stable or externally consumed contract creates an actual compatibility requirement.
 
 ## Directional architecture
 
@@ -120,7 +126,8 @@ Product surfaces may compose semantic naming capabilities from a shared Name For
 - Fiction Cast may evolve given/family/place into genuinely different reusable capabilities without changing the sound engine.
 - Lexical epithets and titles remain valid product grammar parts without pretending to be generated sounds.
 - Per-part provenance remains the reliable explanation surface for compound identities.
-- The current Fiction Cast ensemble and identity implementation can live in a product-domain namespace without requiring a speculative generic compound-name abstraction.
+- Fiction Cast ensemble and identity implementation live in the product-domain namespace without compatibility re-exports from the engine namespace.
+- Style compilation lives in its own namespace without a compatibility re-export from the engine namespace.
 
 ## Deferred decisions
 
@@ -130,4 +137,4 @@ Product surfaces may compose semantic naming capabilities from a shared Name For
 - Whether request-resolution behavior ever warrants a first-class policy abstraction.
 - Whether the generic engine should later expose a reusable compound-name or grammar/composition extension.
 - Whether `SoundProfile` should eventually be a pure value without identity/compiler provenance fields.
-- Whether the legacy app-facing `GeneratedName` type should split into a primitive generated sound-name result and a composed product identity result.
+- Whether the current app-facing `GeneratedName` type should split into a primitive generated sound-name result and a composed product identity result.
