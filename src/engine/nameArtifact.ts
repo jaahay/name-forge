@@ -127,7 +127,7 @@ function isSoundProfile(value: unknown): value is SoundProfile {
     && value.version === 1
     && isNonEmptyString(value.id)
     && value.source.kind === 'style-input'
-    && value.source.compiler === 'name-forge:style-compiler@0.1.0'
+    && isNonEmptyString(value.source.compiler)
     && isNonEmptyString(value.targets.length)
     && Number.isInteger(value.targets.syllableCount.min)
     && Number.isInteger(value.targets.syllableCount.max)
