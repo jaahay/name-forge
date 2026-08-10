@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { generateEnsemble } from './ensemble';
+import { generateEnsemble } from '../fictionCast/ensemble';
+import { fictionCastEpithetLexemes, fictionCastTitleLexemes } from '../fictionCast/identityLexicon';
 import { generateNameCandidateFromSilhouette } from './generator';
 import { createSeededRandom } from './random';
 import { createDefaultRegistry } from './registry';
@@ -50,8 +51,7 @@ describe('generateEnsemble', () => {
     const candidate = generateNameCandidateFromSilhouette(silhouette, settings, createSeededRandom('candidate:sound'));
 
     expect(candidate.soundProfile.contract).toBe('SoundProfile');
-    expect(candidate.soundProfile.lexicon.titles.length).toBeGreaterThan(0);
-    expect(candidate.soundProfile.lexicon.epithets.length).toBeGreaterThan(0);
+    expect(Object.prototype.hasOwnProperty.call(candidate.soundProfile, 'lexicon')).toBe(false);
     expect(candidate.sound.contract).toBe('SoundCandidate');
     expect(candidate.sound.profileId).toBe(candidate.soundProfile.id);
     expect(candidate.sound.sequence.contract).toBe('SegmentSequence');
@@ -210,7 +210,7 @@ describe('generateEnsemble', () => {
     expect(initialPart.sourceNameId).not.toBe(familyPart.sourceNameId);
   });
 
-  it('formats titled identities from profile-licensed lexemes and generated name material', () => {
+  it('formats titled identities from product-owned lexemes and generated name material', () => {
     const first = onlyNameFor({ nameFormat: 'title-name' });
     const second = onlyNameFor({ nameFormat: 'title-name' });
     const identity = first.identity;
@@ -227,12 +227,12 @@ describe('generateEnsemble', () => {
     if (!titlePart || !givenPart) throw new Error('Expected title and given name parts.');
     expect(titlePart.role).toBe('title');
     expect(givenPart.role).toBe('given');
-    expect(first.soundProfile.lexicon.titles.map((lexeme) => lexeme.text)).toContain(titlePart.value);
+    expect(fictionCastTitleLexemes.map((lexeme) => lexeme.text)).toContain(titlePart.value);
     expect(first.name).toBe(`${titlePart.value} ${givenPart.value}`);
     expect(titlePart.sourceNameId).toBe(givenPart.sourceNameId);
   });
 
-  it('formats deterministic place-style identities from generated support material and profile-licensed epithets', () => {
+  it('formats deterministic place-style identities from generated support material and product-owned epithets', () => {
     const first = onlyNameFor({ nameFormat: 'epithet-place' });
     const second = onlyNameFor({ nameFormat: 'epithet-place' });
     const identity = first.identity;
@@ -251,7 +251,7 @@ describe('generateEnsemble', () => {
     expect(givenPart.role).toBe('given');
     expect(epithetPart.role).toBe('epithet');
     expect(placePart.role).toBe('place');
-    expect(first.soundProfile.lexicon.epithets.map((lexeme) => lexeme.text)).toContain(epithetPart.value);
+    expect(fictionCastEpithetLexemes.map((lexeme) => lexeme.text)).toContain(epithetPart.value);
     expect(placePart.value).toMatch(/^[A-Z][A-Za-z]+$/);
     expect(first.name).toBe(`${givenPart.value} ${epithetPart.value} of ${placePart.value}`);
     expect(givenPart.sourceNameId).not.toBe(placePart.sourceNameId);
