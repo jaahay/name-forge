@@ -19,7 +19,6 @@ const generatedName: GeneratedName = {
     id: 'profile-soft',
     source: {
       kind: 'style-input',
-      job: 'fiction-cast',
       compiler: 'name-forge:style-compiler@0.1.0',
     },
     targets: {
@@ -40,10 +39,6 @@ const generatedName: GeneratedName = {
       liquidWeight: 0.6,
       glideWeight: 0.2,
       clusterTolerance: 0.1,
-    },
-    lexicon: {
-      titles: [],
-      epithets: [],
     },
   },
   sound: {
