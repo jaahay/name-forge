@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import type { SegmentSequence, SegmentSyllable, SoundCandidate } from './soundGenerator';
-import type { NameIdentity } from './types';
+import type { SoundProfile } from './soundProfile';
+import type { RankedSpellingCandidate } from './spellingGenerator';
+import type { GeneratedNamePartGeneration, NameIdentity } from './types';
 import { createAuditionPhonology, renderAuditionCue, renderBrowserAuditionCue, renderIdentityAuditionPhrase } from './audition';
 
 function fixtureSyllable(syllable: Omit<SegmentSyllable, 'stress' | 'stressSource'>): SegmentSyllable {
@@ -97,6 +99,14 @@ function fixtureSound(id: string, name: string, sequence: SegmentSequence): Soun
   };
 }
 
+function fixtureGeneration(id: string, name: string, sequence: SegmentSequence): GeneratedNamePartGeneration {
+  return {
+    soundProfile: { id: sequence.profileId } as SoundProfile,
+    sound: fixtureSound(id, name, sequence),
+    spelling: { text: name } as RankedSpellingCandidate,
+  };
+}
+
 function fixtureIdentity(): NameIdentity {
   return {
     displayName: 'Aurelion the Ashen of Relmar',
@@ -106,9 +116,9 @@ function fixtureIdentity(): NameIdentity {
       label: 'Epithet/place-style name',
     },
     parts: [
-      { id: 'given-name:given', role: 'given', value: 'Aurelion', sourceNameId: 'given-name', sourceName: 'Aurelion' },
+      { id: 'given-name:given', role: 'given', value: 'Aurelion', sourceNameId: 'given-name', sourceName: 'Aurelion', generation: fixtureGeneration('sound-candidate:given', 'Aurelion', fixtureSequence()) },
       { id: 'given-name:epithet', role: 'epithet', value: 'the Ashen', sourceNameId: 'given-name', sourceName: 'Aurelion' },
-      { id: 'place-name:place', role: 'place', value: 'Relmar', sourceNameId: 'place-name', sourceName: 'Relmar' },
+      { id: 'place-name:place', role: 'place', value: 'Relmar', sourceNameId: 'place-name', sourceName: 'Relmar', generation: fixtureGeneration('sound-candidate:place', 'Relmar', fixturePlaceSequence()) },
     ],
     phraseParts: [
       { kind: 'part', partId: 'given-name:given', role: 'given' },
@@ -128,8 +138,8 @@ function fixtureRepeatedIdentity(): NameIdentity {
       label: 'Duplicate given + place test',
     },
     parts: [
-      { id: 'given-name:given', role: 'given', value: 'Aurelion', sourceNameId: 'given-name', sourceName: 'Aurelion' },
-      { id: 'place-name:place', role: 'place', value: 'Relmar', sourceNameId: 'place-name', sourceName: 'Relmar' },
+      { id: 'given-name:given', role: 'given', value: 'Aurelion', sourceNameId: 'given-name', sourceName: 'Aurelion', generation: fixtureGeneration('sound-candidate:given', 'Aurelion', fixtureSequence()) },
+      { id: 'place-name:place', role: 'place', value: 'Relmar', sourceNameId: 'place-name', sourceName: 'Relmar', generation: fixtureGeneration('sound-candidate:place', 'Relmar', fixturePlaceSequence()) },
     ],
     phraseParts: [
       { kind: 'part', partId: 'given-name:given', role: 'given' },
@@ -217,10 +227,7 @@ describe('audition cue rendering', () => {
   });
 
   it('renders phrase-level audition from materialized identity phrase parts without inventing lexical sound', () => {
-    const phrase = renderIdentityAuditionPhrase(fixtureIdentity(), [
-      { id: 'given-name', name: 'Aurelion', sound: fixtureSound('sound-candidate:given', 'Aurelion', fixtureSequence()) },
-      { id: 'place-name', name: 'Relmar', sound: fixtureSound('sound-candidate:place', 'Relmar', fixturePlaceSequence()) },
-    ]);
+    const phrase = renderIdentityAuditionPhrase(fixtureIdentity());
 
     expect(phrase).toMatchObject({
       contract: 'IdentityAuditionPhrase',
@@ -251,10 +258,7 @@ describe('audition cue rendering', () => {
   });
 
   it('uses materialized punctuation and repeated phrase references without parsing format patterns', () => {
-    const phrase = renderIdentityAuditionPhrase(fixtureRepeatedIdentity(), [
-      { id: 'given-name', name: 'Aurelion', sound: fixtureSound('sound-candidate:given', 'Aurelion', fixtureSequence()) },
-      { id: 'place-name', name: 'Relmar', sound: fixtureSound('sound-candidate:place', 'Relmar', fixturePlaceSequence()) },
-    ]);
+    const phrase = renderIdentityAuditionPhrase(fixtureRepeatedIdentity());
 
     expect(phrase.speechText).toBe('owr ehl eeohn, owr ehl eeohn of rehl mahr');
     expect(phrase.displayText).toBe('owr · EHL · ee-oh-n, owr · EHL · ee-oh-n of REHL · mahr');

@@ -31,6 +31,5 @@ export type {
   IdentityAuditionPart,
   IdentityAuditionPhrase,
   IdentityAuditionSoundPart,
-  IdentityAuditionSourceName,
   IdentityAuditionTextPart,
 } from './identityAudition';

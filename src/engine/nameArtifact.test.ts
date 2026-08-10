@@ -219,6 +219,21 @@ const generatedName: GeneratedName = {
   },
 };
 
+const generatedNameWithPartProvenance: GeneratedName = {
+  ...generatedName,
+  identity: {
+    ...requireValue(generatedName.identity, 'generated identity'),
+    parts: requireValue(generatedName.identity, 'generated identity').parts.map((part) => part.role === 'given' ? {
+      ...part,
+      generation: {
+        soundProfile: generatedName.soundProfile,
+        sound: generatedName.sound,
+        spelling: generatedName.spelling,
+      },
+    } : part),
+  },
+};
+
 describe('toNameArtifact', () => {
   it('maps display text from identity display composition when available', () => {
     const artifact = toNameArtifact(generatedName);
@@ -245,6 +260,15 @@ describe('toNameArtifact', () => {
 
     const spelling = requireValue(artifact.spelling, 'selected spelling');
     expect(spelling.text).toBe('Aurel');
+  });
+
+  it('preserves generated sound provenance owned by identity parts', () => {
+    const artifact = toNameArtifact(generatedNameWithPartProvenance);
+    const part = requireValue(artifact.identity?.parts.find((candidate) => candidate.role === 'given'), 'generated identity part');
+
+    expect(part.generation?.soundProfile).toBe(generatedName.soundProfile);
+    expect(part.generation?.sound).toBe(generatedName.sound);
+    expect(part.generation?.spelling).toBe(generatedName.spelling);
   });
 
   it('preserves ranked spelling alternatives and current selected-name diagnostics', () => {

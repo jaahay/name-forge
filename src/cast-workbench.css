@@ -45,7 +45,8 @@
   font-size: 0.68rem;
 }
 
-/* Names and Inspect are two regions of one object. */
+/* Names and Inspect are two regions of one object. Their horizontal split stays
+   familiar; the desktop frame below keeps their vertical extent stable. */
 .results-layout.inspector-rail-layout {
   grid-template-columns: minmax(0, 1fr);
   gap: 0.7rem;
@@ -86,6 +87,12 @@
   min-height: 5.65rem;
 }
 
+.cast-workbench-surface .name-card-actions {
+  right: 0;
+  left: auto;
+  justify-content: flex-end;
+}
+
 .cast-workbench-inspector {
   min-width: 0;
 }
@@ -111,9 +118,9 @@
 
 .inspector-sound-components li {
   display: grid;
-  grid-template-columns: minmax(5.8rem, auto) minmax(0, 1fr);
-  gap: 0.68rem;
-  align-items: baseline;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.7rem;
+  align-items: center;
   border: 0;
   border-radius: 0;
   padding: 0.38rem 0;
@@ -122,6 +129,14 @@
 
 .inspector-sound-components li + li {
   border-top: 1px solid rgba(255, 255, 255, 0.055);
+}
+
+.inspector-sound-component-copy {
+  display: grid;
+  grid-template-columns: minmax(5.8rem, auto) minmax(0, 1fr);
+  gap: 0.68rem;
+  align-items: baseline;
+  min-width: 0;
 }
 
 .inspector-sound-components strong {
@@ -135,6 +150,27 @@
   font-size: 0.96rem;
   font-weight: 700;
   letter-spacing: 0.01em;
+}
+
+.inspector-component-play {
+  width: auto;
+  min-width: 2.9rem;
+  border: 1px solid rgba(240, 184, 95, 0.22);
+  border-radius: 999px;
+  padding: 0.28rem 0.48rem;
+  color: #cdbd9f;
+  background: rgba(240, 184, 95, 0.055);
+  box-shadow: none;
+  font-size: 0.61rem;
+  font-weight: 850;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.inspector-component-play:hover:not(:disabled) {
+  border-color: rgba(240, 184, 95, 0.48);
+  color: #f8d99f;
+  background: rgba(240, 184, 95, 0.1);
 }
 
 .inspector-read-details {
@@ -162,6 +198,47 @@
 
 .inspector-read-note-list p.warning {
   color: #efc486;
+}
+
+/* Variants are semantic rows, not narrow pills. Keep the name readable and
+   let provenance wrap beneath it regardless of the detail-grid width. */
+.inspector-variants-group {
+  min-width: 0;
+}
+
+.inspector-more .detail-variants {
+  display: grid;
+  min-width: 0;
+}
+
+.inspector-more .detail-variants li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.12rem;
+  min-width: 0;
+  border-radius: 0.62rem;
+  padding: 0.46rem 0.52rem;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.inspector-more .detail-variants li > span {
+  display: block;
+  min-width: 0;
+  color: #e7dccb;
+  font-size: 0.78rem;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.inspector-more .detail-variants em {
+  display: block;
+  min-width: 0;
+  color: #8d806c;
+  font-size: 0.62rem;
+  line-height: 1.3;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 /* Cast diagnostics stay available without becoming a second dashboard. */
@@ -249,6 +326,69 @@
   border-top-color: rgba(240, 184, 95, 0.1);
 }
 
+/* On desktop the workbench is a shared-height master/detail frame. The roster
+   and inspector keep the same vertical extent; opening secondary details uses
+   the inspector's remaining space instead of making that column arbitrarily
+   longer than the roster. */
+@media (min-width: 901px) {
+  .cast-workbench-surface {
+    height: clamp(34rem, 60vh, 46rem);
+    min-height: 0;
+  }
+
+  .cast-workbench-surface .name-rail {
+    grid-template-rows: auto minmax(0, 1fr);
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .cast-workbench-surface .name-grid {
+    min-height: 0;
+    overflow-y: auto;
+    padding-right: 0.18rem;
+    scrollbar-gutter: stable;
+  }
+
+  .cast-workbench-inspector {
+    display: flex;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .cast-workbench-surface .selected-name-panel,
+  .cast-workbench-surface .inspector-empty-panel {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 0;
+  }
+
+  .cast-workbench-surface .selected-name-panel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .cast-workbench-surface .selected-name-panel > .inspector-more {
+    margin-top: auto;
+    min-height: 0;
+  }
+
+  .cast-workbench-surface .selected-name-panel > .inspector-more[open] {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    margin-top: 0;
+  }
+
+  .cast-workbench-surface .selected-name-panel > .inspector-more[open] .inspector-more-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+    overscroll-behavior: contain;
+  }
+}
+
 @media (max-width: 900px) {
   .configure-tray.collapsed .configure-summary-copy {
     display: grid;
@@ -278,7 +418,7 @@
 }
 
 @media (max-width: 560px) {
-  .inspector-sound-components li {
+  .inspector-sound-component-copy {
     grid-template-columns: minmax(0, 1fr);
     gap: 0.12rem;
   }

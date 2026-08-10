@@ -55,7 +55,7 @@ function withNameIdentity(candidate: GeneratedName, settings: GenerationSettings
     )
     : undefined;
   const identity = createNameIdentity(candidate, supportingName, formatKind);
-  const identityAudition = renderIdentityAuditionPhrase(identity, supportingName ? [candidate, supportingName] : [candidate]);
+  const identityAudition = renderIdentityAuditionPhrase(identity);
   const safeDisplaySlug = identity.displayName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   return {
     ...candidate,

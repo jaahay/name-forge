@@ -67,7 +67,8 @@ export interface NameSilhouette { id: string; syllableCount: number; stressPatte
 export interface NameScores { pronounceability: number; memorability: number; novelty: number; culturalAnchoring: number; orthographicNaturalness: number; styleFit: number; silhouetteFit: number; ensembleFit: number; roleFit: number; overallFit: number; }
 export interface NameVariantSource { id: string; kind: SourceKind; label: string; detail: string; }
 export interface NameVariant { value: string; kind: VariantKind; relationship: NameVariantRelationship; confidence: NameVariantConfidence; source: NameVariantSource; locale?: string; generated: boolean; ruleId: string; }
-export interface GeneratedNamePart { id: string; role: NamePartRole; value: string; sourceNameId: string; sourceName: string; }
+export interface GeneratedNamePartGeneration { soundProfile: SoundProfile; sound: SoundCandidate; spelling: RankedSpellingCandidate; }
+export interface GeneratedNamePart { id: string; role: NamePartRole; value: string; sourceNameId: string; sourceName: string; generation?: GeneratedNamePartGeneration; }
 export interface NameIdentityPartReference { kind: 'part'; partId: string; role: NamePartRole; }
 export interface NameIdentityLiteralPart { kind: 'literal'; value: string; }
 export type NameIdentityPhrasePart = NameIdentityPartReference | NameIdentityLiteralPart;

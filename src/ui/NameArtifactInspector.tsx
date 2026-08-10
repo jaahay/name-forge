@@ -15,6 +15,9 @@ interface NameArtifactInspectorProps {
 
 type SpellingCandidate = NonNullable<NameArtifact['spellingCandidates']>[number];
 
+const identityPartPauseMs = 150;
+let speechPlaybackToken = 0;
+
 function variantMetadataLabel(variant: NameVariant): string {
   const relationship = variant.relationship.replace(/_/g, ' ');
   const generatedLabel = variant.generated ? 'generated' : 'listed';
@@ -33,14 +36,68 @@ function canUseBrowserSpeech(): boolean {
   return typeof window !== 'undefined' && 'speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined';
 }
 
-function playVoiceDraft(speechText: string) {
+function playVoiceDraft(segments: readonly string[], pauseMs = 0) {
   if (!canUseBrowserSpeech()) return;
+  const speechSegments = segments.map((segment) => segment.trim()).filter(Boolean);
+  if (speechSegments.length === 0) return;
+
+  speechPlaybackToken += 1;
+  const playbackToken = speechPlaybackToken;
   window.speechSynthesis.cancel();
-  window.speechSynthesis.speak(new SpeechSynthesisUtterance(speechText));
+
+  function speakSegment(index: number) {
+    if (playbackToken !== speechPlaybackToken) return;
+    const speechText = speechSegments[index];
+    if (!speechText) return;
+
+    const utterance = new SpeechSynthesisUtterance(speechText);
+    utterance.onend = () => {
+      if (playbackToken !== speechPlaybackToken || index >= speechSegments.length - 1) return;
+      if (pauseMs > 0) {
+        window.setTimeout(() => speakSegment(index + 1), pauseMs);
+      } else {
+        speakSegment(index + 1);
+      }
+    };
+    window.speechSynthesis.speak(utterance);
+  }
+
+  speakSegment(0);
 }
 
 export function browserVoiceDraftText(artifact: NameArtifact, soundSpeechText?: string): string {
   return artifact.identityAudition?.speechText ?? soundSpeechText ?? artifact.displayText;
+}
+
+function appendSpeechChunk(current: string, next: string): string {
+  if (!current) return next;
+  return /^[,.;:!?)]/.test(next) ? `${current}${next}` : `${current} ${next}`;
+}
+
+export function browserVoiceDraftSegments(artifact: NameArtifact, soundSpeechText?: string): readonly string[] {
+  const phrase = artifact.identityAudition;
+  if (!phrase) return [browserVoiceDraftText(artifact, soundSpeechText)];
+
+  const segments: string[] = [];
+  let lexicalChunk = '';
+
+  function flushLexicalChunk() {
+    if (!lexicalChunk) return;
+    segments.push(lexicalChunk);
+    lexicalChunk = '';
+  }
+
+  for (const part of phrase.parts) {
+    if (part.kind === 'sound') {
+      flushLexicalChunk();
+      segments.push(part.speechText);
+      continue;
+    }
+    lexicalChunk = appendSpeechChunk(lexicalChunk, part.speechText);
+  }
+  flushLexicalChunk();
+
+  return segments.length > 0 ? segments : [phrase.speechText];
 }
 
 function modeledSoundParts(artifact: NameArtifact): readonly IdentityAuditionSoundPart[] {
@@ -80,7 +137,7 @@ export function NameArtifactInspector({ artifact, eyebrow = 'Inspect', extraActi
   const soundParts = modeledSoundParts(artifact);
   const showComponentSounds = Boolean(artifact.identity && artifact.identity.format.kind !== 'given-only' && soundParts.length > 0);
   const soundDescription = auditionCue?.displayText ?? artifact.sound?.transcription;
-  const voiceDraftText = browserVoiceDraftText(artifact, auditionCue?.speechText);
+  const voiceDraftSegments = browserVoiceDraftSegments(artifact, auditionCue?.speechText);
   const browserSpeechAvailable = canUseBrowserSpeech();
   const displayName = protectInitialBreaks(artifact.displayText);
   const displayLength = getNameDisplayLength(artifact.displayText);
@@ -99,7 +156,7 @@ export function NameArtifactInspector({ artifact, eyebrow = 'Inspect', extraActi
         </div>
         <div className="selected-name-heading-tools">
           <div className="selected-name-actions" aria-label={`${artifact.displayText} selected-name actions`}>
-            <button type="button" className="secondary inspector-voice-action" aria-label={playVoiceDraftLabel} disabled={!browserSpeechAvailable} onClick={() => playVoiceDraft(voiceDraftText)}>Play name</button>
+            <button type="button" className="secondary inspector-voice-action" aria-label={playVoiceDraftLabel} disabled={!browserSpeechAvailable} onClick={() => playVoiceDraft(voiceDraftSegments, identityPartPauseMs)}>Play name</button>
             {extraActions}
           </div>
           <div className="selected-name-utilities" aria-label={`${artifact.displayText} copy actions`}>
@@ -117,12 +174,28 @@ export function NameArtifactInspector({ artifact, eyebrow = 'Inspect', extraActi
           </div>
           {showComponentSounds ? (
             <ul className="inspector-sound-parts inspector-sound-components" aria-label={`${artifact.displayText} modeled sound parts`}>
-              {soundParts.map((part) => (
-                <li key={`${artifact.id}-${part.index}-${part.sourceNameId}`}>
-                  <strong>{part.value}</strong>
-                  <span>{part.displayText}</span>
-                </li>
-              ))}
+              {soundParts.map((part) => {
+                const partPlayLabel = browserSpeechAvailable
+                  ? `Play sound draft for ${part.value}`
+                  : `Browser voice draft unavailable for ${part.value}`;
+                return (
+                  <li key={`${artifact.id}-${part.index}-${part.sourceNameId}`}>
+                    <div className="inspector-sound-component-copy">
+                      <strong>{part.value}</strong>
+                      <span>{part.displayText}</span>
+                    </div>
+                    <button
+                      type="button"
+                      className="inspector-component-play"
+                      aria-label={partPlayLabel}
+                      disabled={!browserSpeechAvailable}
+                      onClick={() => playVoiceDraft([part.cue.speechText])}
+                    >
+                      Play
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
           ) : (
             <>
@@ -170,7 +243,7 @@ export function NameArtifactInspector({ artifact, eyebrow = 'Inspect', extraActi
               </section>
             ) : null}
             {variants.length > 0 ? (
-              <section className="inspector-detail-group">
+              <section className="inspector-detail-group inspector-variants-group">
                 <h3>Variants</h3>
                 <ul className="variants detail-variants" aria-label={`${artifact.displayText} variants`}>
                   {variants.map((variant) => <li key={`${artifact.id}-${variant.value}`}><span>{variant.value}</span><em>{variantMetadataLabel(variant)}</em></li>)}
