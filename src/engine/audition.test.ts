@@ -5,6 +5,26 @@ import type { RankedSpellingCandidate } from './spellingGenerator';
 import type { GeneratedNamePartGeneration, NameIdentity } from './types';
 import { createAuditionPhonology, renderAuditionCue, renderBrowserAuditionCue, renderIdentityAuditionPhrase } from './audition';
 
+const fixtureSoundProfile: SoundProfile = {
+  contract: 'SoundProfile',
+  version: 1,
+  targets: {
+    length: 'medium',
+    syllableCount: { min: 2, max: 3, preferred: 2 },
+    texture: 'balanced',
+    distinctiveness: 0.5,
+    cadences: ['balanced'],
+  },
+  phonotactics: {
+    preferredSyllableShapes: ['CV', 'CVC', 'CVL'],
+    onsetWeight: 0.72,
+    codaWeight: 0.46,
+    liquidWeight: 0.34,
+    glideWeight: 0.18,
+    clusterTolerance: 0.22,
+  },
+};
+
 function fixtureSyllable(syllable: Omit<SegmentSyllable, 'stress' | 'stressSource'>): SegmentSyllable {
   return {
     ...syllable,
@@ -18,7 +38,6 @@ function fixtureSequence(): SegmentSequence {
     contract: 'SegmentSequence',
     version: 1,
     id: 'segment-sequence:test:aw-r-eh-l-i-ow-n',
-    profileId: 'sound-profile:test',
     segments: ['aw', 'r', 'eh', 'l', 'i', 'ow', 'n'],
     syllables: [
       fixtureSyllable({
@@ -60,7 +79,6 @@ function fixturePlaceSequence(): SegmentSequence {
     contract: 'SegmentSequence',
     version: 1,
     id: 'segment-sequence:test:r-eh-l-m-a-r',
-    profileId: 'sound-profile:test',
     segments: ['r', 'eh', 'l', 'm', 'a', 'r'],
     syllables: [
       fixtureSyllable({
@@ -92,7 +110,6 @@ function fixtureSound(id: string, name: string, sequence: SegmentSequence): Soun
     contract: 'SoundCandidate',
     version: 1,
     id,
-    profileId: sequence.profileId,
     cadence: 'balanced',
     sequence,
     transcription: `/${name.toLowerCase()}/`,
@@ -101,9 +118,19 @@ function fixtureSound(id: string, name: string, sequence: SegmentSequence): Soun
 
 function fixtureGeneration(id: string, name: string, sequence: SegmentSequence): GeneratedNamePartGeneration {
   return {
-    soundProfile: { id: sequence.profileId } as SoundProfile,
+    soundProfile: fixtureSoundProfile,
     sound: fixtureSound(id, name, sequence),
-    spelling: { text: name } as RankedSpellingCandidate,
+    spelling: {
+      contract: 'SpellingCandidate',
+      version: 1,
+      id: `spelling:${id}`,
+      soundCandidateId: id,
+      sequenceId: sequence.id,
+      text: name,
+      mappings: [],
+      rank: 1,
+      score: 1,
+    } as RankedSpellingCandidate,
   };
 }
 
@@ -159,7 +186,6 @@ describe('audition cue rendering', () => {
     expect(phonology.version).toBe(1);
     expect(phonology.source).toBe('sound-sequence');
     expect(phonology.sequenceId).toBe('segment-sequence:test:aw-r-eh-l-i-ow-n');
-    expect(phonology.profileId).toBe('sound-profile:test');
     expect(phonology.syllables).toHaveLength(3);
     expect(phonology.syllables.map((syllable) => syllable.stress)).toEqual(['unstressed', 'primary', 'unstressed']);
     expect(phonology.syllables.map((syllable) => syllable.stressSource)).toEqual(['fallback', 'fallback', 'fallback']);
@@ -208,7 +234,6 @@ describe('audition cue rendering', () => {
     expect(cue.version).toBe(1);
     expect(cue.source).toBe('sound-sequence');
     expect(cue.sequenceId).toBe('segment-sequence:test:aw-r-eh-l-i-ow-n');
-    expect(cue.profileId).toBe('sound-profile:test');
     expect(cue.syllableText).toEqual(['owr', 'ehl', 'eeohn']);
     expect(cue.guideSyllables).toEqual(['owr', 'EHL', 'ee-oh-n']);
     expect(cue.speechText).toBe('owr ehl eeohn');
@@ -280,7 +305,6 @@ describe('audition cue rendering', () => {
       'displayText',
       'guideSyllables',
       'phonology',
-      'profileId',
       'sequenceId',
       'source',
       'speechText',
