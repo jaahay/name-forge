@@ -50,7 +50,7 @@ export function generateNameCandidateFromSilhouette(silhouette: NameSilhouette, 
   const selectedSpelling = selection?.candidate;
 
   if (!selectedSpelling) {
-    throw new Error(`Expected at least one spelling candidate for ${sound.id}.`);
+    throw new Error('Expected at least one spelling candidate for the generated sound.');
   }
 
   return { soundProfile, sound, rankedSpellings, selectedSpelling };
