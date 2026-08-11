@@ -97,8 +97,6 @@ export function compileStyle(input: StyleInput = {}): SoundProfile {
   const style = normalizeStyleInput(input);
 
   return {
-    contract: 'SoundProfile',
-    version: 1,
     targets: {
       length: style.length,
       syllableCount: syllableCounts[style.length],
