@@ -1,10 +1,12 @@
-# Future sound-unit audio audition boundary
+# Sound-unit audio audition boundary
 
-This design note defines the future audio-facing boundary after the current sound and phrase audition models. It does not implement audio.
+This note records the boundary between the audition behavior that exists today and a future renderer-neutral sound-unit audio model. It does not authorize provider audio, SSML, IPA, waveform generation, or audio persistence.
 
-## Current invariant
+## Current implemented boundary
 
-The current audition path is text/display projection only:
+Name Forge already has two audition layers and one lightweight browser playback adapter.
+
+Generated sound audition:
 
 ```text
 SegmentSequence
@@ -13,154 +15,156 @@ SegmentSequence
   -> NameAuditionCue
 ```
 
-Phrase audition composes generated sound-backed parts and text/literal parts without inventing sound provenance:
+Composed identity audition:
 
 ```text
-NameIdentity + source generated names
+NameIdentity
   -> IdentityAuditionPhrase
+  -> persisted NameArtifact.identityAudition
 ```
 
-`SegmentSequence`, `AuditionPhonology`, `NameAuditionCue`, and `IdentityAuditionPhrase` are the source material for future audio planning. `BrowserAuditionCue.speechText` is a browser/display convenience, not a durable audio plan, phoneme model, SSML payload, or provider contract.
+Browser playback then consumes those existing projections:
 
-## Why audio needs a boundary first
+```text
+NameArtifact
+  -> browserVoiceDraftSegments(...)
+  -> Web Speech API utterances
+```
 
-Audio audition is not just "play the generated name." It may need to represent renderer-neutral sound units, syllable timing, stress, pauses, text-backed lexemes, literals, provider constraints, caching, and user-facing confidence labels.
+The selected-name inspector can play a whole identity as paced semantic chunks and can play generated sound-backed given, family, or place parts individually. Text-backed titles, epithets, initials, and literals remain text-backed during that playback.
 
-Adding provider payloads directly to the current browser projection would blur three distinct facts:
+This is useful runtime audio, but it is still browser text-to-speech projection. It is not a sound-unit audio contract, canonical pronunciation model, provider phoneme payload, or persisted audio representation.
 
-1. generated sound-backed material from `SegmentSequence`;
-2. renderer-neutral presentation facts from `AuditionPhonology`;
-3. text or literal phrase material that has no generated sound provenance.
+## Provenance invariant
 
-The boundary must preserve those distinctions before any Web Speech API, paid TTS, SSML, IPA, audio cache, or UI work begins.
+Generated sound remains the source of truth before spelling and before playback.
+
+- `SoundProfile` is a pure resolved mechanics value. It has no synthetic profile id and no product, compiler, or lexeme provenance.
+- `SegmentSequence` is a contained generated sound value. It has no synthetic sequence id.
+- A sound-backed identity part retains the exact `SoundProfile`, `SoundCandidate`, and selected spelling used for that component in its contained generation bundle.
+- `IdentityAuditionPhrase` preserves the phrase-level distinction between `sound`, `text`, and `literal` parts.
+- Browser speech text is derived presentation material. It must not become the durable sound model.
+
+Containment establishes generation provenance. Future audio planning must not reintroduce relational ids merely to link adjacent generated values.
+
+## What is already solved
+
+The existing implementation already answers several questions that the original future-audio note treated as open:
+
+- Whole-identity browser playback exists.
+- Generated sound-backed components can be auditioned independently.
+- Phrase playback preserves sound/text/literal provenance rather than flattening the identity model first.
+- Phrase playback can insert a short presentation pause between semantic chunks.
+- Browser speech remains explicitly an approximation rather than a canonical pronunciation claim.
+
+Those behaviors do not need a second audio subsystem.
+
+## What remains genuinely future
+
+A new renderer-neutral audio plan is justified only if a future renderer needs structure that `AuditionPhonology`, `NameAuditionCue`, and `IdentityAuditionPhrase` do not already provide.
+
+Likely reasons include:
+
+- provider phoneme or pronunciation markup;
+- explicit duration, timing, or boundary hints;
+- a renderer-independent pause model;
+- generated audio or waveform caching;
+- provider/voice selection;
+- exportable audio-plan metadata;
+- a sound model for currently text-backed lexemes.
+
+Until one of those needs is concrete, the current browser adapter is sufficient and should remain downstream from the existing audition models.
 
 ## Future concept vocabulary
 
-These names are design vocabulary only until a later implementation slice accepts them.
+These names remain design vocabulary only.
 
 ### `SoundUnitAudioPlan`
 
-A future renderer-neutral plan for one generated sound-backed name or name part.
+A possible renderer-neutral plan for one generated sound-backed name or name part.
 
 Potential source path:
 
 ```text
 SegmentSequence
   -> AuditionPhonology
-  -> NameAuditionCue
   -> SoundUnitAudioPlan
 ```
 
-Potential unit shapes:
+A future plan should carry the sound facts it needs by value rather than by synthetic profile/sequence identifiers. For example:
 
 ```ts
 type SoundUnitAudioPlan = {
   readonly contract: "SoundUnitAudioPlan";
   readonly version: 1;
   readonly source: "audition-phonology";
-  readonly sequenceId: string;
-  readonly profileId: string;
   readonly units: readonly SoundAudioUnit[];
 };
 
 type SoundAudioUnit = {
-  readonly kind: "segment" | "syllable";
-  readonly ids: readonly string[];
+  readonly kind: "syllable";
+  readonly segments: readonly SoundSegmentId[];
   readonly stress: "primary" | "secondary" | "unstressed" | "unspecified";
   readonly stressSource: "sequence" | "cadence-rule" | "weight-rule" | "fallback" | "unspecified";
   readonly timingHint?: AudioTimingHint;
 };
 ```
 
-Open decision: the smallest stable unit may be a segment, syllable, or phrase part. The first implementation should not assume a paid-provider phoneme inventory is the core unit.
-
-### `AudioAuditionCue`
-
-A future renderable cue for one selected generated name.
-
-Potential source path:
-
-```text
-NameAuditionCue
-  -> AudioAuditionCue
-```
-
-It may combine renderer-neutral audio units with one or more renderer-specific projections, but the renderer-neutral plan must remain separable from browser or provider payloads.
+That shape is illustrative, not an accepted runtime contract. Segment-level detail is already available inside each syllable when a renderer needs it; the core model should not adopt a provider-specific phoneme inventory.
 
 ### `PhraseAudioPlan`
 
-A future phrase-level plan for composed identities.
-
-Potential source path:
+A possible renderer-neutral phrase plan downstream from `IdentityAuditionPhrase`.
 
 ```text
 IdentityAuditionPhrase
   -> PhraseAudioPlan
+  -> renderer-specific projection
 ```
 
-`PhraseAudioPlan` must preserve per-part provenance:
+A phrase plan must preserve current provenance:
 
 | Current part kind | Future audio status | Rule |
 | --- | --- | --- |
-| `sound` | May reference a `SoundUnitAudioPlan` derived from the source generated name. | Reuse generated sound-backed material. |
-| `text` | Text-only unless a later explicit lexeme sound model exists. | Do not fabricate generated sound provenance. |
-| `literal` | Literal/text-only unless later punctuation or pause policy is explicit. | Do not treat punctuation as provider syntax by default. |
+| `sound` | May derive renderer-neutral audio units from the contained generated sound. | Preserve generated sound evidence. |
+| `text` | Remains text-backed unless an explicit lexeme sound model exists. | Do not fabricate generated sound provenance. |
+| `literal` | Remains literal/text-backed unless an explicit boundary or pronunciation policy exists. | Do not treat punctuation as provider syntax by default. |
 
-## Renderer layering
+### Renderer-specific projection
 
-Future audio work should stay layered:
+Web Speech API text, SSML, provider phoneme markup, synthesized audio, and cached waveform references belong after the renderer-neutral boundary.
 
-```text
-AuditionPhonology / IdentityAuditionPhrase
-  -> renderer-neutral audio plan
-  -> renderer-specific projection
-  -> playback or persistence decision
-```
+The current Web Speech API adapter is one such projection. Its existence does not require the core engine to model provider payloads.
 
-Renderer-specific projection examples may include Web Speech API text, SSML, provider phoneme markup, or cached waveform references. Those should be downstream projections, not replacements for `SegmentSequence`, `AuditionPhonology`, or phrase provenance.
+## Pauses and phrase boundaries
 
-## Pauses, punctuation, and literals
+The current inspector uses a short inter-chunk pause as a presentation behavior. That pause is UI/browser-adapter policy, not a durable phonological fact.
 
-Phrase-level audio must not rely on punctuation string hacks as the structural model.
-
-Future phrase planning should distinguish:
-
-- generated sound-backed name parts;
-- identity text such as titles, epithets, and initials;
-- literal words such as `of`;
-- punctuation literals such as `,` or `-`;
-- optional pause or boundary hints, if those become explicit.
-
-Punctuation may later project to a pause for a renderer, but the durable phrase plan should represent pause/boundary intent explicitly before provider payloads are generated.
+If future renderers need portable pause semantics, introduce an explicit renderer-neutral boundary hint rather than inferring durable meaning from punctuation or preserving the current millisecond value as a core contract.
 
 ## Persistence boundary
 
-Do not persist audio payloads by default.
+Do not persist provider payloads or audio blobs by default.
 
-Derived plans may be recalculated from durable generation facts:
+Current persisted artifacts may retain `IdentityAuditionPhrase` because it preserves useful provenance and presentation facts. Future renderer-specific payloads should normally be derived from durable generation and audition facts.
 
-- `SegmentSequence`;
-- `AuditionPhonology`;
-- `NameAuditionCue`;
-- `IdentityAuditionPhrase`;
-- selected renderer/provider settings, if a future slice adds them.
-
-Persisted waveform/cache references should require a separate storage/cache decision, including invalidation when sound units, renderer settings, provider version, or voice changes.
+Persisted waveform or cache references require a separate storage decision covering at least renderer/provider version, voice/settings, invalidation, and reproducibility.
 
 ## Boundary rules
 
-- Keep generated sound before spelling, browser speech text, SSML, IPA, and provider payloads.
-- Treat `AuditionPhonology` as the renderer-neutral source for generated sound-backed audition.
-- Treat `IdentityAuditionPhrase.parts` as the source of phrase-level provenance.
-- Keep text-backed lexemes and literals explicit; do not silently convert them into generated sound-backed units.
-- Keep fallback stress labeled as fallback when future timing or emphasis hints use it.
-- Keep provider-specific payloads downstream from renderer-neutral audio planning.
-- Do not add audio fields to the current public `NameRequest` or `NameResponse` without a contract slice.
+- Keep generated sound before spelling and before browser/provider projection.
+- Keep `AuditionPhonology` renderer-neutral.
+- Keep `IdentityAuditionPhrase.parts` as the phrase-level provenance boundary.
+- Keep browser playback as an adapter over audition projections, not a new source of truth.
+- Keep text-backed lexemes and literals explicit unless a future model gives them sound provenance.
+- Keep fallback stress labeled as fallback.
+- Prefer contained values over synthetic relational ids for sound-generation provenance.
+- Add a new audio-plan abstraction only when a concrete renderer requirement exceeds the current audition contracts.
+- Do not add audio fields to the public `NameRequest` or `NameResponse` without a separate contract decision.
 
-## Runtime non-goals
+## Non-goals
 
-- No audio implementation.
-- No Web Speech API changes.
+- No change to current browser playback behavior.
 - No paid provider integration.
 - No SSML generation.
 - No IPA generation.
@@ -168,19 +172,18 @@ Persisted waveform/cache references should require a separate storage/cache deci
 - No waveform generation.
 - No audio persistence or cache.
 - No automatic pronunciation for arbitrary lexical text.
-- No UI changes.
+- No new audio settings UI.
 - No new active mode.
 
-## Future design questions
+## Open design questions
 
-- Is the smallest stable audio unit a segment, syllable, name part, or phrase part?
-- Should timing hints exist before a renderer/provider is chosen?
-- Which stress sources are safe to expose to users or providers?
-- How should text-backed lexemes acquire sound provenance, if ever?
-- Should literals and punctuation produce pause hints, text tokens, or no audio units?
+- Does any future renderer actually need a new sound-unit plan, or is `AuditionPhonology` already sufficient?
+- If a new plan is needed, is the stable unit a syllable with contained segments rather than a separate segment entity?
+- Which timing or boundary hints are renderer-neutral enough to deserve a core contract?
+- How, if ever, should text-backed lexemes acquire explicit sound provenance?
 - Should provider payloads be generated lazily, cached, or never persisted?
-- How should exports represent future audio plans without implying canonical pronunciation?
+- How should exports describe browser/provider audio without implying canonical pronunciation?
 
-## Safe next step after this boundary
+## Safe next step
 
-A future implementation slice may add type-only contract sketches for `SoundUnitAudioPlan`, `AudioAuditionCue`, or `PhraseAudioPlan`. Runtime audio playback, provider integration, and persisted audio should remain deferred until the renderer-neutral contract and provenance rules are accepted.
+Do not implement `SoundUnitAudioPlan` merely because the vocabulary exists. The next audio slice should start from a concrete missing capability in the current browser audition path and introduce only the smallest renderer-neutral structure required to support it.
