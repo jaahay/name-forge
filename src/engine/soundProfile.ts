@@ -24,8 +24,6 @@ interface SoundProfilePhonotactics {
 }
 
 export interface SoundProfile {
-  readonly contract: 'SoundProfile';
-  readonly version: 1;
   readonly targets: SoundProfileTargets;
   readonly phonotactics: SoundProfilePhonotactics;
 }
