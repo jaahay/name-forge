@@ -60,8 +60,8 @@ describe('generateEnsemble role and rarity controls', () => {
     expect(generatedParts.map((part) => part.role)).toEqual(['given', 'place']);
     expect(generatedParts).toHaveLength(2);
     for (const part of generatedParts) {
-      expect(part.generation?.soundProfile.contract).toBe('SoundProfile');
-      expect(part.generation?.sound.profileId).toBe(part.generation?.soundProfile.id);
+      expect(part.generation?.soundProfile.targets).toBeDefined();
+      expect(part.generation?.sound.sequence.segments.length).toBeGreaterThan(0);
       expect(part.generation?.spelling.text).toBe(part.value);
     }
     expect(generatedParts[0]?.generation?.soundProfile).toBe(name.soundProfile);

@@ -14,13 +14,6 @@ const generatedName: GeneratedName = {
   id: 'generated-aurel',
   name: 'Aurel',
   soundProfile: {
-    contract: 'SoundProfile',
-    version: 1,
-    id: 'profile-soft',
-    source: {
-      kind: 'style-input',
-      compiler: 'name-forge:style-compiler@0.1.0',
-    },
     targets: {
       length: 'medium',
       syllableCount: {
@@ -44,14 +37,10 @@ const generatedName: GeneratedName = {
   sound: {
     contract: 'SoundCandidate',
     version: 1,
-    id: 'sound-aurel',
-    profileId: 'profile-soft',
     cadence: 'balanced',
     sequence: {
       contract: 'SegmentSequence',
       version: 1,
-      id: 'sequence-aurel',
-      profileId: 'profile-soft',
       segments: ['l', 'a', 'r'],
       syllables: [
         {
@@ -73,10 +62,6 @@ const generatedName: GeneratedName = {
   spelling: {
     contract: 'SpellingCandidate',
     version: 1,
-    id: 'spelling-aurel-primary',
-    soundCandidateId: 'sound-aurel',
-    profileId: 'profile-soft',
-    sequenceId: 'sequence-aurel',
     text: 'Aurel',
     mappings: [
       {
@@ -84,7 +69,7 @@ const generatedName: GeneratedName = {
         segmentId: 'l',
         syllableIndex: 0,
         syllableRole: 'onset',
-        text: 'L',
+        text: 'A',
         start: 0,
         end: 1,
       },
@@ -93,7 +78,7 @@ const generatedName: GeneratedName = {
         segmentId: 'a',
         syllableIndex: 0,
         syllableRole: 'nucleus',
-        text: 'au',
+        text: 'ur',
         start: 1,
         end: 3,
       },
@@ -102,9 +87,9 @@ const generatedName: GeneratedName = {
         segmentId: 'r',
         syllableIndex: 0,
         syllableRole: 'coda',
-        text: 'rel',
+        text: 'el',
         start: 3,
-        end: 6,
+        end: 5,
       },
     ],
     rank: 1,
@@ -114,10 +99,6 @@ const generatedName: GeneratedName = {
     {
       contract: 'SpellingCandidate',
       version: 1,
-      id: 'spelling-aurel-primary',
-      soundCandidateId: 'sound-aurel',
-      profileId: 'profile-soft',
-      sequenceId: 'sequence-aurel',
       text: 'Aurel',
       mappings: [],
       rank: 1,
@@ -126,10 +107,6 @@ const generatedName: GeneratedName = {
     {
       contract: 'SpellingCandidate',
       version: 1,
-      id: 'spelling-orel-secondary',
-      soundCandidateId: 'sound-aurel',
-      profileId: 'profile-soft',
-      sequenceId: 'sequence-aurel',
       text: 'Orel',
       mappings: [],
       rank: 2,

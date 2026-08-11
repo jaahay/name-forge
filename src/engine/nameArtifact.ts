@@ -45,23 +45,35 @@ function isIndexArray(value: unknown, segmentCount: number): boolean {
     && value.every((index) => Number.isInteger(index) && index >= 0 && index < segmentCount);
 }
 
+function isSpellingMapping(value: unknown): boolean {
+  return isRecord(value)
+    && Number.isInteger(value.segmentIndex)
+    && (value.segmentIndex as number) >= 0
+    && isNonEmptyString(value.segmentId)
+    && Number.isInteger(value.syllableIndex)
+    && (value.syllableIndex as number) >= 0
+    && isNonEmptyString(value.syllableRole)
+    && typeof value.text === 'string'
+    && Number.isInteger(value.start)
+    && Number.isInteger(value.end)
+    && (value.start as number) >= 0
+    && (value.end as number) >= (value.start as number);
+}
+
 function isSpellingCandidate(value: unknown): boolean {
   return isRecord(value)
-    && isNonEmptyString(value.id)
     && isNonEmptyString(value.text)
     && Array.isArray(value.mappings)
+    && value.mappings.every(isSpellingMapping)
     && isFiniteNumber(value.rank)
     && isFiniteNumber(value.score);
 }
 
-function isLinkedSpellingCandidate(value: unknown): value is RankedSpellingCandidate {
+function isGeneratedSpellingCandidate(value: unknown): value is RankedSpellingCandidate {
   return isSpellingCandidate(value)
     && isRecord(value)
     && value.contract === 'SpellingCandidate'
-    && value.version === 1
-    && isNonEmptyString(value.soundCandidateId)
-    && isNonEmptyString(value.profileId)
-    && isNonEmptyString(value.sequenceId);
+    && value.version === 1;
 }
 
 function isReadabilityDiagnostic(value: unknown): boolean {
@@ -92,10 +104,8 @@ function isNameVariant(value: unknown): boolean {
 function isSoundCandidate(value: unknown): value is SoundCandidate {
   if (!isRecord(value) || !isRecord(value.sequence)) return false;
   if (value.contract !== 'SoundCandidate' || value.version !== 1) return false;
-  if (!isNonEmptyString(value.id) || !isNonEmptyString(value.profileId)) return false;
   if (!isNonEmptyString(value.cadence) || !isNonEmptyString(value.transcription)) return false;
   if (value.sequence.contract !== 'SegmentSequence' || value.sequence.version !== 1) return false;
-  if (!isNonEmptyString(value.sequence.id) || !isNonEmptyString(value.sequence.profileId)) return false;
   if (!Array.isArray(value.sequence.segments) || !value.sequence.segments.every((segment) => typeof segment === 'string')) return false;
   if (!Array.isArray(value.sequence.syllables)) return false;
 
@@ -120,15 +130,10 @@ function isSoundCandidate(value: unknown): value is SoundCandidate {
 }
 
 function isSoundProfile(value: unknown): value is SoundProfile {
-  if (!isRecord(value) || !isRecord(value.source) || !isRecord(value.targets) || !isRecord(value.phonotactics)) return false;
+  if (!isRecord(value) || !isRecord(value.targets) || !isRecord(value.phonotactics)) return false;
   if (!isRecord(value.targets.syllableCount)) return false;
 
-  return value.contract === 'SoundProfile'
-    && value.version === 1
-    && isNonEmptyString(value.id)
-    && value.source.kind === 'style-input'
-    && isNonEmptyString(value.source.compiler)
-    && isNonEmptyString(value.targets.length)
+  return isNonEmptyString(value.targets.length)
     && Number.isInteger(value.targets.syllableCount.min)
     && Number.isInteger(value.targets.syllableCount.max)
     && Number.isInteger(value.targets.syllableCount.preferred)
@@ -145,15 +150,20 @@ function isSoundProfile(value: unknown): value is SoundProfile {
     && isFiniteNumber(value.phonotactics.clusterTolerance);
 }
 
+function spellingMatchesSound(spelling: RankedSpellingCandidate, sound: SoundCandidate): boolean {
+  return spelling.mappings.every((mapping) => {
+    if (mapping.segmentIndex >= sound.sequence.segments.length) return false;
+    if (mapping.syllableIndex >= sound.sequence.syllables.length) return false;
+    if (sound.sequence.segments[mapping.segmentIndex] !== mapping.segmentId) return false;
+    return mapping.end <= spelling.text.length;
+  });
+}
+
 function isGeneratedNamePartGeneration(value: unknown): boolean {
   if (!isRecord(value)) return false;
-  if (!isSoundProfile(value.soundProfile) || !isSoundCandidate(value.sound) || !isLinkedSpellingCandidate(value.spelling)) return false;
+  if (!isSoundProfile(value.soundProfile) || !isSoundCandidate(value.sound) || !isGeneratedSpellingCandidate(value.spelling)) return false;
 
-  return value.sound.profileId === value.soundProfile.id
-    && value.sound.sequence.profileId === value.soundProfile.id
-    && value.spelling.profileId === value.soundProfile.id
-    && value.spelling.soundCandidateId === value.sound.id
-    && value.spelling.sequenceId === value.sound.sequence.id;
+  return spellingMatchesSound(value.spelling, value.sound);
 }
 
 const namePartRoles = new Set(['given', 'family', 'initial', 'title', 'epithet', 'place']);

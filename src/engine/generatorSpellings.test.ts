@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { generateNameCandidateFromSilhouette } from './generator';
+import { generateNameCandidateFromSilhouette } from '../naming/generator';
 import { createSeededRandom } from './random';
 import { createDefaultRegistry } from './registry';
 import { createNameSilhouette } from './silhouettes';
@@ -34,6 +34,8 @@ describe('same-sound spelling retention', () => {
     expect(new Set(candidate.rankedSpellings.candidates.map((spelling) => spelling.text))).toEqual(
       new Set(exhaustivePool.candidates.map((spelling) => spelling.text)),
     );
-    expect(candidate.rankedSpellings.candidates.every((spelling) => spelling.soundCandidateId === candidate.sound.id)).toBe(true);
+    expect(candidate.rankedSpellings.candidates.every((spelling) => spelling.mappings.every(
+      (mapping) => candidate.sound.sequence.segments[mapping.segmentIndex] === mapping.segmentId,
+    ))).toBe(true);
   });
 });

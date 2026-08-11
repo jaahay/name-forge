@@ -1,7 +1,7 @@
 import { createSeededRandom, clamp } from '../engine/random';
 import { castReadabilityDiagnostics, diagnoseNameReadability, readabilitySummary } from '../engine/diagnostics';
 import { createNameSilhouette } from '../engine/silhouettes';
-import { generateNameFromSilhouette } from '../engine/generator';
+import { generateNameFromSilhouette } from '../naming/generator';
 import { renderIdentityAuditionPhrase } from '../engine/identityAudition';
 import { isRoleInfluenceActive, resolveCastRole } from '../engine/roles';
 import { combineOverallFit } from '../engine/scoring';

@@ -7,8 +7,6 @@ export interface BrowserAuditionCue {
   readonly contract: BrowserAuditionCueContract;
   readonly version: 1;
   readonly source: AuditionPhonology['source'];
-  readonly sequenceId: string;
-  readonly profileId: string;
   readonly speechText: string;
   readonly displayText: string;
   readonly syllableText: readonly string[];
@@ -128,8 +126,6 @@ export function renderBrowserAuditionCue(phonology: AuditionPhonology): BrowserA
     contract: 'BrowserAuditionCue',
     version: 1,
     source: phonology.source,
-    sequenceId: phonology.sequenceId,
-    profileId: phonology.profileId,
     speechText: syllableText.join(' '),
     displayText: guideSyllables.join(' · '),
     syllableText,

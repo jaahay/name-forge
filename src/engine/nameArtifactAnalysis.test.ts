@@ -49,14 +49,10 @@ function artifact(id: string, displayText: string, options: ArtifactOptions = {}
     sound: {
       contract: 'SoundCandidate',
       version: 1,
-      id: `sound-${id}`,
-      profileId: 'profile-test',
       cadence,
       sequence: {
         contract: 'SegmentSequence',
         version: 1,
-        id: `sequence-${id}`,
-        profileId: 'profile-test',
         segments: [...segments],
         syllables: [...syllables],
       },
@@ -65,10 +61,6 @@ function artifact(id: string, displayText: string, options: ArtifactOptions = {}
     spelling: {
       contract: 'SpellingCandidate',
       version: 1,
-      id: `spelling-${id}-selected`,
-      soundCandidateId: `sound-${id}`,
-      profileId: 'profile-test',
-      sequenceId: `sequence-${id}`,
       text: displayText,
       mappings: [],
       rank: 1,
@@ -78,10 +70,6 @@ function artifact(id: string, displayText: string, options: ArtifactOptions = {}
       {
         contract: 'SpellingCandidate',
         version: 1,
-        id: `spelling-${id}-selected`,
-        soundCandidateId: `sound-${id}`,
-        profileId: 'profile-test',
-        sequenceId: `sequence-${id}`,
         text: displayText,
         mappings: [],
         rank: 1,
@@ -90,10 +78,6 @@ function artifact(id: string, displayText: string, options: ArtifactOptions = {}
       {
         contract: 'SpellingCandidate',
         version: 1,
-        id: `spelling-${id}-runner-up`,
-        soundCandidateId: `sound-${id}`,
-        profileId: 'profile-test',
-        sequenceId: `sequence-${id}`,
         text: `${displayText}e`,
         mappings: [],
         rank: 2,

@@ -14,8 +14,6 @@ export interface StyleInput {
   readonly distinctiveness?: StyleDistinctiveness;
 }
 
-const COMPILER_ID = 'name-forge:style-compiler@0.1.0';
-
 const DEFAULT_STYLE = {
   feel: 'balanced',
   length: 'medium',
@@ -95,39 +93,18 @@ function compilePhonotactics(style: NormalizedStyleInput): SoundProfile['phonota
   return base;
 }
 
-function opaqueProfileId(targets: SoundProfile['targets'], phonotactics: SoundProfile['phonotactics']): string {
-  const serialized = JSON.stringify({ targets, phonotactics });
-  let hash = 2166136261;
-
-  for (let index = 0; index < serialized.length; index += 1) {
-    hash ^= serialized.charCodeAt(index);
-    hash = Math.imul(hash, 16777619);
-  }
-
-  return (hash >>> 0).toString(16).padStart(8, '0');
-}
-
 export function compileStyle(input: StyleInput = {}): SoundProfile {
   const style = normalizeStyleInput(input);
-  const targets: SoundProfile['targets'] = {
-    length: style.length,
-    syllableCount: syllableCounts[style.length],
-    texture: textureByFeel[style.feel],
-    distinctiveness: distinctivenessTargets[style.distinctiveness],
-    cadences: cadencesByLength[style.length],
-  };
-  const phonotactics = compilePhonotactics(style);
 
   return {
-    contract: 'SoundProfile',
-    version: 1,
-    id: opaqueProfileId(targets, phonotactics),
-    source: {
-      kind: 'style-input',
-      compiler: COMPILER_ID,
+    targets: {
+      length: style.length,
+      syllableCount: syllableCounts[style.length],
+      texture: textureByFeel[style.feel],
+      distinctiveness: distinctivenessTargets[style.distinctiveness],
+      cadences: cadencesByLength[style.length],
     },
-    targets,
-    phonotactics,
+    phonotactics: compilePhonotactics(style),
   };
 }
 

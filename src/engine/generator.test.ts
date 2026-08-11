@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { generateEnsemble } from '../fictionCast/ensemble';
 import { fictionCastEpithetLexemes, fictionCastTitleLexemes } from '../fictionCast/identityLexicon';
-import { generateNameCandidateFromSilhouette } from './generator';
+import { generateNameCandidateFromSilhouette } from '../naming/generator';
 import { createSeededRandom } from './random';
 import { createDefaultRegistry } from './registry';
 import { createNameSilhouette } from './silhouettes';
@@ -30,7 +30,7 @@ describe('generateEnsemble', () => {
     const second = generateEnsemble(settings, registry);
     expect(second.names.map((name) => name.name)).toEqual(first.names.map((name) => name.name));
     expect(second.names.map((name) => name.scores.overallFit)).toEqual(first.names.map((name) => name.scores.overallFit));
-    expect(second.names.map((name) => name.soundProfile.id)).toEqual(first.names.map((name) => name.soundProfile.id));
+    expect(second.names.map((name) => name.soundProfile)).toEqual(first.names.map((name) => name.soundProfile));
     expect(second.names.map((name) => name.sound.transcription)).toEqual(first.names.map((name) => name.sound.transcription));
     expect(second.names.map((name) => name.spelling.text)).toEqual(first.names.map((name) => name.spelling.text));
   });
@@ -50,22 +50,20 @@ describe('generateEnsemble', () => {
     const silhouette = createNameSilhouette(settings, pack, createSeededRandom('candidate:silhouette'), 0);
     const candidate = generateNameCandidateFromSilhouette(silhouette, settings, createSeededRandom('candidate:sound'));
 
-    expect(candidate.soundProfile.contract).toBe('SoundProfile');
-    expect(Object.prototype.hasOwnProperty.call(candidate.soundProfile, 'lexicon')).toBe(false);
+    expect(candidate.soundProfile.targets).toBeDefined();
+    expect(Object.prototype.hasOwnProperty.call(candidate.soundProfile, 'contract')).toBe(false);
+    expect(Object.prototype.hasOwnProperty.call(candidate.soundProfile, 'version')).toBe(false);
+    expect(Object.prototype.hasOwnProperty.call(candidate.soundProfile, 'id')).toBe(false);
+    expect(Object.prototype.hasOwnProperty.call(candidate.soundProfile, 'source')).toBe(false);
     expect(candidate.sound.contract).toBe('SoundCandidate');
-    expect(candidate.sound.profileId).toBe(candidate.soundProfile.id);
     expect(candidate.sound.sequence.contract).toBe('SegmentSequence');
     expect(candidate.sound.transcription).toMatch(/^\/.+\/$/);
-    expect(candidate.rankedSpellings.soundCandidateId).toBe(candidate.sound.id);
-    expect(candidate.rankedSpellings.profileId).toBe(candidate.soundProfile.id);
-    expect(candidate.rankedSpellings.sequenceId).toBe(candidate.sound.sequence.id);
     expect(candidate.rankedSpellings.candidates.length).toBeGreaterThan(0);
     const [topSpelling] = candidate.rankedSpellings.candidates;
     expect(topSpelling).toBeDefined();
     if (!topSpelling) throw new Error('Expected top ranked spelling.');
     expect(candidate.selectedSpelling).toBe(topSpelling);
     expect(candidate.selectedSpelling.rank).toBe(1);
-    expect(candidate.selectedSpelling.soundCandidateId).toBe(candidate.sound.id);
     expect(candidate.selectedSpelling.text.length).toBeGreaterThan(0);
   });
 
@@ -74,13 +72,11 @@ describe('generateEnsemble', () => {
     expect(ensemble.names).toHaveLength(settings.castSize);
     for (const name of ensemble.names) {
       expect(name.name.length).toBeGreaterThan(0);
-      expect(name.soundProfile.contract).toBe('SoundProfile');
+      expect(name.soundProfile.targets).toBeDefined();
       expect(name.sound.contract).toBe('SoundCandidate');
-      expect(name.sound.profileId).toBe(name.soundProfile.id);
       expect(name.sound.sequence.contract).toBe('SegmentSequence');
       expect(name.sound.transcription).toMatch(/^\/.+\/$/);
       expect(name.spelling.rank).toBe(1);
-      expect(name.spelling.soundCandidateId).toBe(name.sound.id);
       expect(name.name).toBe(name.spelling.text);
       expect(name.spellingCandidates.length).toBeGreaterThan(0);
       const [selectedCandidate] = name.spellingCandidates;

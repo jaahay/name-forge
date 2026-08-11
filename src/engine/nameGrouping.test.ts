@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import { generateNameFromSilhouette } from '../naming/generator';
 import { compileNameCriteriaToGenerationSettings } from './nameCriteriaCompiler';
-import { generateNameFromSilhouette } from './generator';
 import {
   deriveNameChildSeed,
   MAX_EXACT_NAME_QUANTITY,

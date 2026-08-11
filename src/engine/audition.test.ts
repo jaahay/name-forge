@@ -5,6 +5,24 @@ import type { RankedSpellingCandidate } from './spellingGenerator';
 import type { GeneratedNamePartGeneration, NameIdentity } from './types';
 import { createAuditionPhonology, renderAuditionCue, renderBrowserAuditionCue, renderIdentityAuditionPhrase } from './audition';
 
+const fixtureSoundProfile: SoundProfile = {
+  targets: {
+    length: 'medium',
+    syllableCount: { min: 2, max: 3, preferred: 2 },
+    texture: 'balanced',
+    distinctiveness: 0.5,
+    cadences: ['balanced'],
+  },
+  phonotactics: {
+    preferredSyllableShapes: ['CV', 'CVC', 'CVL'],
+    onsetWeight: 0.72,
+    codaWeight: 0.46,
+    liquidWeight: 0.34,
+    glideWeight: 0.18,
+    clusterTolerance: 0.22,
+  },
+};
+
 function fixtureSyllable(syllable: Omit<SegmentSyllable, 'stress' | 'stressSource'>): SegmentSyllable {
   return {
     ...syllable,
@@ -17,8 +35,6 @@ function fixtureSequence(): SegmentSequence {
   return {
     contract: 'SegmentSequence',
     version: 1,
-    id: 'segment-sequence:test:aw-r-eh-l-i-ow-n',
-    profileId: 'sound-profile:test',
     segments: ['aw', 'r', 'eh', 'l', 'i', 'ow', 'n'],
     syllables: [
       fixtureSyllable({
@@ -59,8 +75,6 @@ function fixturePlaceSequence(): SegmentSequence {
   return {
     contract: 'SegmentSequence',
     version: 1,
-    id: 'segment-sequence:test:r-eh-l-m-a-r',
-    profileId: 'sound-profile:test',
     segments: ['r', 'eh', 'l', 'm', 'a', 'r'],
     syllables: [
       fixtureSyllable({
@@ -87,23 +101,28 @@ function fixturePlaceSequence(): SegmentSequence {
   };
 }
 
-function fixtureSound(id: string, name: string, sequence: SegmentSequence): SoundCandidate {
+function fixtureSound(name: string, sequence: SegmentSequence): SoundCandidate {
   return {
     contract: 'SoundCandidate',
     version: 1,
-    id,
-    profileId: sequence.profileId,
     cadence: 'balanced',
     sequence,
     transcription: `/${name.toLowerCase()}/`,
   };
 }
 
-function fixtureGeneration(id: string, name: string, sequence: SegmentSequence): GeneratedNamePartGeneration {
+function fixtureGeneration(name: string, sequence: SegmentSequence): GeneratedNamePartGeneration {
   return {
-    soundProfile: { id: sequence.profileId } as SoundProfile,
-    sound: fixtureSound(id, name, sequence),
-    spelling: { text: name } as RankedSpellingCandidate,
+    soundProfile: fixtureSoundProfile,
+    sound: fixtureSound(name, sequence),
+    spelling: {
+      contract: 'SpellingCandidate',
+      version: 1,
+      text: name,
+      mappings: [],
+      rank: 1,
+      score: 1,
+    } as RankedSpellingCandidate,
   };
 }
 
@@ -116,9 +135,9 @@ function fixtureIdentity(): NameIdentity {
       label: 'Epithet/place-style name',
     },
     parts: [
-      { id: 'given-name:given', role: 'given', value: 'Aurelion', sourceNameId: 'given-name', sourceName: 'Aurelion', generation: fixtureGeneration('sound-candidate:given', 'Aurelion', fixtureSequence()) },
+      { id: 'given-name:given', role: 'given', value: 'Aurelion', sourceNameId: 'given-name', sourceName: 'Aurelion', generation: fixtureGeneration('Aurelion', fixtureSequence()) },
       { id: 'given-name:epithet', role: 'epithet', value: 'the Ashen', sourceNameId: 'given-name', sourceName: 'Aurelion' },
-      { id: 'place-name:place', role: 'place', value: 'Relmar', sourceNameId: 'place-name', sourceName: 'Relmar', generation: fixtureGeneration('sound-candidate:place', 'Relmar', fixturePlaceSequence()) },
+      { id: 'place-name:place', role: 'place', value: 'Relmar', sourceNameId: 'place-name', sourceName: 'Relmar', generation: fixtureGeneration('Relmar', fixturePlaceSequence()) },
     ],
     phraseParts: [
       { kind: 'part', partId: 'given-name:given', role: 'given' },
@@ -138,8 +157,8 @@ function fixtureRepeatedIdentity(): NameIdentity {
       label: 'Duplicate given + place test',
     },
     parts: [
-      { id: 'given-name:given', role: 'given', value: 'Aurelion', sourceNameId: 'given-name', sourceName: 'Aurelion', generation: fixtureGeneration('sound-candidate:given', 'Aurelion', fixtureSequence()) },
-      { id: 'place-name:place', role: 'place', value: 'Relmar', sourceNameId: 'place-name', sourceName: 'Relmar', generation: fixtureGeneration('sound-candidate:place', 'Relmar', fixturePlaceSequence()) },
+      { id: 'given-name:given', role: 'given', value: 'Aurelion', sourceNameId: 'given-name', sourceName: 'Aurelion', generation: fixtureGeneration('Aurelion', fixtureSequence()) },
+      { id: 'place-name:place', role: 'place', value: 'Relmar', sourceNameId: 'place-name', sourceName: 'Relmar', generation: fixtureGeneration('Relmar', fixturePlaceSequence()) },
     ],
     phraseParts: [
       { kind: 'part', partId: 'given-name:given', role: 'given' },
@@ -158,8 +177,6 @@ describe('audition cue rendering', () => {
     expect(phonology.contract).toBe('AuditionPhonology');
     expect(phonology.version).toBe(1);
     expect(phonology.source).toBe('sound-sequence');
-    expect(phonology.sequenceId).toBe('segment-sequence:test:aw-r-eh-l-i-ow-n');
-    expect(phonology.profileId).toBe('sound-profile:test');
     expect(phonology.syllables).toHaveLength(3);
     expect(phonology.syllables.map((syllable) => syllable.stress)).toEqual(['unstressed', 'primary', 'unstressed']);
     expect(phonology.syllables.map((syllable) => syllable.stressSource)).toEqual(['fallback', 'fallback', 'fallback']);
@@ -207,8 +224,6 @@ describe('audition cue rendering', () => {
     expect(cue.contract).toBe('BrowserAuditionCue');
     expect(cue.version).toBe(1);
     expect(cue.source).toBe('sound-sequence');
-    expect(cue.sequenceId).toBe('segment-sequence:test:aw-r-eh-l-i-ow-n');
-    expect(cue.profileId).toBe('sound-profile:test');
     expect(cue.syllableText).toEqual(['owr', 'ehl', 'eeohn']);
     expect(cue.guideSyllables).toEqual(['owr', 'EHL', 'ee-oh-n']);
     expect(cue.speechText).toBe('owr ehl eeohn');
@@ -272,16 +287,13 @@ describe('audition cue rendering', () => {
   });
 
   it('does not require displayed spelling or GeneratedName data', () => {
-    const sequence = fixtureSequence();
-    const cue = renderAuditionCue(sequence);
+    const cue = renderAuditionCue(fixtureSequence());
 
     expect(Object.keys(cue).sort()).toEqual([
       'contract',
       'displayText',
       'guideSyllables',
       'phonology',
-      'profileId',
-      'sequenceId',
       'source',
       'speechText',
       'syllableText',

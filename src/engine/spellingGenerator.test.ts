@@ -10,11 +10,7 @@ describe('spelling generation and ranking', () => {
     const sound = generateSound(profile, createSeededRandom('sound-seed:default'));
     const pool = generateSpellingCandidatePool(sound);
 
-    expect(pool).toMatchObject({
-      soundCandidateId: sound.id,
-      profileId: sound.profileId,
-      sequenceId: sound.sequence.id,
-    });
+    expect(Object.keys(pool)).toEqual(['candidates']);
     expect(pool.candidates.map((candidate) => candidate.text)).toEqual([
       'Tolway',
       'Tolwai',
@@ -29,10 +25,6 @@ describe('spelling generation and ranking', () => {
     expect(pool.candidates[0]).toEqual({
       contract: 'SpellingCandidate',
       version: 1,
-      id: `spelling-candidate:${sound.id}:tolway`,
-      soundCandidateId: sound.id,
-      profileId: profile.id,
-      sequenceId: sound.sequence.id,
       text: 'Tolway',
       mappings: [
         {
@@ -90,11 +82,7 @@ describe('spelling generation and ranking', () => {
     const pool = generateSpellingCandidatePool(sound);
     const ranked = rankSpellingCandidatePool(pool, profile, { maxCandidates: 5 });
 
-    expect(ranked).toMatchObject({
-      soundCandidateId: sound.id,
-      profileId: sound.profileId,
-      sequenceId: sound.sequence.id,
-    });
+    expect(Object.keys(ranked)).toEqual(['candidates']);
     expect(ranked.candidates.map((candidate) => candidate.text)).toEqual([
       'Tolway',
       'Tolwai',
@@ -172,7 +160,6 @@ describe('spelling generation and ranking', () => {
       ...basePool,
       candidates: Array.from({ length: 25 }, (_, index) => ({
         ...baseCandidate,
-        id: `${baseCandidate.id}:prefix-${String(index + 1).padStart(2, '0')}`,
         text: `Prefix${String(index + 1).padStart(2, '0')}`,
       })),
     };

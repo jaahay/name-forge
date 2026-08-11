@@ -30,7 +30,7 @@ describe('cast export serialization', () => {
     const payload = JSON.parse(firstJson) as ReturnType<typeof createCastExportPayload>;
 
     expect(secondJson).toBe(firstJson);
-    expect(payload.exportVersion).toBe('name-forge.cast.v1');
+    expect(payload.exportVersion).toBe('name-forge.cast.v2');
     expect(payload.generatedBy).toBe('Name Forge');
     expect(payload.seed).toBe(settings.seed);
     expect(payload.settings.seed).toBe(settings.seed);
@@ -50,18 +50,14 @@ describe('cast export serialization', () => {
     expect(firstName.roleInfluence?.profileId).toBe('role-profile:protagonist');
     expect(firstName.score).toBe(sourceName.scores.overallFit);
     expect(firstName.scores.roleFit).toBe(sourceName.scores.roleFit);
-    expect(firstName.sound.profileId).toBe(sourceName.soundProfile.id);
-    expect(firstName.sound.candidateId).toBe(sourceName.sound.id);
-    expect(firstName.sound.sequenceId).toBe(sourceName.sound.sequence.id);
+    expect(firstName.sound.profile).toEqual(sourceName.soundProfile);
     expect(firstName.sound.transcription).toBe(sourceName.sound.transcription);
-    expect(firstName.sound.selectedSpelling.id).toBe(sourceName.spelling.id);
     expect(firstName.sound.selectedSpelling.text).toBe(sourceName.spelling.text);
     expect(firstName.sound.selectedSpelling.rank).toBe(1);
-    expect(firstName.sound.selectedSpelling.soundCandidateId).toBe(sourceName.sound.id);
-    expect(firstName.sound.selectedSpelling.sequenceId).toBe(sourceName.sound.sequence.id);
+    expect(firstName.sound.selectedSpelling.score).toBe(sourceName.spelling.score);
     expect(firstName.sound.selectedSpelling.selected).toBe(true);
     expect(firstName.sound.spellingCandidates).toHaveLength(sourceName.spellingCandidates.length);
-    expect(firstName.sound.spellingCandidates.map((candidate) => candidate.id)).toEqual(sourceName.spellingCandidates.map((candidate) => candidate.id));
+    expect(firstName.sound.spellingCandidates.map((candidate) => candidate.text)).toEqual(sourceName.spellingCandidates.map((candidate) => candidate.text));
     expect(firstName.sound.spellingCandidates.map((candidate) => candidate.rank)).toEqual(sourceName.spellingCandidates.map((candidate) => candidate.rank));
     expect(firstName.sound.spellingCandidates.filter((candidate) => candidate.selected)).toEqual([firstName.sound.selectedSpelling]);
     expect(firstName.silhouette.syllableCount).toBeGreaterThan(0);

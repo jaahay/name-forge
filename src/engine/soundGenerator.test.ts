@@ -11,14 +11,10 @@ describe('generateSound', () => {
     expect(sound).toEqual({
       contract: 'SoundCandidate',
       version: 1,
-      id: `sound-candidate:${profile.id}:t-o-l-w-ay`,
-      profileId: profile.id,
       cadence: 'open',
       sequence: {
         contract: 'SegmentSequence',
         version: 1,
-        id: `segment-sequence:${profile.id}:t-o-l-w-ay`,
-        profileId: profile.id,
         segments: ['t', 'o', 'l', 'w', 'ay'],
         syllables: [
           {
@@ -71,14 +67,10 @@ describe('generateSound', () => {
     expect(sound).toEqual({
       contract: 'SoundCandidate',
       version: 1,
-      id: `sound-candidate:${profile.id}:r-u-r-ey-l-y-a-r`,
-      profileId: profile.id,
       cadence: 'open',
       sequence: {
         contract: 'SegmentSequence',
         version: 1,
-        id: `segment-sequence:${profile.id}:r-u-r-ey-l-y-a-r`,
-        profileId: profile.id,
         segments: ['r', 'u', 'r', 'ey', 'l', 'y', 'a', 'r'],
         syllables: [
           {
