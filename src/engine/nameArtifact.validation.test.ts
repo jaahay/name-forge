@@ -48,8 +48,6 @@ const validIdentityAudition = {
 };
 
 const validSoundProfile = {
-  contract: 'SoundProfile',
-  version: 1,
   targets: {
     length: 'medium',
     syllableCount: { min: 2, max: 3, preferred: 2 },
@@ -70,12 +68,10 @@ const validSoundProfile = {
 const validSound = {
   contract: 'SoundCandidate',
   version: 1,
-  id: 'sound-1',
   cadence: 'balanced',
   sequence: {
     contract: 'SegmentSequence',
     version: 1,
-    id: 'sequence-1',
     segments: ['l', 'a', 'r'],
     syllables: [{
       start: 0,
@@ -96,11 +92,32 @@ const validSound = {
 const validLinkedSpelling = {
   contract: 'SpellingCandidate',
   version: 1,
-  id: 'spelling-1',
-  soundCandidateId: 'sound-1',
-  sequenceId: 'sequence-1',
   text: 'Aster',
-  mappings: [],
+  mappings: [{
+    segmentIndex: 0,
+    segmentId: 'l',
+    syllableIndex: 0,
+    syllableRole: 'onset',
+    text: 'A',
+    start: 0,
+    end: 1,
+  }, {
+    segmentIndex: 1,
+    segmentId: 'a',
+    syllableIndex: 0,
+    syllableRole: 'nucleus',
+    text: 'st',
+    start: 1,
+    end: 3,
+  }, {
+    segmentIndex: 2,
+    segmentId: 'r',
+    syllableIndex: 0,
+    syllableRole: 'coda',
+    text: 'er',
+    start: 3,
+    end: 5,
+  }],
   rank: 1,
   score: 1,
 };
@@ -138,7 +155,6 @@ const validArtifact = {
   displayText: 'Aster Vale',
   sound: validSound,
   spelling: {
-    id: 'spelling-1',
     text: 'Aster Vale',
     mappings: [],
     rank: 1,
@@ -163,7 +179,7 @@ describe('isNameArtifact', () => {
     expect(isNameArtifact(validArtifact)).toBe(true);
   });
 
-  it('accepts persisted identity parts with linked generation provenance', () => {
+  it('accepts persisted identity parts with contained generation provenance', () => {
     expect(isNameArtifact({
       ...validArtifact,
       identity: validIdentity,
@@ -218,7 +234,7 @@ describe('isNameArtifact', () => {
     })).toBe(false);
   });
 
-  it('rejects malformed or cross-linked identity generation provenance', () => {
+  it('rejects malformed or structurally inconsistent identity generation provenance', () => {
     expect(isNameArtifact({
       ...validArtifact,
       identity: {
@@ -227,7 +243,7 @@ describe('isNameArtifact', () => {
           ...validIdentity.parts[0],
           generation: {
             ...validIdentity.parts[0].generation,
-            soundProfile: { contract: 'SoundProfile', version: 1 },
+            soundProfile: { targets: validSoundProfile.targets },
           },
         }],
       },
@@ -243,7 +259,10 @@ describe('isNameArtifact', () => {
             ...validIdentity.parts[0].generation,
             spelling: {
               ...validLinkedSpelling,
-              soundCandidateId: 'sound-other',
+              mappings: [{
+                ...validLinkedSpelling.mappings[0],
+                segmentId: 'm',
+              }],
             },
           },
         }],
@@ -260,7 +279,10 @@ describe('isNameArtifact', () => {
             ...validIdentity.parts[0].generation,
             spelling: {
               ...validLinkedSpelling,
-              sequenceId: 'sequence-other',
+              mappings: [{
+                ...validLinkedSpelling.mappings[0],
+                syllableIndex: 4,
+              }],
             },
           },
         }],
