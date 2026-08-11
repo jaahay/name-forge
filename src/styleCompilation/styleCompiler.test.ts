@@ -8,8 +8,6 @@ describe('compileStyle', () => {
     const profile: SoundProfile = compileStyle(input);
 
     expect(profile).toEqual({
-      contract: 'SoundProfile',
-      version: 1,
       targets: {
         length: 'medium',
         syllableCount: {
@@ -31,6 +29,8 @@ describe('compileStyle', () => {
       },
     });
     expect(compileStyle(input)).toEqual(profile);
+    expect(Object.prototype.hasOwnProperty.call(profile, 'contract')).toBe(false);
+    expect(Object.prototype.hasOwnProperty.call(profile, 'version')).toBe(false);
     expect(Object.prototype.hasOwnProperty.call(profile, 'id')).toBe(false);
     expect(Object.prototype.hasOwnProperty.call(profile, 'source')).toBe(false);
   });
@@ -63,6 +63,8 @@ describe('compileStyle', () => {
       clusterTolerance: 0.18,
     });
     expect(Object.prototype.hasOwnProperty.call(profile, 'lexicon')).toBe(false);
+    expect(Object.prototype.hasOwnProperty.call(profile, 'contract')).toBe(false);
+    expect(Object.prototype.hasOwnProperty.call(profile, 'version')).toBe(false);
     expect(Object.prototype.hasOwnProperty.call(profile, 'id')).toBe(false);
     expect(Object.prototype.hasOwnProperty.call(profile, 'source')).toBe(false);
   });
