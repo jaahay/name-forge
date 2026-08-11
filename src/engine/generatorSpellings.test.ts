@@ -34,6 +34,8 @@ describe('same-sound spelling retention', () => {
     expect(new Set(candidate.rankedSpellings.candidates.map((spelling) => spelling.text))).toEqual(
       new Set(exhaustivePool.candidates.map((spelling) => spelling.text)),
     );
-    expect(candidate.rankedSpellings.candidates.every((spelling) => spelling.soundCandidateId === candidate.sound.id)).toBe(true);
+    expect(candidate.rankedSpellings.candidates.every((spelling) => spelling.mappings.every(
+      (mapping) => candidate.sound.sequence.segments[mapping.segmentIndex] === mapping.segmentId,
+    ))).toBe(true);
   });
 });
