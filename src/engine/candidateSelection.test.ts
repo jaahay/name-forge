@@ -75,9 +75,6 @@ function spellingCandidate(
   return {
     contract: 'SpellingCandidate',
     version: 1,
-    id: `spelling-candidate:test:${text.toLowerCase()}`,
-    soundCandidateId: 'sound-candidate:test',
-    sequenceId: 'segment-sequence:test',
     text,
     mappings: segments.map(([segmentId, segmentText], index) => mapping(index, segmentId, segmentText)),
     rank,
