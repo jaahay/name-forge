@@ -5,9 +5,9 @@ export interface ExportedNamePart { role: string; value: string; sourceName: str
 export interface ExportedRoleInfluence { level: RoleInfluenceMetadata['level']; profileId: string; label: string; effects: string[]; }
 export interface ExportedReadabilityDiagnostic { id: string; severity: ReadabilityDiagnostic['severity']; label: string; detail: string; }
 export interface ExportedNameVariant { value: string; kind: NameVariant['kind']; relationship: NameVariant['relationship']; confidence: NameVariant['confidence']; generated: boolean; ruleId: string; sourceId: string; sourceKind: NameVariant['source']['kind']; sourceLabel: string; locale?: string; }
-export interface ExportedSpellingCandidate { id: string; text: string; rank: number; score: number; soundCandidateId: string; sequenceId: string; selected: boolean; }
+export interface ExportedSpellingCandidate { text: string; rank: number; score: number; selected: boolean; }
 export interface ExportedSelectedSpelling extends ExportedSpellingCandidate { selected: true; }
-export interface ExportedSound { profile: SoundProfile; candidateId: string; sequenceId: string; transcription: string; selectedSpelling: ExportedSelectedSpelling; spellingCandidates: ExportedSpellingCandidate[]; }
+export interface ExportedSound { profile: SoundProfile; transcription: string; selectedSpelling: ExportedSelectedSpelling; spellingCandidates: ExportedSpellingCandidate[]; }
 export interface ExportedName { id: string; name: string; role?: string; roleInfluence?: ExportedRoleInfluence; readabilityDiagnostics: ExportedReadabilityDiagnostic[]; score: number; scores: GeneratedName['scores']; sound: ExportedSound; silhouette: Pick<NameSilhouette, 'syllableCount' | 'stressPattern' | 'rhythm' | 'rarityBand' | 'texture' | 'targetNovelty' | 'targetLength'>; format: string; parts: ExportedNamePart[]; variants: ExportedNameVariant[]; seed: string; warnings: string[]; }
 export interface CastExportPayload { exportVersion: 'name-forge.cast.v2'; generatedBy: 'Name Forge'; seed: string; settings: GeneratedEnsemble['settings']; sourcePack: GeneratedEnsemble['sourcePack']; diagnostics: GeneratedEnsemble['diagnostics']; names: ExportedName[]; }
 
@@ -16,11 +16,11 @@ type RetainedSpellingCandidate = GeneratedName['spellingCandidates'][number];
 function exportRoleInfluence(influence: RoleInfluenceMetadata | undefined): ExportedRoleInfluence | undefined { return influence ? { level: influence.level, profileId: influence.profileId, label: influence.label, effects: influence.effects } : undefined; }
 function exportReadabilityDiagnostics(diagnostics: ReadabilityDiagnostic[]): ExportedReadabilityDiagnostic[] { return diagnostics.map((diagnostic) => ({ id: diagnostic.id, severity: diagnostic.severity, label: diagnostic.label, detail: diagnostic.detail })); }
 function exportVariants(variants: NameVariant[]): ExportedNameVariant[] { return variants.map((variant) => ({ value: variant.value, kind: variant.kind, relationship: variant.relationship, confidence: variant.confidence, generated: variant.generated, ruleId: variant.ruleId, sourceId: variant.source.id, sourceKind: variant.source.kind, sourceLabel: variant.source.label, locale: variant.locale })); }
-function exportSpellingCandidate(candidate: RetainedSpellingCandidate, selectedSpellingId: string): ExportedSpellingCandidate { return { id: candidate.id, text: candidate.text, rank: candidate.rank, score: candidate.score, soundCandidateId: candidate.soundCandidateId, sequenceId: candidate.sequenceId, selected: candidate.id === selectedSpellingId }; }
+function exportSpellingCandidate(candidate: RetainedSpellingCandidate, selectedSpelling: RetainedSpellingCandidate): ExportedSpellingCandidate { return { text: candidate.text, rank: candidate.rank, score: candidate.score, selected: candidate === selectedSpelling }; }
 function exportSound(name: GeneratedName): ExportedSound {
-  const spellingCandidates = name.spellingCandidates.map((candidate) => exportSpellingCandidate(candidate, name.spelling.id));
-  const selectedSpelling = exportSpellingCandidate(name.spelling, name.spelling.id);
-  return { profile: name.soundProfile, candidateId: name.sound.id, sequenceId: name.sound.sequence.id, transcription: name.sound.transcription, selectedSpelling: { ...selectedSpelling, selected: true }, spellingCandidates };
+  const spellingCandidates = name.spellingCandidates.map((candidate) => exportSpellingCandidate(candidate, name.spelling));
+  const selectedSpelling = exportSpellingCandidate(name.spelling, name.spelling);
+  return { profile: name.soundProfile, transcription: name.sound.transcription, selectedSpelling: { ...selectedSpelling, selected: true }, spellingCandidates };
 }
 function diagnosticText(diagnostics: ExportedReadabilityDiagnostic[]): string { return diagnostics.length === 0 ? 'None' : diagnostics.map((diagnostic) => diagnostic.label + ': ' + diagnostic.detail).join('; '); }
 function relationshipLabel(relationship: ExportedNameVariant['relationship']): string { return relationship.replace(/_/g, ' '); }
