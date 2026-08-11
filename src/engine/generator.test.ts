@@ -50,22 +50,20 @@ describe('generateEnsemble', () => {
     const silhouette = createNameSilhouette(settings, pack, createSeededRandom('candidate:silhouette'), 0);
     const candidate = generateNameCandidateFromSilhouette(silhouette, settings, createSeededRandom('candidate:sound'));
 
-    expect(candidate.soundProfile.contract).toBe('SoundProfile');
+    expect(candidate.soundProfile.targets).toBeDefined();
+    expect(Object.prototype.hasOwnProperty.call(candidate.soundProfile, 'contract')).toBe(false);
+    expect(Object.prototype.hasOwnProperty.call(candidate.soundProfile, 'version')).toBe(false);
     expect(Object.prototype.hasOwnProperty.call(candidate.soundProfile, 'id')).toBe(false);
     expect(Object.prototype.hasOwnProperty.call(candidate.soundProfile, 'source')).toBe(false);
     expect(candidate.sound.contract).toBe('SoundCandidate');
     expect(candidate.sound.sequence.contract).toBe('SegmentSequence');
     expect(candidate.sound.transcription).toMatch(/^\/.+\/$/);
-    expect(candidate.rankedSpellings.soundCandidateId).toBe(candidate.sound.id);
-    expect(candidate.rankedSpellings.sequenceId).toBe(candidate.sound.sequence.id);
     expect(candidate.rankedSpellings.candidates.length).toBeGreaterThan(0);
     const [topSpelling] = candidate.rankedSpellings.candidates;
     expect(topSpelling).toBeDefined();
     if (!topSpelling) throw new Error('Expected top ranked spelling.');
     expect(candidate.selectedSpelling).toBe(topSpelling);
     expect(candidate.selectedSpelling.rank).toBe(1);
-    expect(candidate.selectedSpelling.soundCandidateId).toBe(candidate.sound.id);
-    expect(candidate.selectedSpelling.sequenceId).toBe(candidate.sound.sequence.id);
     expect(candidate.selectedSpelling.text.length).toBeGreaterThan(0);
   });
 
@@ -74,13 +72,11 @@ describe('generateEnsemble', () => {
     expect(ensemble.names).toHaveLength(settings.castSize);
     for (const name of ensemble.names) {
       expect(name.name.length).toBeGreaterThan(0);
-      expect(name.soundProfile.contract).toBe('SoundProfile');
+      expect(name.soundProfile.targets).toBeDefined();
       expect(name.sound.contract).toBe('SoundCandidate');
       expect(name.sound.sequence.contract).toBe('SegmentSequence');
       expect(name.sound.transcription).toMatch(/^\/.+\/$/);
       expect(name.spelling.rank).toBe(1);
-      expect(name.spelling.soundCandidateId).toBe(name.sound.id);
-      expect(name.spelling.sequenceId).toBe(name.sound.sequence.id);
       expect(name.name).toBe(name.spelling.text);
       expect(name.spellingCandidates.length).toBeGreaterThan(0);
       const [selectedCandidate] = name.spellingCandidates;
