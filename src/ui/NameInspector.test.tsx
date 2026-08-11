@@ -44,7 +44,6 @@ function withSpellingCandidateCount(name: GeneratedName, candidateCount: number)
   const baseCandidate = firstSpellingCandidate(name);
   const spellingCandidates = Array.from({ length: candidateCount }, (_, index): SpellingCandidate => ({
     ...baseCandidate,
-    id: `spelling-candidate:same-sound-${index + 1}`,
     text: `SameSound${index + 1}`,
     rank: index + 1,
     score: Math.max(0, baseCandidate.score - index * 0.01),
