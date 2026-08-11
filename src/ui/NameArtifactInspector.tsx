@@ -24,8 +24,15 @@ function variantMetadataLabel(variant: NameVariant): string {
   return `${relationship}; ${variant.confidence} confidence; ${generatedLabel}; ${variant.source.label}`;
 }
 
-function sameSoundSpellingMetadataLabel(candidate: SpellingCandidate, selectedSpellingId: string | undefined): string {
-  return candidate.id === selectedSpellingId ? `selected; preference rank ${candidate.rank}` : `preference rank ${candidate.rank}`;
+function isSelectedSpelling(candidate: SpellingCandidate, selected: SpellingCandidate | undefined): boolean {
+  return Boolean(selected
+    && candidate.text === selected.text
+    && candidate.rank === selected.rank
+    && candidate.score === selected.score);
+}
+
+function sameSoundSpellingMetadataLabel(candidate: SpellingCandidate, selected: SpellingCandidate | undefined): string {
+  return isSelectedSpelling(candidate, selected) ? `selected; preference rank ${candidate.rank}` : `preference rank ${candidate.rank}`;
 }
 
 function copyText(value: string) {
@@ -107,7 +114,7 @@ function modeledSoundParts(artifact: NameArtifact): readonly IdentityAuditionSou
 function detailsText(artifact: NameArtifact, pronunciationGuide?: string): string {
   const analysis = analyzeNameArtifact(artifact);
   const spellings = (artifact.spellingCandidates ?? [])
-    .map((candidate) => `${candidate.text} (${sameSoundSpellingMetadataLabel(candidate, artifact.spelling?.id)})`)
+    .map((candidate) => `${candidate.text} (${sameSoundSpellingMetadataLabel(candidate, artifact.spelling)})`)
     .join(', ') || 'None';
   const phraseSound = artifact.identityAudition?.displayText;
   const soundParts = modeledSoundParts(artifact)
@@ -130,7 +137,7 @@ function detailsText(artifact: NameArtifact, pronunciationGuide?: string): strin
 
 export function NameArtifactInspector({ artifact, eyebrow = 'Inspect', extraActions, extraSections }: NameArtifactInspectorProps) {
   const sameSoundSpellings = artifact.spellingCandidates ?? [];
-  const otherSpellings = sameSoundSpellings.filter((candidate) => candidate.id !== artifact.spelling?.id);
+  const otherSpellings = sameSoundSpellings.filter((candidate) => !isSelectedSpelling(candidate, artifact.spelling));
   const readNotes = artifact.readabilityDiagnostics ?? [];
   const variants = artifact.variants ?? [];
   const auditionCue = artifact.sound ? renderAuditionCue(artifact.sound.sequence) : undefined;
@@ -215,7 +222,7 @@ export function NameArtifactInspector({ artifact, eyebrow = 'Inspect', extraActi
             <div className="inspector-alternates">
               <span>Alternates</span>
               <ul aria-label={`${artifact.displayText} other spellings`}>
-                {otherSpellings.map((candidate) => <li key={`${artifact.id}-${candidate.id}`}>{candidate.text}</li>)}
+                {otherSpellings.map((candidate) => <li key={`${artifact.id}-${candidate.rank}-${candidate.text}`}>{candidate.text}</li>)}
               </ul>
             </div>
           ) : null}
