@@ -4,7 +4,7 @@ This document explains the sound side of Name Forge in plain terms. It is intent
 
 Related docs:
 
-- [`requirements/sound-unit-audio-audition-boundary.md`](requirements/sound-unit-audio-audition-boundary.md): docs-only future boundary for renderer-neutral audio plans, provider projections, and phrase-level audio provenance.
+- [`requirements/sound-unit-audio-audition-boundary.md`](requirements/sound-unit-audio-audition-boundary.md): current browser-audition boundary plus the genuinely future renderer-neutral/provider audio boundary.
 
 ## The short version
 
@@ -12,11 +12,12 @@ Name Forge should behave like this:
 
 ```text
 user intent
+  -> typed style input
   -> sound recipe
   -> generated sound plan
   -> spelling options
   -> selected display name
-  -> identity / cast presentation
+  -> identity / product presentation
   -> sound guide and playback projections
 ```
 
@@ -34,16 +35,21 @@ User-facing settings describe the desired feel of the result: style pack, name l
 
 These settings are ergonomic. They should not ask the user to know phonology terms.
 
+Product or naming-layer code translates that intent into an appropriate typed style language. The low-level sound engine does not own product semantics such as Fiction Cast roles or title/epithet vocabularies.
+
 ### 2. Sound recipe
 
-`SoundProfile` is the compiled recipe used by the engine. It answers questions like:
+`SoundProfile` is the resolved mechanics value consumed by the sound engine. It answers questions like:
 
-- Which sound segments are likely?
-- Which syllable shapes are likely?
+- Which syllable shapes are preferred?
 - What texture does this style prefer: soft, crisp, fluid, balanced?
-- What title or epithet lexemes are licensed by the profile?
+- How many syllables are preferred?
+- Which cadence families are allowed?
+- How strongly should onset, coda, liquid, glide, and cluster tendencies influence generation?
 
 This is where phonotactic preference belongs. In plain language: phonotactics are the rules and tendencies for which sounds can appear together.
+
+`SoundProfile` is a pure value. It does not contain a profile id, compiler provenance, product role, Fiction Cast job identifier, title/epithet lexicon, composition grammar, UI state, or runtime handles. Different style compilers may produce structurally equal profiles without requiring shared identity infrastructure.
 
 ### 3. Generated sound plan
 
@@ -56,7 +62,7 @@ It stores:
 - which segment indexes act as onset, nucleus, and coda inside each syllable
 - explicit coarse syllable metadata: `weight`, `sonorityProfile`, `stress`, and `stressSource`
 
-This is the core generated sound artifact. It is not browser text, IPA, spelling, or a provider payload.
+This is the core generated sound value. It is not browser text, IPA, spelling, or a provider payload. It also does not need a synthetic sequence id merely to remain related to the `SoundCandidate` that contains it.
 
 ### 4. Spelling options
 
@@ -71,15 +77,16 @@ This is the core generated sound artifact. It is not browser text, IPA, spelling
 `GeneratedName` is the selected app-facing result. It preserves both sides:
 
 - `name`: the selected display spelling
+- `soundProfile`: the exact resolved profile value used for the primary generated component
 - `sound`: the generated sound candidate behind the selected spelling
 - `spelling`: the selected ranked spelling candidate
 - `spellingCandidates`: retained ranked alternatives
 
-This lets the product show a polished name while still retaining the sound model that produced it.
+The containing result establishes the relationship among those values. Nested generation values do not need relational ids merely so adjacent values can point back at one another.
 
 ### 6. Identity composition
 
-`NameIdentity` arranges already licensed parts into display forms such as:
+Product-owned identity composition arranges generated and lexical parts into display forms such as:
 
 ```text
 {given}
@@ -88,25 +95,40 @@ This lets the product show a polished name while still retaining the sound model
 {given} {epithet} of {place}
 ```
 
-Identity composition should not invent new sound material by string surgery. If a part is verbal, it should come from generated sound, profile data, or a profile-selected lexeme.
+For Fiction Cast, the current grammar and title/epithet lexicon live in the Fiction Cast domain rather than `SoundProfile` or the low-level sound engine.
+
+A sound-backed identity part retains the exact contained generation bundle used for that part: `SoundProfile`, `SoundCandidate`, and selected spelling. A compound identity therefore may contain multiple independently generated sound-backed parts without pretending one aggregate profile describes the whole phrase.
+
+Identity composition should not invent new generated sound material by string surgery. Text-backed titles, epithets, initials, and literals stay explicit unless a future model gives them their own sound provenance.
 
 ### 7. Audition and projection
 
 Audition reads the generated sound model and prepares it for presentation.
 
-Current pipeline:
+Generated-name pipeline:
 
 ```text
 SegmentSequence
   -> AuditionPhonology
   -> BrowserAuditionCue
+  -> NameAuditionCue
+```
+
+Phrase pipeline:
+
+```text
+NameIdentity
+  -> IdentityAuditionPhrase
+  -> persisted NameArtifact.identityAudition
 ```
 
 `AuditionPhonology` is renderer-neutral. It reads syllables, segments, generated syllable metadata, and stress hints. If generated stress is still `unspecified`, it may expose fallback stress, but it must label that fallback with `stressSource: 'fallback'`.
 
 `BrowserAuditionCue` is renderer-specific. It may use practical text tricks to make browser speech or human display less awkward. It is not the source of truth.
 
-Future audio work should follow [`requirements/sound-unit-audio-audition-boundary.md`](requirements/sound-unit-audio-audition-boundary.md) before introducing runtime audio, provider payloads, SSML, IPA, waveform persistence, or UI changes. Future audio plans should be downstream projections of `AuditionPhonology` and `IdentityAuditionPhrase`, not replacements for them.
+The selected-name inspector already performs lightweight runtime browser playback through the Web Speech API. Whole composed identities are spoken as semantic chunks with a short presentation pause, and generated sound-backed given/family/place components can be played individually. That playback remains an approximation over existing audition projections; it is not a renderer-neutral sound-unit contract or canonical pronunciation model.
+
+Future provider audio, SSML, IPA, waveform generation/caching, or portable timing models should follow [`requirements/sound-unit-audio-audition-boundary.md`](requirements/sound-unit-audio-audition-boundary.md). A new audio-plan abstraction should be added only when a concrete renderer requirement exceeds `AuditionPhonology`, `NameAuditionCue`, and `IdentityAuditionPhrase`.
 
 ## Data model
 
@@ -118,6 +140,7 @@ Durable facts are facts the generator has produced and later systems should be a
 
 Examples:
 
+- the resolved `SoundProfile` value retained with a generated component
 - `SegmentSequence.segments`
 - `SegmentSequence.syllables`
 - `SegmentSyllable.start` / `end`
@@ -128,6 +151,7 @@ Examples:
 - `SegmentSyllable.stressSource`
 - `SpellingSegmentMapping.segmentIndex`
 - `RankedSpellingCandidate.rank`
+- the contained per-part generation bundle on sound-backed identity parts
 
 These facts should be explicit and testable. When the generator does not know a linguistic fact, it should record `unspecified` rather than omit the field or pretend to know more.
 
@@ -140,8 +164,9 @@ Examples:
 - a human-readable sound guide
 - browser speech text
 - fallback audition stress
+- phrase-level browser playback chunks
 - readability diagnostics
-- future renderer-neutral audio plans
+- future renderer-neutral audio plans, if a concrete need appears
 - future SSML/provider payloads
 
 Derived facts may be useful, but they should not silently replace the durable model. A fallback should stay visibly marked as a fallback.
@@ -203,7 +228,7 @@ owr · EHL · ee-oh-n
        ^ primary stress
 ```
 
-Generated syllables now carry explicit stress fields:
+Generated syllables carry explicit stress fields:
 
 ```ts
 stress: 'primary' | 'secondary' | 'unstressed' | 'unspecified';
@@ -218,26 +243,27 @@ Phonotactics are the rules and tendencies for sound combinations.
 
 Plain examples:
 
-- Some styles may like `br`, `dr`, or `th` onsets.
+- Some styles may like particular onset/coda balances.
 - Some styles may avoid hard clusters.
-- Some styles may prefer names ending in vowels.
+- Some styles may prefer more fluid sonority.
 - Some styles may allow heavier final syllables.
 
-Phonotactics belong in the sound recipe and generation behavior: `SoundProfile`, `soundGenerator`, and related profile/style compilation code. They should not be smuggled into browser projection.
+Phonotactics belong in the resolved `SoundProfile` and `soundGenerator` behavior. Product semantics and lexical inventories belong above that layer. Browser projection should own neither.
 
 ## Module responsibilities
 
-| Module | Plain responsibility | Should own | Should not own |
+| Module / layer | Plain responsibility | Should own | Should not own |
 | --- | --- | --- | --- |
-| `styleCompiler.ts` | Turns user-facing style intent into an engine recipe | Compiled profile data | Generated names |
-| `soundProfile.ts` | Describes the internal sound recipe | Sound weights, cadence preferences, lexicon | Runtime callbacks or UI state |
+| `src/styleCompilation` | Turns a typed style language into a resolved engine recipe | Style compilation and `SoundProfile` values | Generated names or product identity grammar |
+| `soundProfile.ts` | Describes the low-level sound recipe | Resolved sound targets and phonotactic preferences | Ids, compiler provenance, product roles, lexicons, UI state |
 | `soundGenerator.ts` | Creates generated sound plans | Segment sequences, syllable spans, syllable metadata, sound candidates | Browser text or spelling display |
-| `spellingGenerator.ts` | Writes the sound plan in letters | Spelling candidate pools, spelling mappings, spelling ranking | Sound validity |
-| `identity.ts` | Arranges licensed name parts | Display identity parts | New arbitrary sound material |
-| `auditionPhonology.ts` | Reads generated sound for sound presentation | Renderer-neutral syllable metadata and explicit fallback stress | Generation rules or browser hacks |
+| `spellingGenerator.ts` | Writes the sound plan in letters | Spelling candidate pools, mappings, ranking | Sound validity |
+| `src/naming` | Orchestrates current style compilation, sound generation, spelling selection, scoring, and variants | Name-generation workflow above the low-level engine | Fiction Cast composition grammar |
+| `src/fictionCast/identity.ts` | Arranges Fiction Cast generated and lexical parts | Fiction Cast display identity parts and phrase structure | Low-level sound generation rules |
+| `auditionPhonology.ts` | Reads generated sound for presentation | Renderer-neutral syllable metadata and explicit fallback stress | Generation rules or browser hacks |
 | `browserAuditionProjection.ts` | Makes browser/display text from audition facts | `speechText`, guide text, browser-specific compromises | Core phonology or name validity |
 | `identityAudition.ts` | Projects composed identities into audition phrase parts | Sound/text/literal provenance | Provider audio payloads or invented sound for text |
-| `NameInspector.tsx` | Shows the selected name to the user | Labels, controls, selected-name presentation | Generation logic |
+| `NameArtifactInspector.tsx` | Shows and lightly auditions the selected artifact | Labels, controls, browser Web Speech playback | Generation logic or canonical pronunciation |
 
 ## Working rules
 
@@ -249,11 +275,12 @@ Phonotactics belong in the sound recipe and generation behavior: `SoundProfile`,
 6. Treat arrays as ordered collections. If order is semantic, document what it means. If order is only deterministic traversal, do not let callers treat it as ranking.
 7. A rank field is stronger than array position when ranking is part of the contract.
 8. Add small, testable facts before adding a large phonology abstraction.
-9. Keep future audio plans renderer-neutral before provider-specific projection.
-10. Preserve phrase-level sound/text/literal provenance before any audio rendering.
+9. Keep any future audio plan renderer-neutral before provider-specific projection.
+10. Preserve phrase-level sound/text/literal provenance through browser playback and any future audio rendering.
+11. Use containment for adjacent generation provenance instead of inventing relational ids without an independently addressable entity.
 
 ## Near-term direction
 
-The explicit syllable metadata fields are now in the durable sound model. Future work should make stress assignment smarter only when the generator has a real rule to own, such as cadence-driven or weight-driven stress. Until then, fallback stress belongs in audition projection and must remain labeled as fallback.
+The explicit syllable metadata fields are in the durable sound model. Future work should make stress assignment smarter only when the generator has a real rule to own, such as cadence-driven or weight-driven stress. Until then, fallback stress belongs in audition projection and must remain labeled as fallback.
 
-Future audio audition should start from the docs-only boundary in [`requirements/sound-unit-audio-audition-boundary.md`](requirements/sound-unit-audio-audition-boundary.md). Runtime audio, SSML, IPA, provider integration, waveform generation, and audio persistence remain deferred until the renderer-neutral plan and phrase provenance contract are accepted.
+Browser speech playback already covers the current lightweight audition need. Future audio work should start from a concrete missing capability, then consult [`requirements/sound-unit-audio-audition-boundary.md`](requirements/sound-unit-audio-audition-boundary.md) before adding renderer-neutral timing, provider payloads, SSML, IPA, waveform generation, or audio persistence.
