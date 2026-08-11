@@ -1,6 +1,6 @@
 # Game NPC mode boundary
 
-This document defines the implemented product and platform boundary for **Game NPC** mode.
+This document defines the implemented product boundary for **Game NPC** mode against the current shared Name Forge platform.
 
 ## User job
 
@@ -12,238 +12,173 @@ Fiction Cast serves a different job:
 
 > Help me build a coherent but distinct ensemble of character names.
 
-Game NPC optimizes for speed and immediate use. Fiction Cast optimizes for roster construction, ensemble comparison, locks, cast-level diagnostics, and cast export.
+Game NPC optimizes for speed and immediate use. Fiction Cast optimizes for roster construction, ensemble comparison, locks, cast-level review, and cast export.
 
-## Cardinality decision
+## Current cardinality decision
 
 The implemented Game NPC mode generates **one name at a time**.
 
-That is intentional:
+This is now a **product decision**, not a shared backend limitation.
 
-- it matches the current singular `NameRequest -> NameResponse` v1 behavior;
-- it supports generate, inspect, copy, and reroll during live play;
-- it avoids disguising one NPC as a one-member cast;
-- it avoids inventing mode-specific plural behavior before the shared quantity/grouping contract exists.
+The shared `NameRequest -> NameResponse` contract supports exact `independent-set` quantities from 1 through 100, but Game NPC intentionally omits quantity/grouping so the request resolves through the singular-compatible default.
 
-A future short NPC roster may be useful for encounter prep. It must use the shared quantity and grouping model when that contract is implemented. It must not become a separate `NpcRosterRequest`, repeated client-side singular requests presented as one atomic roster, or a forked generator.
+That keeps the mode focused on:
+
+- generate one name;
+- inspect one artifact;
+- copy/use it immediately;
+- reroll with a fresh seed.
+
+A future short NPC roster may be useful for encounter prep. If selected, it must reuse the shared quantity/grouping contract rather than introduce `NpcRosterRequest`, repeated client-side singular requests presented as one atomic roster, or a forked generator.
+
+Shared multiplicity does not by itself authorize NPC roster UX. A roster still needs an explicit product boundary for quantity controls, browsing, reroll semantics, persistence expectations, and any group-level evidence.
 
 ## Platform pipeline
 
 Game NPC is a thin mode over the shared naming platform:
 
 ```text
-NameRequest
-  -> existing criteria compiler
-  -> SoundProfile / SegmentSequence
-  -> exhaustive supported spelling pool
-  -> deterministic rule-weighted orthographic preference ranking
-  -> selected spelling + complete ranked pool on NameArtifact
-  -> analyzeNameArtifact
-  -> shared NameArtifactInspector prefix view
+Game NPC product input
+  -> NameRequest (mode metadata + criteria + seed)
+  -> shared NameResponse adapter
+  -> current naming orchestration
+  -> SoundProfile / SoundCandidate / SegmentSequence
+  -> complete supported spelling pool
+  -> deterministic spelling ranking and selection
+  -> NameArtifact
+  -> shared artifact analysis / inspection
 ```
 
-The mode owns navigation, labels, style-source selection, reroll behavior, and mode-specific surrounding actions. It does not own a second phonological engine, request family, artifact model, analysis model, or artifact renderer.
+The current `GameNpcView` supplies:
+
+- `mode: "game-npc"` as metadata;
+- one practical `single-name` criterion;
+- the selected style source through adapter options;
+- a deterministic seed for replay or a fresh seed for reroll.
+
+The mode does not own a second sound generator, request family, artifact model, analysis model, or artifact renderer.
 
 ## Current input boundary
 
-The initial Game NPC workflow exposes only the shared style source and seed behavior.
+The visible Game NPC workflow deliberately exposes a small input surface:
 
-It does not expose speculative controls for:
+- style source;
+- reroll/generate action.
 
-- pronounceability;
-- familiarity;
-- memorability;
-- beauty;
-- realism;
-- cultural authenticity;
-- sound texture;
-- spelling style.
+The current mode does not expose speculative human-facing controls merely because similarly named internal heuristics or settings exist.
 
-Those labels are not useful merely because internal generator settings or heuristics exist. A user-facing control must correspond to a clear product intent and a defensible model.
+In particular, user-facing claims such as universal pronounceability, familiarity, memorability, beauty, realism, or cultural authenticity require a defensible product model and evidence before they become Game NPC controls or scores.
 
-The spelling display cap is different. It is a local presentation preference, not a generation criterion. Changing it reveals more or fewer already-ranked spellings without regenerating the sound, changing the selected spelling, or altering backend ranking. The inspector retains the user's requested cap across generated artifacts and displays up to that many spellings when the current artifact has enough candidates.
+A future context preset such as faction, region, species, class, or genre should compile into explicit criteria or a separately accepted semantic naming contract. It must not become an opaque mode-driven branch inside shared generation.
 
 ## Same-sound spelling contract
 
-For one generated sound sequence, Name Forge derives every spelling supported by the current grapheme inventory. The engine ranks the full pool before any display cap or bounded-result slice is applied.
+For one generated sound sequence, Name Forge derives the complete spelling pool supported by the current grapheme inventory and deterministically ranks that full pool before presentation limits are applied.
 
-The ranking is a **rule-weighted orthographic preference**, not a universal beauty score:
+The ranking is a **rule-weighted orthographic preference**, not a universal beauty or human-likelihood score.
 
-- conventional segment-to-grapheme mappings carry the strongest base weight;
-- recognizable alternatives follow;
-- unusual or heavily expanded mappings rank lower;
-- profile distinctiveness and texture may reorder otherwise plausible alternatives;
-- ordinal text ordering breaks exact score ties without locale-sensitive behavior.
+Important invariants:
 
-This supports a result shape such as:
+- candidate count does not participate in spelling generation, scoring, or sorting;
+- bounded views are exact prefixes of the complete ranked result for identical inputs;
+- changing only a display limit cannot change the selected spelling or earlier-ranked candidates;
+- the complete ranked spelling evidence remains part of the generated artifact contract even when the UI shows a smaller prefix.
 
-```text
-more conventional
-  -> Sean
-  -> Shawn
-  -> Shon
-  -> ...
-  -> Phsawn
-less conventional
-```
-
-The specific forms depend on the available segment-to-grapheme rules. “All supported spellings” means every orthographic realization derivable from that inventory, not every spelling a person could invent outside the model.
-
-The inspector defaults to the top **10** same-sound spellings. The user can change the requested cap to any positive number. The cap affects only rendering and copied details; the complete ranked pool remains attached to the artifact and may be returned by the API.
-
-### Determinism and prefix invariance
-
-For identical sound candidate, sound profile, spelling-rule inventory, ranking implementation, and ranking options, spelling generation and ranking return the same complete ordered result.
-
-A requested candidate count does not participate in candidate generation, scoring, or sorting. The implementation ranks the complete supported pool and only then takes the requested prefix. Therefore bounded requests are prefix-invariant:
-
-```text
-top10 === top20.slice(0, 10)
-```
-
-Changing only the requested count cannot change the candidates or ordering that appear before the new boundary.
+The phrase “all supported spellings” means all realizations derivable from the current model inventory, not every spelling a person could invent outside that inventory.
 
 ## Shared artifact rendering contract
 
-`NameArtifact` is the reusable result contract across modes.
+`NameArtifact` is the reusable result contract across active modes.
 
-Both Fiction Cast and Game NPC render common facts through `NameArtifactInspector`, including:
+Game NPC uses the shared `NameArtifactInspector` rather than a mode-specific artifact renderer.
+
+Shared Inspect may expose facts such as:
 
 - display name;
-- sound sketch;
-- sound-derived pronunciation guide;
-- browser voice draft state;
-- deterministic structure facts;
-- selected spelling;
-- total supported same-sound spelling count;
-- a configurable prefix view of the ranked same-sound spellings;
-- spelling-selection explanation;
-- readability diagnostics;
+- modeled sound evidence;
+- selected spelling and retained alternatives;
+- deterministic spelling-selection explanation;
+- readability observations;
 - variants;
-- copy-name and copy-details actions.
+- approximate browser voice draft;
+- copy actions.
 
-Modes may compose additional sections and actions around the shared inspector:
+Game NPC adds fast reroll around that shared surface. Fiction Cast adds cast-specific context and composition around the same artifact-reading boundary.
 
-- Fiction Cast adds lock controls, cast context, generated shape, score detail, name parts, and role influence.
-- Game NPC adds reroll behavior.
-
-A mode must not create a parallel renderer for common `NameArtifact` facts.
+A future mode must not create a parallel renderer merely to rename common artifact facts.
 
 ## Shared artifact analysis contract
 
-Artifact analysis is derived through pure platform functions rather than persisted into `NameArtifact`:
+Artifact analysis is derived through pure shared functions rather than becoming mode-owned mutable state.
 
-```ts
-analyzeNameArtifact(artifact)
-analyzeNameArtifactSet(artifacts)
-```
+Single-artifact evidence may include deterministic generated facts such as segment count, syllable structure, cadence, spelling count/rank, selection explanation, and readability notices.
 
-This keeps the durable artifact contract focused while allowing every mode to compute the same evidence.
+Set-level analysis may inspect artifact collections for concrete modeled relationships. Those shared analysis capabilities do not imply that singular Game NPC should present roster-level analysis before a roster workflow exists.
 
-### Reasonable single-artifact analysis
+Mode presentation must distinguish deterministic model evidence from claims about universal human perception or confusion.
 
-The platform may expose deterministic observations that follow directly from generated structure or retained candidates:
+## Audition boundary
 
-- segment count;
-- syllable count;
-- syllable shapes;
-- stress pattern;
-- cadence;
-- supported same-sound spelling count;
-- selected spelling rank;
-- runner-up spelling;
-- deterministic selection explanation;
-- readability notice and warning counts.
+Game NPC reuses the shared browser audition stack.
 
-These are observations or explanations of actual generator state. They are not claims about universal human perception.
+Browser playback is an approximation derived from modeled sound evidence. It is not IPA, a pronunciation dictionary, provider phoneme markup, or canonical pronunciation.
 
-### Reasonable artifact-set analysis
-
-The platform may inspect any `NameArtifact[]` for concrete pairwise collisions:
-
-- identical normalized display text;
-- shared initials;
-- shared endings;
-- one-edit spelling proximity;
-- identical cadence keys based on stress pattern, syllable count, and rhythm.
-
-The API reports the collision kind and evidence. It does not collapse these facts into a universal fit, quality, or confusion percentage. Same-roster sound proximity remains deferred to issue #154.
-
-## Why pronounceability is not a current score
-
-Name Forge does not currently possess a validated scalar pronounceability model.
-
-A meaningful claim would require at least:
-
-- a declared listener language or language family;
-- phonotactic legality and markedness for that population;
-- syllable structure, stress, sonority transitions, cluster complexity, and segment inventory;
-- separation of sound-generation difficulty from spelling interpretation;
-- empirical or expert validation showing that the model predicts human performance.
-
-The current sound structure, audition projection, browser voice approximation, and read-friction diagnostics do not justify a universal “78% pronounceable” score.
-
-## Why familiarity and memorability are not current scores
-
-Familiarity requires a declared corpus or audience. It may refer to lexical frequency, phonological-neighborhood density, cultural exposure, spelling-pattern frequency, genre exposure, or prior experience.
-
-Memorability requires evidence that a model predicts recall or recognition. Distinctiveness, length, rhythm, and spelling complexity may contribute, but internal weighted heuristics do not become a valid UX claim without validation.
-
-These ideas remain research work, not current product facts.
+Provider-specific audio, pronunciation authority, or new phonological claims require separate contracts and are not part of the Game NPC mode merely because a Play action exists.
 
 ## Determinism and reroll
 
-The same style source and seed must produce the same singular `NameArtifact`.
+For the same selected style source and seed, Game NPC must reproduce the same singular artifact under the same engine/model version and data:
 
 ```text
 same style source + same seed -> same singular artifact
 same style source + fresh seed -> rerolled singular artifact
 ```
 
-Changing the spelling display cap does not alter either mapping. It changes only how much of the artifact's already-ranked spelling list is presented.
+`mode: "game-npc"` remains metadata. It must not cause the shared generator to take a Game-NPC-specific generation branch.
 
-## Implemented in this slice
+## Current implemented boundary
 
-- selectable Game NPC mode;
-- singular shared `NameRequest -> NameArtifact` generation;
-- style-source selection and reroll;
-- deterministic same-seed artifact test;
-- exhaustive same-sound spelling derivation from the current grapheme inventory;
-- deterministic rule-weighted orthographic preference ranking over the full pool;
-- ordinal text comparison for exact ranking ties;
-- complete-result replay and bounded-result prefix-invariance tests;
-- configurable frontend spelling display cap with a default of 10;
-- requested display-cap persistence across generated artifacts;
-- shared `NameArtifactInspector` used by both active modes;
-- shared pure artifact-analysis APIs;
-- deterministic single-artifact structure, spelling, and readability evidence;
-- deterministic artifact-set collision analysis;
-- public exports for the analysis functions and types;
-- separation from Fiction Cast ensemble state and UI.
+Game NPC currently includes:
 
-## Deferred work
+- selectable active mode presentation;
+- singular-compatible shared `NameRequest -> NameResponse` generation;
+- style-source selection;
+- fresh-seed reroll;
+- deterministic same-input replay behavior;
+- complete supported spelling generation and deterministic ranking;
+- shared `NameArtifactInspector` usage;
+- shared readability, spelling, and sound evidence;
+- shared browser audition behavior;
+- participation in the product's artifact-oriented generated-result continuity through the surrounding app callback;
+- separation from Fiction Cast ensemble state, identity grammar, locks, and cast review.
 
-- Shared quantity and grouping for NPC rosters.
-- Context presets backed by explicit criteria bundles and product evidence.
-- Audience-specific pronounceability research and validation.
-- Corpus-specific familiarity research and validation.
-- Human-tested memorability research and validation.
-- Same-roster sound proximity diagnostics.
-- Semantic, genre, cultural, or realism scoring backed by declared data and methodology.
-- Persistence.
-- Character hooks, biography generation, or encounter generation.
-- New phonology, audio-provider, or IPA implementation.
+The broader platform additionally supports exact independent-set quantity/grouping and richer artifact-set analysis. Game NPC does not currently expose those capabilities as an NPC roster workflow.
+
+## Deferred Game NPC product work
+
+The following remain possible future Game NPC slices, not implied current behavior:
+
+- an NPC roster UX built on shared exact quantity/grouping;
+- context presets backed by explicit criteria bundles or accepted semantic naming capabilities;
+- user-facing per-context sound/style controls with clear product meaning;
+- validated audience-specific pronounceability research;
+- corpus-specific familiarity research;
+- human-tested memorability research;
+- semantic, genre, cultural, or realism claims backed by declared data and methodology;
+- mode-specific grouped persistence or roster restore UX;
+- character hooks, biographies, or encounter generation;
+- provider-specific audio, IPA, dictionaries, or pronunciation authority.
 
 ## Invariants
 
 - No separate Game NPC generator.
-- No `NpcRequest`, `GameNpcRequest`, or `NpcRosterRequest`.
-- No mode-driven branch inside core v1 generation.
-- No fake one-member cast state.
+- No `NpcRequest`, `GameNpcRequest`, or `NpcRosterRequest` without a demonstrated incompatibility with the shared contract.
+- No mode-driven branch inside shared generation.
+- No fake one-member Fiction Cast state.
 - No parallel artifact renderer or analyzer.
-- No derived analysis persisted into the durable artifact without a versioned contract decision.
+- No roster UI inferred solely from the existence of shared multiplicity.
+- No derived analysis persisted into the durable artifact without an explicit versioned contract decision.
 - No unsupported linguistic or psychological score presented as objective fact.
-- No display cap applied before full-pool ranking or selected-spelling resolution.
-- No requested candidate count allowed to affect candidate generation, scoring, or ordering.
+- No display cap applied before full-pool spelling ranking or selected-spelling resolution.
+- No requested spelling count allowed to affect candidate generation, scoring, or ordering.
 - Any bounded spelling result must be an exact prefix of the complete ranked result for identical model inputs.
-- No plural request behavior until the shared quantity/grouping contract is implemented.
