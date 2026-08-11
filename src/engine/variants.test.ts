@@ -33,8 +33,6 @@ const silhouette: NameSilhouette = {
 
 function fixtureName(): GeneratedName {
   const soundProfile = {
-    contract: 'SoundProfile' as const,
-    version: 1 as const,
     targets: {
       length: 'medium' as const,
       syllableCount: { min: 2, max: 3, preferred: 3 },
@@ -54,13 +52,11 @@ function fixtureName(): GeneratedName {
   const sound = {
     contract: 'SoundCandidate' as const,
     version: 1 as const,
-    id: 'sound-candidate:a-v-e-l-i-n',
     cadence: 'balanced' as const,
     transcription: '/a.ve.lin/',
     sequence: {
       contract: 'SegmentSequence' as const,
       version: 1 as const,
-      id: 'segment-sequence:a-v-e-l-i-n',
       segments: ['a', 'v', 'e', 'l', 'i', 'n'] as const,
       syllables: [
         {
@@ -105,9 +101,6 @@ function fixtureName(): GeneratedName {
   const spelling = {
     contract: 'SpellingCandidate' as const,
     version: 1 as const,
-    id: 'spelling-candidate:aveline',
-    soundCandidateId: sound.id,
-    sequenceId: sound.sequence.id,
     text: 'Aveline',
     mappings: [],
     rank: 1,
