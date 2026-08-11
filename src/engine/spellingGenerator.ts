@@ -22,9 +22,6 @@ export interface SpellingSegmentMapping {
 export interface SpellingCandidate {
   readonly contract: SpellingCandidateContract;
   readonly version: 1;
-  readonly id: string;
-  readonly soundCandidateId: string;
-  readonly sequenceId: string;
   readonly text: string;
   readonly mappings: readonly SpellingSegmentMapping[];
 }
@@ -35,14 +32,10 @@ export interface RankedSpellingCandidate extends SpellingCandidate {
 }
 
 export interface SpellingCandidatePool {
-  readonly soundCandidateId: string;
-  readonly sequenceId: string;
   readonly candidates: readonly SpellingCandidate[];
 }
 
 export interface RankedSpellingCandidateList {
-  readonly soundCandidateId: string;
-  readonly sequenceId: string;
   readonly candidates: readonly RankedSpellingCandidate[];
 }
 
@@ -208,10 +201,6 @@ function capitalizeName(text: string): string {
   return text.length === 0 ? text : `${text[0].toUpperCase()}${text.slice(1)}`;
 }
 
-function spellingKey(text: string): string {
-  return text.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-}
-
 function resolveSegmentRole(sound: SoundCandidate, segmentIndex: number): Pick<SpellingSegmentMapping, 'syllableIndex' | 'syllableRole'> {
   const syllableIndex = sound.sequence.syllables.findIndex(
     (syllable) => segmentIndex >= syllable.start && segmentIndex < syllable.end,
@@ -224,7 +213,7 @@ function resolveSegmentRole(sound: SoundCandidate, segmentIndex: number): Pick<S
   return { syllableIndex, syllableRole: 'nucleus' };
 }
 
-function materializeCandidate(sound: SoundCandidate, candidate: PartialSpellingCandidate): SpellingCandidate {
+function materializeCandidate(candidate: PartialSpellingCandidate): SpellingCandidate {
   const text = capitalizeName(candidate.text);
   const mappings = candidate.mappings.map((mapping) => ({
     ...mapping,
@@ -234,9 +223,6 @@ function materializeCandidate(sound: SoundCandidate, candidate: PartialSpellingC
   return {
     contract: 'SpellingCandidate',
     version: 1,
-    id: `spelling-candidate:${sound.id}:${spellingKey(text)}`,
-    soundCandidateId: sound.id,
-    sequenceId: sound.sequence.id,
     text,
     mappings,
   };
@@ -278,13 +264,11 @@ function generateSpellingCandidates(sound: SoundCandidate): readonly SpellingCan
     }
   }
 
-  return [...deduped.values()].map((candidate) => materializeCandidate(sound, candidate));
+  return [...deduped.values()].map(materializeCandidate);
 }
 
 export function generateSpellingCandidatePool(sound: SoundCandidate): SpellingCandidatePool {
   return {
-    soundCandidateId: sound.id,
-    sequenceId: sound.sequence.id,
     candidates: generateSpellingCandidates(sound),
   };
 }
@@ -307,8 +291,6 @@ export function rankSpellingCandidatePool(
     }));
 
   return {
-    soundCandidateId: pool.soundCandidateId,
-    sequenceId: pool.sequenceId,
     candidates: maxCandidates === undefined ? ranked : ranked.slice(0, maxCandidates),
   };
 }
