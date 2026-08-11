@@ -357,14 +357,21 @@ function analyzeSoundPair(left: NameArtifact, right: NameArtifact): readonly Nam
   return relationships;
 }
 
+function sameSpellingCandidate(
+  left: NonNullable<NameArtifact['spelling']>,
+  right: NonNullable<NameArtifact['spelling']>,
+): boolean {
+  return left.text === right.text && left.rank === right.rank && left.score === right.score;
+}
+
 export function analyzeNameArtifact(artifact: NameArtifact): NameArtifactAnalysis {
   const sequence = artifact.sound?.sequence;
   const spellingCandidates = artifact.spellingCandidates ?? [];
   const selectedSpelling = artifact.spelling;
   const selectedCandidateIndex = selectedSpelling
-    ? spellingCandidates.findIndex((candidate) => candidate.id === selectedSpelling.id)
+    ? spellingCandidates.findIndex((candidate) => sameSpellingCandidate(candidate, selectedSpelling))
     : -1;
-  const runnerUp = spellingCandidates.find((candidate) => candidate.id !== selectedSpelling?.id);
+  const runnerUp = spellingCandidates.find((candidate) => !selectedSpelling || !sameSpellingCandidate(candidate, selectedSpelling));
   const diagnostics = artifact.readabilityDiagnostics ?? [];
 
   const structure = sequence ? {
