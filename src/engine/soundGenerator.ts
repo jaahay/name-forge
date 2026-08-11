@@ -28,7 +28,6 @@ export interface SegmentSyllable {
 export interface SegmentSequence {
   readonly contract: SegmentSequenceContract;
   readonly version: 1;
-  readonly id: string;
   readonly segments: readonly SoundSegmentId[];
   readonly syllables: readonly SegmentSyllable[];
 }
@@ -36,7 +35,6 @@ export interface SegmentSequence {
 export interface SoundCandidate {
   readonly contract: SoundCandidateContract;
   readonly version: 1;
-  readonly id: string;
   readonly cadence: SoundProfileCadence;
   readonly sequence: SegmentSequence;
   readonly transcription: string;
@@ -284,12 +282,6 @@ function generateSyllable(
   };
 }
 
-function sequenceIdentityKey(segments: readonly SoundSegmentId[], syllables: readonly SegmentSyllable[]): string {
-  const segmentKey = segments.join('-');
-  const syllableKey = syllables.map((syllable) => `${syllable.start}-${syllable.end}-${syllable.shape}`).join('_');
-  return `${segmentKey}:${syllableKey}`;
-}
-
 export function renderSegmentSequenceTranscription(sequence: SegmentSequence): string {
   const syllables = sequence.syllables.map((syllable) =>
     sequence.segments
@@ -311,11 +303,9 @@ export function generateSound(profile: SoundProfile, rng: SeededRandom): SoundCa
     syllables.push(generateSyllable(pickSyllableShape(profile, rng), profile, rng, segments));
   }
 
-  const sequenceKey = sequenceIdentityKey(segments, syllables);
   const sequence: SegmentSequence = {
     contract: 'SegmentSequence',
     version: 1,
-    id: `segment-sequence:${sequenceKey}`,
     segments,
     syllables,
   };
@@ -324,7 +314,6 @@ export function generateSound(profile: SoundProfile, rng: SeededRandom): SoundCa
   return {
     contract: 'SoundCandidate',
     version: 1,
-    id: `sound-candidate:${sequenceKey}:${cadence}`,
     cadence,
     sequence,
     transcription,
