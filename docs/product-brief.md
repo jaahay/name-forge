@@ -2,141 +2,157 @@
 
 ## Status
 
-This is a strategy-level product brief. For active planning, start with [`name-request-planning.md`](name-request-planning.md) and [`current-product-scope.md`](current-product-scope.md).
+This is a durable strategy-level product brief. It should describe the product thesis and sequencing principles without becoming a running implementation backlog.
 
-This brief should stay concise. Detailed contracts belong in architecture docs, decision records, and requirements docs.
+For active scope and the shipped baseline, use [`current-product-scope.md`](current-product-scope.md). For current request/grouping state, use [`name-request-planning.md`](name-request-planning.md). Detailed technical contracts belong in architecture docs, accepted decisions, and requirements boundaries.
 
 ## Product thesis
 
-Name Forge is a random-name workbench for generating names that are not only novel, but usable, inspectable, reproducible, and tuned to a specific naming job.
+Name Forge is a random-name workbench for generating names that are novel, usable, inspectable, reproducible, and tuned to a specific naming job.
 
-The product should not be understood as a single fantasy-name generator. Fiction cast is the first serious mode because it exercises many of the hardest shared primitives: seeded generation, sound-first generation, spelling projection, selected-name inspection, scoring, variants, diagnostics, export, and eventually grouping/ensemble behavior.
+It is not one fantasy-name generator with optional skins. Different naming jobs may need different controls, defaults, result presentation, and validation posture while sharing the same lower-level generation and artifact platform.
 
-The current architectural direction is criteria-driven:
+The durable product direction is:
 
 ```text
-Intent surfaces
+intent surfaces
   -> NameCriteria
-  -> compiled criteria
-  -> candidate generation and scoring
+  -> shared request/naming platform
   -> NameArtifact
+  -> mode-specific iteration and presentation
 ```
 
 ## Who it serves
 
-Name Forge is for people who need names as part of creative or product work:
+Name Forge is for people who need names as part of creative or product work, including:
 
-- writers naming fictional casts
-- game masters and game writers naming NPCs, factions, places, and artifacts
-- creators evaluating pen names or handles
-- teams naming projects, prototypes, tools, tiers, and launches
-- worldbuilders creating coherent naming systems
+- writers building fictional casts;
+- game masters and game writers naming NPCs and world elements;
+- worldbuilders creating coherent naming systems;
+- creators evaluating pen names or handles;
+- teams naming products, projects, prototypes, tiers, or launches.
 
-These users usually need more than one random string. They need a workbench that can produce options, compare them, inspect them, preserve context, and let the user iterate.
+The shared need is not merely “produce a random string.” Users need names they can inspect, compare, preserve, reroll, group, and hand off with enough evidence to understand what the system actually generated.
 
 ## Core product noun
 
-The primary artifact is a `NameArtifact`.
+The primary durable result is a `NameArtifact`.
 
-A cast, shortlist, set, taxonomy, or grouped output is a collection or grouping of name artifacts. Those collection concepts may need their own presentation and selection logic, but they should not replace the name artifact as the center of the product.
+A cast, shortlist, roster, taxonomy, or other grouping is a collection or product composition of artifacts. Group-level behavior may need its own metadata and selection logic, but it should not erase the artifact as the unit of inspection and provenance.
 
 ## Why modes exist
 
-Different naming jobs need different defaults, controls, result cards, scoring priorities, and export contracts.
+A **mode** is product/UI configuration around a naming job. It may choose controls, defaults, vocabulary, layout, actions, and a restrained presentation skin.
 
-A fiction cast, an NPC list, a pen name, a product codename, and a place-name set can reuse the same generation primitives, but they are not the same user experience. Modes let Name Forge reuse shared machinery while presenting each naming job in its own language.
+A mode should not automatically imply a separate generator, request family, artifact type, or analysis stack.
 
-The top-level product question is:
+The useful top-level question remains:
 
 > What are you naming?
 
-The answer can choose a mode. The mode may prefill criteria, choose suggested controls, adjust presentation, and apply a restrained visual skin. The backend should still be driven by criteria and seeded randomness rather than branching on mode in v1.
+The answer may choose a mode. Shared generation should still be driven by structured criteria, deterministic randomness, and reusable naming mechanics rather than branching on mode metadata.
 
-## Current active mode
+## Active modes
 
-### Fiction cast
+### Fiction Cast
 
 Primary job:
 
-> Help me name a cast of characters that feel coherent but distinct.
+> Help me build a coherent but distinct ensemble of character names.
 
-Current strengths:
+Fiction Cast owns the product semantics required by that job: roster construction, role-aware presentation, locks, targeted reroll, cast review, composed identities, same-roster relationships, and cast export.
 
-- cast-size and seed controls
-- style-pack selection
-- name-format variation
-- rarity distribution controls
-- role presets and slot overrides
-- optional role influence
-- compact result cards for scan/select/lock
-- persistent Inspect panel for selected-name detail
-- deterministic readability notes surfaced in Inspect and Cast Health
-- sound and browser audition projection for selected names
-- spelling candidate retention in Inspect
-- Cast Health checks for roster-level coherence
-- JSON and Markdown cast export
+Those concepts are intentionally allowed to remain cast-specific instead of being generalized into the shared engine prematurely.
 
-Current gaps:
+### Game NPC
 
-- criteria are not yet the explicit input contract
-- `NameRequest -> NameResponse` is not yet implemented
-- current style controls still route through a narrow `StyleInput` bridge
-- variant metadata is still too thin for relationship, confidence, locale, and source-aware display
-- source/provider descriptors do not yet model the full future built-in/file/HTTP/API/package/custom source contract
-- built-in style packs do not yet have a formal validation layer
-- collision and warning metadata is still early and should remain cautious
-- no second active mode exists yet to stress-test the mode boundary
+Primary job:
+
+> Give me one usable generated name quickly for prep or live play.
+
+Game NPC is deliberately thinner. It reuses the shared request/artifact platform, shared inspector, spelling evidence, readability evidence, and browser audition, while owning its own fast reroll and product presentation.
+
+The existence of two active modes is now the evidence that the mode boundary is real: shared mechanics can remain shared while product workflows remain distinct.
+
+## Shared platform direction
+
+The implemented shared operation is:
+
+```text
+NameRequest -> NameResponse
+```
+
+The contract supports the singular default and exact independent-set quantities from 1 through 100 with deterministic parent/child seeds and flat ordered artifact results.
+
+This multiplicity is a platform capability, not automatic product authorization for every mode to expose plural UI. For example, Game NPC remains intentionally singular until a separately bounded roster workflow is justified.
+
+The lower-level generation direction is sound-first:
+
+```text
+typed style
+  -> pure SoundProfile
+  -> SoundCandidate / SegmentSequence
+  -> supported spelling pool
+  -> deterministic ranking and selection
+```
+
+Product semantics such as Fiction Cast given/family/place/title/epithet grammar remain above that mechanics layer.
+
+## Product trust boundary
+
+Name Forge should explain what it can actually support:
+
+- generated structure;
+- exact retained spelling alternatives and ranks;
+- deterministic readability observations;
+- modeled sound relationships;
+- source/provenance metadata;
+- approximate browser voice drafts.
+
+It should not convert internal weights into universal human claims such as “78% pronounceable,” “highly memorable,” “culturally authentic,” “realistic,” or “beautiful” without declared evidence, methodology, audience/corpus, limitations, and validation.
+
+Pronunciation is also a separate claim boundary. Current browser speech is useful audition, not canonical pronunciation. IPA, dictionary-backed pronunciation, provider phoneme markup, or persisted provider audio require their own contracts.
 
 ## Candidate future modes
 
-These modes are product directions, not commitments to build all of them now.
+These are product directions, not an implementation queue.
 
-| Mode | User job | Likely result | Shared primitives stressed |
-| --- | --- | --- | --- |
-| Fiction cast | Name a coherent ensemble of fictional characters. | Generated names with cast presentation, Inspect, Cast Health, export. | NameArtifact, grouping, role/slot criteria, diagnostics, variants. |
-| Game NPC | Generate usable names quickly for play/session prep. | One or more names with compact context and fast reroll. | Criteria presets, compact export, lock/regenerate. |
-| Pen name | Evaluate pseudonyms for authors or creators. | Name, market fit, memorability, privacy/risk notes. | Criteria, scoring, screening. |
-| Product / codename | Name products, projects, features, prototypes, or internal initiatives. | Name, rationale, tone fit, collision/risk notes. | Practical criteria, memorability, spelling risk. |
-| Place / toponym | Generate place names or regional naming systems. | Place-like name, type, morphology, regional texture. | Criteria presets, morphology, grouping, diagnostics. |
-| Set / taxonomy | Name a coherent group of related items. | Named list with hierarchy or theme relationships. | Grouping, comparison pressure, shared affixes/themes, export. |
+| Mode | User job | Shared primitives it would stress |
+| --- | --- | --- |
+| Pen name | Generate/evaluate pseudonyms for creators or public identity. | criteria, screening, evidence-backed risk/fit models |
+| Product / codename | Name products, projects, tools, or launches. | practical criteria, spelling risk, collision evidence, shortlist workflows |
+| Place / toponym | Generate place names or regional naming systems. | semantic style languages, morphology, grouping, regional coherence |
+| Set / taxonomy | Name a coherent set of related items. | richer grouping, slots/hierarchy, comparison pressure, export |
+| Handle / username | Generate handles within explicit platform constraints. | practical constraints, variant generation, availability-aware boundaries if later supported |
+
+Baby-name generation remains explicitly deferred because real-world personal naming raises materially different plausibility, cultural-sensitivity, and duty-of-care requirements.
 
 ## Sequencing principles
 
-1. **Do not add modes just to populate the selector.** A second mode should prove that the mode boundary is real.
-2. **Stabilize the criteria/request contract first.** Future modes should reuse shared primitives rather than fork them.
-3. **Promote shared primitives deliberately.** A primitive should become shared because at least two modes need it or because it clearly belongs below mode presentation.
-4. **Avoid genericizing the current mode.** Fiction cast should keep cast language, role controls, and cast export where they improve the mode.
-5. **Prefer trust infrastructure before broad expansion.** Variant relationships, source descriptors, pack validation, warnings, and collision checks will make future modes safer.
-6. **Separate pronounceability from pronunciation.** Speakability scoring, readability diagnostics, and browser audition drafts exist now; IPA, paid audio, and dictionary-backed pronunciation remain later artifacts.
-7. **Keep LLM out of v1.** Future LLM assistance may fill criteria, but the product should not rely on prompt-first generation.
+1. **Select the next slice from current product need, not stale roadmap order.** Completed historical slice plans should not silently remain the active queue.
+2. **Keep product semantics in the product domain.** Do not move Fiction Cast or Game NPC concepts into generic sound mechanics merely to reuse code.
+3. **Promote shared primitives deliberately.** Share behavior because multiple modes need it or because it intrinsically belongs below mode presentation.
+4. **Do not genericize strong mode UX.** Fiction Cast can remain cast-specific; Game NPC can remain speed-oriented.
+5. **Reuse the shared request/artifact platform.** New modes should not fork request families, generators, artifact renderers, or analysis stacks without a concrete incompatibility.
+6. **Treat grouping as a spectrum of explicit contracts.** Exact independent sets are implemented; cohesion, diversity, slots, ranked alternatives, and richer group UX require separate decisions.
+7. **Separate mechanics from human claims.** Deterministic evidence may ship before validated human-facing metrics.
+8. **Separate audition from pronunciation authority.** Browser playback may improve independently of provider-quality or canonical pronunciation work.
+9. **Keep assistive parsing optional.** Future LLM assistance may help translate user language into criteria, but core generation should not depend on prompt-first behavior.
+10. **Prefer bounded changes over framework speculation.** Introduce reusable semantic APIs, provider abstractions, or plugin systems only when concrete product work requires them.
 
-## Recommended next product slices
+## What this brief does not authorize
 
-The detailed implementation sequence is now maintained in [`requirements/name-request-v1-slices.md`](requirements/name-request-v1-slices.md).
+This document does not by itself authorize:
 
-High-level sequence:
+- a new mode;
+- richer grouping semantics;
+- public fit percentages;
+- provider-specific audio or IPA;
+- remote naming providers;
+- a plugin framework;
+- prompt-first generation;
+- demographic or cultural inference;
+- baby-name workflows;
+- broad shell redesign.
 
-1. `NameRequest` / `NameResponse` model contracts.
-2. Request resolver and seed handling.
-3. `NameArtifact` mapping from current generated names.
-4. Singular `NameRequest -> NameResponse` adapter.
-5. Criteria diagnostics bridge.
-6. Small criteria-to-current-compiler mapping.
-7. Internal candidate scoring boundary.
-8. Configure criteria surface exploration.
-9. Grouping design spike only.
-
-Variant relationship metadata, source descriptors, warning scaffolding, and Game NPC mode remain valuable, but they should follow the criteria/request foundation rather than precede it.
-
-## Product non-goals for the next few slices
-
-- Do not build a full plugin framework.
-- Do not make multiple unfinished modes selectable.
-- Do not make Fiction cast generic at the cost of product quality.
-- Do not add plural/grouped backend behavior before the singular request contract is stable.
-- Do not expose public fit percentages before internal selection scoring has earned product meaning.
-- Do not add external availability checks before local generation, scoring, source contracts, and iteration are strong.
-- Do not treat the old Phase One model as an active roadmap.
-- Do not make baby-name generation the next major feature.
-- Do not add IPA, paid audio, or pronunciation dictionaries while readability/audition remain approximation surfaces.
-- Do not add remote/API providers before source descriptors and pack validation exist.
+Those decisions should begin from [`current-product-scope.md`](current-product-scope.md) and receive their own bounded requirement or issue when selected.
