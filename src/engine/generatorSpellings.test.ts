@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { generateNameCandidateFromSilhouette } from '../naming/generator';
+import { generateName } from '../naming/generator';
 import { createSeededRandom } from './random';
 import { createDefaultRegistry } from './registry';
-import { createNameSilhouette } from './silhouettes';
 import { generateSpellingCandidatePool } from './spellingGenerator';
 import type { GenerationSettings } from './types';
 
@@ -26,16 +25,21 @@ describe('same-sound spelling retention', () => {
     expect(pack).toBeDefined();
     if (!pack) throw new Error('Expected fixture style pack.');
 
-    const silhouette = createNameSilhouette(settings, pack, createSeededRandom('same-sound:silhouette'), 0);
-    const candidate = generateNameCandidateFromSilhouette(silhouette, settings, createSeededRandom('same-sound:sound'));
-    const exhaustivePool = generateSpellingCandidatePool(candidate.sound);
+    const name = generateName({
+      settings,
+      pack,
+      planningRandom: createSeededRandom('same-sound:silhouette'),
+      generationRandom: createSeededRandom('same-sound:sound'),
+      index: 0,
+    });
+    const exhaustivePool = generateSpellingCandidatePool(name.sound);
 
-    expect(candidate.rankedSpellings.candidates).toHaveLength(exhaustivePool.candidates.length);
-    expect(new Set(candidate.rankedSpellings.candidates.map((spelling) => spelling.text))).toEqual(
+    expect(name.spellingCandidates).toHaveLength(exhaustivePool.candidates.length);
+    expect(new Set(name.spellingCandidates.map((spelling) => spelling.text))).toEqual(
       new Set(exhaustivePool.candidates.map((spelling) => spelling.text)),
     );
-    expect(candidate.rankedSpellings.candidates.every((spelling) => spelling.mappings.every(
-      (mapping) => candidate.sound.sequence.segments[mapping.segmentIndex] === mapping.segmentId,
+    expect(name.spellingCandidates.every((spelling) => spelling.mappings.every(
+      (mapping) => name.sound.sequence.segments[mapping.segmentIndex] === mapping.segmentId,
     ))).toBe(true);
   });
 });
