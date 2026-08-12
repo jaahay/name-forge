@@ -1,12 +1,11 @@
 import { compileNameCriteriaToGenerationSettings } from './nameCriteriaCompiler';
 import { diagnosticsForNameCriteria } from './nameCriteriaDiagnostics';
-import { generateNameFromSilhouette } from '../naming/generator';
+import { generateName } from '../naming/generator';
 import { toNameArtifact } from './nameArtifact';
 import { deriveNameChildSeed, resolveNameRequest } from './nameRequest';
 import type { NameRequest, NameResponse } from './nameRequest';
 import { createSeededRandom } from './random';
 import { createDefaultRegistry, type SourceRegistry } from './registry';
-import { createNameSilhouette } from './silhouettes';
 
 const DEFAULT_STYLE_PACK_ID = 'british-literary-fantasy';
 
@@ -37,19 +36,13 @@ export function generateNameResponse(request: NameRequest, options: NameResponse
   );
   const names = childSeeds.map((childSeed, artifactIndex) => {
     const childSettings = { ...settings, seed: childSeed };
-    const silhouette = createNameSilhouette(
-      childSettings,
+    const generatedName = generateName({
+      settings: childSettings,
       pack,
-      createSeededRandom(`${childSeed}:name-request-v1:silhouette:0`),
-      artifactIndex,
-    );
-    const generatedName = generateNameFromSilhouette(
-      silhouette,
-      pack,
-      childSettings,
-      createSeededRandom(`${childSeed}:name-request-v1:name:0`),
-      artifactIndex,
-    );
+      planningRandom: createSeededRandom(`${childSeed}:name-request-v1:silhouette:0`),
+      generationRandom: createSeededRandom(`${childSeed}:name-request-v1:name:0`),
+      index: artifactIndex,
+    });
 
     return toNameArtifact(generatedName);
   });
