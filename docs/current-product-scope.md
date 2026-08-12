@@ -8,6 +8,8 @@ Related decisions and boundaries:
 - [`decisions/0002-criteria-driven-generation.md`](decisions/0002-criteria-driven-generation.md)
 - [`decisions/0003-intent-criteria-compiler-pipeline.md`](decisions/0003-intent-criteria-compiler-pipeline.md)
 - [`decisions/0004-modes-presets-and-grouping.md`](decisions/0004-modes-presets-and-grouping.md)
+- [`decisions/0005-sound-profile-product-boundary.md`](decisions/0005-sound-profile-product-boundary.md)
+- [`decisions/0006-naming-capabilities-and-surface-composition.md`](decisions/0006-naming-capabilities-and-surface-composition.md)
 - [`requirements/game-npc-mode-boundary.md`](requirements/game-npc-mode-boundary.md)
 - [`requirements/name-grouping-design-boundary.md`](requirements/name-grouping-design-boundary.md)
 - [`implementation/sound-proximity-diagnostics.md`](implementation/sound-proximity-diagnostics.md)
@@ -27,28 +29,39 @@ The two active modes serve different jobs:
 
 The product remains a generator and evaluation workbench. It is not a writing assistant that invents character hooks, biographies, or encounter content by default.
 
-## Current platform contract
+## Current platform and naming-capability contract
 
-The shared architecture is criteria-driven and sound-first:
-
-```text
-Intent surfaces
-  -> NameCriteria
-  -> compiled criteria
-  -> SoundProfile / SegmentSequence
-  -> complete supported spelling pool
-  -> deterministic orthographic preference ranking
-  -> selected spelling + NameArtifact
-  -> shared Inspect and export surfaces
-```
-
-The durable request boundary is implemented as:
+The implemented shared request boundary remains:
 
 ```text
 NameRequest -> NameResponse
 ```
 
-The request contract supports the existing singular default and an exact independent set. Omitted quantity/grouping returns one artifact through the previous singular seed stream; an explicit exact quantity returns a flat ordered `NameArtifact[]` with deterministic child seeds and grouping metadata. `mode` is optional metadata and must not drive core generation or grouping behavior.
+It supports singular-compatible generation and exact independent sets, deterministic replay, criteria diagnostics, ordered `NameArtifact[]` results, and grouping metadata. `mode` is optional metadata and must not drive generic generation or grouping behavior.
+
+That request contract is **platform and transport infrastructure**, not the semantic callback hierarchy that surfaces should ultimately compose.
+
+The accepted naming-layer direction is:
+
+```text
+product surface
+  -> reusable typed semantic callback(s)
+     generateGivenName(...)
+     generateFamilyName(...)
+     generatePlaceName(...)
+  -> generic singular generateName(...)
+  -> typed style compilation
+  -> SoundProfile / SegmentSequence
+  -> complete supported spelling pool
+  -> deterministic selection
+  -> generated result / NameArtifact
+```
+
+A surface owns its UX, defaults, presets, and surface-specific state. It derives configuration for one or more reusable semantic callbacks. Those callbacks carry domain semantics and delegate to the single generic `generateName(...)` primitive.
+
+A surface may also own a multi-name operation when the cross-name behavior itself is meaningful to that surface. Such orchestration sits **above** reusable semantic callbacks. Shared `independent-set` quantity remains useful infrastructure for repeated independent generation but is not the mandatory abstraction for every roster or set workflow.
+
+The current `GenerationSettings + NameSilhouette` path in `src/naming` is transitional implementation structure. `NameSilhouette` is not an accepted public generation callback boundary.
 
 ## Current shipped baseline
 
@@ -125,9 +138,38 @@ The active rule is:
 
 ## Next implementation sequence
 
-### 1. Prune and select the next product slice
+### 1. Establish the singular `generateName(...)` API boundary
 
-Issues #167, #170, #172, #174, #176, and #178 are part of the shipped Fiction Cast baseline. Before authorizing another implementation slice, prune this document again and select one bounded next step explicitly. Do not infer broader evaluation, optimization, mode, grouping, provider, help-system, per-component control, or shell work from deferred architecture vocabulary alone.
+The next architecture/runtime slice should remove silhouette-shaped generation from the caller-facing naming boundary while preserving current generated output and product behavior.
+
+The slice should:
+
+- define the minimum durable singular `generateName(...)` contract;
+- move current callers away from `generateNameFromSilhouette(...)`-style entry points;
+- keep style compilation and sound/spelling mechanics below the naming primitive;
+- audit `NameSilhouette` field by field and keep only internal planning structure that still has a clear owner and purpose;
+- preserve deterministic seeds, spelling selection, scoring behavior, variants, readability evidence, provenance, and current surface output;
+- avoid introducing a universal semantic-style schema, Policy abstraction, or product-mode switch inside `generateName(...)`.
+
+### 2. Introduce reusable semantic callbacks on top of `generateName(...)`
+
+After the singular primitive is stable, establish the first reusable domain callbacks from real existing semantics, likely beginning with given/family/place where the product already has concrete composition needs.
+
+Each callback should:
+
+- carry typed domain meaning;
+- expose only configuration that the semantic capability can honestly own;
+- delegate one-name mechanics to `generateName(...)`;
+- be reusable by more than one surface where that reuse is plausible;
+- allow surfaces to inject configuration derived from their own UX.
+
+Do not create independent generator implementations for each semantic callback.
+
+### 3. Keep aggregate generation surface-owned unless reuse is demonstrated
+
+Fiction Cast ensemble generation and any future nuanced roster/set operation may remain surface-specific orchestration over semantic callbacks. Do not force surface-specific cross-name behavior into generic grouping merely because shared independent quantity exists.
+
+If a later cross-surface aggregate pattern proves reusable, extract that contract from concrete evidence at that time.
 
 ## Research-only backlog
 
@@ -148,22 +190,26 @@ A metric may move into a separate bounded implementation issue only after it has
 
 The following remain possible later slices but are not authorized by this document:
 
-- cohesion or diversity optimization;
+- cohesion or diversity optimization as a reusable cross-surface contract;
 - ranked-alternative grouping semantics;
-- slot-level criteria or slotted sets;
-- explicit per-component given/family/place tuning controls or public request overrides;
+- generic slot-level criteria or slotted sets;
+- explicit per-component given/family/place tuning controls in the UI;
 - partial-result recovery;
 - Fiction Cast assumptions as shared engine behavior;
-- Game NPC roster UI;
+- Game NPC roster UX;
 - dedicated Help/FAQ presentation;
 - broader shell or visual-system redesign.
+
+Surface-specific aggregate orchestration is not automatically deferred merely because it is plural; it should be designed when a selected surface requires it and should compose reusable semantic callbacks where available.
 
 ## Explicit non-goals for the next slice
 
 - No baby-name mode.
 - No prompt-first UX or LLM-driven criteria compilation.
 - No public criteria-fit percentage.
-- No mode-specific request or response families.
+- No mode-specific sound generator or `mode` branch inside `generateName(...)`.
+- No universal multi-name callback.
+- No universal semantic-style schema before concrete semantic callbacks earn one.
 - No IPA, paid TTS integration, or pronunciation dictionaries.
 - No external demographic inference.
 - No remote provider integration without an accepted source and validation contract.
