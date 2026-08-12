@@ -1,5 +1,11 @@
 # Phase One closeout
 
+> Historical closeout snapshot. This document preserves the planning state from before Game NPC became active and before the naming-capability hierarchy in Decision 0006 was accepted. It is not current architecture guidance.
+>
+> In particular, do not treat this document's references to first-class silhouettes, a single active Fiction Cast surface, or generic list/ensemble primitives as current architectural requirements. Current guidance is: product surfaces compose reusable semantic naming callbacks; those callbacks delegate to one singular `generateName(...)` primitive; `NameSilhouette` is transitional implementation structure; and nuanced multi-name behavior may remain surface-specific.
+>
+> For current direction, use [`current-product-scope.md`](current-product-scope.md), [`architecture.md`](architecture.md), and [`decisions/0006-naming-capabilities-and-surface-composition.md`](decisions/0006-naming-capabilities-and-surface-composition.md).
+
 The original PRD used phases as a tracking metaphor. That helped during project inception, but the implementation has now moved beyond the phase map.
 
 This document closes out Phase One as a product-planning concept and replaces it with a mode-and-primitives tracking model.
