@@ -3,7 +3,7 @@ import { generateName } from '../naming/generator';
 import { createDefaultRegistry } from './registry';
 import type { SeededRandom } from './random';
 import { scoreName } from './scoring';
-import { createNameSilhouette } from './silhouettes';
+import { createNameGenerationPlan } from './silhouettes';
 import type { GenerationSettings, NameGenerationPlan, ScoreKey } from './types';
 import { generateVariants, variantLimitFor } from './variants';
 
@@ -59,8 +59,8 @@ function testPlan(overrides: Partial<NameGenerationPlan> = {}): NameGenerationPl
 describe('generator control knobs', () => {
   it('uses memorability to prefer compact generation plans', () => {
     const pack = createDefaultRegistry().getStylePack(settings.stylePackId);
-    const low = createNameSilhouette({ ...settings, memorability: 0 }, pack, highestWeightRandom(), 0);
-    const high = createNameSilhouette({ ...settings, memorability: 1 }, pack, highestWeightRandom(), 0);
+    const low = createNameGenerationPlan({ ...settings, memorability: 0 }, pack, highestWeightRandom(), 0);
+    const high = createNameGenerationPlan({ ...settings, memorability: 1 }, pack, highestWeightRandom(), 0);
 
     expect(low.syllableCount).toBe(3);
     expect(high.syllableCount).toBe(2);
@@ -68,8 +68,8 @@ describe('generator control knobs', () => {
 
   it('uses pronounceability as continuous open-syllable pressure', () => {
     const pack = createDefaultRegistry().getStylePack(settings.stylePackId);
-    const low = createNameSilhouette({ ...settings, pronounceability: 0 }, pack, fixedWeightedRandom([2, 'common', 'balanced']), 0);
-    const high = createNameSilhouette({ ...settings, pronounceability: 1 }, pack, fixedWeightedRandom([2, 'common', 'balanced']), 0);
+    const low = createNameGenerationPlan({ ...settings, pronounceability: 0 }, pack, fixedWeightedRandom([2, 'common', 'balanced']), 0);
+    const high = createNameGenerationPlan({ ...settings, pronounceability: 1 }, pack, fixedWeightedRandom([2, 'common', 'balanced']), 0);
 
     expect(low.shape).toEqual(['CVC', 'CVC']);
     expect(high.shape).toEqual(['CV', 'CV']);
@@ -77,8 +77,8 @@ describe('generator control knobs', () => {
 
   it('uses novelty to move rarity targets deterministically', () => {
     const pack = createDefaultRegistry().getStylePack(settings.stylePackId);
-    const low = createNameSilhouette({ ...settings, novelty: 0 }, pack, fixedWeightedRandom([2, 'common', 'balanced']), 0);
-    const high = createNameSilhouette({ ...settings, novelty: 1 }, pack, fixedWeightedRandom([2, 'common', 'balanced']), 0);
+    const low = createNameGenerationPlan({ ...settings, novelty: 0 }, pack, fixedWeightedRandom([2, 'common', 'balanced']), 0);
+    const high = createNameGenerationPlan({ ...settings, novelty: 1 }, pack, fixedWeightedRandom([2, 'common', 'balanced']), 0);
 
     expect(low.rarityBand).toBe('common');
     expect(high.rarityBand).toBe('rare');
