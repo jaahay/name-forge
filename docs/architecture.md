@@ -1,265 +1,309 @@
 # Name Forge Architecture
 
-Name Forge is a random-name workbench whose durable product artifact is an inspectable `NameArtifact`. Its first serious surface is **Fiction cast**, but the engine direction is criteria-driven rather than cast-driven.
+Name Forge is a multi-mode random-name workbench whose durable result unit is an inspectable `NameArtifact`. The current product has two active modes, Fiction Cast and Game NPC, over shared criteria-driven and sound-first generation machinery.
 
-The architecture goal is not to build a generic abstraction before the product earns it. The goal is to keep fiction-specific UX behind a clear product/mode boundary while shared engine primitives move through a stable `NameRequest -> NameResponse` contract.
+This document describes the **current technical architecture** and the accepted direction for the naming layer. Historical slice plans and checkpoints remain useful records, but current-state guidance should defer to this document, [`model-module-contracts.md`](model-module-contracts.md), [`current-product-scope.md`](current-product-scope.md), and accepted decision records.
 
-Related docs:
+Related current docs:
 
-- [`model-module-contracts.md`](model-module-contracts.md): model inventory, module input/output contracts, and collection-order semantics.
-- [`sound-model-behavior.md`](sound-model-behavior.md): lay explanation of sound behavior, data ownership, ordering, syllables, stress, and projection boundaries.
-- [`product-brief.md`](product-brief.md): product thesis, mode strategy, candidate modes, and recommended sequencing.
-- [`current-product-scope.md`](current-product-scope.md): active scope lens, shipped baseline, and next feature requirements.
-- [`product-requirements.md`](product-requirements.md): original requirements and historical build-order scaffold.
-- [`product-architecture.md`](product-architecture.md): product-level mode strategy and criteria UI direction.
-- [`phase-one-closeout.md`](phase-one-closeout.md): Phase One completion and replacement tracking model.
-- [`requirements/name-request-v1-checkpoint.md`](requirements/name-request-v1-checkpoint.md): checkpoint after Slices 1-8 and boundary before Slice 9.
-- [`requirements/name-grouping-design-boundary.md`](requirements/name-grouping-design-boundary.md): Slice 9 docs-only boundary for future grouping, quantity, and set criteria design.
-- [`decisions/0001-name-artifact-and-request-contract.md`](decisions/0001-name-artifact-and-request-contract.md): `NameArtifact` and `NameRequest -> NameResponse` direction.
-- [`decisions/0002-criteria-driven-generation.md`](decisions/0002-criteria-driven-generation.md): criteria-driven generation and internal scoring.
-- [`decisions/0003-intent-criteria-compiler-pipeline.md`](decisions/0003-intent-criteria-compiler-pipeline.md): intent surfaces to criteria to compiler pipeline.
-- [`decisions/0004-modes-presets-and-grouping.md`](decisions/0004-modes-presets-and-grouping.md): modes, presets, skins, and grouping boundaries.
+- [`model-module-contracts.md`](model-module-contracts.md): current model shapes, collection semantics, and module ownership.
+- [`sound-model-behavior.md`](sound-model-behavior.md): sound mechanics, provenance, spelling, and audition behavior.
+- [`identity-audition.md`](identity-audition.md): current identity phrase and browser playback boundary.
+- [`requirements/sound-unit-audio-audition-boundary.md`](requirements/sound-unit-audio-audition-boundary.md): current browser audition versus genuinely future renderer/provider audio work.
+- [`requirements/name-grouping-design-boundary.md`](requirements/name-grouping-design-boundary.md): implemented exact independent-set grouping and deferred richer grouping semantics.
+- [`requirements/game-npc-mode-boundary.md`](requirements/game-npc-mode-boundary.md): active Game NPC product boundary.
+- [`decisions/0005-sound-profile-product-boundary.md`](decisions/0005-sound-profile-product-boundary.md): accepted sound-profile, style-compilation, product-semantics, and containment-provenance boundary.
+- [`decisions/0006-naming-capabilities-and-surface-composition.md`](decisions/0006-naming-capabilities-and-surface-composition.md): accepted singular `generateName` primitive, reusable semantic callbacks, surface composition, and silhouette demotion.
 
 ## Current architecture thesis
 
-Name Forge works by combining controlled randomness with explicit product judgment:
+The accepted dependency direction is:
 
-1. User-facing intent surfaces declare `NameCriteria`.
-2. Criteria compile into current generator settings, spelling preferences, exclusions, practical constraints, and selection inputs.
-3. The sound-first generator produces `SoundCandidate` values and ranked spelling candidates from seeded randomness and compiled profile data.
-4. Internal candidate scoring and spelling selection choose the app-facing artifact while retaining sound, spelling, scoring, and diagnostic metadata.
-5. Fiction cast currently adds silhouettes, role metadata, role influence, and ensemble selection around those shared primitives. Those Cast concepts remain active app-surface behavior, not global engine assumptions.
-6. Deterministic readability and audition projections explain selected names without claiming canonical pronunciation.
+```text
+product surface
+  -> reusable semantic naming capability/capabilities
+     generateGivenName(...)
+     generateFamilyName(...)
+     generatePlaceName(...)
+  -> generic singular generateName(...)
+  -> typed style compilation
+  -> pure SoundProfile value
+  -> sound generation
+  -> spelling mechanics
+  -> generated result / NameArtifact
+```
 
-The important split is:
+A product surface owns its UX, defaults, presets, surface state, and any genuinely surface-specific aggregate behavior. It converts those concerns into configuration for reusable semantic naming callbacks. Those callbacks carry domain meaning and delegate to the one generic singular naming primitive rather than becoming parallel sound generators.
 
-- **Engine primitives** are shared and reusable.
-- **Mode presentation** is user-facing and can be fiction-specific.
-- **Criteria** are the stable bridge between product controls and engine behavior.
+Surface-specific multi-name orchestration may sit above semantic callbacks when plurality itself carries product semantics. Fiction Cast may therefore remain cast-specific even if its generated given/family/place components become reusable naming capabilities.
+
+The important ownership split is:
+
+- **`src/engine`** owns reusable mechanics and durable shared request/artifact contracts.
+- **`src/naming`** owns current orchestration above those mechanics and should converge from the current silhouette-shaped migration seam toward the singular `generateName(...)` primitive.
+- **semantic naming capabilities** should live above `generateName(...)` and own reusable domain meaning plus typed configuration such as given-name or place-name generation when those contracts are implemented.
+- **`src/styleCompilation`** owns typed style languages and compilation into `SoundProfile`.
+- **`src/fictionCast`** owns Fiction Cast identity grammar, lexical title/epithet material, surface-specific ensemble behavior, locks, roles, and cast composition.
+- **`src/ui`** owns presentation and interaction, including the shared inspector and mode-specific views.
+
+Do not move product semantics into the sound engine merely because a generated identity eventually contains sound. Do not move surface-specific orchestration into a universal backend abstraction merely because more than one name is involved.
 
 ## Architectural principles
 
-1. **Controlled stochasticity**: random generation is deterministic by seed and constrained by explicit criteria/settings.
-2. **Criteria before generation**: user-facing controls, presets, and future assistive parsing should produce criteria before they affect generation.
-3. **Sound structure before spelling**: compilers produce a `SoundProfile`; generator slices produce a pre-spelling segment sequence before projecting viable spellings.
-4. **Silhouette before spelling**: shape the intended name before exact letters are chosen.
-5. **Scoring as selection machinery**: internal candidate scoring is functional when it affects which name is selected. Public criteria-match UI can come later.
-6. **Grouping later, Cast not core**: Fiction cast can have role mix, slot overrides, cast health, and cast export without making those concepts global engine assumptions. Future ensemble behavior should move toward grouping/set semantics.
-7. **Mode-aware UX, criteria-driven engine**: modes may prefill criteria, choose skins, and shape presentation, but v1 generation should not branch on `mode`.
-8. **Hard-code mechanisms, not linguistic knowledge**: code owns schemas, algorithms, scoring, normalization, diagnostics, and source descriptor contracts; packs/providers own language-feel data.
-9. **Generated primary names**: style packs and presets can guide criteria or generation; they are not copied as the primary output path.
-10. **Sound-bearing output**: everything verbal that appears in the resultant name should be licensed by the compiled sound grammar. Prefixes, suffixes, honorifics, titles, epithets, and place-like components are not arbitrary downstream text decorations.
-11. **Serializable IR contracts**: `NameCriteria`, `SoundProfile`, and downstream candidate types should stay data-shaped and should not store callbacks, caches, UI state, or runtime handles.
-12. **Small abstraction first**: introduce seams only as needed. The current mode boundary is a lightweight config, not a full plugin framework.
-13. **Pronounceability before pronunciation**: scoring, deterministic readability diagnostics, and browser audition drafts may ship before IPA, dictionaries, or provider-specific audio.
+1. **Controlled stochasticity**: generation is deterministic from explicit seeds and resolved inputs.
+2. **One generic singular primitive**: reusable one-name generation converges on `generateName(...)` rather than accumulating multiple implementation-shaped entry points.
+3. **Reusable domain semantics above the primitive**: semantic callbacks such as `generateGivenName(...)` or `generatePlaceName(...)` are typed domain capabilities built on `generateName(...)`, not parallel generators.
+4. **Surface composition above semantic capabilities**: product surfaces own UX-derived configuration and compose one or more semantic callbacks; surface-specific aggregate callbacks are allowed when their cross-name semantics are genuinely product-specific.
+5. **Criteria are shared intent, not the entire domain vocabulary**: `NameCriteria` is appropriate when intent crosses the generic request boundary; semantic callbacks may additionally own typed configuration specific to their domain.
+6. **Sound structure before spelling**: `SoundProfile` drives sound mechanics; spelling is a projection and ranking layer over generated sound.
+7. **Pure mechanics values**: `SoundProfile`, `SoundCandidate`, `SegmentSequence`, and spelling values do not need synthetic identity merely to reference one another.
+8. **Containment provenance**: when exact generation evidence matters, retain the resolved values together in the containing result.
+9. **Product semantics above mechanics**: roles such as given, family, place, title, epithet, and literal are semantic composition concepts, not generic sound-engine primitives.
+10. **Mode-aware UX, mode-neutral generic generation**: product modes may choose controls, labels, defaults, presentation, and which semantic callbacks they compose; `mode` metadata must not secretly switch `generateName(...)` behavior.
+11. **Internal scoring is selection machinery**: deterministic scoring can choose candidates without becoming a public universal quality percentage.
+12. **Explain facts, not invented human certainty**: readability observations, structure, spelling relationships, and modeled sound evidence may be shown; universal pronounceability, memorability, realism, beauty, or cultural authenticity require separate validation.
+13. **Implementation helpers must earn architectural status**: `NameSilhouette` is not a durable API merely because current code passes it between helpers.
 
-## Planning pipeline
+## Shared request and grouping contract
 
-The durable planning pipeline is:
+The durable shared request/response operation is:
 
 ```text
-Intent surfaces
-  -> NameCriteria
-  -> compiled criteria
-  -> SoundProfile / spelling preferences / exclusions / selection inputs
-  -> candidate generation and scoring
-  -> NameArtifact
+NameRequest -> NameResponse
 ```
 
-`StyleInput -> compileStyle -> SoundProfile` remains the current implementation bridge for style-pack generation, not the final user-intent abstraction. A chip library, selected-criteria shelf, preset, saved preference, or later LLM-assisted parser should all be able to produce the same criteria contract without teaching the generator a new input shape.
+This is shared platform and transport infrastructure. It is **not** the semantic naming callback hierarchy.
 
-## Runtime pipeline
-
-The current v1 request runtime wraps the existing generator rather than replacing it wholesale:
+The implemented v1 contract supports both the singular default and exact independent sets:
 
 ```text
 NameRequest
-  -> resolve seed / criteria / optional mode metadata
-  -> diagnostics
-  -> compile NameCriteria into current GenerationSettings
-  -> generate sound/silhouette/spelling candidates
-  -> internally select spelling candidate when compiled criteria request selection pressure
-  -> map GeneratedName to NameArtifact
-  -> NameResponse containing exactly one artifact
+  -> resolve criteria, optional mode metadata, quantity, grouping, and parent seed
+  -> criteria diagnostics
+  -> compile criteria into current GenerationSettings
+  -> derive deterministic child seed per artifact index
+  -> current transitional one-name orchestration per child seed
+  -> map each GeneratedName to NameArtifact
+  -> NameResponse with flat ordered artifacts and grouping metadata
 ```
 
-That path is singular by design. V1 returns exactly one name artifact in `NameResponse.names`. Runtime quantity, grouping, slotted generation, and set selection remain future extensions.
+Current quantity/grouping behavior:
 
-Slice 9 documents the future grouping boundary without changing that runtime. `NameQuantity`, `NameGrouping`, and `NameSetCriteria` remain design vocabulary only until a later contract slice accepts a grouped request/response shape. Do not add grouping fields to the current public v1 `NameRequest`, do not make `mode` drive grouping behavior, and do not treat Fiction Cast role/ensemble concepts as global engine assumptions.
+- omitted quantity resolves to exact quantity 1;
+- omitted grouping resolves to `independent-set`;
+- explicit exact quantity supports 1 through 100 artifacts;
+- index 0 uses the parent seed and later indexes use deterministic child seeds;
+- `grouping.childSeeds[index]` corresponds to `names[index]`;
+- artifact order is deterministic generation order, not rank order;
+- increasing quantity preserves the existing result prefix;
+- `mode` remains metadata and does not select grouping or generator behavior.
 
-The older settings-facing Fiction cast runtime still powers the active app surface:
+`independent-set` provides generic repeated independent generation only. It does **not** imply that every surface-specific roster or set workflow should eventually be rewritten as generic grouping.
+
+It also does not provide cohesion optimization, diversity optimization, slots, per-slot criteria, ranked alternatives, partial results, or group-level reroll semantics. Any reusable future grouping contract must be justified independently from surface-specific aggregate orchestration.
+
+## Criteria and request adaptation
+
+`NameCriteria` is the shared structured intent model for intent that crosses the generic request boundary. Current UI controls and presets may still use lower-level settings, and shared request behavior compiles supported criteria into current `GenerationSettings` through the existing compiler bridge.
+
+A semantic callback may also expose strongly typed configuration meaningful only for its domain. A surface can derive shared criteria, semantic configuration, or both from its UX. Do not force every given-name, place-name, faction-name, or future style distinction into one universal criteria schema solely to preserve one input shape.
+
+The current request adapter lives in `src/engine/nameResponse.ts`. It resolves the request once, runs criteria diagnostics once, compiles criteria once, derives child seeds, invokes the current naming orchestration for each artifact, and maps generated results into `NameArtifact` values.
+
+Unsupported or partially supported criteria are reported through diagnostics rather than silently presented as exact user-intent fulfillment.
+
+The known follow-up risk remains duplicated supported-target knowledge between the criteria compiler and diagnostics. Centralize that knowledge before materially expanding supported criteria targets.
+
+## Naming orchestration
+
+Current name orchestration lives in `src/naming/generator.ts`, above the low-level sound engine.
+
+It currently owns the transitional path:
 
 ```text
-Fiction Cast UI controls
-  -> GenerationSettings
-  -> StyleInput projection
-  -> compileStyle(input)
+GenerationSettings + NameSilhouette
+  -> StyleInput
+  -> compileStyle(...)
   -> SoundProfile
-  -> generate sound-first candidate pool
-  -> rank spelling candidates
-  -> internally select display spelling
-  -> identity composition from generated/profile-licensed parts
-  -> UI/export
+  -> generateSound(...)
+  -> complete spelling candidate pool
+  -> deterministic spelling ranking and selection
+  -> score / variants / readability diagnostics
+  -> GeneratedName
 ```
 
-`GeneratedNameCandidate` is the pre-selection result that owns the ranked spelling list. `GeneratedName` is the current app-facing selected result: it carries the compiled `soundProfile`, generated `sound`, selected `spelling`, and retained ranked spelling alternatives. `NameArtifact` is the request/response artifact mapped from that selected result. Internal spelling or candidate scores are selection machinery; they must not be presented as public fit percentages or a Criteria Match UI.
+This location remains correct for current code because settings/silhouette-to-style translation is not sound mechanics. The *shape* of the current API is not considered durable.
 
-```mermaid
-flowchart LR
-  A[Intent surfaces] --> B[NameCriteria]
-  B --> C[Diagnostics]
-  C --> D[Compiled GenerationSettings]
-  D --> E[Sound/silhouette/spelling candidates]
-  E --> F[Internal selection]
-  F --> G[NameArtifact]
-  G --> H[NameResponse]
-```
-
-The sequence layer is deliberately not called a single generated sound. `SegmentSequence` represents one pre-spelling candidate form with syllable segmentation metadata, then projects to one or more spellings.
-
-The active Fiction cast path remains cast-oriented at the product surface:
+The target naming-layer dependency is:
 
 ```text
-Active mode config
-  -> Default GenerationSettings
-  -> User settings
-  -> Resolve style pack
-  -> Resolve role, role influence, and rarity settings
-  -> Construct silhouettes
-  -> Generate sound-first candidate pool
-  -> Score candidates, including role signals
-  -> Apply ensemble constraints
-  -> Attach identity and role metadata from generated/profile-licensed material
-  -> Generate variants from selected spelling
-  -> Diagnose readability
-  -> Return ranked ensemble
+semantic callback configuration
+  -> generateName(...)
+  -> typed style resolution/compilation
+  -> SoundProfile
+  -> sound + spelling mechanics
+  -> generated result
 ```
 
-That active surface is allowed to speak in Cast terms. Shared request/response docs should not treat Cast role mix, slot overrides, cast health, or ensemble export as global engine assumptions.
+The next implementation slice should establish the generic singular `generateName(...)` boundary first. Reusable semantic callbacks should then delegate to it. Surface-specific aggregate operations, if needed, sit above those semantic callbacks.
 
-Each step should remain testable as TypeScript. UI code renders controls and results; it should not own generation behavior.
+### Silhouette boundary
 
-## Criteria and compiler contract
+`NameSilhouette`, `createNameSilhouette(...)`, and `generateNameFromSilhouette(...)`-shaped orchestration are current implementation structure, not accepted public API categories.
 
-`NameCriteria` is the durable input model for declared naming criteria. It can be produced by UI controls, presets, selected chips, drawer choices, saved preferences, or future assistive parsing.
+Callers should not be required to manufacture a silhouette to generate a name. The naming-layer refactor should audit every silhouette field and move each decision to its actual owner:
 
-`StyleInput` captures the current narrow ergonomic style projection. It should be treated as one implementation bridge into `SoundProfile`, not as the universal representation of all user intent.
+- generic one-name mechanics;
+- semantic naming capability;
+- surface/product orchestration;
+- derived inspection/scoring evidence;
+- or removal if the field no longer has a clear purpose.
 
-`compileStyle(input)` currently translates broad style controls into the internal `SoundProfile`. `compileNameCriteriaToGenerationSettings(criteria, base)` currently translates a small supported subset of `NameCriteria` into current `GenerationSettings` so the v1 request adapter can reuse the existing generator. Future criteria compilation can translate more criteria into the same lower-level concerns: phonotactic weights, cadence preferences, syllable targets, spelling preferences, exclusion pressure, candidate scoring inputs, profile-licensed title/epithet lexemes, and similar name-construction details.
+A smaller internal planning value may survive if it still makes the mechanics clearer or more deterministic. The architectural requirement is only that silhouette construction no longer defines the reusable name-generation boundary.
 
-`diagnosticsForNameCriteria(criteria)` reports unsupported or partially implemented criteria honestly while preserving the singular v1 fallback path. Diagnostics are not public fit scores.
+## Sound mechanics
 
-Follow-up risk: supported-criteria knowledge is currently duplicated between `nameCriteriaCompiler.ts` and `nameCriteriaDiagnostics.ts`. Before expanding supported criteria targets, centralize supported-target metadata or introduce a shared helper such as `isCriteriaClauseCompiled(...)` so diagnostics and compilation cannot drift.
+`SoundProfile` is a pure resolved mechanics value. It contains the sound targets and phonotactic preferences required by generic sound and spelling generation.
 
-`SoundProfile` is the internal compiled sound contract for segment-sequence generation work. The type should be understood as a compiled sound grammar rather than one generated sound or one final name.
+A `SoundProfile` has no product role, Fiction Cast job tag, title/epithet lexicon, composition grammar, compiler provenance identifier, synthetic profile ID, UI state, callbacks, cache, or runtime handle.
 
-`SoundProfile` is not merely a bag of phoneme weights. If a format requires a prefix, suffix, honorific, title, epithet, or place-like component, that component must be represented as generated sound, profile data, or a profile-selected lexeme. The identity layer may arrange already licensed parts, but it must not invent new sound material by string surgery.
+`src/engine/soundGenerator.ts` consumes a `SoundProfile` and seeded randomness to produce a `SoundCandidate` containing a `SegmentSequence` and syllable metadata.
 
-Do not use an ERD or UML class diagram for this layer yet. The useful artifact is the directional flow above: declared criteria compile into a sound-structure contract, the generator produces pre-spelling segment sequences, and spelling candidates are projections of those sequences.
+`SegmentSequence` is one pre-spelling sound plan. Its flat segment order and syllable spans are durable mechanics data, not a canonical language pronunciation claim.
 
-## Starter sound segment inventory
+## Spelling mechanics
 
-The first hard-coded engine-local sound inventory is split by concern:
+`src/engine/spellingGenerator.ts` projects a generated sound into the complete spelling pool supported by the current grapheme inventory and deterministically ranks that pool.
 
-- `src/engine/soundSegmentTypes.ts` owns the segment type model.
-- `src/engine/starterSoundInventory.ts` owns the built-in starter inventory table and lookup.
+The selected spelling and retained alternatives remain tied to the exact generated sound and profile through containment in the generated name/artifact. Internal rank scores are useful selection evidence; they are not public beauty or fit percentages.
 
-The starter inventory is a built-in table of stable sound segment ids, display symbols, durable feature metadata, and syllable-role metadata. It is not a generic source system, user-import format, language pack, or pronunciation database.
+Bounded spelling presentation happens **after** full-pool generation and ranking, preserving prefix invariance.
 
-The term segment is intentional. It is broader than phoneme and avoids claiming a language-specific contrastive unit. The current inventory is broad enough to cover common English-oriented consonants, monophthong nuclei, and diphthong nuclei for upcoming generator work, but the symbols remain display transcription symbols for generated fixtures rather than verified pronunciation for any language, dialect, speaker, TTS provider, or external source.
+## Provenance and identity
 
-Segment metadata deliberately separates broad category from feature axes. Consonants carry manner, place, voicing, and sonority. Vowels carry monophthong or diphthong movement, vowel target metadata, and sonority. This keeps liquid, glide, nasal, obstruent, and vowel behavior available for generation without using those classes as the top-level segment category.
+Generation provenance uses containment rather than relational identity:
 
-## Deterministic sound generation
+```text
+contained generation evidence
+  = SoundProfile
+  + SoundCandidate
+  + selected spelling
+```
 
-`src/engine/soundGenerator.ts` owns the internal generator that consumes `SoundProfile` and `SeededRandom`. It returns `SoundCandidate`, whose durable payload is a flat `SegmentSequence` plus syllable spans for onset, nucleus, coda, shape, and display transcription rendering.
+`SoundProfile`, `SoundCandidate`, `SegmentSequence`, and spelling candidates do not acquire IDs solely so adjacent values can point back to them.
 
-This generator is deterministic by seed and profile. The generated transcription is a display/debug rendering of internal segments, not a user-facing pronunciation authority.
+Product-level things may still have IDs when independent addressability matters, including generated names, artifacts, cast slots, persisted records, locks, and identity parts.
 
-## Audition rendering
+A composed displayed identity does not imply one aggregate `SoundProfile`. If a displayed identity contains multiple independently generated sound-backed components, each component retains its own exact generation evidence.
 
-Audition rendering is a two-stage pipeline over generated sound sequences:
+## Fiction Cast semantics and orchestration
+
+Fiction Cast-specific semantics live under `src/fictionCast` rather than the low-level engine.
+
+The current identity grammar includes forms such as:
+
+```text
+given-only      := given
+given-family    := given family
+initials-family := initials family
+title-name      := title given
+epithet-place   := given epithet "of" place
+```
+
+Generated given, family, and place parts may retain exact generation evidence. Titles and epithets currently come from Fiction Cast-owned lexical material. Literals such as `of` remain explicit phrase literals.
+
+This is product grammar, not phonology. The identity layer may compose parts and literals, but it must not pretend lexical material was generated by a `SoundProfile` when it was not.
+
+Given, family, and place are also useful examples of semantic name kinds that may become reusable callbacks because multiple surfaces could plausibly need them. If implemented, Fiction Cast should consume those reusable capabilities and inject its own configuration rather than owning duplicate one-name generators.
+
+Fiction Cast itself still owns ensemble behavior, roles, locks, cast review, same-roster relationship presentation, targeted reroll, and cast export semantics. A future surface-specific cast aggregate may compose reusable semantic callbacks internally. These cross-name semantics do not become assumptions of `generateName(...)` or the shared `NameRequest` contract merely because they involve multiple names.
+
+## Game NPC boundary
+
+Game NPC is a thin product mode over the shared platform. It intentionally generates one artifact at a time for fast prep/live-play use, even though the shared request contract now supports exact independent sets.
+
+The mode owns navigation, product copy, style-source selection, copy, and fresh-seed reroll. It does not own a second sound generator, artifact type, or inspector.
+
+As semantic callbacks emerge, Game NPC should call the reusable semantic capability appropriate to the name it is asking for and inject configuration derived from its own UX. `mode: "game-npc"` remains metadata rather than a semantic switch.
+
+A future NPC roster needs a separate product decision. Plain repeated independent names can use existing independent-set infrastructure; meaningful NPC-roster coordination should be modeled as surface-specific orchestration composed from semantic callbacks unless and until a genuinely reusable cross-surface grouping contract is demonstrated.
+
+## Audition architecture
+
+Current audition is implemented, but it remains an approximation boundary.
+
+For one sound-backed generated component:
 
 ```text
 SegmentSequence
   -> AuditionPhonology
-  -> renderer-specific projection
+  -> BrowserAuditionCue
+  -> NameAuditionCue
 ```
 
-`src/engine/auditionPhonology.ts` owns the renderer-neutral audition structure derived from `SegmentSequence`. It preserves syllable order, segment slices, onset/nucleus/coda role segments, and deterministic stress hints without depending on `GeneratedName`, selected spelling text, React, browser APIs, or any paid TTS provider.
+For composed identities:
 
-`src/engine/browserAuditionProjection.ts` owns the browser-specific projection from `AuditionPhonology` to a speakable `BrowserAuditionCue`. This cue is a practical browser voice draft and is not an IPA transcription, SSML payload, provider payload, or canonical pronunciation.
+```text
+NameIdentity
+  -> IdentityAuditionPhrase
+  -> browser semantic chunks
+  -> Web Speech API utterances
+```
 
-`src/engine/audition.ts` is a thin composition/export boundary for the current UI. It should not absorb renderer-specific logic as additional renderers are added.
+Sound-backed identity parts reuse the exact contained generation evidence for that part. Lexical and literal phrase parts remain explicit text. The browser adapter may insert short presentation pauses between semantic chunks.
 
-Phrase-level audition for identities with generated parts, profile lexemes, and literals is a future layer over the same adapter boundary; it should preserve per-part provenance instead of flattening a formatted identity to raw text.
+Those pauses and speech chunks are adapter policy, not durable phonology. Browser speech is not IPA, provider phoneme markup, canonical pronunciation, or a persisted audio contract.
 
-## Spelling generation and ranking
+See [`identity-audition.md`](identity-audition.md) and [`requirements/sound-unit-audio-audition-boundary.md`](requirements/sound-unit-audio-audition-boundary.md) for the current/future boundary.
 
-`src/engine/spellingGenerator.ts` owns the projection from `SoundCandidate` to spelling candidates and the ranking of those candidates. The boundary is intentionally split:
+## Analysis and human-facing claims
 
-- `generateSpellingCandidatePool(sound)` projects one sound candidate into every viable spelling candidate known to the starter grapheme rules.
-- `rankSpellingCandidatePool(pool, profile)` orders already-generated spelling candidates using deterministic ranker logic composed from `SoundProfile` fields.
-- `generateRankedSpellingCandidates(sound, profile)` is a convenience composition of the two operations.
+Pure artifact analysis may derive deterministic structure, spelling, readability, collision, and same-roster relationship evidence without mutating the durable artifact.
 
-The profile does not store JavaScript callbacks. It remains a serializable data contract. Ranking callbacks and weights are internal engine mechanics derived from profile data and engine-local spelling rules.
+The product may explain such evidence directly. It must not relabel internal weights as validated human-facing metrics.
 
-Spelling candidates carry text plus segment-to-text mapping data for Inspect/export explanation surfaces. Ranked spelling candidates add rank and score. This layer does not use external spelling databases, TTS, source taxonomy, or canonical pronunciation claims.
+Research claims such as pronounceability, familiarity, memorability, realism, beauty, or cultural authenticity require an explicit population/corpus, methodology, validation evidence, confidence/limitations, and a concrete product decision they improve.
 
-## Name construction and sound identity
-
-Everything verbal in the resultant name has sound. A generated sound may produce multiple spellings, but adding or removing sound-bearing material creates a different name candidate, not a formatting variant.
-
-The identity layer may compose already generated or profile-licensed parts into display forms such as `{given}`, `{given} {family}`, `{title} {given}`, or `{given} {epithet} of {place}`. It must not append suffixes, prefixes, honorifics, epithets, or place markers as arbitrary post-generation string edits.
-
-Current identity construction obeys that boundary by using generated names for given/family/place parts, initials derived from generated names, and title/epithet lexemes selected from the compiled `SoundProfile.lexicon`. Place-style identities use the generated supporting name as the place component directly. Place suffixes such as `vale`, `ford`, or `mere` can be supported only as generated sound, profile lexemes, or construction slots selected by the compiled profile before spelling, not after a name has already been generated.
-
-## Future sequence boundaries
-
-`SegmentSequence` represents one pre-spelling candidate form, not one final name. Its source of truth is a flat ordered segment list, with syllable segmentation recorded as spans over that list. That avoids storing both a flat segment array and nested syllable arrays as competing authoritative representations.
-
-Syllable metadata should still matter. The sequence model should be able to represent onset, nucleus, coda, stress, cadence, and pronounceability features, because those are useful for ensemble diversity and spelling projection.
-
-The future grouping path should be pool-based: one compiled profile can produce many `SegmentSequence` candidates, spelling projection can produce many spelling candidates, and the set/ensemble selector can score both sequence-level diversity and spelling-level readability before choosing the final group.
-
-TTS and pronunciation rendering should remain adapters, not core generation behavior. A sequence can later be rendered to debug text, display transcription, SSML phoneme markup, plain TTS text, or provider-specific payloads, but those projections should not make the internal sequence model depend on one TTS provider, SSML alphabet, or canonical pronunciation claim.
-
-## Module boundaries
+## Current module map
 
 ```text
 src/
-  App.tsx                 UI shell, active mode selection, interaction state, and locked-slot state
-  App.test.tsx            SSR smoke coverage for shell-level UI contracts
-  main.tsx                Vite/React entrypoint
-  styles.css              Global presentation
-  card-locks.css          Lock-control presentation
-  cast-mode.css           Fiction Cast feature styling
-  data/
-    stylePacks.ts         Built-in soft-coded style packs and current preset-like data
-  engine/
-    audition.ts           Thin audition composition/export boundary
-    auditionPhonology.ts  SegmentSequence to renderer-neutral audition phonology
-    browserAuditionProjection.ts  Browser voice draft projection from audition phonology
-    diagnostics.ts        Deterministic readability diagnostics and cast summaries
-    ensemble.ts           Current Cast-level selection, diversity penalties, locked-slot preservation, and role attachment
-    export.ts             JSON and Markdown cast serialization
-    identity.ts           Identity composition from generated names and profile-licensed lexemes
-    generator.ts          Sound-first candidate materialization from silhouettes, settings, and compiled profiles
-    nameArtifact.ts       NameArtifact mapping from selected GeneratedName results
-    nameCriteria.ts       Stable NameCriteria and clause contract
-    nameCriteriaCompiler.ts  Small criteria-to-current-generator compiler
-    nameCriteriaDiagnostics.ts  Criteria support diagnostics and fallback reporting
-    nameRequest.ts        NameRequest, resolution, randomization, diagnostics, and NameResponse contracts
-    random.ts             Deterministic seeded randomness
-    rarity.ts             Rarity distribution preset planning
-    registry.ts           Provider/source lookup and style-pack registry
-    roles.ts              Current Cast role labels, presets, parsing, slot resolution, and role influence profiles
-    scoring.ts            Candidate score and explanation signals
-    silhouettes.ts        NameSilhouette construction and rarity/shape planning
-    soundGenerator.ts     Deterministic SoundProfile to SoundCandidate and SegmentSequence generation
-    soundProfile.ts       SoundProfile contract and private compiled-profile subtypes
-    soundSegmentTypes.ts  Sound segment type model
-    spellingGenerator.ts  Spelling projection and profile-aware spelling ranking
-    starterSoundInventory.ts  Starter sound segment inventory and lookup
-    styleCompiler.ts      Current StyleInput and compileStyle bridge
+  App.tsx                  product shell and mode navigation
+  data/                    built-in style/source data
+
+  engine/                  shared mechanics and durable contracts
+    nameRequest.ts         request resolution, quantity/grouping, seed contract
+    nameResponse.ts        shared request adapter/service; platform boundary, not semantic callback hierarchy
+    nameArtifact.ts        durable artifact mapping
+    nameCriteria*.ts       shared criteria model, diagnostics, and current compiler bridge
+    candidateSelection.ts  internal spelling/candidate selection
+    soundProfile.ts        pure SoundProfile mechanics value
+    soundGenerator.ts      SoundProfile -> SoundCandidate / SegmentSequence
+    spellingGenerator.ts   sound -> complete spelling pool -> ranking
+    audition*.ts           renderer-neutral and browser audition projection
+    identityAudition.ts    identity phrase audition projection
+    analysis*.ts           pure artifact/set evidence where applicable
+    registry.ts            source/style-pack lookup
+    export.ts              shared/cast export support
+
+  naming/
+    generator.ts           current transitional settings/silhouette orchestration; target is generic singular generateName(...)
+
+  styleCompilation/
+    styleCompiler.ts       typed StyleInput -> SoundProfile compiler
+
+  fictionCast/
+    ensemble.ts            Fiction Cast surface-specific ensemble behavior
+    identity.ts            Fiction Cast identity grammar/materialization
+    identityLexicon.ts     Fiction Cast lexical title/epithet material
+    componentGenerationContext.ts
+                            current semantic component-generation context seam
+
+  ui/                      shared and mode-specific React presentation
+    modes.ts               active mode presentation metadata
+    GameNpcView.tsx        Game NPC product view
+    NameArtifactInspector.tsx
+                            shared artifact inspection and browser playback
 ```
+
+The exact file list can continue to evolve. The durable rule is ownership and dependency direction: surfaces compose semantic capabilities; semantic capabilities delegate to one singular naming primitive; mechanics stay below naming semantics; and neither `NameSilhouette`, generic grouping, nor `mode` metadata becomes a shortcut around that structure.

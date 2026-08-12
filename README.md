@@ -1,48 +1,96 @@
 # Name Forge
 
-Name Forge is a Vite + TypeScript + React MVP for generating plausible fictional character names with deterministic randomness, ensemble balancing, name silhouettes, role-aware cast metadata, optional role influence, rarity distribution controls, deterministic readability diagnostics, spelling variants, scoring, and export.
+Name Forge is a Vite + TypeScript + React random-name workbench for producing inspectable, reproducible `NameArtifact` results from deterministic generation.
 
-The current app is explicitly the first **Fiction cast** mode of a broader random-name workbench. Future modes should share generation, scoring, comparison, diagnostics, and export primitives while providing their own controls and result presentation.
+The current app has two active product modes:
+
+- **Fiction Cast** builds a coherent-but-distinct roster with cast-specific controls, locks, diagnostics, reroll, inspection, and export.
+- **Game NPC** generates one immediately usable name for prep or live play with shared inspection, copy, and reroll behavior.
+
+Both modes reuse lower-level naming capabilities rather than owning separate sound generators.
+
+## Current platform
+
+The durable shared request boundary is:
+
+```text
+NameRequest -> NameResponse
+```
+
+The implemented request contract supports:
+
+- the singular default;
+- exact independent-set quantities from 1 through 100;
+- deterministic parent and child seeds;
+- flat ordered `NameArtifact[]` results with grouping metadata;
+- criteria diagnostics and compilation into the current generation settings bridge;
+- sound-first generation through a pure `SoundProfile` value and `SegmentSequence`;
+- complete supported spelling generation and deterministic ranking;
+- shared artifact analysis, inspection, readability evidence, and browser audition projection;
+- bounded browser persistence for explicitly generated artifacts and Recent names.
+
+`mode` is product metadata. Core generation and grouping do not branch on mode.
+
+`NameRequest -> NameResponse` is shared platform and transport infrastructure. It is **not** the intended semantic callback hierarchy for the reusable naming library.
+
+## Naming capability direction
+
+The accepted dependency direction is:
+
+```text
+product surface
+  -> reusable typed semantic callback(s)
+     generateGivenName(...)
+     generateFamilyName(...)
+     generatePlaceName(...)
+  -> generic singular generateName(...)
+  -> typed style compilation
+  -> pure SoundProfile value
+  -> sound generation
+  -> spelling mechanics
+```
+
+A product surface owns its UX, defaults, presets, and surface state. It injects configuration into one or more reusable semantic naming callbacks. A semantic callback carries domain meaning and delegates to the single generic `generateName(...)` primitive rather than becoming a parallel generator implementation.
+
+Surface-specific multi-name orchestration may sit above those callbacks when plurality itself has meaningful product semantics. Fiction Cast, for example, may coordinate given/family/place generation, roles, locks, and cross-name pressure without requiring that cast orchestration become a universal grouping API.
+
+The current `src/naming` implementation is still a migration seam: it accepts `GenerationSettings + NameSilhouette` and exposes silhouette-shaped generation functions. `NameSilhouette` is not an accepted public naming API boundary. The next naming-layer refactor should establish `generateName(...)` first, then reusable semantic callbacks, while auditing whether any smaller internal silhouette/planning value still earns its place.
+
+See [`docs/decisions/0006-naming-capabilities-and-surface-composition.md`](docs/decisions/0006-naming-capabilities-and-surface-composition.md) for the authoritative capability and surface-composition rule.
+
+## Architecture ownership
+
+`src/engine` owns reusable mechanics and durable request/artifact contracts. `src/naming` owns current name orchestration above those mechanics and should converge on the generic singular naming primitive. `src/styleCompilation` owns typed style-to-profile compilation. `src/fictionCast` owns Fiction Cast semantics such as identity grammar, lexical titles/epithets, and ensemble behavior.
+
+Generated sound, sequence, and spelling values use containment for provenance rather than synthetic relational IDs. Product and artifact objects may still have IDs where callers need independent addressability.
 
 ## Product docs
 
-- [`docs/product-brief.md`](docs/product-brief.md) summarizes the product thesis, mode strategy, candidate future modes, and recommended next slices.
-- [`docs/current-product-scope.md`](docs/current-product-scope.md) records the current scope lens, shipped capability baseline, and next feature requirements.
-- [`docs/product-requirements.md`](docs/product-requirements.md) contains the canonical product requirements converted from the original PRD.
-- [`docs/architecture.md`](docs/architecture.md) describes the engine boundaries, registry model, scoring layer, silhouette model, role and rarity planning, export layer, ensemble design, and current UI decomposition.
-- [`docs/product-architecture.md`](docs/product-architecture.md) describes the multi-mode product direction and positions Fiction cast generation as the first serious mode.
-- [`docs/selected-name-inspect-design.md`](docs/selected-name-inspect-design.md) captures the selected-name Inspect surface design direction, including Configure placement, responsive name selection, mobile Inspect behavior, and gesture non-goals.
+Start here:
 
-## MVP capabilities
+- [`docs/current-product-scope.md`](docs/current-product-scope.md) — active shipped baseline, claim boundaries, deferred work, and the current rule for choosing the next slice.
+- [`docs/architecture.md`](docs/architecture.md) — current technical architecture and ownership boundaries.
+- [`docs/decisions/0006-naming-capabilities-and-surface-composition.md`](docs/decisions/0006-naming-capabilities-and-surface-composition.md) — accepted `generateName` / semantic-callback / surface-composition hierarchy.
+- [`docs/model-module-contracts.md`](docs/model-module-contracts.md) — executable model shapes, collection semantics, and module seams.
+- [`docs/product-architecture.md`](docs/product-architecture.md) — multi-mode product architecture and active mode boundaries.
+- [`docs/product-brief.md`](docs/product-brief.md) — durable product thesis and sequencing principles.
+- [`docs/name-request-planning.md`](docs/name-request-planning.md) — navigation map for the implemented request/grouping contract and its relationship to the naming capability layer.
 
-- Single-page React UI organized around a visible Fiction cast mode boundary, cast setup, fiction controls, rarity and scoring controls, result browsing, inspection, and export.
-- Controls for cast size, seed, style pack, name format, cast role mix, slot role overrides, role influence, rarity distribution, novelty, pronounceability, memorability, cultural anchoring, and orthographic weirdness.
-- Compact result cards for scanning generated names, with lock/select affordances and length-aware rendering.
-- Persistent Inspect panel for selected-name detail: rarity cue, construction cues, score readout, name parts, alternate spellings, readability notes, and role influence cue.
-- Cast Health panel for deterministic roster checks such as spotlight balance, repeated initials/endings, cadence overlap, readability notes, and lock status.
-- Deterministic seeded randomness for repeatable casts.
-- First-class `NameSilhouette` generation before exact letters exist.
-- Simple phonotactic generation from data-shaped style packs.
-- Cast-level balancing to reduce repeated initials, repeated endings, repeated cadence, and rarity-band clustering.
-- Explicit role metadata for fiction cast slots while keeping role influence opt-in so baseline generation stays role-neutral.
-- Deterministic readability diagnostics for long reads, dense letter clusters, repeated letters, and possible visual misreads, without claiming canonical pronunciation.
-- Plausibility scoring across pronounceability, memorability, novelty, cultural anchoring, orthographic naturalness, style fit, silhouette fit, ensemble fit, and role fit signals.
-- Spelling variants marked as listed alternates or generated spellings.
-- JSON and Markdown cast export with role, rarity, score, identity, silhouette, variant, role influence, and readability diagnostics.
-- Source/provider registry abstraction with explicit source descriptors.
+Historical planning and requirements remain useful context, but they are not the active roadmap. In particular, [`docs/product-requirements.md`](docs/product-requirements.md) records the original PRD-derived requirements, while [`docs/current-product-scope.md`](docs/current-product-scope.md) is authoritative for current scope.
 
-## Current next feature requirements
+## Current product capabilities
 
-The readability-diagnostics slice is now part of the Fiction cast baseline. The next forward-looking requirements should strengthen trust, source contracts, and mode readiness before adding a second active mode.
+Shared capabilities include deterministic seeded replay, exact independent-set generation, sound-first candidate generation, exhaustive supported spelling derivation, ranked spelling retention, deterministic readability observations, browser voice-draft audition, pure artifact analysis, shared inspection, source descriptors, and recent-artifact persistence.
 
-Recommended next slices:
+Fiction Cast additionally owns roster generation and balancing, cast-specific roles and formats, locks and targeted reroll, composed identities, provenance-preserving phrase audition, same-roster sound relationships, cast review, and JSON/Markdown export.
 
-1. **Variant relationship metadata**: extend spelling variants with relationship type, confidence, source metadata, optional locale, and explicit generated/listed status.
-2. **Source descriptor and pack validation**: define the future provider/source descriptor contract, add license/locale metadata where applicable, and validate built-in style packs before accepting user-loaded packs.
-3. **Warning and collision scaffolding**: add cautious common-word collision, known-name distance, and warning metadata without demographic inference or external databases.
-4. **Game NPC mode discovery**: keep Game NPC as the first candidate second mode, but only after Fiction cast contracts and shared primitives are stable.
+Game NPC additionally owns a deliberately minimal one-name workflow with style-source selection and fresh-seed reroll. A future NPC roster must deliberately choose its product semantics: plain independent quantity can reuse the existing shared request capability, while meaningful roster-specific coordination should remain surface orchestration composed from reusable semantic callbacks rather than a mode-driven branch in `generateName(...)`.
 
-See [`docs/current-product-scope.md`](docs/current-product-scope.md) for sequencing and non-goals.
+## Claims boundary
+
+Name Forge may present deterministic facts about generated structure, spelling alternatives, readability observations, and modeled relationships. Internal heuristics must not be relabeled as validated human-facing measures such as universal pronounceability, familiarity, memorability, realism, beauty, or cultural authenticity without an explicit evidence and validation contract.
+
+Browser speech is an approximation surface, not canonical pronunciation. Provider-specific audio, IPA, dictionaries, and validated human-facing pronunciation metrics remain separate future work.
 
 ## CI and validation
 
@@ -67,44 +115,13 @@ npm test
 
 ```text
 src/
-  App.tsx
-  App.test.tsx
-  main.tsx
-  styles.css
-  card-locks.css
-  cast-mode.css
-  data/
-    stylePacks.ts
-  engine/
-    diagnostics.ts
-    ensemble.ts
-    export.ts
-    identity.ts
-    generator.ts
-    random.ts
-    rarity.ts
-    registry.ts
-    roles.ts
-    scoring.ts
-    silhouettes.ts
-    soundGenerator.ts
-    soundProfile.ts
-    soundSegmentTypes.ts
-    spellingGenerator.ts
-    starterSoundInventory.ts
-    styleCompiler.ts
-    types.ts
-    variants.ts
-  ui/
-    AboutView.tsx
-    CastHealth.tsx
-    ChangelogView.tsx
-    GeneratorView.tsx
-    modes.ts
-    NameCard.tsx
-    NameInspector.tsx
-    namePresentation.ts
-    presentation.ts
-    ScoreControl.tsx
-    score.ts
+  App.tsx                 product shell and navigation
+  data/                   built-in style/source data
+  engine/                 reusable generation mechanics, request/artifact contracts, analysis, export
+  naming/                 current transitional orchestration; target home of generic singular generateName(...)
+  styleCompilation/       typed style languages and SoundProfile compilation
+  fictionCast/            Fiction Cast identity grammar, lexicon, and surface-specific ensemble semantics
+  ui/                     shared and mode-specific React presentation
 ```
+
+See [`docs/architecture.md`](docs/architecture.md) for the detailed ownership map.
