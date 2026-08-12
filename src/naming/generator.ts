@@ -8,7 +8,7 @@ import { diagnoseNameReadability } from '../engine/diagnostics';
 import { clamp } from '../engine/random';
 import { scoreName } from '../engine/scoring';
 import { generateSound } from '../engine/soundGenerator';
-import { createNameSilhouette } from '../engine/silhouettes';
+import { createNameGenerationPlan } from '../engine/silhouettes';
 import type { StyleInput } from '../styleCompilation/styleCompiler';
 import { compileStyle } from '../styleCompilation/styleCompiler';
 import { generateRankedSpellingCandidates } from '../engine/spellingGenerator';
@@ -90,7 +90,7 @@ function materializeGeneratedName(plan: NameGenerationPlan, pack: StylePack, set
 
 export function generateName(options: GenerateNameOptions): GeneratedName {
   const planningSettings = options.planningSettings ?? options.settings;
-  const plan = createNameSilhouette(
+  const plan = createNameGenerationPlan(
     planningSettings,
     options.pack,
     options.planningRandom,
