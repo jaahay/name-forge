@@ -2,105 +2,124 @@
 
 ## Status
 
-Accepted for planning.
+Accepted for planning, refined by Decision 0006.
+
+The mode/preset boundary remains accepted. Decision 0006 supersedes this decision's earlier expectation that Fiction Cast and other nuanced multi-name workflows should generally converge on one reusable grouping abstraction.
 
 ## Context
 
-Name Forge needs to support multiple naming jobs without turning each job into a separate backend API or subproduct. The current Fiction cast surface has cast-specific controls, role concepts, ensemble selection, and a fantasy-appropriate visual treatment. Future jobs such as Product, NPC, Pen name, Place, or Handle may need different controls and presentation.
+Name Forge needs to support multiple naming jobs without turning each job into a separate low-level generator or transport schema. Fiction Cast and Game NPC already demonstrate that surfaces can expose different controls and presentation while reusing lower mechanics and durable artifacts.
 
-The product also needs a way to offer strong starting points without making those starting points required backend concepts.
+The product also needs strong starting points and domain-specific UX without making every surface concept foundational engine state.
 
 ## Decision
 
-Modes are product/UI configurations for naming jobs. In v1 planning, they are not required engine primitives.
+Modes are product/UI configurations for naming jobs. They are not required generic generation primitives.
 
-A mode may:
+A mode or surface may:
 
-- prefill criteria
-- choose suggested chips and drawer contents
-- configure available UI sections
-- choose a restrained visual skin or accent treatment
-- choose labels, examples, empty states, and Inspect sections
-- set a default quantity or grouping intent in future versions
+- choose which reusable semantic naming callbacks it composes;
+- derive typed configuration for those callbacks from its UX;
+- prefill shared criteria;
+- choose suggested controls and available UI sections;
+- choose a restrained visual skin or accent treatment;
+- choose labels, examples, empty states, and Inspect sections;
+- own surface-specific aggregate orchestration where cross-name semantics belong to that surface.
 
-A mode should not by itself be the source of generation truth. Backend generation should be driven by criteria, randomness, and later quantity/grouping.
+A mode must not be a hidden source of generic generation truth. `mode` metadata does not choose `generateName(...)` behavior or semantic callback behavior implicitly.
 
 ## Backend mode handling
 
-The backend may accept an optional `mode?: string` field on `NameRequest`. In v1 this is metadata: it may be echoed, persisted, or used for diagnostics, but core generation should not branch on mode.
+The shared `NameRequest` contract may accept an optional `mode?: string` field. It is metadata: it may be echoed, persisted, or used for diagnostics, but generic generation and independent grouping must not branch on it.
 
-If a future mode requires a real backend invariant, that invariant should usually be expressed as criteria, quantity, grouping, practical constraints, or slot criteria rather than by adding mode-specific request types.
+If a surface requires a real naming-domain invariant, the surface should call the appropriate reusable semantic capability explicitly and pass typed configuration. If a surface requires aggregate behavior, it may own that orchestration above semantic callbacks.
 
-## Presets and base styles
+Do not add mode-specific transport families merely because surfaces differ. This is separate from semantic API names such as `generatePlaceName(...)`, which intentionally represent reusable domain meaning.
 
-Presets and base styles are frontend/client conveniences unless proven otherwise.
+## Presets and styles
 
-Examples:
+Presets and surface starting points are product/client conveniences unless a lower typed style contract explicitly earns ownership of their mechanics.
 
-- `British literary fantasy`
-- `Old maps`
-- `NASA missions`
-- `Botanical Latin`
-- `Product/codename starter`
+Examples may include:
 
-A preset can preselect criteria and adjust UI defaults. It does not need to exist in the backend request. The backend should receive the resulting criteria rather than a mandatory `baseStyle` or `StylePack` field.
+- `British literary fantasy`;
+- `Old maps`;
+- `NASA missions`;
+- `Botanical Latin`;
+- product/codename starting points.
+
+A preset can preselect shared criteria, semantic callback configuration, or both. The user-facing preset noun does not automatically become a required field on `SoundProfile` or the shared request transport.
 
 ## Shell and skin
 
-Name Forge should keep one stable workbench shell. Mode changes should feel like changing the naming job, not entering a different app.
+Name Forge should keep one stable workbench identity while allowing surfaces to compose different naming jobs.
 
-Stable shell:
+Shared shell patterns may include:
 
-- configure/criteria surface
-- candidate list or tiles
-- Inspect panel
-- keep/lock/regenerate/export flow
+- configure surface;
+- generated results;
+- Inspect;
+- keep/lock/regenerate/export where relevant.
 
-Mode skin:
+Surface-specific presentation may include:
 
-- restrained accent palette
-- suggested criteria
-- mode-specific copy
-- optional mode-specific panels
+- restrained accent treatment;
+- suggested controls;
+- surface-specific copy;
+- optional surface-specific panels;
+- different result composition when the job requires it.
 
-The current hazy-brown fantasy palette is a good Cast/Fantasy skin, but it should not become the global Name Forge identity.
+A visual treatment used by Fiction Cast must not become the global Name Forge identity merely because it existed first.
 
-## Grouping as the ensemble abstraction
+## Semantic capabilities and surface composition
 
-Cast and ensemble behavior should eventually be modeled as grouping, not as a foundational `Cast` primitive.
+Decision 0006 establishes the reusable naming dependency:
 
-Planning grouping kinds:
-
-```ts
-type NameGrouping =
-  | { readonly kind: "none" }
-  | { readonly kind: "independent" }
-  | { readonly kind: "set"; readonly criteria?: NameSetCriteria }
-  | {
-      readonly kind: "slotted-set";
-      readonly criteria?: NameSetCriteria;
-      readonly slots: readonly NameSlotRequest[];
-    };
+```text
+product surface
+  -> reusable semantic callback(s)
+  -> generic singular generateName(...)
+  -> style / sound / spelling mechanics
 ```
 
-Meanings:
+A semantic callback such as `generatePlaceName(...)` may be reused by multiple unrelated surfaces. Each surface may inject different configuration derived from its own UX.
 
-- `none`: one generated name.
-- `independent`: multiple names with no relationship requirement.
-- `set`: multiple names selected to work together.
-- `slotted-set`: a set where each slot may add local criteria.
+This is the main horizontal-scaling mechanism for new name kinds and surfaces. The generic primitive does not learn every product job, and a semantic callback does not own a product surface.
 
-This is the likely backend abstraction for Fiction cast, named teams, taxonomies, factions, and other related-name workflows.
+## Generic grouping versus surface aggregate orchestration
+
+The implemented shared grouping contract is exact `independent-set` generation. It means repeated names generated under common shared request criteria without cross-name semantic optimization.
+
+A nuanced surface aggregate is different. Fiction Cast may require roles, locks, identity composition, per-component configuration, cross-name contrast, cast-specific selection pressure, and targeted reroll. Those concerns may remain Fiction Cast orchestration that composes reusable semantic callbacks.
+
+Therefore:
+
+```text
+independent-set grouping
+  = shared repeated independent generation
+
+surface-specific aggregate callback
+  = product orchestration when cross-name semantics belong to one surface
+```
+
+Do not force the latter into `NameGrouping` merely because multiple names are involved.
+
+If future surfaces reveal a genuinely repeated cross-surface aggregate pattern, extract a shared grouping or set abstraction from those concrete requirements then.
 
 ## Role handling
 
-Roles are not global name properties. If roles remain useful, they should be treated as mode-specific UI labels that compile into slot criteria.
+Roles are not global name properties merely because Fiction Cast uses them.
 
-For example, a Cast UI may expose `Lead`, `Mentor`, or `Rival`, but the backend should receive normalized slot criteria rather than a universal `Role` primitive.
+A cast surface may keep roles as surface state and use them to choose or configure semantic callbacks, candidate selection, or aggregate orchestration. A reusable semantic capability may accept domain configuration influenced by that state without making `Role` a generic `generateName(...)` primitive.
+
+Do not assume roles must compile into universal slot criteria. That is one possible future reusable contract only if multiple surfaces demonstrate the need.
 
 ## Consequences
 
-- Modes can evolve quickly in the frontend without canonizing backend API branches.
-- Presets can be useful without becoming generation dependencies.
-- Cast keeps its product specificity while ensemble logic moves toward a reusable grouping abstraction.
-- The app can later support plural and grouped results without creating separate `CastRequest`, `ProductNameRequest`, or `NpcRequest` APIs.
+- Modes and surfaces can evolve without canonizing hidden backend branches.
+- Semantic callback names are valid reusable domain APIs even though mode-specific request transport families remain discouraged.
+- Presets can configure shared criteria and/or semantic callbacks without becoming mechanics identity.
+- Fiction Cast keeps surface-specific aggregate semantics where they belong.
+- Exact independent quantity remains shared platform infrastructure.
+- Richer grouping is extracted only when cross-surface reuse is demonstrated, not forecast from one surface.
+- New surfaces scale horizontally by composing semantic capabilities and styles/flavours rather than forking the generic generator.
