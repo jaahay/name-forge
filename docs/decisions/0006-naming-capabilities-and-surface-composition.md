@@ -4,32 +4,47 @@
 
 Accepted.
 
-This decision refines the API and composition direction left open by Decisions 0001, 0003, 0004, and 0005. It does not require the corresponding runtime refactor to already be implemented.
+This decision refines the API and composition direction left open by Decisions 0001, 0003, 0004, and 0005.
+
+### Implementation status
+
+Issue #186 implements the first architectural step required by this decision:
+
+- `src/naming/generator.ts` exposes one generic singular `generateName(...)` orchestration callback;
+- callers no longer construct `NameSilhouette` or enter through silhouette-shaped generator callbacks;
+- internal pre-generation planning is represented by `NameGenerationPlan` and materialized behind `generateName(...)`;
+- `GenerateNameOptions` contains no product mode, Fiction Cast role, or semantic name-kind label;
+- Fiction Cast resolves role-specific behavior above `generateName(...)` into generic planning preferences, then attaches role evidence and role-fit scoring in its own orchestration layer;
+- the legacy `silhouette` result/artifact property and `silhouette-*` evidence IDs remain for compatibility and inspection/scoring evidence.
+
+Reusable typed semantic callbacks such as `generateGivenName(...)`, `generateFamilyName(...)`, and `generatePlaceName(...)` remain the next naming-layer work.
+
+The decision below remains the architectural rule; references to the pre-#186 silhouette-shaped implementation describe the context in which the decision was made rather than the current runtime boundary.
 
 ## Context
 
 Name Forge is intended to scale horizontally across product surfaces, styles, flavours, and semantic kinds of names without turning each surface into a separate low-level generator.
 
-The current code contains several useful but historically accumulated boundaries:
+At the time this decision was accepted, the code contained several useful but historically accumulated boundaries:
 
-- `NameRequest -> NameResponse` is the durable shared request/artifact contract and already supports singular-compatible exact independent sets;
-- `src/naming/generator.ts` currently exposes silhouette-shaped orchestration above the sound engine;
-- Fiction Cast owns product-specific identity and ensemble behavior;
-- `SoundProfile` is a pure mechanics value below product semantics.
+- `NameRequest -> NameResponse` was already the durable shared request/artifact contract with singular-compatible exact independent sets;
+- `src/naming/generator.ts` still exposed silhouette-shaped orchestration above the sound engine;
+- Fiction Cast owned product-specific identity and ensemble behavior;
+- `SoundProfile` was already a pure mechanics value below product semantics.
 
-Those facts do not by themselves define the intended reusable naming API. In particular, treating `GenerationSettings + NameSilhouette` as the durable naming boundary, treating `NameRequest` as the only domain callback, or treating grouping as the inevitable abstraction for every multi-name surface would make new product surfaces harder to compose and would leak historical implementation structure into the product architecture.
+Those facts did not by themselves define the intended reusable naming API. In particular, treating `GenerationSettings + NameSilhouette` as the durable naming boundary, treating `NameRequest` as the only domain callback, or treating grouping as the inevitable abstraction for every multi-name surface would make new product surfaces harder to compose and would leak historical implementation structure into the product architecture.
 
 ## Decision
 
 ### 1. One singular generic name-generation primitive
 
-The reusable naming layer should converge on one generic singular operation conceptually named:
+The reusable naming layer has one generic singular operation conceptually named:
 
 ```ts
 generateName(...)
 ```
 
-Its concrete request and result types remain implementation work. The architectural invariant is that this is the singular primitive for producing one generated name through the shared naming mechanics.
+This decision intentionally did not prescribe its concrete request and result types. The architectural invariant is that this is the singular primitive for producing one generated name through the shared naming mechanics.
 
 The primitive owns generic one-name orchestration. It must not require a product surface, Fiction Cast role, Game NPC mode, or semantic component label merely to generate one name.
 
@@ -120,21 +135,21 @@ Do not force every semantic style or domain distinction into one ever-growing un
 
 ### 7. `NameSilhouette` is not a durable API boundary
 
-The current `NameSilhouette`, `createNameSilhouette(...)`, and silhouette-shaped naming orchestration are historical implementation structure, not an accepted flavour of the reusable naming API.
+`NameSilhouette`, `createNameSilhouette(...)`, and silhouette-shaped naming orchestration were historical implementation structure, not an accepted flavour of the reusable naming API.
 
-Callers should not be required to manufacture a silhouette in order to generate a name. The current `generateNameFromSilhouette(...)`-style boundary should be treated as transitional and should be collapsed behind the singular `generateName(...)` API as the naming layer is refactored.
+Callers must not be required to manufacture a silhouette in order to generate a name. Issue #186 collapses that caller-facing boundary behind the singular `generateName(...)` API.
 
-This decision does not require every silhouette field to disappear. A smaller internal planning value may remain useful for deterministic sound planning, candidate selection evidence, or inspection. Each field must justify itself in the layer that owns the decision rather than being retained because the existing façade groups it there.
+This decision did not require every silhouette-derived field to disappear. A smaller internal planning value may remain useful for deterministic sound planning, candidate selection evidence, or inspection. Each field must justify itself in the layer that owns the decision rather than being retained because the previous façade grouped it there.
 
-In particular, reevaluate separately whether current silhouette fields belong to:
+The implementation now retains `NameGenerationPlan` as that internal planning/scoring evidence. Its current fields should still be judged by ownership when later work has a concrete reason to change them:
 
 - generic one-name mechanics;
 - a semantic naming capability;
 - surface/product orchestration;
 - derived inspection/scoring evidence;
-- or nowhere after the refactor.
+- or removal if the field no longer has a clear purpose.
 
-`NameSilhouette` must not become a fourth public generation callback category alongside generic singular generation, semantic singular generation, and surface-specific aggregate generation.
+The legacy `silhouette` result/artifact property is compatibility evidence and must not become a fourth public generation callback category alongside generic singular generation, semantic singular generation, and surface-specific aggregate generation.
 
 ## Resulting dependency model
 
@@ -185,25 +200,27 @@ Fantasy Cast surface
 - New styles and flavours can evolve in typed semantic configuration/compiler layers without forking the sound engine.
 - Surface-specific plural behavior can remain specific when its cross-name semantics are not reusable.
 - Shared independent-set quantity remains useful infrastructure without becoming the mandatory model for every roster or set workflow.
-- `src/naming` should evolve from a silhouette-shaped migration layer toward the singular `generateName(...)` primitive.
-- Fiction Cast should eventually consume reusable given/family/place capabilities where those capabilities are real, while retaining cast-specific orchestration above them.
+- `src/naming` now owns the singular `generateName(...)` primitive rather than a silhouette-shaped caller contract.
+- Fiction Cast currently keeps cast-role semantics above the primitive and should next consume reusable given/family/place capabilities where those capabilities are real, while retaining cast-specific orchestration above them.
 
 ## Next implementation question
 
-The next naming-layer refactor should establish the singular `generateName(...)` boundary first, then build reusable semantic callbacks on top of it, and only then revisit surface-specific aggregate callbacks where a surface has real cross-name semantics.
+With the singular `generateName(...)` boundary established by issue #186, the next naming-layer question is which concrete semantic capability should become the first reusable typed callback on top of it.
 
-As part of that work, audit `NameSilhouette` and its callers field by field. Preserve only internal planning structure that still has a clear owner and purpose after callers no longer depend on a silhouette-shaped generation API.
+Given, family, and place generation are the strongest existing candidates because Fiction Cast already distinguishes those component contexts and other surfaces could plausibly reuse them. The first slice should prove the callback/configuration contract from real existing semantics rather than inventing a universal catalog or style schema.
+
+Surface-specific aggregate callbacks should still be revisited only when a surface has real cross-name semantics to own; they are not a prerequisite for semantic callback extraction.
 
 ## Non-goals
 
-This decision does not yet specify:
+This decision itself does not specify:
 
-- the exact TypeScript signature of `generateName(...)`;
+- the exact TypeScript signature of `generateName(...)`; issue #186 provides the current implementation contract without retroactively making that signature part of this ADR;
 - the exact input or output types of `generateGivenName(...)`, `generateFamilyName(...)`, or `generatePlaceName(...)`;
 - a universal list of semantic name kinds;
 - a universal semantic-style schema;
 - a universal multi-name callback;
 - a reusable compound-name grammar API;
 - a first-class Policy abstraction;
-- immediate removal of every silhouette-related internal value;
+- removal or renaming of every legacy silhouette-related result/property solely for conceptual cleanliness;
 - new user-facing controls merely because semantic configuration becomes possible.
