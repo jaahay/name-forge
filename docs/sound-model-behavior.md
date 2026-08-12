@@ -4,6 +4,7 @@ This document explains the sound side of Name Forge in plain terms. It is intent
 
 Related docs:
 
+- [`decisions/0006-naming-capabilities-and-surface-composition.md`](decisions/0006-naming-capabilities-and-surface-composition.md): accepted surface -> semantic callback -> singular `generateName(...)` hierarchy above the sound model.
 - [`requirements/sound-unit-audio-audition-boundary.md`](requirements/sound-unit-audio-audition-boundary.md): current browser-audition boundary plus the genuinely future renderer-neutral/provider audio boundary.
 
 ## The short version
@@ -11,7 +12,9 @@ Related docs:
 Name Forge should behave like this:
 
 ```text
-user intent
+product surface UX
+  -> reusable semantic naming callback
+  -> generic singular generateName(...)
   -> typed style input
   -> sound recipe
   -> generated sound plan
@@ -21,21 +24,27 @@ user intent
   -> sound guide and playback projections
 ```
 
-The important rule is:
+The important rules are:
 
-> The generated sound comes before the spelling. Spelling, display, browser voice, and future audio providers are projections of that sound model.
+> Product surfaces express and inject naming intent above reusable semantic callbacks; semantic callbacks delegate to one generic singular naming primitive; and generated sound comes before spelling.
+
+Spelling, display, browser voice, and future audio providers are projections of the generated sound model. Neither product-surface identity nor semantic name kind belongs inside `SoundProfile` or `generateSound(...)`.
 
 ## Behavior model
 
 A behavior model describes what each part of the system is responsible for doing.
 
-### 1. User intent
+### 1. Surface intent and semantic naming capability
 
-User-facing settings describe the desired feel of the result: style pack, name length, novelty, readability, rarity, cast role, and similar controls.
+User-facing settings describe the desired feel and product context of the result: style source, name length, novelty, readability, rarity, cast role, region, faction, or other controls chosen by the surface.
 
 These settings are ergonomic. They should not ask the user to know phonology terms.
 
-Product or naming-layer code translates that intent into an appropriate typed style language. The low-level sound engine does not own product semantics such as Fiction Cast roles or title/epithet vocabularies.
+A product surface owns how the user expresses intent. It derives configuration for one or more reusable semantic naming callbacks such as given-name, family-name, or place-name generation when those callbacks are implemented. Those semantic callbacks carry domain meaning and delegate generic one-name orchestration to the singular `generateName(...)` primitive.
+
+The naming layer then resolves the typed style needed by the sound mechanics. The low-level sound engine does not own product semantics such as Fiction Cast roles, Game NPC mode identity, title/epithet vocabularies, or semantic callback selection.
+
+The current `GenerationSettings + NameSilhouette` path is transitional implementation structure. A caller should not need to manufacture a silhouette before it can reach the sound model.
 
 ### 2. Sound recipe
 
@@ -49,7 +58,7 @@ Product or naming-layer code translates that intent into an appropriate typed st
 
 This is where phonotactic preference belongs. In plain language: phonotactics are the rules and tendencies for which sounds can appear together.
 
-`SoundProfile` is a pure value. It does not contain a profile id, compiler provenance, product role, Fiction Cast job identifier, title/epithet lexicon, composition grammar, UI state, or runtime handles. Different style compilers may produce structurally equal profiles without requiring shared identity infrastructure.
+`SoundProfile` is a pure value. It does not contain a profile id, compiler provenance, product role, semantic name kind, Fiction Cast job identifier, title/epithet lexicon, composition grammar, UI state, or runtime handles. Different style compilers may produce structurally equal profiles without requiring shared identity infrastructure.
 
 ### 3. Generated sound plan
 
@@ -248,17 +257,19 @@ Plain examples:
 - Some styles may prefer more fluid sonority.
 - Some styles may allow heavier final syllables.
 
-Phonotactics belong in the resolved `SoundProfile` and `soundGenerator` behavior. Product semantics and lexical inventories belong above that layer. Browser projection should own neither.
+Phonotactics belong in the resolved `SoundProfile` and `soundGenerator` behavior. Product semantics, semantic name kinds, and lexical inventories belong above that layer. Browser projection should own neither.
 
 ## Module responsibilities
 
 | Module / layer | Plain responsibility | Should own | Should not own |
 | --- | --- | --- | --- |
+| product surface | Captures UX intent and composes naming capabilities | Surface controls, defaults, presets, state, surface-specific aggregate behavior | Generic sound mechanics or hidden mode-driven generator branches |
+| semantic naming capability | Represents a reusable kind of name | Typed domain configuration and semantic defaults before delegating to `generateName(...)` | Parallel low-level sound generator implementations |
+| `src/naming` | Owns generic one-name orchestration above mechanics | Current workflow and target singular `generateName(...)` boundary | Fiction Cast composition grammar, surface-specific aggregate behavior, caller-facing silhouette prerequisite |
 | `src/styleCompilation` | Turns a typed style language into a resolved engine recipe | Style compilation and `SoundProfile` values | Generated names or product identity grammar |
-| `soundProfile.ts` | Describes the low-level sound recipe | Resolved sound targets and phonotactic preferences | Ids, compiler provenance, product roles, lexicons, UI state |
-| `soundGenerator.ts` | Creates generated sound plans | Segment sequences, syllable spans, syllable metadata, sound candidates | Browser text or spelling display |
+| `soundProfile.ts` | Describes the low-level sound recipe | Resolved sound targets and phonotactic preferences | Ids, compiler provenance, semantic name kinds, product roles, lexicons, UI state |
+| `soundGenerator.ts` | Creates generated sound plans | Segment sequences, syllable spans, syllable metadata, sound candidates | Browser text, spelling display, product semantics |
 | `spellingGenerator.ts` | Writes the sound plan in letters | Spelling candidate pools, mappings, ranking | Sound validity |
-| `src/naming` | Orchestrates current style compilation, sound generation, spelling selection, scoring, and variants | Name-generation workflow above the low-level engine | Fiction Cast composition grammar |
 | `src/fictionCast/identity.ts` | Arranges Fiction Cast generated and lexical parts | Fiction Cast display identity parts and phrase structure | Low-level sound generation rules |
 | `auditionPhonology.ts` | Reads generated sound for presentation | Renderer-neutral syllable metadata and explicit fallback stress | Generation rules or browser hacks |
 | `browserAuditionProjection.ts` | Makes browser/display text from audition facts | `speechText`, guide text, browser-specific compromises | Core phonology or name validity |
@@ -267,19 +278,23 @@ Phonotactics belong in the resolved `SoundProfile` and `soundGenerator` behavior
 
 ## Working rules
 
-1. Keep sound before spelling.
-2. Keep durable facts explicit.
-3. Prefer `unspecified` over optional fields for uncertain linguistic facts.
-4. Do not let browser voice hacks become the sound model.
-5. Do not let display spelling become the sound model.
-6. Treat arrays as ordered collections. If order is semantic, document what it means. If order is only deterministic traversal, do not let callers treat it as ranking.
-7. A rank field is stronger than array position when ranking is part of the contract.
-8. Add small, testable facts before adding a large phonology abstraction.
-9. Keep any future audio plan renderer-neutral before provider-specific projection.
-10. Preserve phrase-level sound/text/literal provenance through browser playback and any future audio rendering.
-11. Use containment for adjacent generation provenance instead of inventing relational ids without an independently addressable entity.
+1. Keep the dependency direction `surface -> semantic callback -> generateName(...) -> style/sound/spelling mechanics` explicit.
+2. Keep sound before spelling.
+3. Keep durable facts explicit.
+4. Prefer `unspecified` over optional fields for uncertain linguistic facts.
+5. Do not let browser voice hacks become the sound model.
+6. Do not let display spelling become the sound model.
+7. Do not let `mode`, semantic name kind, or `NameSilhouette` become hidden low-level sound switches.
+8. Treat arrays as ordered collections. If order is semantic, document what it means. If order is only deterministic traversal, do not let callers treat it as ranking.
+9. A rank field is stronger than array position when ranking is part of the contract.
+10. Add small, testable facts before adding a large phonology abstraction.
+11. Keep any future audio plan renderer-neutral before provider-specific projection.
+12. Preserve phrase-level sound/text/literal provenance through browser playback and any future audio rendering.
+13. Use containment for adjacent generation provenance instead of inventing relational ids without an independently addressable entity.
 
 ## Near-term direction
+
+The naming layer should first establish the singular `generateName(...)` boundary and remove silhouette-shaped generation from caller-facing orchestration. Any silhouette-derived value that survives should be internal planning state with a clear owner, not a prerequisite for reaching the sound model.
 
 The explicit syllable metadata fields are in the durable sound model. Future work should make stress assignment smarter only when the generator has a real rule to own, such as cadence-driven or weight-driven stress. Until then, fallback stress belongs in audition projection and must remain labeled as fallback.
 
