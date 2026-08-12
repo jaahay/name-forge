@@ -2,7 +2,7 @@ import { selectRankedSpellingCandidate } from '../engine/candidateSelection';
 import type { SoundCandidate } from '../engine/soundGenerator';
 import type { SoundProfile } from '../engine/soundProfile';
 import type { RankedSpellingCandidate, RankedSpellingCandidateList } from '../engine/spellingGenerator';
-import type { CastRoleAssignment, GeneratedName, GenerationSettings, NameGenerationPlan, StylePack } from '../engine/types';
+import type { GeneratedName, GenerationSettings, NameGenerationPlan, NameGenerationPlanPreferences, StylePack } from '../engine/types';
 import type { SeededRandom } from '../engine/random';
 import { diagnoseNameReadability } from '../engine/diagnostics';
 import { clamp } from '../engine/random';
@@ -20,8 +20,8 @@ export interface GenerateNameOptions {
   readonly planningRandom: SeededRandom;
   readonly generationRandom: SeededRandom;
   readonly index: number;
-  readonly role?: CastRoleAssignment;
   readonly planningSettings?: GenerationSettings;
+  readonly planningPreferences?: NameGenerationPlanPreferences;
 }
 
 interface NameGenerationCandidate {
@@ -95,7 +95,7 @@ export function generateName(options: GenerateNameOptions): GeneratedName {
     options.pack,
     options.planningRandom,
     options.index,
-    options.role,
+    options.planningPreferences,
   );
 
   return materializeGeneratedName(
