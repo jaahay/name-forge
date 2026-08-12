@@ -1,4 +1,4 @@
-import type { CastRoleAssignment, GenerationSettings, NameSilhouette, NameTexture, StylePack, WeightedValue } from './types';
+import type { CastRoleAssignment, GenerationSettings, NameGenerationPlan, NameTexture, StylePack, WeightedValue } from './types';
 import type { SeededRandom } from './random';
 import { clamp, lerp } from './random';
 import { selectRarityBand } from './rarity';
@@ -51,7 +51,11 @@ function selectTexture(settings: GenerationSettings, pack: StylePack, random: Se
   return random.pickWeighted(blendWeightedValues(pack.silhouetteBias.textures, profile.textures, roleInfluence.strength));
 }
 
-export function createNameSilhouette(settings: GenerationSettings, pack: StylePack, random: SeededRandom, index: number, role?: CastRoleAssignment): NameSilhouette {
+/**
+ * Materializes the internal pre-generation plan retained as scoring and inspection evidence.
+ * Product, request, and surface callers should enter through the naming-layer generateName API.
+ */
+export function createNameSilhouette(settings: GenerationSettings, pack: StylePack, random: SeededRandom, index: number, role?: CastRoleAssignment): NameGenerationPlan {
   const roleInfluence = resolveRoleInfluence(settings, role);
   const syllableCount = selectSyllableCount(settings, pack, random, role);
   const stressPattern = stressPatternFor(syllableCount, settings, random);
