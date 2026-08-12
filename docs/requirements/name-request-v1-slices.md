@@ -4,14 +4,18 @@
 
 This document records the implementation sequence that established the criteria-driven request contract and the first shared quantity/grouping extension.
 
-Read the active requirements first:
+It is an implementation-history document, not the active naming-API roadmap. Decision 0006 now distinguishes the request platform from the reusable semantic callback hierarchy and explicitly demotes silhouette-shaped generation from architectural API status.
+
+Read the active requirements and architecture first:
 
 - [`name-request-v1.md`](name-request-v1.md)
 - [`name-grouping-design-boundary.md`](name-grouping-design-boundary.md)
+- [`../decisions/0006-naming-capabilities-and-surface-composition.md`](../decisions/0006-naming-capabilities-and-surface-composition.md)
+- [`../current-product-scope.md`](../current-product-scope.md)
 
 ## Sequencing principle
 
-The contract was built from the outside inward:
+The request contract was built from the outside inward:
 
 ```text
 Types
@@ -24,7 +28,7 @@ Types
   -> exact quantity and independent-set grouping
 ```
 
-Slices 1-8 established the singular-compatible foundation. Slice 9 records the first accepted plural extension. More expressive grouping remains downstream.
+Slices 1-8 established the singular-compatible request foundation. Slice 9 records the first accepted plural platform extension. This historical sequence does **not** imply that richer generic grouping is the next architectural layer or the preferred implementation for nuanced surface-specific aggregates.
 
 ## Slice 1 - Contract model types
 
@@ -75,12 +79,14 @@ Map selected generator output into the durable `NameArtifact` noun without flatt
 ### Implemented scope
 
 - display text;
-- sound and silhouette metadata;
+- sound and current silhouette metadata;
 - selected spelling and retained ranked spellings;
 - identity and variant metadata where available;
 - current diagnostics and warnings.
 
 Cast role and ensemble metadata are not intrinsic to every artifact.
+
+The presence of silhouette metadata here records the implemented artifact shape at this stage. It does not make `NameSilhouette` a durable generation API or require that the current aggregate survive the `generateName(...)` refactor.
 
 ## Slice 4 - Singular NameRequest adapter
 
@@ -96,7 +102,7 @@ Create the first `NameRequest -> NameResponse` runtime behavior over the current
 - map it to `NameArtifact`;
 - return `NameResponse` with one artifact.
 
-This singular path remains the compatibility baseline used when quantity and grouping are omitted.
+This singular path remains the compatibility baseline used when quantity and grouping are omitted. The adapter is platform infrastructure; it is not the final reusable semantic naming API.
 
 ## Slice 5 - Criteria diagnostics bridge
 
@@ -123,6 +129,8 @@ Make a small high-value subset of `NameCriteria` affect generation.
 Current supported targets compile into `GenerationSettings`, including selected sound, practical, spelling, and avoidance pressures where implemented.
 
 Unsupported targets continue to produce diagnostics rather than pretending to work.
+
+`NameCriteria` remains shared request intent. Reusable semantic callbacks may additionally own typed configuration specific to their domain rather than expanding criteria into a universal schema.
 
 ## Slice 7 - Internal candidate scoring boundary
 
@@ -176,9 +184,11 @@ Omitted values resolve to exact quantity 1 and `independent-set`, preserving sin
 - return flat ordered `NameArtifact[]` output;
 - return grouping metadata with quantity, parent seed, and child seeds;
 - preserve `grouping.childSeeds[index] -> names[index]` association;
-- use artifact indexes for artifact and silhouette identity;
+- use artifact indexes for current artifact and silhouette identity;
 - preserve deterministic replay and quantity-prefix stability;
 - keep `mode` metadata non-semantic.
+
+The indexed silhouette identity above is an implementation fact of this slice, not a future naming-layer requirement.
 
 ### Acceptance contract
 
@@ -202,15 +212,18 @@ Omitted values resolve to exact quantity 1 and `independent-set`, preserving sin
 
 ## Deferred beyond the implemented slices
 
+These remain possible **generic request/platform** extensions, not the current naming-layer sequence and not prerequisites for surface-specific aggregate orchestration:
+
 - optimized set relationships such as cohesion, contrast, or diversity;
 - ranked-list grouping;
 - slotted generation;
 - group-level persistence, Inspect, and export behavior;
-- new active modes;
 - LLM-assisted criteria filling;
 - public Criteria Match UI or fit percentages;
 - domain, trademark, or availability checks;
 - baby-name mode.
+
+New surfaces and surface-owned aggregate behavior are governed by current product scope and Decision 0006 rather than by this historical slice sequence.
 
 ## Validation discipline
 
@@ -223,7 +236,7 @@ Each behavior slice must preserve deterministic positive contracts through exact
 - child-seed positional association;
 - replay;
 - prefix stability;
-- indexed artifact and silhouette identity;
+- current indexed artifact and silhouette identity;
 - duplicate display-value identity safety;
 - mode neutrality;
 - typed request/response fixtures.
@@ -233,3 +246,5 @@ Repository CI must run TypeScript/Vite build and Vitest against the exact pull-r
 ## Follow-up risk
 
 Supported-target knowledge remains duplicated between `nameCriteriaCompiler.ts` and `nameCriteriaDiagnostics.ts`. Centralizing that knowledge should be a separate coherent cleanup before substantially expanding criteria targets.
+
+The active naming-layer sequence is tracked in [`../current-product-scope.md`](../current-product-scope.md): establish the singular `generateName(...)` primitive, audit the current silhouette boundary, then build reusable typed semantic callbacks from real domain semantics.
