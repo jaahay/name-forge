@@ -54,8 +54,9 @@ function selectTexture(settings: GenerationSettings, pack: StylePack, random: Se
 /**
  * Materializes the internal pre-generation plan retained as scoring and inspection evidence.
  * Product, request, and surface callers should enter through the naming-layer generateName API.
+ * @internal
  */
-export function createNameSilhouette(settings: GenerationSettings, pack: StylePack, random: SeededRandom, index: number, role?: CastRoleAssignment): NameGenerationPlan {
+export function createNameGenerationPlan(settings: GenerationSettings, pack: StylePack, random: SeededRandom, index: number, role?: CastRoleAssignment): NameGenerationPlan {
   const roleInfluence = resolveRoleInfluence(settings, role);
   const syllableCount = selectSyllableCount(settings, pack, random, role);
   const stressPattern = stressPatternFor(syllableCount, settings, random);
