@@ -1,6 +1,8 @@
 # Game NPC mode boundary
 
-This document defines the implemented product boundary for **Game NPC** mode against the current shared Name Forge platform.
+This document defines the implemented product boundary for **Game NPC** against the current shared Name Forge platform and the accepted naming-capability direction.
+
+For the reusable naming hierarchy, see [`../decisions/0006-naming-capabilities-and-surface-composition.md`](../decisions/0006-naming-capabilities-and-surface-composition.md).
 
 ## User job
 
@@ -12,36 +14,54 @@ Fiction Cast serves a different job:
 
 > Help me build a coherent but distinct ensemble of character names.
 
-Game NPC optimizes for speed and immediate use. Fiction Cast optimizes for roster construction, ensemble comparison, locks, cast-level review, and cast export.
+Game NPC optimizes for speed and immediate use. Fiction Cast optimizes for roster construction, composition, comparison, locks, cast-level review, and cast export.
 
 ## Current cardinality decision
 
-The implemented Game NPC mode generates **one name at a time**.
+The implemented Game NPC surface generates **one name at a time**.
 
-This is now a **product decision**, not a shared backend limitation.
+This is a **product decision**, not a shared backend limitation.
 
 The shared `NameRequest -> NameResponse` contract supports exact `independent-set` quantities from 1 through 100, but Game NPC intentionally omits quantity/grouping so the request resolves through the singular-compatible default.
 
-That keeps the mode focused on:
+That keeps the current surface focused on:
 
 - generate one name;
 - inspect one artifact;
 - copy/use it immediately;
 - reroll with a fresh seed.
 
-A future short NPC roster may be useful for encounter prep. If selected, it must reuse the shared quantity/grouping contract rather than introduce `NpcRosterRequest`, repeated client-side singular requests presented as one atomic roster, or a forked generator.
+Shared multiplicity does not by itself authorize NPC roster UX.
 
-Shared multiplicity does not by itself authorize NPC roster UX. A roster still needs an explicit product boundary for quantity controls, browsing, reroll semantics, persistence expectations, and any group-level evidence.
+## Naming capability direction
 
-## Platform pipeline
+Game NPC is a product surface, not a semantic naming primitive.
 
-Game NPC is a thin mode over the shared naming platform:
+The accepted future dependency is:
+
+```text
+Game NPC UX/state
+  -> choose/configure reusable semantic callback
+  -> generateName(...)
+  -> style / sound / spelling mechanics
+  -> NameArtifact
+```
+
+The exact semantic callback Game NPC should use depends on the naming job the surface exposes. A generic humanoid NPC may use a given/family-name capability; another future NPC workflow may need a faction, place, creature, or other semantic naming domain.
+
+The surface owns how its UX derives configuration. The reusable semantic callback owns the domain meaning. The generic `generateName(...)` primitive owns one-name orchestration. `mode: "game-npc"` must not become a hidden semantic switch in generic generation.
+
+The current runtime has not implemented this semantic callback layer yet. It still reaches the transitional settings/silhouette naming path through the shared request adapter. That is current implementation structure, not the durable Game NPC API contract.
+
+## Current platform pipeline
+
+Today, Game NPC is a thin surface over the shared request/artifact platform:
 
 ```text
 Game NPC product input
   -> NameRequest (mode metadata + criteria + seed)
   -> shared NameResponse adapter
-  -> current naming orchestration
+  -> current transitional naming orchestration
   -> SoundProfile / SoundCandidate / SegmentSequence
   -> complete supported spelling pool
   -> deterministic spelling ranking and selection
@@ -56,7 +76,9 @@ The current `GameNpcView` supplies:
 - the selected style source through adapter options;
 - a deterministic seed for replay or a fresh seed for reroll.
 
-The mode does not own a second sound generator, request family, artifact model, analysis model, or artifact renderer.
+The surface does not own a second sound generator, request family, artifact model, analysis model, or artifact renderer.
+
+As `generateName(...)` and semantic callbacks are established, this pipeline should migrate to those durable seams without changing Game NPC's current user-facing behavior merely for architecture cleanup.
 
 ## Current input boundary
 
@@ -65,11 +87,29 @@ The visible Game NPC workflow deliberately exposes a small input surface:
 - style source;
 - reroll/generate action.
 
-The current mode does not expose speculative human-facing controls merely because similarly named internal heuristics or settings exist.
+The current surface does not expose speculative human-facing controls merely because similarly named internal heuristics or settings exist.
 
 In particular, user-facing claims such as universal pronounceability, familiarity, memorability, beauty, realism, or cultural authenticity require a defensible product model and evidence before they become Game NPC controls or scores.
 
-A future context preset such as faction, region, species, class, or genre should compile into explicit criteria or a separately accepted semantic naming contract. It must not become an opaque mode-driven branch inside shared generation.
+A future context control such as faction, region, species, class, or genre may derive shared criteria, typed semantic configuration, or both. It must not become an opaque mode-driven branch inside `generateName(...)` or `generateSound(...)`.
+
+## Future NPC plurality
+
+There are two different possible future needs.
+
+### Independent names
+
+If Game NPC simply needs N unrelated names under the same normalized shared criteria, the existing atomic `independent-set` request contract may be sufficient.
+
+That path should preserve the existing deterministic parent/child seed and ordered-artifact contract rather than disguising unrelated client-side calls as one atomic request.
+
+### NPC-specific roster semantics
+
+If an NPC roster needs encounter roles, per-slot semantic kinds, shared regional configuration, locks, coordinated reroll, cross-name contrast, preserved roster state, or other product relationships, those semantics may belong to **Game NPC surface orchestration**.
+
+Such an aggregate may compose reusable semantic callbacks and remain Game-NPC-specific. It does not need to become a new generic `NameGrouping` kind or a universal `NpcRosterRequest` merely because multiple names are involved.
+
+A reusable aggregate contract should be extracted only if multiple surfaces later demonstrate the same cross-name semantics.
 
 ## Same-sound spelling contract
 
@@ -88,9 +128,9 @@ The phrase “all supported spellings” means all realizations derivable from t
 
 ## Shared artifact rendering contract
 
-`NameArtifact` is the reusable result contract across active modes.
+`NameArtifact` is the reusable result contract across active surfaces.
 
-Game NPC uses the shared `NameArtifactInspector` rather than a mode-specific artifact renderer.
+Game NPC uses the shared `NameArtifactInspector` rather than a surface-specific artifact renderer.
 
 Shared Inspect may expose facts such as:
 
@@ -105,17 +145,17 @@ Shared Inspect may expose facts such as:
 
 Game NPC adds fast reroll around that shared surface. Fiction Cast adds cast-specific context and composition around the same artifact-reading boundary.
 
-A future mode must not create a parallel renderer merely to rename common artifact facts.
+A future surface must not create a parallel renderer merely to rename common artifact facts.
 
 ## Shared artifact analysis contract
 
-Artifact analysis is derived through pure shared functions rather than becoming mode-owned mutable state.
+Artifact analysis is derived through pure shared functions rather than becoming surface-owned mutable state.
 
 Single-artifact evidence may include deterministic generated facts such as segment count, syllable structure, cadence, spelling count/rank, selection explanation, and readability notices.
 
 Set-level analysis may inspect artifact collections for concrete modeled relationships. Those shared analysis capabilities do not imply that singular Game NPC should present roster-level analysis before a roster workflow exists.
 
-Mode presentation must distinguish deterministic model evidence from claims about universal human perception or confusion.
+Surface presentation must distinguish deterministic model evidence from claims about universal human perception or confusion.
 
 ## Audition boundary
 
@@ -123,7 +163,7 @@ Game NPC reuses the shared browser audition stack.
 
 Browser playback is an approximation derived from modeled sound evidence. It is not IPA, a pronunciation dictionary, provider phoneme markup, or canonical pronunciation.
 
-Provider-specific audio, pronunciation authority, or new phonological claims require separate contracts and are not part of the Game NPC mode merely because a Play action exists.
+Provider-specific audio, pronunciation authority, or new phonological claims require separate contracts and are not part of the Game NPC surface merely because a Play action exists.
 
 ## Determinism and reroll
 
@@ -136,11 +176,13 @@ same style source + fresh seed -> rerolled singular artifact
 
 `mode: "game-npc"` remains metadata. It must not cause the shared generator to take a Game-NPC-specific generation branch.
 
+The naming-layer refactor from the current silhouette-shaped path to `generateName(...)` must preserve this deterministic user-visible behavior unless a separately authorized product change says otherwise.
+
 ## Current implemented boundary
 
 Game NPC currently includes:
 
-- selectable active mode presentation;
+- selectable active surface presentation;
 - singular-compatible shared `NameRequest -> NameResponse` generation;
 - style-source selection;
 - fresh-seed reroll;
@@ -158,25 +200,29 @@ The broader platform additionally supports exact independent-set quantity/groupi
 
 The following remain possible future Game NPC slices, not implied current behavior:
 
-- an NPC roster UX built on shared exact quantity/grouping;
-- context presets backed by explicit criteria bundles or accepted semantic naming capabilities;
+- independent NPC quantity UX where the existing `independent-set` contract is sufficient;
+- NPC-specific roster orchestration where the cross-name semantics belong to this surface;
+- context presets backed by explicit shared criteria and/or typed semantic naming configuration;
 - user-facing per-context sound/style controls with clear product meaning;
 - validated audience-specific pronounceability research;
 - corpus-specific familiarity research;
 - human-tested memorability research;
 - semantic, genre, cultural, or realism claims backed by declared data and methodology;
-- mode-specific grouped persistence or roster restore UX;
+- surface-specific roster persistence or restore UX;
 - character hooks, biographies, or encounter generation;
 - provider-specific audio, IPA, dictionaries, or pronunciation authority.
 
 ## Invariants
 
-- No separate Game NPC generator.
-- No `NpcRequest`, `GameNpcRequest`, or `NpcRosterRequest` without a demonstrated incompatibility with the shared contract.
-- No mode-driven branch inside shared generation.
+- No separate Game NPC sound generator.
+- No `NpcRequest`, `GameNpcRequest`, or `NpcRosterRequest` merely because the UI surface differs.
+- Reusable semantic callback names are allowed and expected when they represent domain semantics rather than surface identity.
+- No mode-driven branch inside `generateName(...)` or generic sound mechanics.
 - No fake one-member Fiction Cast state.
 - No parallel artifact renderer or analyzer.
 - No roster UI inferred solely from the existence of shared multiplicity.
+- No requirement that nuanced NPC roster semantics become generic grouping.
+- No caller-facing dependency on `NameSilhouette` as the naming layer is refactored.
 - No derived analysis persisted into the durable artifact without an explicit versioned contract decision.
 - No unsupported linguistic or psychological score presented as objective fact.
 - No display cap applied before full-pool spelling ranking or selected-spelling resolution.
