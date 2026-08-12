@@ -1,10 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { generateEnsemble } from '../fictionCast/ensemble';
 import { fictionCastEpithetLexemes, fictionCastTitleLexemes } from '../fictionCast/identityLexicon';
-import { generateNameCandidateFromSilhouette } from '../naming/generator';
+import { generateName } from '../naming/generator';
 import { createSeededRandom } from './random';
 import { createDefaultRegistry } from './registry';
-import { createNameSilhouette } from './silhouettes';
 import type { GeneratedName, GenerationSettings, RarityBand } from './types';
 
 const settings: GenerationSettings = { castSize: 6, novelty: 0.5, pronounceability: 0.7, memorability: 0.6, culturalAnchoring: 0.65, orthographicWeirdness: 0.25, stylePackId: 'british-literary-fantasy', seed: 'deterministic-test-seed', nameFormat: 'given-only' };
@@ -47,24 +46,29 @@ describe('generateEnsemble', () => {
   it('materializes sound-first candidates before selecting the app-facing name', () => {
     const registry = createDefaultRegistry();
     const pack = registry.getStylePack(settings.stylePackId);
-    const silhouette = createNameSilhouette(settings, pack, createSeededRandom('candidate:silhouette'), 0);
-    const candidate = generateNameCandidateFromSilhouette(silhouette, settings, createSeededRandom('candidate:sound'));
+    const generated = generateName({
+      settings,
+      pack,
+      planningRandom: createSeededRandom('candidate:silhouette'),
+      generationRandom: createSeededRandom('candidate:sound'),
+      index: 0,
+    });
 
-    expect(candidate.soundProfile.targets).toBeDefined();
-    expect(Object.prototype.hasOwnProperty.call(candidate.soundProfile, 'contract')).toBe(false);
-    expect(Object.prototype.hasOwnProperty.call(candidate.soundProfile, 'version')).toBe(false);
-    expect(Object.prototype.hasOwnProperty.call(candidate.soundProfile, 'id')).toBe(false);
-    expect(Object.prototype.hasOwnProperty.call(candidate.soundProfile, 'source')).toBe(false);
-    expect(candidate.sound.contract).toBe('SoundCandidate');
-    expect(candidate.sound.sequence.contract).toBe('SegmentSequence');
-    expect(candidate.sound.transcription).toMatch(/^\/.+\/$/);
-    expect(candidate.rankedSpellings.candidates.length).toBeGreaterThan(0);
-    const [topSpelling] = candidate.rankedSpellings.candidates;
+    expect(generated.soundProfile.targets).toBeDefined();
+    expect(Object.prototype.hasOwnProperty.call(generated.soundProfile, 'contract')).toBe(false);
+    expect(Object.prototype.hasOwnProperty.call(generated.soundProfile, 'version')).toBe(false);
+    expect(Object.prototype.hasOwnProperty.call(generated.soundProfile, 'id')).toBe(false);
+    expect(Object.prototype.hasOwnProperty.call(generated.soundProfile, 'source')).toBe(false);
+    expect(generated.sound.contract).toBe('SoundCandidate');
+    expect(generated.sound.sequence.contract).toBe('SegmentSequence');
+    expect(generated.sound.transcription).toMatch(/^\/.+\/$/);
+    expect(generated.spellingCandidates.length).toBeGreaterThan(0);
+    const [topSpelling] = generated.spellingCandidates;
     expect(topSpelling).toBeDefined();
     if (!topSpelling) throw new Error('Expected top ranked spelling.');
-    expect(candidate.selectedSpelling).toBe(topSpelling);
-    expect(candidate.selectedSpelling.rank).toBe(1);
-    expect(candidate.selectedSpelling.text.length).toBeGreaterThan(0);
+    expect(generated.spelling).toBe(topSpelling);
+    expect(generated.spelling.rank).toBe(1);
+    expect(generated.spelling.text.length).toBeGreaterThan(0);
   });
 
   it('returns scored names, variants, fit signals, generated sound, and retained spelling candidates', () => {
