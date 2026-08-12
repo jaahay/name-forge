@@ -22,10 +22,12 @@ NameRequest
   -> diagnostics
   -> compile NameCriteria into current GenerationSettings
   -> derive one deterministic child seed per artifact index
-  -> invoke current transitional one-name orchestration per child seed
+  -> invoke generic singular generateName(...) per child seed
   -> map each GeneratedName to NameArtifact
   -> NameResponse with flat ordered artifacts and grouping metadata
 ```
+
+`generateName(...)` owns one-name orchestration and internal `NameGenerationPlan` materialization. The request adapter does not construct a silhouette and does not select semantic behavior from `mode` metadata.
 
 Omitting quantity and grouping preserves the previous singular deterministic stream. Explicit exact quantity supports independent sets from 1 through 100 artifacts. `mode` remains metadata and must not choose generation or grouping behavior.
 
@@ -106,7 +108,7 @@ Despite the historical filename, that document records the accepted exact indepe
 12. [`product-architecture.md`](product-architecture.md)
     - Product surfaces, mode strategy, semantic capability reuse, and surface composition.
 13. [`model-module-contracts.md`](model-module-contracts.md)
-    - Current executable models plus the accepted target naming seam.
+    - Current executable models plus the implemented singular naming seam.
 14. [`requirements/name-request-v1-slices.md`](requirements/name-request-v1-slices.md)
     - Historical slice decomposition plus the implemented grouping extension.
 
@@ -120,19 +122,21 @@ Implemented platform behavior:
 - one parent seed and deterministic index-stable child seeds;
 - atomic flat ordered artifact output;
 - positional association between `grouping.childSeeds[index]` and `names[index]`;
-- current indexed artifact and silhouette identities;
+- generic singular generation through `generateName(...)`;
+- internal `NameGenerationPlan` construction hidden behind the singular callback;
+- current indexed artifact and legacy `silhouette` evidence identities;
 - deterministic replay and prefix stability;
 - mode-neutral generation.
 
-The silhouette identity above is a current implementation fact, not an architectural requirement. Decision 0006 explicitly removes `NameSilhouette` from the durable naming API boundary.
+The `silhouette` property remains a current result/artifact compatibility fact backed by `NameGenerationPlan`; it is not a caller-facing generation API or an architectural requirement for future semantic callbacks.
 
 ## Active next naming-layer sequence
 
-The next implementation work is **not another grouping expansion**.
+The singular `generateName(...)` boundary and silhouette-caller collapse are implemented in issue #186. The next implementation work is **not another grouping expansion**.
 
-1. Establish the generic singular `generateName(...)` contract and move callers away from silhouette-shaped generation entry points.
-2. Audit `NameSilhouette` field by field; retain only internal planning state that still has a clear owner and purpose.
-3. Build reusable typed semantic callbacks such as given/family/place generation on top of `generateName(...)` from concrete product semantics.
+1. Build the first reusable typed semantic callback(s), such as given/family/place generation, on top of `generateName(...)` from concrete product semantics.
+2. Let surfaces inject domain-specific configuration into those callbacks without branching generic generation on mode or surface identity.
+3. Move existing Fiction Cast component generation onto reusable semantic callbacks where the contracts are actually shared.
 4. Keep nuanced multi-name behavior surface-specific unless a cross-surface aggregate abstraction is demonstrated later.
 
 ## Deferred generic request/grouping work
@@ -155,7 +159,7 @@ These deferrals do not prohibit a product surface from owning its own aggregate 
 
 Supported-criteria knowledge is duplicated between `nameCriteriaCompiler.ts` and `nameCriteriaDiagnostics.ts`.
 
-Before materially expanding shared criteria targets, supported-target metadata should be centralized or a shared helper such as `isCriteriaClauseCompiled(...)` should be introduced. Keep that as a separately scoped runtime cleanup rather than coupling it to the `generateName(...)` boundary refactor unless required.
+Before materially expanding shared criteria targets, supported-target metadata should be centralized or a shared helper such as `isCriteriaClauseCompiled(...)` should be introduced. Keep that as a separately scoped runtime cleanup rather than coupling it to the first semantic-callback slice unless required.
 
 ## Historical docs
 
