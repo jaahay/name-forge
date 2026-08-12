@@ -2,7 +2,7 @@
 
 ## Goal
 
-Define the shared criteria-driven naming operation:
+Define the shared criteria-driven request/response platform operation:
 
 ```text
 NameRequest -> NameResponse
@@ -10,12 +10,16 @@ NameRequest -> NameResponse
 
 V1 supports the existing singular default and an exact independent set without introducing Cast-specific backend semantics, prompt-first UX, or LLM parsing.
 
+This contract is platform and transport infrastructure. It does **not** define the reusable semantic naming callback hierarchy. That hierarchy is defined by [`../decisions/0006-naming-capabilities-and-surface-composition.md`](../decisions/0006-naming-capabilities-and-surface-composition.md): reusable semantic callbacks sit above one generic singular `generateName(...)` primitive, while surface-specific aggregate orchestration may sit above those callbacks.
+
 ## References
 
 - [`../decisions/0001-name-artifact-and-request-contract.md`](../decisions/0001-name-artifact-and-request-contract.md)
 - [`../decisions/0002-criteria-driven-generation.md`](../decisions/0002-criteria-driven-generation.md)
 - [`../decisions/0003-intent-criteria-compiler-pipeline.md`](../decisions/0003-intent-criteria-compiler-pipeline.md)
 - [`../decisions/0004-modes-presets-and-grouping.md`](../decisions/0004-modes-presets-and-grouping.md)
+- [`../decisions/0005-sound-profile-product-boundary.md`](../decisions/0005-sound-profile-product-boundary.md)
+- [`../decisions/0006-naming-capabilities-and-surface-composition.md`](../decisions/0006-naming-capabilities-and-surface-composition.md)
 - [`name-grouping-design-boundary.md`](name-grouping-design-boundary.md)
 - [`../model-module-contracts.md`](../model-module-contracts.md)
 - [`../current-product-scope.md`](../current-product-scope.md)
@@ -25,21 +29,24 @@ V1 supports the existing singular default and an exact independent set without i
 ### In scope
 
 - `NameRequest`, `ResolvedNameRequest`, `NameResponse`, and `NameArtifact`.
-- Structured `NameCriteria` and deterministic criteria diagnostics.
+- Structured shared `NameCriteria` and deterministic criteria diagnostics.
 - Resolved parent seeds and replay metadata.
-- Optional `mode` metadata that does not branch generation.
+- Optional `mode` metadata that does not branch generic generation.
 - Optional exact quantity and explicit independent-set grouping.
-- One atomic ordered generation operation.
+- One atomic ordered independent-generation operation.
 - Flat ordered `NameArtifact[]` output plus grouping metadata.
 - Singular compatibility when quantity/grouping are omitted.
 
 ### Out of scope
 
-- Cohesion or diversity optimization.
+- The concrete `generateName(...)` semantic/naming-layer API refactor.
+- Reusable `generateGivenName(...)`, `generateFamilyName(...)`, `generatePlaceName(...)`, or other semantic callback contracts.
+- Surface-specific aggregate operations such as a future Fiction Cast generation callback.
+- Cohesion or diversity optimization as a reusable shared grouping contract.
 - Ranked-alternative grouping.
-- Slotted sets or slot criteria.
+- Generic slotted sets or slot criteria.
 - Cast roles, locks, or ensemble scoring as shared engine concepts.
-- Partial-result recovery or per-artifact reroll.
+- Partial-result recovery or generic per-artifact reroll.
 - Public Criteria Match or fit percentages.
 - Prompt-first UX, LLM parsing, or external availability checks.
 
@@ -62,10 +69,11 @@ type NameRequest = {
 
 Acceptance criteria:
 
-- `criteria` is explicit and structured.
+- `criteria` is explicit and structured shared request intent.
 - `mode`, `quantity`, `grouping`, and `random` are optional.
-- No mode-specific request family is introduced.
+- No mode-specific transport/request family is introduced merely because surfaces differ.
 - Omitted quantity/grouping preserve singular behavior.
+- This requirement does not prohibit typed semantic callback names above the generic singular naming primitive.
 
 ### REQ-002 - Resolve exact quantity and grouping
 
@@ -114,25 +122,33 @@ Each result preserves display text and supported sound, spelling, identity, vari
 - The same normalized request, parent seed, algorithm version, and engine data reproduce the same ordered artifacts.
 - Increasing quantity preserves the existing result prefix.
 
-### REQ-006 - Generate atomically
+### REQ-006 - Generate an independent set atomically
 
-Plural output is produced inside the shared engine operation. Clients and UI modes must not implement this contract by aggregating repeated singular requests.
+The `independent-set` contract is produced inside the shared platform operation. Clients must not claim conformance to this exact atomic contract by aggregating unrelated singular calls after the fact.
 
 Each child generation receives:
 
 - its deterministic child seed;
 - its ordered artifact index;
-- the same normalized criteria and grouping semantics.
+- the same normalized shared criteria and independent grouping semantics.
 
-Artifact and silhouette identities must reflect their ordered indexes so equal display values do not create duplicate durable IDs.
+Artifact identities must remain distinct and addressable even when display values collide.
+
+Current silhouette indexing may continue as an implementation detail while `NameSilhouette` exists, but silhouette identity is **not** a durable requirement of this request contract and must not constrain the `generateName(...)` refactor from Decision 0006.
+
+This atomic independent-set requirement also does not prohibit a surface-specific aggregate operation from orchestrating semantic callbacks under a different product contract when the cross-name semantics belong to that surface.
 
 ### REQ-007 - Keep `mode` non-semantic
 
-Two requests differing only by `mode` produce identical grouping metadata and generated artifacts. `mode` may be echoed or used for diagnostics, but it must not choose quantity, grouping, or generation behavior.
+Two requests differing only by `mode` produce identical grouping metadata and generated artifacts. `mode` may be echoed or used for diagnostics, but it must not choose quantity, grouping, generic `generateName(...)` behavior, or semantic callback behavior implicitly.
+
+A surface chooses its semantic callback explicitly and passes configuration derived from its UX.
 
 ### REQ-008 - Preserve structured criteria and diagnostics
 
-Unsupported or partially implemented criteria remain safe and explicit. Diagnostics do not replace functional implementation for supported criteria and do not become public fit scores.
+Unsupported or partially implemented shared criteria remain safe and explicit. Diagnostics do not replace functional implementation for supported criteria and do not become public fit scores.
+
+Semantic callbacks may later own additional typed configuration that does not belong in the universal `NameCriteria` vocabulary.
 
 ### REQ-009 - Preserve singular compatibility
 
@@ -143,6 +159,8 @@ When quantity and grouping are omitted:
 - the parent seed remains the child seed for index 0;
 - the generated artifact remains compatible with the previous singular deterministic stream.
 
+This compatibility requirement concerns the request platform. The underlying implementation may be migrated to the generic singular `generateName(...)` primitive as long as behavior remains compatible.
+
 ### REQ-010 - Validate the contract
 
 Tests cover:
@@ -152,12 +170,26 @@ Tests cover:
 - deterministic child-seed derivation;
 - child-seed-to-artifact positional association;
 - ordered replay and prefix stability;
-- indexed artifact and silhouette identity;
-- duplicate display values retaining distinct artifact IDs;
+- distinct artifact identity for ordered outputs, including duplicate display values;
 - mode neutrality;
 - invalid quantity rejection;
 - existing typed response fixtures.
 
+Tests should not enshrine `NameSilhouette` as a required request-platform concept merely because the current runtime still uses it internally.
+
+## Relationship to naming capabilities
+
+The accepted ordered naming API direction is:
+
+```text
+surface-specific aggregate orchestration, when needed
+        -> reusable semantic callback(s)
+        -> generic singular generateName(...)
+        -> generic mechanics
+```
+
+`NameRequest -> NameResponse` remains useful alongside this hierarchy for shared criteria, replay, independent quantity, service/adapter boundaries, and artifact transport. The two concepts must not be conflated.
+
 ## Validation
 
-Code changes implementing this contract must pass the repository TypeScript/Vite build and Vitest suite against the exact pull-request head.
+Code changes implementing or modifying this contract must pass the repository TypeScript/Vite build and Vitest suite against the exact pull-request head.
