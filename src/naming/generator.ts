@@ -2,7 +2,7 @@ import { selectRankedSpellingCandidate } from '../engine/candidateSelection';
 import type { SoundCandidate } from '../engine/soundGenerator';
 import type { SoundProfile } from '../engine/soundProfile';
 import type { RankedSpellingCandidate, RankedSpellingCandidateList } from '../engine/spellingGenerator';
-import type { GeneratedName, GenerationSettings, NameGenerationPlan, NameGenerationPlanPreferences, StylePack } from '../engine/types';
+import type { GeneratedName, NameGenerationPlan, NameGenerationPlanPreferences, NameGenerationSettings, StylePack } from '../engine/types';
 import type { SeededRandom } from '../engine/random';
 import { diagnoseNameReadability } from '../engine/diagnostics';
 import { clamp } from '../engine/random';
@@ -15,12 +15,12 @@ import { generateRankedSpellingCandidates } from '../engine/spellingGenerator';
 import { generateVariants } from '../engine/variants';
 
 export interface GenerateNameOptions {
-  readonly settings: GenerationSettings;
+  readonly settings: NameGenerationSettings;
   readonly pack: StylePack;
   readonly planningRandom: SeededRandom;
   readonly generationRandom: SeededRandom;
   readonly index: number;
-  readonly planningSettings?: GenerationSettings;
+  readonly planningSettings?: NameGenerationSettings;
   readonly planningPreferences?: NameGenerationPlanPreferences;
 }
 
@@ -38,14 +38,14 @@ function feelFor(plan: NameGenerationPlan): StyleInput['feel'] {
   return 'balanced';
 }
 
-function spellingDistinctivenessFor(settings: GenerationSettings): StyleInput['distinctiveness'] {
+function spellingDistinctivenessFor(settings: NameGenerationSettings): StyleInput['distinctiveness'] {
   const orthographicWeirdness = clamp(settings.orthographicWeirdness);
   if (orthographicWeirdness < 0.38) return 'familiar';
   if (orthographicWeirdness > 0.62) return 'distinctive';
   return 'balanced';
 }
 
-function compileSoundProfileForName(settings: GenerationSettings, plan: NameGenerationPlan): SoundProfile {
+function compileSoundProfileForName(settings: NameGenerationSettings, plan: NameGenerationPlan): SoundProfile {
   return compileStyle({
     feel: feelFor(plan),
     length: plan.targetLength,
@@ -53,7 +53,7 @@ function compileSoundProfileForName(settings: GenerationSettings, plan: NameGene
   });
 }
 
-function generateNameCandidate(plan: NameGenerationPlan, settings: GenerationSettings, random: SeededRandom): NameGenerationCandidate {
+function generateNameCandidate(plan: NameGenerationPlan, settings: NameGenerationSettings, random: SeededRandom): NameGenerationCandidate {
   const soundProfile = compileSoundProfileForName(settings, plan);
   const sound = generateSound(soundProfile, random);
   const rankedSpellings = generateRankedSpellingCandidates(sound, soundProfile);
@@ -67,7 +67,7 @@ function generateNameCandidate(plan: NameGenerationPlan, settings: GenerationSet
   return { soundProfile, sound, rankedSpellings, selectedSpelling };
 }
 
-function materializeGeneratedName(plan: NameGenerationPlan, pack: StylePack, settings: GenerationSettings, random: SeededRandom, index: number): GeneratedName {
+function materializeGeneratedName(plan: NameGenerationPlan, pack: StylePack, settings: NameGenerationSettings, random: SeededRandom, index: number): GeneratedName {
   const candidate = generateNameCandidate(plan, settings, random);
   const baseName = candidate.selectedSpelling.text;
   const scores = scoreName(baseName, plan, pack, settings);
@@ -83,7 +83,6 @@ function materializeGeneratedName(plan: NameGenerationPlan, pack: StylePack, set
     silhouette: plan,
     scores,
     variants,
-    roleInfluence: plan.roleInfluence,
     readabilityDiagnostics: diagnoseNameReadability(baseName),
   };
 }

@@ -1,6 +1,7 @@
 import { compileNameCriteriaToGenerationSettings } from './nameCriteriaCompiler';
 import { diagnosticsForNameCriteria } from './nameCriteriaDiagnostics';
 import { generateName } from '../naming/generator';
+import { toNameGenerationSettings } from '../naming/settings';
 import { toNameArtifact } from './nameArtifact';
 import { deriveNameChildSeed, resolveNameRequest } from './nameRequest';
 import type { NameRequest, NameResponse } from './nameRequest';
@@ -30,14 +31,14 @@ export function generateNameResponse(request: NameRequest, options: NameResponse
     },
   );
   const pack = registry.getStylePack(settings.stylePackId);
+  const nameSettings = toNameGenerationSettings(settings);
   const childSeeds = Array.from(
     { length: resolution.request.quantity.value },
     (_, index) => deriveNameChildSeed(resolution.random.seed, index),
   );
   const names = childSeeds.map((childSeed, artifactIndex) => {
-    const childSettings = { ...settings, seed: childSeed };
     const generatedName = generateName({
-      settings: childSettings,
+      settings: nameSettings,
       pack,
       planningRandom: createSeededRandom(`${childSeed}:name-request-v1:silhouette:0`),
       generationRandom: createSeededRandom(`${childSeed}:name-request-v1:name:0`),

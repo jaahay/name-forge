@@ -1,6 +1,6 @@
 import type { FormEvent, KeyboardEvent } from 'react';
-import { rarityDistributionOptions } from '../engine/rarity';
-import { castRoleOptions, castRolePresetOptions, roleInfluenceOptions } from '../engine/roles';
+import { rarityDistributionOptions } from '../fictionCast/rarity';
+import { castRoleOptions, castRolePresetOptions, roleInfluenceOptions } from '../fictionCast/roles';
 import type { CastRole, CastRolePresetKind, GenerationSettings, NameFormatKind, RarityDistributionPresetKind, RoleInfluenceLevel, StylePackSummary } from '../engine/types';
 import type { NamingModeConfig } from './modes';
 import { advancedScoreControls, primaryScoreControls, type ControlKey } from './presentation';

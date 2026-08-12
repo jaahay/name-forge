@@ -59,11 +59,12 @@ export type ReadabilityDiagnosticSeverity = 'notice' | 'warning';
 export type ReadabilityDiagnosticScope = 'name' | 'cast';
 
 export interface ReadabilityDiagnostic { id: string; scope: ReadabilityDiagnosticScope; severity: ReadabilityDiagnosticSeverity; label: string; detail: string; }
-export interface GenerationSettings { castSize: number; novelty: number; pronounceability: number; memorability: number; culturalAnchoring: number; orthographicWeirdness: number; stylePackId: string; seed: string; nameFormat?: NameFormatKind; rarityDistribution?: RarityDistributionPresetKind; rolePreset?: CastRolePresetKind; roleInfluence?: RoleInfluenceLevel; slotRoleOverrides?: SlotRoleOverrides; preferredTexture?: NameTexture; spellingSelectionPreference?: SpellingSelectionPreference; }
+export interface NameGenerationSettings { novelty: number; pronounceability: number; memorability: number; culturalAnchoring: number; orthographicWeirdness: number; preferredTexture?: NameTexture; spellingSelectionPreference?: SpellingSelectionPreference; }
+export interface GenerationSettings extends NameGenerationSettings { castSize: number; stylePackId: string; seed: string; nameFormat?: NameFormatKind; rarityDistribution?: RarityDistributionPresetKind; rolePreset?: CastRolePresetKind; roleInfluence?: RoleInfluenceLevel; slotRoleOverrides?: SlotRoleOverrides; }
 export interface WeightedValue<T = string> { value: T; weight: number; }
 export interface CastRoleAssignment { role: CastRole; label: string; source: 'preset' | 'slot'; slot: number; }
 export interface RoleInfluenceMetadata { level: Exclude<RoleInfluenceLevel, 'off'>; role: CastRole; profileId: string; label: string; strength: number; effects: string[]; }
-export interface NameGenerationPlanPreferences { strength: number; syllableCounts?: Array<WeightedValue<number>>; textures?: Array<WeightedValue<NameTexture>>; }
+export interface NameGenerationPlanPreferences { strength: number; syllableCounts?: Array<WeightedValue<number>>; textures?: Array<WeightedValue<NameTexture>>; rarityBand?: RarityBand; }
 export interface NameGenerationPlan { id: string; syllableCount: number; stressPattern: string; rhythm: string; shape: string[]; rarityBand: RarityBand; texture: NameTexture; targetNovelty: number; targetLength: 'short' | 'medium' | 'long'; roleInfluence?: RoleInfluenceMetadata; }
 export interface NameScores { pronounceability: number; memorability: number; novelty: number; culturalAnchoring: number; orthographicNaturalness: number; styleFit: number; silhouetteFit: number; ensembleFit: number; roleFit: number; overallFit: number; }
 export interface NameVariantSource { id: string; kind: SourceKind; label: string; detail: string; }

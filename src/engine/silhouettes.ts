@@ -1,4 +1,4 @@
-import type { GenerationSettings, NameGenerationPlan, NameGenerationPlanPreferences, NameTexture, StylePack, WeightedValue } from './types';
+import type { NameGenerationPlan, NameGenerationPlanPreferences, NameGenerationSettings, NameTexture, StylePack, WeightedValue } from './types';
 import type { SeededRandom } from './random';
 import { clamp, lerp } from './random';
 import { selectRarityBand } from './rarity';
@@ -10,7 +10,7 @@ function blendWeightedValues<T>(baseValues: Array<WeightedValue<T>>, preferredVa
   });
 }
 
-function selectSyllableCount(settings: GenerationSettings, pack: StylePack, random: SeededRandom, preferences?: NameGenerationPlanPreferences): number {
+function selectSyllableCount(settings: NameGenerationSettings, pack: StylePack, random: SeededRandom, preferences?: NameGenerationPlanPreferences): number {
   const memorability = clamp(settings.memorability);
   const baseCounts = preferences?.syllableCounts
     ? blendWeightedValues(pack.silhouetteBias.syllableCounts, preferences.syllableCounts, preferences.strength)
@@ -22,7 +22,7 @@ function selectSyllableCount(settings: GenerationSettings, pack: StylePack, rand
   return random.pickWeighted(weightedCounts);
 }
 
-function stressPatternFor(syllables: number, settings: GenerationSettings, random: SeededRandom): string {
+function stressPatternFor(syllables: number, settings: NameGenerationSettings, random: SeededRandom): string {
   const memorableDownbeatBias = lerp(0.46, 0.74, settings.memorability);
   if (syllables <= 1) return 'S';
   if (syllables === 2) return random.chance(memorableDownbeatBias) ? 'S-w' : 'w-S';
@@ -37,11 +37,8 @@ function rhythmFor(stressPattern: string): string {
   return 'balanced';
 }
 
-function selectTexture(settings: GenerationSettings, pack: StylePack, random: SeededRandom, preferences?: NameGenerationPlanPreferences): NameTexture {
-  if (settings.preferredTexture !== undefined) {
-    return settings.preferredTexture;
-  }
-
+function selectTexture(settings: NameGenerationSettings, pack: StylePack, random: SeededRandom, preferences?: NameGenerationPlanPreferences): NameTexture {
+  if (settings.preferredTexture !== undefined) return settings.preferredTexture;
   if (!preferences?.textures) return random.pickWeighted(pack.silhouetteBias.textures);
   return random.pickWeighted(blendWeightedValues(pack.silhouetteBias.textures, preferences.textures, preferences.strength));
 }
@@ -51,10 +48,10 @@ function selectTexture(settings: GenerationSettings, pack: StylePack, random: Se
  * Product, request, and surface callers should enter through the naming-layer generateName API.
  * @internal
  */
-export function createNameGenerationPlan(settings: GenerationSettings, pack: StylePack, random: SeededRandom, index: number, preferences?: NameGenerationPlanPreferences): NameGenerationPlan {
+export function createNameGenerationPlan(settings: NameGenerationSettings, pack: StylePack, random: SeededRandom, index: number, preferences?: NameGenerationPlanPreferences): NameGenerationPlan {
   const syllableCount = selectSyllableCount(settings, pack, random, preferences);
   const stressPattern = stressPatternFor(syllableCount, settings, random);
-  const rarityBand = selectRarityBand(settings, pack, random, index);
+  const rarityBand = preferences?.rarityBand ?? selectRarityBand(settings, pack, random);
   const texture = selectTexture(settings, pack, random, preferences);
   const targetLength = syllableCount <= 2 ? 'short' : syllableCount === 3 ? 'medium' : 'long';
   const openSyllableBias = lerp(0.24, 0.76, settings.pronounceability);
