@@ -2,9 +2,9 @@ import { createSeededRandom, clamp } from '../engine/random';
 import { castReadabilityDiagnostics, diagnoseNameReadability, readabilitySummary } from '../engine/diagnostics';
 import { generateName } from '../naming/generator';
 import { renderIdentityAuditionPhrase } from '../engine/identityAudition';
-import { isRoleInfluenceActive, resolveCastRole } from '../engine/roles';
-import { combineOverallFit } from '../engine/scoring';
-import type { CastRoleAssignment, GeneratedEnsemble, GeneratedName, GenerationSettings } from '../engine/types';
+import { getRolePreferenceProfile, isRoleInfluenceActive, resolveCastRole, resolveRoleInfluence } from '../engine/roles';
+import { combineOverallFit, scoreName } from '../engine/scoring';
+import type { CastRoleAssignment, GeneratedEnsemble, GeneratedName, GenerationSettings, NameGenerationPlanPreferences, StylePack } from '../engine/types';
 import type { SourceRegistry } from '../engine/registry';
 import {
   resolveFictionCastComponentGenerationContext,
@@ -28,6 +28,29 @@ function planningSettingsForCandidate(settings: GenerationSettings, index: numbe
   };
 }
 
+function planningPreferencesForRole(settings: GenerationSettings, role?: CastRoleAssignment): NameGenerationPlanPreferences | undefined {
+  const influence = resolveRoleInfluence(settings, role);
+  if (!influence) return undefined;
+  const profile = getRolePreferenceProfile(influence.role);
+  return {
+    strength: influence.strength,
+    syllableCounts: profile.syllableCounts,
+    textures: profile.textures,
+  };
+}
+
+function withRoleInfluence(candidate: GeneratedName, settings: GenerationSettings, pack: StylePack, role?: CastRoleAssignment): GeneratedName {
+  const roleInfluence = resolveRoleInfluence(settings, role);
+  if (!roleInfluence) return candidate;
+  const plan = { ...candidate.silhouette, roleInfluence };
+  return {
+    ...candidate,
+    silhouette: plan,
+    roleInfluence,
+    scores: scoreName(candidate.name, plan, pack, settings),
+  };
+}
+
 function withNameIdentity(candidate: GeneratedName, settings: GenerationSettings, registry: SourceRegistry, index: number, attempt: number): GeneratedName {
   const formatKind = resolveMaterializedFormatKind(settings.nameFormat, index);
   const pack = registry.getStylePack(settings.stylePackId);
@@ -40,11 +63,11 @@ function withNameIdentity(candidate: GeneratedName, settings: GenerationSettings
     ? generateName({
       settings: supportingContext.settings,
       planningSettings: planningSettingsForCandidate(supportingContext.settings, supportingIndex),
+      planningPreferences: planningPreferencesForRole(supportingContext.settings, candidate.role),
       pack,
       planningRandom: createSeededRandom(`${settings.seed}${roleSeedSegment(settings, candidate.role)}:slot-${index}:supporting-${attempt}:${supportingIndex}`),
       generationRandom: createSeededRandom(`${settings.seed}${roleSeedSegment(settings, candidate.role)}:supporting:${index}:${attempt}`),
       index: supportingIndex,
-      role: candidate.role,
     })
     : undefined;
   const identity = createNameIdentity(candidate, supportingName, formatKind);
@@ -99,16 +122,17 @@ export function generateEnsemble(settings: GenerationSettings, registry: SourceR
     const role = resolveCastRole(safeSettings, index);
     const primaryContext = resolveFictionCastComponentGenerationContext(safeSettings, role, 'given');
     const candidates = Array.from({ length: 16 }, (_, attempt) => {
+      const generated = generateName({
+        settings: primaryContext.settings,
+        planningSettings: planningSettingsForCandidate(primaryContext.settings, index),
+        planningPreferences: planningPreferencesForRole(primaryContext.settings, role),
+        pack,
+        planningRandom: createSeededRandom(`${safeSettings.seed}${roleSeedSegment(safeSettings, role)}:slot-${index}:attempt-${attempt}:${index}`),
+        generationRandom: createSeededRandom(`${settings.seed}${roleSeedSegment(safeSettings, role)}:name:${index}:${attempt}`),
+        index,
+      });
       const baseName = {
-        ...generateName({
-          settings: primaryContext.settings,
-          planningSettings: planningSettingsForCandidate(primaryContext.settings, index),
-          pack,
-          planningRandom: createSeededRandom(`${safeSettings.seed}${roleSeedSegment(safeSettings, role)}:slot-${index}:attempt-${attempt}:${index}`),
-          generationRandom: createSeededRandom(`${settings.seed}${roleSeedSegment(safeSettings, role)}:name:${index}:${attempt}`),
-          index,
-          role,
-        }),
+        ...withRoleInfluence(generated, primaryContext.settings, pack, role),
         role,
       };
       return withEnsembleFit(withNameIdentity(baseName, safeSettings, registry, index, attempt), selected, safeSettings);
