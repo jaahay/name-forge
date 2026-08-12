@@ -2,28 +2,39 @@ import { selectRankedSpellingCandidate } from '../engine/candidateSelection';
 import type { SoundCandidate } from '../engine/soundGenerator';
 import type { SoundProfile } from '../engine/soundProfile';
 import type { RankedSpellingCandidate, RankedSpellingCandidateList } from '../engine/spellingGenerator';
-import type { GeneratedName, GenerationSettings, NameSilhouette, StylePack } from '../engine/types';
+import type { GeneratedName, GenerationSettings, NameGenerationPlan, NameGenerationPlanPreferences, StylePack } from '../engine/types';
 import type { SeededRandom } from '../engine/random';
 import { diagnoseNameReadability } from '../engine/diagnostics';
 import { clamp } from '../engine/random';
 import { scoreName } from '../engine/scoring';
 import { generateSound } from '../engine/soundGenerator';
+import { createNameGenerationPlan } from '../engine/silhouettes';
 import type { StyleInput } from '../styleCompilation/styleCompiler';
 import { compileStyle } from '../styleCompilation/styleCompiler';
 import { generateRankedSpellingCandidates } from '../engine/spellingGenerator';
 import { generateVariants } from '../engine/variants';
 
-export interface NameGenerationCandidate {
+export interface GenerateNameOptions {
+  readonly settings: GenerationSettings;
+  readonly pack: StylePack;
+  readonly planningRandom: SeededRandom;
+  readonly generationRandom: SeededRandom;
+  readonly index: number;
+  readonly planningSettings?: GenerationSettings;
+  readonly planningPreferences?: NameGenerationPlanPreferences;
+}
+
+interface NameGenerationCandidate {
   readonly soundProfile: SoundProfile;
   readonly sound: SoundCandidate;
   readonly rankedSpellings: RankedSpellingCandidateList;
   readonly selectedSpelling: RankedSpellingCandidate;
 }
 
-function feelFor(silhouette: NameSilhouette): StyleInput['feel'] {
-  if (silhouette.texture === 'soft') return 'gentle';
-  if (silhouette.texture === 'hard') return 'strong';
-  if (silhouette.texture === 'liquid') return 'lyrical';
+function feelFor(plan: NameGenerationPlan): StyleInput['feel'] {
+  if (plan.texture === 'soft') return 'gentle';
+  if (plan.texture === 'hard') return 'strong';
+  if (plan.texture === 'liquid') return 'lyrical';
   return 'balanced';
 }
 
@@ -34,16 +45,16 @@ function spellingDistinctivenessFor(settings: GenerationSettings): StyleInput['d
   return 'balanced';
 }
 
-export function compileSoundProfileForName(settings: GenerationSettings, silhouette: NameSilhouette): SoundProfile {
+function compileSoundProfileForName(settings: GenerationSettings, plan: NameGenerationPlan): SoundProfile {
   return compileStyle({
-    feel: feelFor(silhouette),
-    length: silhouette.targetLength,
+    feel: feelFor(plan),
+    length: plan.targetLength,
     distinctiveness: spellingDistinctivenessFor(settings),
   });
 }
 
-export function generateNameCandidateFromSilhouette(silhouette: NameSilhouette, settings: GenerationSettings, random: SeededRandom): NameGenerationCandidate {
-  const soundProfile = compileSoundProfileForName(settings, silhouette);
+function generateNameCandidate(plan: NameGenerationPlan, settings: GenerationSettings, random: SeededRandom): NameGenerationCandidate {
+  const soundProfile = compileSoundProfileForName(settings, plan);
   const sound = generateSound(soundProfile, random);
   const rankedSpellings = generateRankedSpellingCandidates(sound, soundProfile);
   const selection = selectRankedSpellingCandidate(rankedSpellings.candidates, settings);
@@ -56,10 +67,10 @@ export function generateNameCandidateFromSilhouette(silhouette: NameSilhouette, 
   return { soundProfile, sound, rankedSpellings, selectedSpelling };
 }
 
-export function generateNameFromSilhouette(silhouette: NameSilhouette, pack: StylePack, settings: GenerationSettings, random: SeededRandom, index: number): GeneratedName {
-  const candidate = generateNameCandidateFromSilhouette(silhouette, settings, random);
+function materializeGeneratedName(plan: NameGenerationPlan, pack: StylePack, settings: GenerationSettings, random: SeededRandom, index: number): GeneratedName {
+  const candidate = generateNameCandidate(plan, settings, random);
   const baseName = candidate.selectedSpelling.text;
-  const scores = scoreName(baseName, silhouette, pack, settings);
+  const scores = scoreName(baseName, plan, pack, settings);
   const variants = generateVariants(baseName, pack, settings);
 
   return {
@@ -69,10 +80,29 @@ export function generateNameFromSilhouette(silhouette: NameSilhouette, pack: Sty
     sound: candidate.sound,
     spelling: candidate.selectedSpelling,
     spellingCandidates: candidate.rankedSpellings.candidates,
-    silhouette,
+    silhouette: plan,
     scores,
     variants,
-    roleInfluence: silhouette.roleInfluence,
+    roleInfluence: plan.roleInfluence,
     readabilityDiagnostics: diagnoseNameReadability(baseName),
   };
+}
+
+export function generateName(options: GenerateNameOptions): GeneratedName {
+  const planningSettings = options.planningSettings ?? options.settings;
+  const plan = createNameGenerationPlan(
+    planningSettings,
+    options.pack,
+    options.planningRandom,
+    options.index,
+    options.planningPreferences,
+  );
+
+  return materializeGeneratedName(
+    plan,
+    options.pack,
+    options.settings,
+    options.generationRandom,
+    options.index,
+  );
 }

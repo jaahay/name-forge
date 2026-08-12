@@ -1,5 +1,5 @@
 import type { SoundProfile } from './soundProfile';
-import type { GeneratedEnsemble, GeneratedName, NameSilhouette, NameVariant, ReadabilityDiagnostic, RoleInfluenceMetadata } from './types';
+import type { GeneratedEnsemble, GeneratedName, NameGenerationPlan, NameVariant, ReadabilityDiagnostic, RoleInfluenceMetadata } from './types';
 
 export interface ExportedNamePart { role: string; value: string; sourceName: string; }
 export interface ExportedRoleInfluence { level: RoleInfluenceMetadata['level']; profileId: string; label: string; effects: string[]; }
@@ -8,7 +8,7 @@ export interface ExportedNameVariant { value: string; kind: NameVariant['kind'];
 export interface ExportedSpellingCandidate { text: string; rank: number; score: number; selected: boolean; }
 export interface ExportedSelectedSpelling extends ExportedSpellingCandidate { selected: true; }
 export interface ExportedSound { profile: SoundProfile; transcription: string; selectedSpelling: ExportedSelectedSpelling; spellingCandidates: ExportedSpellingCandidate[]; }
-export interface ExportedName { id: string; name: string; role?: string; roleInfluence?: ExportedRoleInfluence; readabilityDiagnostics: ExportedReadabilityDiagnostic[]; score: number; scores: GeneratedName['scores']; sound: ExportedSound; silhouette: Pick<NameSilhouette, 'syllableCount' | 'stressPattern' | 'rhythm' | 'rarityBand' | 'texture' | 'targetNovelty' | 'targetLength'>; format: string; parts: ExportedNamePart[]; variants: ExportedNameVariant[]; seed: string; warnings: string[]; }
+export interface ExportedName { id: string; name: string; role?: string; roleInfluence?: ExportedRoleInfluence; readabilityDiagnostics: ExportedReadabilityDiagnostic[]; score: number; scores: GeneratedName['scores']; sound: ExportedSound; silhouette: Pick<NameGenerationPlan, 'syllableCount' | 'stressPattern' | 'rhythm' | 'rarityBand' | 'texture' | 'targetNovelty' | 'targetLength'>; format: string; parts: ExportedNamePart[]; variants: ExportedNameVariant[]; seed: string; warnings: string[]; }
 export interface CastExportPayload { exportVersion: 'name-forge.cast.v2'; generatedBy: 'Name Forge'; seed: string; settings: GeneratedEnsemble['settings']; sourcePack: GeneratedEnsemble['sourcePack']; diagnostics: GeneratedEnsemble['diagnostics']; names: ExportedName[]; }
 
 type RetainedSpellingCandidate = GeneratedName['spellingCandidates'][number];
@@ -26,7 +26,7 @@ function diagnosticText(diagnostics: ExportedReadabilityDiagnostic[]): string { 
 function relationshipLabel(relationship: ExportedNameVariant['relationship']): string { return relationship.replace(/_/g, ' '); }
 function variantText(variants: ExportedNameVariant[]): string { return variants.length === 0 ? 'None' : variants.map((variant) => variant.value + ' (' + relationshipLabel(variant.relationship) + ', ' + variant.confidence + ' confidence, ' + (variant.generated ? 'generated' : 'listed') + ', ' + variant.sourceId + ')').join(', '); }
 function spellingCandidateText(candidates: ExportedSpellingCandidate[]): string { return candidates.length === 0 ? 'None' : candidates.map((candidate) => candidate.text + ' (' + (candidate.selected ? 'selected; ' : '') + 'rank ' + candidate.rank + ', score ' + candidate.score.toFixed(2) + ')').join(', '); }
-function silhouetteSummary(silhouette: NameSilhouette): string { return silhouette.syllableCount + ' syllable ' + silhouette.texture + ' ' + silhouette.rarityBand + ' name with ' + silhouette.rhythm + ' rhythm'; }
+function silhouetteSummary(silhouette: NameGenerationPlan): string { return silhouette.syllableCount + ' syllable ' + silhouette.texture + ' ' + silhouette.rarityBand + ' name with ' + silhouette.rhythm + ' rhythm'; }
 function soundProfileSummary(profile: SoundProfile): string { return `${profile.targets.length}, ${profile.targets.texture}, distinctiveness ${profile.targets.distinctiveness.toFixed(2)}`; }
 
 function exportName(name: GeneratedName, seed: string): ExportedName {

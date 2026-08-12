@@ -44,7 +44,7 @@ A product surface owns how the user expresses intent. It derives configuration f
 
 The naming layer then resolves the typed style needed by the sound mechanics. The low-level sound engine does not own product semantics such as Fiction Cast roles, Game NPC mode identity, title/epithet vocabularies, or semantic callback selection.
 
-The current `GenerationSettings + NameSilhouette` path is transitional implementation structure. A caller should not need to manufacture a silhouette before it can reach the sound model.
+The singular `generateName(...)` boundary is implemented. It materializes internal `NameGenerationPlan` evidence before style compilation, sound generation, spelling, scoring, and variants. Callers do not construct a `NameSilhouette`; product-specific influences such as Fiction Cast roles are resolved above `generateName(...)` into generic planning preferences.
 
 ### 2. Sound recipe
 
@@ -92,6 +92,8 @@ This is the core generated sound value. It is not browser text, IPA, spelling, o
 - `spellingCandidates`: retained ranked alternatives
 
 The containing result establishes the relationship among those values. Nested generation values do not need relational ids merely so adjacent values can point back at one another.
+
+The current `silhouette` property on `GeneratedName` is compatibility/inspection evidence backed by `NameGenerationPlan`; it is not an input to the singular naming callback.
 
 ### 6. Identity composition
 
@@ -265,11 +267,12 @@ Phonotactics belong in the resolved `SoundProfile` and `soundGenerator` behavior
 | --- | --- | --- | --- |
 | product surface | Captures UX intent and composes naming capabilities | Surface controls, defaults, presets, state, surface-specific aggregate behavior | Generic sound mechanics or hidden mode-driven generator branches |
 | semantic naming capability | Represents a reusable kind of name | Typed domain configuration and semantic defaults before delegating to `generateName(...)` | Parallel low-level sound generator implementations |
-| `src/naming` | Owns generic one-name orchestration above mechanics | Current workflow and target singular `generateName(...)` boundary | Fiction Cast composition grammar, surface-specific aggregate behavior, caller-facing silhouette prerequisite |
+| `src/naming` | Owns generic one-name orchestration above mechanics | Singular `generateName(...)`, internal generation-plan materialization, style/sound/spelling orchestration | Fiction Cast composition grammar, cast roles, surface-specific aggregate behavior, caller-facing silhouette prerequisite |
 | `src/styleCompilation` | Turns a typed style language into a resolved engine recipe | Style compilation and `SoundProfile` values | Generated names or product identity grammar |
 | `soundProfile.ts` | Describes the low-level sound recipe | Resolved sound targets and phonotactic preferences | Ids, compiler provenance, semantic name kinds, product roles, lexicons, UI state |
 | `soundGenerator.ts` | Creates generated sound plans | Segment sequences, syllable spans, syllable metadata, sound candidates | Browser text, spelling display, product semantics |
 | `spellingGenerator.ts` | Writes the sound plan in letters | Spelling candidate pools, mappings, ranking | Sound validity |
+| `src/fictionCast/ensemble.ts` | Owns cast-specific generation composition | Role-derived planning preferences, role evidence/scoring, ensemble selection | Generic singular naming mechanics |
 | `src/fictionCast/identity.ts` | Arranges Fiction Cast generated and lexical parts | Fiction Cast display identity parts and phrase structure | Low-level sound generation rules |
 | `auditionPhonology.ts` | Reads generated sound for presentation | Renderer-neutral syllable metadata and explicit fallback stress | Generation rules or browser hacks |
 | `browserAuditionProjection.ts` | Makes browser/display text from audition facts | `speechText`, guide text, browser-specific compromises | Core phonology or name validity |
@@ -284,7 +287,7 @@ Phonotactics belong in the resolved `SoundProfile` and `soundGenerator` behavior
 4. Prefer `unspecified` over optional fields for uncertain linguistic facts.
 5. Do not let browser voice hacks become the sound model.
 6. Do not let display spelling become the sound model.
-7. Do not let `mode`, semantic name kind, or `NameSilhouette` become hidden low-level sound switches.
+7. Do not let `mode`, semantic name kind, cast role, or legacy `silhouette` evidence become hidden low-level sound switches.
 8. Treat arrays as ordered collections. If order is semantic, document what it means. If order is only deterministic traversal, do not let callers treat it as ranking.
 9. A rank field is stronger than array position when ranking is part of the contract.
 10. Add small, testable facts before adding a large phonology abstraction.
@@ -294,7 +297,9 @@ Phonotactics belong in the resolved `SoundProfile` and `soundGenerator` behavior
 
 ## Near-term direction
 
-The naming layer should first establish the singular `generateName(...)` boundary and remove silhouette-shaped generation from caller-facing orchestration. Any silhouette-derived value that survives should be internal planning state with a clear owner, not a prerequisite for reaching the sound model.
+The singular `generateName(...)` boundary is established and silhouette-shaped generation has been removed from caller-facing orchestration. The retained `NameGenerationPlan` is internal planning/scoring evidence; the legacy `silhouette` property remains only as compatibility/presentation evidence.
+
+The next naming-layer work is to introduce reusable semantic callbacks above `generateName(...)` from concrete domain semantics. Those callbacks should resolve domain configuration before delegating to generic one-name orchestration; the sound model should remain unaware of the semantic name kind.
 
 The explicit syllable metadata fields are in the durable sound model. Future work should make stress assignment smarter only when the generator has a real rule to own, such as cadence-driven or weight-driven stress. Until then, fallback stress belongs in audition projection and must remain labeled as fallback.
 

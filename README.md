@@ -24,6 +24,7 @@ The implemented request contract supports:
 - deterministic parent and child seeds;
 - flat ordered `NameArtifact[]` results with grouping metadata;
 - criteria diagnostics and compilation into the current generation settings bridge;
+- singular name orchestration through `generateName(...)`;
 - sound-first generation through a pure `SoundProfile` value and `SegmentSequence`;
 - complete supported spelling generation and deterministic ranking;
 - shared artifact analysis, inspection, readability evidence, and browser audition projection;
@@ -54,13 +55,17 @@ A product surface owns its UX, defaults, presets, and surface state. It injects 
 
 Surface-specific multi-name orchestration may sit above those callbacks when plurality itself has meaningful product semantics. Fiction Cast, for example, may coordinate given/family/place generation, roles, locks, and cross-name pressure without requiring that cast orchestration become a universal grouping API.
 
-The current `src/naming` implementation is still a migration seam: it accepts `GenerationSettings + NameSilhouette` and exposes silhouette-shaped generation functions. `NameSilhouette` is not an accepted public naming API boundary. The next naming-layer refactor should establish `generateName(...)` first, then reusable semantic callbacks, while auditing whether any smaller internal silhouette/planning value still earns its place.
+`src/naming` now exposes the singular `generateName(...)` orchestration boundary. Callers provide generation settings plus deterministic planning/generation randomness; the naming layer materializes an internal `NameGenerationPlan` before style, sound, spelling, scoring, and variants. Product/domain semantics such as Fiction Cast roles are resolved above this boundary into generic planning preferences rather than being accepted by `generateName(...)` itself.
+
+The existing `silhouette` property on generated names and artifacts remains compatibility and inspection/scoring evidence. It is backed by `NameGenerationPlan`; callers no longer construct a `NameSilhouette`, and silhouette-shaped generator callbacks are no longer part of the naming API.
+
+The next naming-layer work is to introduce reusable typed semantic callbacks from concrete product semantics—such as given, family, or place names—on top of `generateName(...)`.
 
 See [`docs/decisions/0006-naming-capabilities-and-surface-composition.md`](docs/decisions/0006-naming-capabilities-and-surface-composition.md) for the authoritative capability and surface-composition rule.
 
 ## Architecture ownership
 
-`src/engine` owns reusable mechanics and durable request/artifact contracts. `src/naming` owns current name orchestration above those mechanics and should converge on the generic singular naming primitive. `src/styleCompilation` owns typed style-to-profile compilation. `src/fictionCast` owns Fiction Cast semantics such as identity grammar, lexical titles/epithets, and ensemble behavior.
+`src/engine` owns reusable mechanics and durable request/artifact contracts. `src/naming` owns the generic singular `generateName(...)` orchestration above those mechanics. `src/styleCompilation` owns typed style-to-profile compilation. `src/fictionCast` owns Fiction Cast semantics such as identity grammar, lexical titles/epithets, role-derived planning preferences, and ensemble behavior.
 
 Generated sound, sequence, and spelling values use containment for provenance rather than synthetic relational IDs. Product and artifact objects may still have IDs where callers need independent addressability.
 
@@ -80,7 +85,7 @@ Historical planning and requirements remain useful context, but they are not the
 
 ## Current product capabilities
 
-Shared capabilities include deterministic seeded replay, exact independent-set generation, sound-first candidate generation, exhaustive supported spelling derivation, ranked spelling retention, deterministic readability observations, browser voice-draft audition, pure artifact analysis, shared inspection, source descriptors, and recent-artifact persistence.
+Shared capabilities include deterministic seeded replay, exact independent-set generation, singular `generateName(...)` orchestration, sound-first candidate generation, exhaustive supported spelling derivation, ranked spelling retention, deterministic readability observations, browser voice-draft audition, pure artifact analysis, shared inspection, source descriptors, and recent-artifact persistence.
 
 Fiction Cast additionally owns roster generation and balancing, cast-specific roles and formats, locks and targeted reroll, composed identities, provenance-preserving phrase audition, same-roster sound relationships, cast review, and JSON/Markdown export.
 
@@ -118,9 +123,9 @@ src/
   App.tsx                 product shell and navigation
   data/                   built-in style/source data
   engine/                 reusable generation mechanics, request/artifact contracts, analysis, export
-  naming/                 current transitional orchestration; target home of generic singular generateName(...)
+  naming/                 generic singular generateName(...) orchestration above mechanics
   styleCompilation/       typed style languages and SoundProfile compilation
-  fictionCast/            Fiction Cast identity grammar, lexicon, and surface-specific ensemble semantics
+  fictionCast/            Fiction Cast identity grammar, lexicon, role-derived planning, and ensemble semantics
   ui/                     shared and mode-specific React presentation
 ```
 

@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { generateNameFromSilhouette } from '../naming/generator';
+import { generateName } from '../naming/generator';
 import { createDefaultRegistry } from './registry';
 import type { SeededRandom } from './random';
 import { scoreName } from './scoring';
-import { createNameSilhouette } from './silhouettes';
-import type { GenerationSettings, NameSilhouette, ScoreKey } from './types';
+import { createNameGenerationPlan } from './silhouettes';
+import type { GenerationSettings, NameGenerationPlan, ScoreKey } from './types';
 import { generateVariants, variantLimitFor } from './variants';
 
 const settings: GenerationSettings = { castSize: 6, novelty: 0.5, pronounceability: 0.7, memorability: 0.6, culturalAnchoring: 0.65, orthographicWeirdness: 0.25, stylePackId: 'british-literary-fantasy', seed: 'control-test-seed' };
@@ -41,7 +41,7 @@ function highestWeightRandom(): SeededRandom {
   return random;
 }
 
-function testSilhouette(overrides: Partial<NameSilhouette> = {}): NameSilhouette {
+function testPlan(overrides: Partial<NameGenerationPlan> = {}): NameGenerationPlan {
   return {
     id: 'silhouette-test',
     syllableCount: 1,
@@ -57,10 +57,10 @@ function testSilhouette(overrides: Partial<NameSilhouette> = {}): NameSilhouette
 }
 
 describe('generator control knobs', () => {
-  it('uses memorability to prefer compact silhouettes', () => {
+  it('uses memorability to prefer compact generation plans', () => {
     const pack = createDefaultRegistry().getStylePack(settings.stylePackId);
-    const low = createNameSilhouette({ ...settings, memorability: 0 }, pack, highestWeightRandom(), 0);
-    const high = createNameSilhouette({ ...settings, memorability: 1 }, pack, highestWeightRandom(), 0);
+    const low = createNameGenerationPlan({ ...settings, memorability: 0 }, pack, highestWeightRandom(), 0);
+    const high = createNameGenerationPlan({ ...settings, memorability: 1 }, pack, highestWeightRandom(), 0);
 
     expect(low.syllableCount).toBe(3);
     expect(high.syllableCount).toBe(2);
@@ -68,8 +68,8 @@ describe('generator control knobs', () => {
 
   it('uses pronounceability as continuous open-syllable pressure', () => {
     const pack = createDefaultRegistry().getStylePack(settings.stylePackId);
-    const low = createNameSilhouette({ ...settings, pronounceability: 0 }, pack, fixedWeightedRandom([2, 'common', 'balanced']), 0);
-    const high = createNameSilhouette({ ...settings, pronounceability: 1 }, pack, fixedWeightedRandom([2, 'common', 'balanced']), 0);
+    const low = createNameGenerationPlan({ ...settings, pronounceability: 0 }, pack, fixedWeightedRandom([2, 'common', 'balanced']), 0);
+    const high = createNameGenerationPlan({ ...settings, pronounceability: 1 }, pack, fixedWeightedRandom([2, 'common', 'balanced']), 0);
 
     expect(low.shape).toEqual(['CVC', 'CVC']);
     expect(high.shape).toEqual(['CV', 'CV']);
@@ -77,8 +77,8 @@ describe('generator control knobs', () => {
 
   it('uses novelty to move rarity targets deterministically', () => {
     const pack = createDefaultRegistry().getStylePack(settings.stylePackId);
-    const low = createNameSilhouette({ ...settings, novelty: 0 }, pack, fixedWeightedRandom([2, 'common', 'balanced']), 0);
-    const high = createNameSilhouette({ ...settings, novelty: 1 }, pack, fixedWeightedRandom([2, 'common', 'balanced']), 0);
+    const low = createNameGenerationPlan({ ...settings, novelty: 0 }, pack, fixedWeightedRandom([2, 'common', 'balanced']), 0);
+    const high = createNameGenerationPlan({ ...settings, novelty: 1 }, pack, fixedWeightedRandom([2, 'common', 'balanced']), 0);
 
     expect(low.rarityBand).toBe('common');
     expect(high.rarityBand).toBe('rare');
@@ -86,7 +86,13 @@ describe('generator control knobs', () => {
 
   it('generates primary names from sound-first spelling selection instead of listed examples', () => {
     const pack = createDefaultRegistry().getStylePack(settings.stylePackId);
-    const name = generateNameFromSilhouette(testSilhouette(), pack, { ...settings, culturalAnchoring: 1, orthographicWeirdness: 0 }, fixedWeightedRandom([]), 0);
+    const name = generateName({
+      settings: { ...settings, culturalAnchoring: 1, orthographicWeirdness: 0 },
+      pack,
+      planningRandom: fixedWeightedRandom([]),
+      generationRandom: fixedWeightedRandom([]),
+      index: 0,
+    });
 
     expect(name.name).not.toBe('Aveline');
     expect(name.sound.contract).toBe('SoundCandidate');
@@ -97,9 +103,20 @@ describe('generator control knobs', () => {
 
   it('uses orthographic weirdness for spelling choice pressure and variant breadth', () => {
     const pack = createDefaultRegistry().getStylePack(settings.stylePackId);
-    const silhouette = testSilhouette();
-    const low = generateNameFromSilhouette(silhouette, pack, { ...settings, culturalAnchoring: 0, orthographicWeirdness: 0 }, fixedWeightedRandom([]), 0);
-    const high = generateNameFromSilhouette(silhouette, pack, { ...settings, culturalAnchoring: 0, orthographicWeirdness: 1 }, fixedWeightedRandom([]), 0);
+    const low = generateName({
+      settings: { ...settings, culturalAnchoring: 0, orthographicWeirdness: 0 },
+      pack,
+      planningRandom: fixedWeightedRandom([]),
+      generationRandom: fixedWeightedRandom([]),
+      index: 0,
+    });
+    const high = generateName({
+      settings: { ...settings, culturalAnchoring: 0, orthographicWeirdness: 1 },
+      pack,
+      planningRandom: fixedWeightedRandom([]),
+      generationRandom: fixedWeightedRandom([]),
+      index: 0,
+    });
     const restrainedVariants = generateVariants('Vivian', pack, { orthographicWeirdness: 0 });
     const aggressiveVariants = generateVariants('Vivian', pack, { orthographicWeirdness: 1 });
 
@@ -117,12 +134,12 @@ describe('generator control knobs', () => {
 
   it('applies each slider to overall-fit pressure used by candidate ranking', () => {
     const pack = createDefaultRegistry().getStylePack(settings.stylePackId);
-    const silhouette = testSilhouette({ syllableCount: 2, shape: ['CVC', 'CV'], targetLength: 'medium' });
+    const plan = testPlan({ syllableCount: 2, shape: ['CVC', 'CV'], targetLength: 'medium' });
     const knobs: Array<keyof Pick<GenerationSettings, 'novelty' | 'pronounceability' | 'memorability' | 'culturalAnchoring' | 'orthographicWeirdness'>> = ['novelty', 'pronounceability', 'memorability', 'culturalAnchoring', 'orthographicWeirdness'];
 
     for (const knob of knobs) {
-      const low = scoreName('Aldren', silhouette, pack, { ...settings, [knob]: 0 });
-      const high = scoreName('Aldren', silhouette, pack, { ...settings, [knob]: 1 });
+      const low = scoreName('Aldren', plan, pack, { ...settings, [knob]: 0 });
+      const high = scoreName('Aldren', plan, pack, { ...settings, [knob]: 1 });
 
       expect(high.overallFit).not.toBe(low.overallFit);
     }
@@ -130,9 +147,9 @@ describe('generator control knobs', () => {
 
   it('keeps component scores intrinsic while overall fit responds to preferences', () => {
     const pack = createDefaultRegistry().getStylePack(settings.stylePackId);
-    const silhouette = testSilhouette({ syllableCount: 2, shape: ['CVC', 'CV'], targetLength: 'medium' });
-    const naturalPreference = scoreName('Aldren', silhouette, pack, { ...settings, orthographicWeirdness: 0 });
-    const weirdPreference = scoreName('Aldren', silhouette, pack, { ...settings, orthographicWeirdness: 1 });
+    const plan = testPlan({ syllableCount: 2, shape: ['CVC', 'CV'], targetLength: 'medium' });
+    const naturalPreference = scoreName('Aldren', plan, pack, { ...settings, orthographicWeirdness: 0 });
+    const weirdPreference = scoreName('Aldren', plan, pack, { ...settings, orthographicWeirdness: 1 });
 
     for (const key of componentKeys) {
       expect(weirdPreference[key]).toBe(naturalPreference[key]);

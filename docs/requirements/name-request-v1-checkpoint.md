@@ -1,6 +1,6 @@
 # NameRequest v1 checkpoint
 
-This checkpoint records the implemented `NameRequest -> NameResponse` platform state after the singular criteria-driven foundation and the first shared exact independent-set slice.
+This checkpoint records the implemented `NameRequest -> NameResponse` platform state after the singular criteria-driven foundation, the first shared exact independent-set slice, and the singular `generateName(...)` boundary established in issue #186.
 
 It is a checkpoint for the request/response platform, not the reusable semantic naming callback hierarchy. See [`../decisions/0006-naming-capabilities-and-surface-composition.md`](../decisions/0006-naming-capabilities-and-surface-composition.md) for the accepted naming-layer direction.
 
@@ -17,6 +17,7 @@ NameRequest / NameCriteria contract
   -> bounded Configure criteria surface
   -> exact quantity and independent-set grouping
   -> deterministic child seeds and ordered artifacts
+  -> generic singular generateName(...) orchestration
 ```
 
 ## Current v1 platform architecture
@@ -37,8 +38,9 @@ NameRequest
   -> diagnostics
   -> compile NameCriteria into current GenerationSettings
   -> derive one deterministic child seed per artifact index
-  -> invoke current transitional sound/silhouette/spelling orchestration for each child
-  -> internally select the generated result
+  -> invoke generic singular generateName(...) for each child
+  -> materialize internal NameGenerationPlan behind the naming API
+  -> style / sound / spelling / selection
   -> map each GeneratedName to NameArtifact
   -> NameResponse with flat ordered artifacts and grouping metadata
 ```
@@ -58,9 +60,9 @@ surface-specific aggregate orchestration, when needed
   -> style / sound / spelling mechanics
 ```
 
-`NameRequest -> NameResponse` can remain useful for shared criteria, independent quantity, deterministic replay, service/adapter boundaries, and artifact transport without becoming the only domain-level callback surface.
+`NameRequest -> NameResponse` remains useful for shared criteria, independent quantity, deterministic replay, service/adapter boundaries, and artifact transport without becoming the only domain-level callback surface.
 
-The current silhouette-shaped implementation below the request adapter is transitional. `NameSilhouette` is not a stable request concept and must not constrain the future `generateName(...)` contract.
+The request adapter now consumes `generateName(...)` directly. Callers do not construct `NameSilhouette`; the retained `NameGenerationPlan` is internal planning/scoring evidence. The legacy `silhouette` artifact property is compatibility evidence rather than a request or naming-API concept.
 
 ## Quantity and grouping boundary
 
@@ -76,7 +78,7 @@ V1 supports:
 
 Index 0 uses the parent seed directly, preserving the previous singular deterministic stream. Later indexes use deterministic child-seed labels, so increasing quantity preserves the existing result prefix.
 
-Artifact identities remain distinct for ordered outputs even when display values collide. Current silhouette indexing is implementation detail only and is not part of the durable request contract.
+Artifact identities remain distinct for ordered outputs even when display values collide. Current legacy `silhouette-*` evidence indexing is implementation detail only and is not part of the durable request contract.
 
 `independent-set` means generic repeated independent generation. It does not mean Fiction Cast, NPC rosters, taxonomies, or every future multi-name surface must be represented by progressively richer generic grouping.
 
@@ -98,20 +100,20 @@ It can influence which generated result or spelling candidate is selected. It mu
 
 ## Active app surface boundary
 
-Fiction Cast may keep cast-facing concepts such as role mix, slot controls, locks, cross-name selection pressure, review, and export language in its surface behavior.
+Fiction Cast keeps cast-facing concepts such as role mix, slot controls, locks, cross-name selection pressure, review, and export language in its surface behavior. It resolves cast-role generation pressure above `generateName(...)` into generic planning preferences and retains role evidence/scoring in the Fiction Cast layer.
 
 Those concepts are not global grouping assumptions. As reusable semantic callbacks emerge, Fiction Cast should compose and configure those capabilities while retaining its own aggregate orchestration where the cross-name semantics are cast-specific.
 
-Game NPC may continue using the singular request default. As the semantic layer is implemented, the surface should choose the appropriate reusable semantic callback explicitly rather than relying on `mode` to branch generic generation.
+Game NPC continues using the singular request default. As the semantic layer is implemented, the surface should choose the appropriate reusable semantic callback explicitly rather than relying on `mode` to branch generic generation.
 
 ## Active next work
 
-The next implementation work is the naming-layer boundary, not another generic grouping expansion:
+The singular naming boundary and caller-facing silhouette collapse are implemented in issue #186. The next implementation work is the first reusable semantic naming capability, not another generic grouping expansion:
 
-1. establish the generic singular `generateName(...)` contract;
-2. remove silhouette construction from caller-facing name-generation entry points;
-3. audit `NameSilhouette` fields and retain only justified internal planning state;
-4. introduce reusable typed semantic callbacks on top of `generateName(...)` from concrete existing semantics;
+1. select a concrete existing semantic domain such as given, family, or place names;
+2. define the minimum typed semantic configuration that domain honestly owns;
+3. delegate generic one-name mechanics through `generateName(...)`;
+4. migrate applicable surface callers to the reusable semantic callback without leaking surface identity into the primitive;
 5. keep nuanced aggregate behavior surface-owned until cross-surface reuse is demonstrated.
 
 ## Deferred shared platform work

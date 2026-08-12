@@ -37,7 +37,7 @@ Shared multiplicity does not by itself authorize NPC roster UX.
 
 Game NPC is a product surface, not a semantic naming primitive.
 
-The accepted future dependency is:
+The accepted dependency is:
 
 ```text
 Game NPC UX/state
@@ -51,7 +51,7 @@ The exact semantic callback Game NPC should use depends on the naming job the su
 
 The surface owns how its UX derives configuration. The reusable semantic callback owns the domain meaning. The generic `generateName(...)` primitive owns one-name orchestration. `mode: "game-npc"` must not become a hidden semantic switch in generic generation.
 
-The current runtime has not implemented this semantic callback layer yet. It still reaches the transitional settings/silhouette naming path through the shared request adapter. That is current implementation structure, not the durable Game NPC API contract.
+The semantic callback layer is not implemented yet. The shared request adapter now delegates singular production through the implemented generic `generateName(...)` boundary, so Game NPC no longer reaches a silhouette-shaped naming API.
 
 ## Current platform pipeline
 
@@ -61,7 +61,8 @@ Today, Game NPC is a thin surface over the shared request/artifact platform:
 Game NPC product input
   -> NameRequest (mode metadata + criteria + seed)
   -> shared NameResponse adapter
-  -> current transitional naming orchestration
+  -> generic singular generateName(...)
+  -> internal NameGenerationPlan
   -> SoundProfile / SoundCandidate / SegmentSequence
   -> complete supported spelling pool
   -> deterministic spelling ranking and selection
@@ -78,7 +79,7 @@ The current `GameNpcView` supplies:
 
 The surface does not own a second sound generator, request family, artifact model, analysis model, or artifact renderer.
 
-As `generateName(...)` and semantic callbacks are established, this pipeline should migrate to those durable seams without changing Game NPC's current user-facing behavior merely for architecture cleanup.
+The current generic singular boundary is deliberately domain-neutral: `GenerateNameOptions` contains no Game NPC mode or semantic name-kind label. Future semantic callbacks should sit above it without changing Game NPC's current user-facing behavior merely for architecture cleanup.
 
 ## Current input boundary
 
@@ -176,7 +177,7 @@ same style source + fresh seed -> rerolled singular artifact
 
 `mode: "game-npc"` remains metadata. It must not cause the shared generator to take a Game-NPC-specific generation branch.
 
-The naming-layer refactor from the current silhouette-shaped path to `generateName(...)` must preserve this deterministic user-visible behavior unless a separately authorized product change says otherwise.
+Issue #186 preserves the existing request seed partition while routing singular generation through `generateName(...)`; the architectural change must not alter this deterministic user-visible behavior.
 
 ## Current implemented boundary
 
@@ -184,6 +185,8 @@ Game NPC currently includes:
 
 - selectable active surface presentation;
 - singular-compatible shared `NameRequest -> NameResponse` generation;
+- singular production through the generic `generateName(...)` boundary;
+- internal generation-plan materialization hidden from the surface/request caller;
 - style-source selection;
 - fresh-seed reroll;
 - deterministic same-input replay behavior;
@@ -200,6 +203,7 @@ The broader platform additionally supports exact independent-set quantity/groupi
 
 The following remain possible future Game NPC slices, not implied current behavior:
 
+- selection/configuration of reusable semantic callbacks once those callbacks are implemented;
 - independent NPC quantity UX where the existing `independent-set` contract is sufficient;
 - NPC-specific roster orchestration where the cross-name semantics belong to this surface;
 - context presets backed by explicit shared criteria and/or typed semantic naming configuration;
@@ -222,7 +226,7 @@ The following remain possible future Game NPC slices, not implied current behavi
 - No parallel artifact renderer or analyzer.
 - No roster UI inferred solely from the existence of shared multiplicity.
 - No requirement that nuanced NPC roster semantics become generic grouping.
-- No caller-facing dependency on `NameSilhouette` as the naming layer is refactored.
+- No caller-facing dependency on `NameSilhouette`; legacy `silhouette` artifact evidence is not a generation API.
 - No derived analysis persisted into the durable artifact without an explicit versioned contract decision.
 - No unsupported linguistic or psychological score presented as objective fact.
 - No display cap applied before full-pool spelling ranking or selected-spelling resolution.

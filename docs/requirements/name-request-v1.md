@@ -12,6 +12,8 @@ V1 supports the existing singular default and an exact independent set without i
 
 This contract is platform and transport infrastructure. It does **not** define the reusable semantic naming callback hierarchy. That hierarchy is defined by [`../decisions/0006-naming-capabilities-and-surface-composition.md`](../decisions/0006-naming-capabilities-and-surface-composition.md): reusable semantic callbacks sit above one generic singular `generateName(...)` primitive, while surface-specific aggregate orchestration may sit above those callbacks.
 
+The request contract was designed independently from the naming-layer refactor. Issue #186 now implements `generateName(...)` underneath the request adapter without changing the v1 request/response semantics defined here.
+
 ## References
 
 - [`../decisions/0001-name-artifact-and-request-contract.md`](../decisions/0001-name-artifact-and-request-contract.md)
@@ -37,9 +39,9 @@ This contract is platform and transport infrastructure. It does **not** define t
 - Flat ordered `NameArtifact[]` output plus grouping metadata.
 - Singular compatibility when quantity/grouping are omitted.
 
-### Out of scope
+### Out of scope of this request-contract definition
 
-- The concrete `generateName(...)` semantic/naming-layer API refactor.
+- Defining the concrete `generateName(...)` naming-layer API. That boundary is now implemented separately by issue #186.
 - Reusable `generateGivenName(...)`, `generateFamilyName(...)`, `generatePlaceName(...)`, or other semantic callback contracts.
 - Surface-specific aggregate operations such as a future Fiction Cast generation callback.
 - Cohesion or diversity optimization as a reusable shared grouping contract.
@@ -114,6 +116,8 @@ Acceptance criteria:
 
 Each result preserves display text and supported sound, spelling, identity, variant, and diagnostic metadata. Cast role or ensemble data is not required for every artifact.
 
+The current artifact may retain legacy `silhouette` compatibility evidence backed by `NameGenerationPlan`; that property is not a required request input or naming callback.
+
 ### REQ-005 - Resolve randomness deterministically
 
 - One parent seed is resolved per request.
@@ -134,7 +138,7 @@ Each child generation receives:
 
 Artifact identities must remain distinct and addressable even when display values collide.
 
-Current silhouette indexing may continue as an implementation detail while `NameSilhouette` exists, but silhouette identity is **not** a durable requirement of this request contract and must not constrain the `generateName(...)` refactor from Decision 0006.
+The implementation may retain indexed `silhouette-*` evidence IDs for compatibility, but silhouette identity is **not** a durable requirement of this request contract and does not constrain `generateName(...)` or future semantic callback contracts.
 
 This atomic independent-set requirement also does not prohibit a surface-specific aggregate operation from orchestrating semantic callbacks under a different product contract when the cross-name semantics belong to that surface.
 
@@ -159,7 +163,7 @@ When quantity and grouping are omitted:
 - the parent seed remains the child seed for index 0;
 - the generated artifact remains compatible with the previous singular deterministic stream.
 
-This compatibility requirement concerns the request platform. The underlying implementation may be migrated to the generic singular `generateName(...)` primitive as long as behavior remains compatible.
+This compatibility requirement concerns the request platform. The underlying implementation now delegates to the generic singular `generateName(...)` primitive while preserving the request seed partition and observable contract.
 
 ### REQ-010 - Validate the contract
 
@@ -175,7 +179,7 @@ Tests cover:
 - invalid quantity rejection;
 - existing typed response fixtures.
 
-Tests should not enshrine `NameSilhouette` as a required request-platform concept merely because the current runtime still uses it internally.
+Tests must not enshrine `NameSilhouette` as a required request-platform concept. Direct planning tests may cover internal `NameGenerationPlan` mechanics separately from the request contract.
 
 ## Relationship to naming capabilities
 
@@ -189,6 +193,8 @@ surface-specific aggregate orchestration, when needed
 ```
 
 `NameRequest -> NameResponse` remains useful alongside this hierarchy for shared criteria, replay, independent quantity, service/adapter boundaries, and artifact transport. The two concepts must not be conflated.
+
+The request adapter now consumes `generateName(...)`; semantic callbacks remain a separate layer to be introduced above that primitive.
 
 ## Validation
 

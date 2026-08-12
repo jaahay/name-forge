@@ -1,8 +1,7 @@
-import type { CastRoleAssignment, GenerationSettings, NameSilhouette, NameTexture, StylePack, WeightedValue } from './types';
+import type { GenerationSettings, NameGenerationPlan, NameGenerationPlanPreferences, NameTexture, StylePack, WeightedValue } from './types';
 import type { SeededRandom } from './random';
 import { clamp, lerp } from './random';
 import { selectRarityBand } from './rarity';
-import { getRolePreferenceProfile, resolveRoleInfluence } from './roles';
 
 function blendWeightedValues<T>(baseValues: Array<WeightedValue<T>>, preferredValues: Array<WeightedValue<T>>, strength: number): Array<WeightedValue<T>> {
   return baseValues.map(({ value, weight }) => {
@@ -11,12 +10,10 @@ function blendWeightedValues<T>(baseValues: Array<WeightedValue<T>>, preferredVa
   });
 }
 
-function selectSyllableCount(settings: GenerationSettings, pack: StylePack, random: SeededRandom, role?: CastRoleAssignment): number {
+function selectSyllableCount(settings: GenerationSettings, pack: StylePack, random: SeededRandom, preferences?: NameGenerationPlanPreferences): number {
   const memorability = clamp(settings.memorability);
-  const roleInfluence = resolveRoleInfluence(settings, role);
-  const roleProfile = roleInfluence ? getRolePreferenceProfile(roleInfluence.role) : undefined;
-  const baseCounts = roleProfile
-    ? blendWeightedValues(pack.silhouetteBias.syllableCounts, roleProfile.syllableCounts, roleInfluence?.strength ?? 0)
+  const baseCounts = preferences?.syllableCounts
+    ? blendWeightedValues(pack.silhouetteBias.syllableCounts, preferences.syllableCounts, preferences.strength)
     : pack.silhouetteBias.syllableCounts;
   const weightedCounts: Array<WeightedValue<number>> = baseCounts.map(({ value, weight }) => {
     const compactBoost = value <= 2 ? lerp(0.72, 1.72, memorability) : value === 3 ? lerp(1.1, 0.92, memorability) : lerp(1.28, 0.5, memorability);
@@ -40,23 +37,25 @@ function rhythmFor(stressPattern: string): string {
   return 'balanced';
 }
 
-function selectTexture(settings: GenerationSettings, pack: StylePack, random: SeededRandom, role?: CastRoleAssignment): NameTexture {
+function selectTexture(settings: GenerationSettings, pack: StylePack, random: SeededRandom, preferences?: NameGenerationPlanPreferences): NameTexture {
   if (settings.preferredTexture !== undefined) {
     return settings.preferredTexture;
   }
 
-  const roleInfluence = resolveRoleInfluence(settings, role);
-  if (!roleInfluence) return random.pickWeighted(pack.silhouetteBias.textures);
-  const profile = getRolePreferenceProfile(roleInfluence.role);
-  return random.pickWeighted(blendWeightedValues(pack.silhouetteBias.textures, profile.textures, roleInfluence.strength));
+  if (!preferences?.textures) return random.pickWeighted(pack.silhouetteBias.textures);
+  return random.pickWeighted(blendWeightedValues(pack.silhouetteBias.textures, preferences.textures, preferences.strength));
 }
 
-export function createNameSilhouette(settings: GenerationSettings, pack: StylePack, random: SeededRandom, index: number, role?: CastRoleAssignment): NameSilhouette {
-  const roleInfluence = resolveRoleInfluence(settings, role);
-  const syllableCount = selectSyllableCount(settings, pack, random, role);
+/**
+ * Materializes the internal pre-generation plan retained as scoring and inspection evidence.
+ * Product, request, and surface callers should enter through the naming-layer generateName API.
+ * @internal
+ */
+export function createNameGenerationPlan(settings: GenerationSettings, pack: StylePack, random: SeededRandom, index: number, preferences?: NameGenerationPlanPreferences): NameGenerationPlan {
+  const syllableCount = selectSyllableCount(settings, pack, random, preferences);
   const stressPattern = stressPatternFor(syllableCount, settings, random);
   const rarityBand = selectRarityBand(settings, pack, random, index);
-  const texture = selectTexture(settings, pack, random, role);
+  const texture = selectTexture(settings, pack, random, preferences);
   const targetLength = syllableCount <= 2 ? 'short' : syllableCount === 3 ? 'medium' : 'long';
   const openSyllableBias = lerp(0.24, 0.76, settings.pronounceability);
   const collisionBias = lerp(0.56, 0.24, settings.pronounceability);
@@ -77,6 +76,5 @@ export function createNameSilhouette(settings: GenerationSettings, pack: StylePa
     texture,
     targetNovelty: clamp(settings.novelty + random.next() * 0.18 - 0.09),
     targetLength,
-    roleInfluence,
   };
 }

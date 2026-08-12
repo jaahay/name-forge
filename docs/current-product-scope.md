@@ -61,7 +61,7 @@ A surface owns its UX, defaults, presets, and surface-specific state. It derives
 
 A surface may also own a multi-name operation when the cross-name behavior itself is meaningful to that surface. Such orchestration sits **above** reusable semantic callbacks. Shared `independent-set` quantity remains useful infrastructure for repeated independent generation but is not the mandatory abstraction for every roster or set workflow.
 
-The current `GenerationSettings + NameSilhouette` path in `src/naming` is transitional implementation structure. `NameSilhouette` is not an accepted public generation callback boundary.
+The singular `generateName(...)` boundary is now implemented in `src/naming`. It constructs an internal `NameGenerationPlan` from generic planning inputs before style, sound, spelling, scoring, and variants. Product semantics such as Fiction Cast roles are resolved above that boundary into generic planning preferences and surface-owned scoring evidence. The existing `silhouette` result/artifact property remains compatibility and inspection evidence; callers no longer construct a `NameSilhouette` or call a silhouette-shaped generator.
 
 ## Current shipped baseline
 
@@ -72,6 +72,8 @@ Shared platform capabilities now include:
 - deterministic index-stable child seeds, ordered artifacts, and grouping metadata;
 - singular-compatible defaults when quantity and grouping are omitted;
 - criteria diagnostics and a compiler bridge into current generation settings;
+- one generic singular `generateName(...)` orchestration boundary above style/sound/spelling mechanics;
+- internal `NameGenerationPlan` materialization hidden behind `generateName(...)` rather than required from callers;
 - sound-first generation through `SoundProfile` and `SegmentSequence`;
 - exhaustive spelling derivation from the current grapheme inventory;
 - deterministic rule-weighted spelling ranking with ordinal tie-breaking;
@@ -95,6 +97,7 @@ Fiction Cast additionally includes:
 
 - deterministic ensemble generation;
 - cast size, format, role mix, slot override, role influence, rarity, and tuning controls;
+- cast-role semantics resolved above `generateName(...)` into generic planning preferences, with role evidence and role-fit scoring retained in the Fiction Cast orchestration layer;
 - a compact post-generation summary bar that keeps Tune and Regenerate available without leaving the full criteria summary in the primary reading path (issue #176);
 - lock and selection iteration;
 - selected-name single-slot reroll with non-target preservation, lock semantics, selection continuity, and targeted Recent names recording (issue #167);
@@ -138,22 +141,15 @@ The active rule is:
 
 ## Next implementation sequence
 
-### 1. Establish the singular `generateName(...)` API boundary
+### 1. Singular `generateName(...)` boundary — implemented in issue #186
 
-The next architecture/runtime slice should remove silhouette-shaped generation from the caller-facing naming boundary while preserving current generated output and product behavior.
+The naming layer now owns one generic singular callback. Request and Fiction Cast callers no longer construct a silhouette before generating a name. The retained internal planning value is `NameGenerationPlan`; the legacy `silhouette` artifact/result property remains for compatibility and inspection/scoring evidence.
 
-The slice should:
-
-- define the minimum durable singular `generateName(...)` contract;
-- move current callers away from `generateNameFromSilhouette(...)`-style entry points;
-- keep style compilation and sound/spelling mechanics below the naming primitive;
-- audit `NameSilhouette` field by field and keep only internal planning structure that still has a clear owner and purpose;
-- preserve deterministic seeds, spelling selection, scoring behavior, variants, readability evidence, provenance, and current surface output;
-- avoid introducing a universal semantic-style schema, Policy abstraction, or product-mode switch inside `generateName(...)`.
+The implementation preserves separate deterministic planning and generation random streams, exact request child-seed behavior, spelling selection, variants, readability evidence, and current surface output. Fiction Cast resolves role semantics above `generateName(...)` rather than passing a cast role into the generic API.
 
 ### 2. Introduce reusable semantic callbacks on top of `generateName(...)`
 
-After the singular primitive is stable, establish the first reusable domain callbacks from real existing semantics, likely beginning with given/family/place where the product already has concrete composition needs.
+This is the next naming-layer architecture slice. Establish the first reusable domain callbacks from real existing semantics, likely beginning with given/family/place where the product already has concrete composition needs.
 
 Each callback should:
 
@@ -210,6 +206,7 @@ Surface-specific aggregate orchestration is not automatically deferred merely be
 - No mode-specific sound generator or `mode` branch inside `generateName(...)`.
 - No universal multi-name callback.
 - No universal semantic-style schema before concrete semantic callbacks earn one.
+- No Fiction Cast aggregate redesign as a prerequisite for the first semantic callback.
 - No IPA, paid TTS integration, or pronunciation dictionaries.
 - No external demographic inference.
 - No remote provider integration without an accepted source and validation contract.

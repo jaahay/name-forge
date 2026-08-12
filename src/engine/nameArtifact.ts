@@ -5,8 +5,8 @@ import type { RankedSpellingCandidate } from './spellingGenerator';
 import type {
   CastRoleAssignment,
   GeneratedName,
+  NameGenerationPlan,
   NameIdentity,
-  NameSilhouette,
   NameVariant,
   ReadabilityDiagnostic,
   RoleInfluenceMetadata,
@@ -19,7 +19,7 @@ export interface NameArtifact {
   readonly sound?: SoundCandidate;
   readonly spelling?: RankedSpellingCandidate;
   readonly spellingCandidates?: readonly RankedSpellingCandidate[];
-  readonly silhouette?: NameSilhouette;
+  readonly silhouette?: NameGenerationPlan;
   readonly variants?: readonly NameVariant[];
   readonly readabilityDiagnostics?: readonly ReadabilityDiagnostic[];
   readonly identity?: NameIdentity;

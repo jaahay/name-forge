@@ -1,6 +1,6 @@
 # Model and Module Contracts
 
-This document describes the current Name Forge models and module seams as executable contracts, and distinguishes current implementation shape from the accepted target naming API.
+This document describes the current Name Forge models and module seams as executable contracts, including the implemented singular naming API and the accepted semantic-callback layer that sits above it.
 
 For active product scope see [`current-product-scope.md`](current-product-scope.md). For architectural ownership see [`architecture.md`](architecture.md), [`decisions/0005-sound-profile-product-boundary.md`](decisions/0005-sound-profile-product-boundary.md), and [`decisions/0006-naming-capabilities-and-surface-composition.md`](decisions/0006-naming-capabilities-and-surface-composition.md).
 
@@ -33,7 +33,7 @@ The implemented shared request/transport operation is:
 NameRequest -> NameResponse
 ```
 
-The accepted reusable naming API direction is:
+The reusable naming API hierarchy is:
 
 ```text
 surface-specific aggregate orchestration, when needed
@@ -47,7 +47,7 @@ surface-specific aggregate orchestration, when needed
 
 `NameRequest` provides shared criteria, deterministic replay, exact independent quantity, and artifact transport. Semantic callbacks provide reusable domain meaning. A surface composes semantic callbacks and injects configuration derived from its UX. Surface-specific multi-name orchestration may remain surface-owned when its cross-name semantics are not reusable.
 
-The exact TypeScript contracts for `generateName(...)` and the semantic callbacks are not implemented yet. The current `GenerationSettings + NameSilhouette` naming seam is transitional and must not be treated as their durable signature.
+The generic singular `generateName(...)` contract is implemented. The semantic callback contracts are not implemented yet. `NameSilhouette` and silhouette-shaped generator entry points are no longer part of the naming API.
 
 ## Implemented shared request contract
 
@@ -135,6 +135,8 @@ It retains the selected generated result and enough structure for inspection, an
 
 An independent-set response remains a collection of individually addressable artifacts. Grouping does not replace artifacts with one aggregate name-set entity.
 
+The current artifact still exposes a property named `silhouette` for compatibility. Its value is `NameGenerationPlan` evidence; the property name does not imply that callers construct a silhouette or that `NameSilhouette` remains an API contract.
+
 ### `NameCriteria`
 
 ```ts
@@ -202,8 +204,9 @@ Fiction Cast ensemble behavior is surface-specific and does not imply those capa
 | `NameResponse` | `src/engine/nameRequest.ts` | Flat ordered artifacts plus grouping/randomization metadata. |
 | `NameGroupMetadata` | `src/engine/nameRequest.ts` | Parent/child seed metadata for the current independent set. |
 | `NameCriteria` | `src/engine/nameCriteria.ts` | Shared structured request-intent model. |
-| `GenerationSettings` | `src/engine/types.ts` / app state | Current lower-level settings bridge used by transitional orchestration; not the target semantic API. |
-| `NameSilhouette` | `src/engine/types.ts` | Current pre-generation aggregate used by transitional orchestration; not a durable caller-facing naming contract. |
+| `GenerationSettings` | `src/engine/types.ts` / app state | Current lower-level generation settings consumed by `generateName(...)`; not the future semantic callback vocabulary. |
+| `NameGenerationPlanPreferences` | `src/engine/types.ts` | Generic resolved planning pressure that callers may supply without leaking product semantics such as cast roles into `generateName(...)`. |
+| `NameGenerationPlan` | `src/engine/types.ts` | Internal pre-generation planning/scoring evidence materialized behind `generateName(...)`. |
 | `StyleInput` | `src/styleCompilation/styleCompiler.ts` | Current typed style language compiled into `SoundProfile`. |
 | `StylePack` | `src/engine/types.ts` / `src/data/stylePacks.ts` | Built-in style/source data used by current product flows. |
 
@@ -227,16 +230,18 @@ Fiction Cast ensemble behavior is surface-specific and does not imply those capa
 
 | Model | Owner | Meaning |
 | --- | --- | --- |
-| `NameGenerationCandidate` | `src/naming/generator.ts` | Current pre-materialization result containing exact profile, sound, ranked spellings, and selected spelling. |
-| `GeneratedName` | `src/engine/types.ts` + `src/naming/generator.ts` | Current selected app-facing generated-name value. |
+| `GenerateNameOptions` | `src/naming/generator.ts` | Generic singular orchestration input: settings, pack, planning/generation randomness, index, and optional generic planning settings/preferences. |
+| `NameGenerationCandidate` | `src/naming/generator.ts` | Private pre-materialization result containing exact profile, sound, ranked spellings, and selected spelling. |
+| `GeneratedName` | `src/engine/types.ts` + `src/naming/generator.ts` | Current selected app-facing generated-name value; legacy `silhouette` property contains `NameGenerationPlan` evidence. |
 | `NameArtifact` | `src/engine/nameArtifact.ts` | Durable result mapped from one selected `GeneratedName`. |
 
-Target contract direction:
+Implemented contract direction:
 
-- `src/naming` should expose one generic singular `generateName(...)` primitive;
-- reusable semantic callbacks sit above that primitive and own domain meaning/configuration;
-- callers should not construct `NameSilhouette` as a prerequisite for generation;
-- current `NameGenerationCandidate` / `GeneratedName` shapes may be simplified as that seam becomes explicit.
+- `src/naming` exposes one generic singular `generateName(...)` primitive;
+- `generateName(...)` internally materializes `NameGenerationPlan` rather than accepting one from the caller;
+- `GenerateNameOptions` contains no product mode, Fiction Cast role, or semantic name-kind label;
+- reusable semantic callbacks sit above the primitive and own domain meaning/configuration;
+- current `NameGenerationCandidate` remains private implementation structure.
 
 ### Fiction Cast semantic models
 
@@ -247,7 +252,9 @@ Target contract direction:
 | `GeneratedEnsemble` | `src/fictionCast/ensemble.ts` + `src/engine/types.ts` | Fiction Cast roster result, separate from shared independent-set grouping. |
 | component generation context | `src/fictionCast/componentGenerationContext.ts` | Current given/family/place context seam; likely precursor to reusable semantic callback configuration, not generic sound mechanics. |
 
-Titles, epithets, given/family/place roles, and Fiction Cast grammar are naming/product semantics. They are not fields of `SoundProfile`.
+Titles, epithets, given/family/place roles, and Fiction Cast grammar are naming/product semantics. They are not fields of `SoundProfile` and do not enter `GenerateNameOptions` as semantic labels.
+
+Fiction Cast currently converts role-specific profile preferences into `NameGenerationPlanPreferences` before singular generation. It then attaches role metadata and role-fit scoring in its own ensemble layer. This preserves current cast behavior without teaching `generateName(...)` what a cast role means.
 
 Given/family/place are plausible first reusable semantic callbacks because multiple surfaces may need those meanings. Fiction Cast still owns the way it composes and coordinates them as a cast.
 
@@ -287,11 +294,12 @@ Owns:
 - compiling shared criteria once through the current bridge;
 - deriving deterministic child seeds;
 - creating current child-local settings;
-- generating one artifact per child seed through the naming layer;
+- deriving separate deterministic planning and generation random streams;
+- generating one artifact per child seed through `generateName(...)`;
 - mapping generated names to `NameArtifact`;
 - returning flat artifacts and positional independent-set metadata.
 
-It does not own semantic callback definitions, richer group optimization, product-specific roster UX, or mode semantics. As `generateName(...)` is established, this adapter should consume that singular primitive rather than preserving silhouette-shaped orchestration as a contract.
+It does not own semantic callback definitions, richer group optimization, product-specific roster UX, or mode semantics. It consumes the singular naming primitive directly and does not construct a silhouette or planning aggregate.
 
 ### Criteria diagnostics and compiler
 
@@ -306,33 +314,54 @@ They own current shared support classification, deterministic mappings, and hone
 
 Supported-target knowledge remains duplicated between the two modules and should be centralized before major shared-criteria expansion.
 
-### Naming orchestration — current
+### Naming orchestration — implemented singular primitive
 
 ```text
-GenerationSettings + NameSilhouette + StylePack + SeededRandom
-  -> NameGenerationCandidate / GeneratedName
+GenerateNameOptions
+  -> generateName(...)
+  -> internal NameGenerationPlan
+  -> StyleInput
+  -> SoundProfile
+  -> SoundCandidate
+  -> ranked spelling candidates
+  -> GeneratedName
 ```
 
 Owner: `src/naming/generator.ts`.
 
-Owns the current transitional orchestration from settings/silhouette to `StyleInput`, style compilation, sound generation, spelling pool/ranking/selection, scoring, variants, and readability diagnostics.
+Owns generic one-name orchestration: internal generation-plan materialization, style compilation, sound generation, spelling pool/ranking/selection, scoring, variants, and readability diagnostics.
 
-It does **not** own Fiction Cast identity grammar, titles/epithets, ensemble behavior, request quantity/grouping semantics, or low-level sound rules.
+It does **not** own Fiction Cast identity grammar, titles/epithets, cast roles, ensemble behavior, request quantity/grouping semantics, product modes, semantic name-kind labels, or low-level sound rules.
 
-This input contract is not durable. `NameSilhouette` is an internal implementation aggregate whose fields must be audited during the next refactor.
+The planning and generation random streams are separate inputs so callers can preserve deterministic partitioning without constructing intermediate planning objects.
 
-### Naming orchestration — accepted target
+### Semantic naming callbacks — accepted next layer
 
 ```text
-semantic callback configuration
+surface configuration
   -> semantic callback
   -> generateName(...)
   -> generated one-name result
 ```
 
-`generateName(...)` owns generic singular one-name orchestration above style/sound/spelling mechanics. Semantic callbacks own reusable domain meaning and typed configuration while delegating one-name mechanics to `generateName(...)`.
+Semantic callbacks own reusable domain meaning and typed configuration while delegating one-name mechanics to `generateName(...)`.
 
 A surface may own aggregate orchestration above semantic callbacks. That orchestration does not become a generic grouping or naming primitive unless cross-surface reuse demonstrates the need.
+
+### Internal generation-plan materialization
+
+```text
+GenerationSettings
++ optional NameGenerationPlanPreferences
++ StylePack
++ planning SeededRandom
++ index
+  -> NameGenerationPlan
+```
+
+Owner: `src/engine/silhouettes.ts` (legacy filename).
+
+`NameGenerationPlan` is internal mechanics/evidence. Generic planning preferences may adjust syllable-count and texture pressures without carrying a product role or semantic name-kind label into the naming primitive. The current `silhouette` result/artifact property and `silhouette-*` IDs are compatibility evidence, not caller-facing generation contracts.
 
 ### Sound generator
 
@@ -378,7 +407,7 @@ The mapper preserves generated facts; it must not invent information absent from
 
 `src/fictionCast/identity.ts` owns Fiction Cast identity grammar and materialization. Sound-backed given/family/place parts may retain the exact `SoundProfile`, `SoundCandidate`, and selected spelling used for that component. Titles, epithets, initials, and literals remain explicit product semantics.
 
-`src/fictionCast/ensemble.ts` owns Fiction Cast surface-specific ensemble selection and roster behavior. It is separate from the shared `independent-set` request contract. As semantic callbacks emerge, Fiction Cast should compose them rather than duplicate their one-name domain behavior.
+`src/fictionCast/ensemble.ts` owns Fiction Cast surface-specific ensemble selection and roster behavior. It is separate from the shared `independent-set` request contract. It resolves cast-role preferences above `generateName(...)` and attaches cast-role evidence/scoring after singular generation. As semantic callbacks emerge, Fiction Cast should compose them rather than duplicate their one-name domain behavior.
 
 ### Audition
 

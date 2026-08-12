@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { generateNameFromSilhouette } from '../naming/generator';
+import { generateName } from '../naming/generator';
 import { compileNameCriteriaToGenerationSettings } from './nameCriteriaCompiler';
 import {
   deriveNameChildSeed,
@@ -9,7 +9,6 @@ import {
 import { generateNameResponse } from './nameResponse';
 import { createSeededRandom } from './random';
 import { createDefaultRegistry } from './registry';
-import { createNameSilhouette } from './silhouettes';
 
 const emptyCriteria = { clauses: [] } as const;
 
@@ -71,30 +70,27 @@ describe('shared exact quantity and grouping', () => {
     if (!stylePackId) throw new Error('Expected a default style pack.');
 
     const pack = registry.getStylePack(stylePackId);
-    const settings = compileNameCriteriaToGenerationSettings(emptyCriteria, {
-      seed: 'duplicate-display-parent',
-      stylePackId,
+    const settings = {
+      ...compileNameCriteriaToGenerationSettings(emptyCriteria, {
+        seed: 'duplicate-display-parent',
+        stylePackId,
+      }),
+      rarityDistribution: 'grounded' as const,
+    };
+    const first = generateName({
+      settings,
+      pack,
+      planningRandom: createSeededRandom('duplicate-display-silhouette'),
+      generationRandom: createSeededRandom('duplicate-display-name'),
+      index: 0,
     });
-    const silhouette = createNameSilhouette(
+    const second = generateName({
       settings,
       pack,
-      createSeededRandom('duplicate-display-silhouette'),
-      0,
-    );
-    const first = generateNameFromSilhouette(
-      silhouette,
-      pack,
-      settings,
-      createSeededRandom('duplicate-display-name'),
-      0,
-    );
-    const second = generateNameFromSilhouette(
-      silhouette,
-      pack,
-      settings,
-      createSeededRandom('duplicate-display-name'),
-      1,
-    );
+      planningRandom: createSeededRandom('duplicate-display-silhouette'),
+      generationRandom: createSeededRandom('duplicate-display-name'),
+      index: 1,
+    });
 
     expect(second.name).toBe(first.name);
     expect(second.id).not.toBe(first.id);
