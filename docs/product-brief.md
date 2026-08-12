@@ -95,7 +95,9 @@ Primary job:
 
 Fiction Cast owns the surface semantics required by that job: roster construction, roles, locks, targeted reroll, cast review, composed identities, same-roster relationships, cross-name selection pressure, and cast export.
 
-As reusable given/family/place callbacks become available, Fiction Cast should compose and configure them rather than owning duplicate one-name generation logic.
+Fiction Cast already delegates generic one-name mechanics to `generateName(...)`. It resolves cast-role behavior above that primitive into generic planning preferences and retains cast-role evidence/scoring in its own orchestration layer.
+
+As reusable given/family/place callbacks become available, Fiction Cast should compose and configure them rather than owning duplicate semantic one-name behavior.
 
 The aggregate operation that makes a cast coherent may remain Fiction Cast-specific. That specificity is compatible with a highly reusable lower naming library.
 
@@ -105,7 +107,7 @@ Primary job:
 
 > Give me one usable generated name quickly for prep or live play.
 
-Game NPC is deliberately thinner. It reuses shared artifacts, inspection, evidence, and browser audition while owning its own fast UX and reroll behavior.
+Game NPC is deliberately thinner. It reuses shared artifacts, inspection, evidence, browser audition, and the generic singular naming path while owning its own fast UX and reroll behavior.
 
 As the semantic layer becomes explicit, Game NPC should select and configure the appropriate reusable semantic callback. `mode` metadata should not become a hidden switch inside generic generation.
 
@@ -141,7 +143,9 @@ semantic callback
 
 Product and naming-domain semantics remain above sound mechanics.
 
-The current `GenerationSettings + NameSilhouette` pathway is transitional implementation structure. `NameSilhouette` is not a product concept or accepted caller-facing generation API. The next naming-layer refactor should establish `generateName(...)` and keep only silhouette-derived internal planning structure that still has a clear owner and purpose.
+The generic singular `generateName(...)` boundary is implemented. It materializes internal `NameGenerationPlan` evidence rather than requiring callers to construct a silhouette. The legacy `silhouette` result/artifact property remains compatibility and inspection/scoring evidence, not a product concept or generation callback.
+
+The next naming-layer work is to introduce the first reusable typed semantic callback(s) on top of `generateName(...)` from concrete existing domain semantics.
 
 ## Plural behavior
 
@@ -186,14 +190,14 @@ Baby-name generation remains explicitly deferred because real-world personal nam
 
 ## Sequencing principles
 
-1. **Establish the generic singular primitive before layering domain callbacks on top.** The next naming-layer step is `generateName(...)`, not another silhouette-shaped helper.
+1. **Keep one generic singular primitive below domain semantics.** `generateName(...)` is implemented; semantic callbacks should delegate to it rather than recreating generation mechanics.
 2. **Build reusable semantic APIs from concrete domain meaning.** `generateGivenName(...)` and `generatePlaceName(...)` should exist because surfaces can reuse those meanings, not because every noun deserves a wrapper.
 3. **Let surfaces inject configuration.** UX, presets, roles, and local context can shape semantic callbacks without becoming generic engine state.
 4. **Keep surface aggregate behavior where its semantics live.** Fiction Cast does not need to become generic grouping merely because it produces many names.
 5. **Keep request transport distinct from semantic APIs.** Reuse `NameRequest -> NameResponse` for the platform jobs it solves without treating it as the only naming callback.
-6. **Keep product semantics above mechanics.** Do not move Fiction Cast, Game NPC, or semantic name-kind concepts into `SoundProfile` or `generateSound(...)`.
+6. **Keep product semantics above mechanics.** Do not move Fiction Cast, Game NPC, or semantic name-kind concepts into `generateName(...)`, `SoundProfile`, or `generateSound(...)`.
 7. **Promote shared abstractions from demonstrated reuse.** New surfaces, semantic capabilities, styles, and aggregate contracts can evolve independently.
-8. **Do not preserve historical helper abstractions by inertia.** `NameSilhouette` and related façade functions must earn any remaining internal role during the `generateName(...)` refactor.
+8. **Treat legacy silhouette evidence as compatibility, not architecture.** `NameGenerationPlan` may remain internal while it serves concrete scoring/inspection consumers; callers should not regain a silhouette-shaped API.
 9. **Separate mechanics from human claims.** Deterministic evidence may ship before validated human-facing metrics.
 10. **Separate audition from pronunciation authority.** Browser playback may improve independently of provider-quality or canonical pronunciation work.
 11. **Keep assistive parsing optional.** Future LLM assistance may translate user language into criteria or semantic configuration, but core generation should not depend on prompt-first behavior.
@@ -216,4 +220,4 @@ This document does not by itself authorize:
 - baby-name workflows;
 - broad shell redesign.
 
-Active implementation should begin from [`current-product-scope.md`](current-product-scope.md) and the accepted decisions. The current selected architecture sequence is to establish `generateName(...)`, audit the silhouette boundary, then introduce reusable semantic callbacks from real existing naming domains.
+Active implementation should begin from [`current-product-scope.md`](current-product-scope.md) and the accepted decisions. With the singular `generateName(...)` boundary implemented in issue #186, the current selected architecture sequence is to introduce reusable semantic callbacks from real existing naming domains and let surfaces compose them without leaking surface semantics into the generic primitive.
