@@ -2,25 +2,42 @@
 
 ## Status
 
-This is a durable strategy-level product brief. It should describe the product thesis and sequencing principles without becoming a running implementation backlog.
+This is a durable strategy-level product brief. It describes the product thesis and sequencing principles without becoming a running implementation backlog.
 
-For active scope and the shipped baseline, use [`current-product-scope.md`](current-product-scope.md). For current request/grouping state, use [`name-request-planning.md`](name-request-planning.md). Detailed technical contracts belong in architecture docs, accepted decisions, and requirements boundaries.
+For active scope and the shipped baseline, use [`current-product-scope.md`](current-product-scope.md). For the request platform, use [`name-request-planning.md`](name-request-planning.md). For the accepted naming-capability hierarchy, use [`decisions/0006-naming-capabilities-and-surface-composition.md`](decisions/0006-naming-capabilities-and-surface-composition.md).
 
 ## Product thesis
 
-Name Forge is a random-name workbench for generating names that are novel, usable, inspectable, reproducible, and tuned to a specific naming job.
+Name Forge is a random-name workbench designed to scale horizontally across product surfaces, semantic kinds of names, styles, and flavours while preserving shared generation mechanics and durable artifacts.
 
-It is not one fantasy-name generator with optional skins. Different naming jobs may need different controls, defaults, result presentation, and validation posture while sharing the same lower-level generation and artifact platform.
+It is not one fantasy-name generator with optional skins, and it is not one monolithic mode-driven API. Different naming jobs may need different controls, defaults, result composition, aggregate behavior, and validation posture.
 
 The durable product direction is:
 
 ```text
-intent surfaces
-  -> NameCriteria
-  -> shared request/naming platform
-  -> NameArtifact
-  -> mode-specific iteration and presentation
+PRODUCT SURFACE
+  owns UX, defaults, presets, state,
+  and any surface-specific aggregate behavior
+            |
+            | composes/configures
+            v
+REUSABLE SEMANTIC NAMING CAPABILITIES
+  generateGivenName(...)
+  generateFamilyName(...)
+  generatePlaceName(...)
+  ...as real reusable domains are earned
+            |
+            v
+GENERIC SINGULAR generateName(...)
+            |
+            v
+STYLE / SOUND / SPELLING MECHANICS
+            |
+            v
+DURABLE GENERATED RESULT / NameArtifact
 ```
+
+This indirection is the primary horizontal-scaling mechanism. A semantic callback represents reusable domain meaning. A product surface injects configuration into one or more such callbacks as part of its own UX.
 
 ## Who it serves
 
@@ -32,27 +49,43 @@ Name Forge is for people who need names as part of creative or product work, inc
 - creators evaluating pen names or handles;
 - teams naming products, projects, prototypes, tiers, or launches.
 
-The shared need is not merely “produce a random string.” Users need names they can inspect, compare, preserve, reroll, group, and hand off with enough evidence to understand what the system actually generated.
+The shared need is not merely “produce a random string.” Users need generated names they can inspect, preserve, reroll, compose, compare, and hand off with enough evidence to understand what the system actually generated.
 
-## Core product noun
+## Core product nouns
 
 The primary durable result is a `NameArtifact`.
 
-A cast, shortlist, roster, taxonomy, or other grouping is a collection or product composition of artifacts. Group-level behavior may need its own metadata and selection logic, but it should not erase the artifact as the unit of inspection and provenance.
+A **semantic naming capability** is reusable domain behavior for one kind of name. Examples may include given, family, place, faction, ship, product, handle, or other name domains when concrete use earns those APIs.
 
-## Why modes exist
+A **surface** composes semantic capabilities into a user job. Its UX may derive different configuration for the same semantic callback than another surface would.
 
-A **mode** is product/UI configuration around a naming job. It may choose controls, defaults, vocabulary, layout, actions, and a restrained presentation skin.
+A cast, roster, shortlist, taxonomy, or other aggregate may be surface composition over individually inspectable artifacts. Group-level behavior may have its own state and selection logic without erasing `NameArtifact` as the unit of inspection and provenance.
 
-A mode should not automatically imply a separate generator, request family, artifact type, or analysis stack.
+## Why surfaces exist
 
-The useful top-level question remains:
+A surface or mode is product/UI configuration around a naming job. It may choose controls, defaults, vocabulary, layout, actions, presentation, and which semantic capabilities it composes.
 
-> What are you naming?
+A surface should not automatically imply a separate low-level generator, transport schema, artifact type, or analysis stack.
 
-The answer may choose a mode. Shared generation should still be driven by structured criteria, deterministic randomness, and reusable naming mechanics rather than branching on mode metadata.
+A surface may, however, legitimately own aggregate orchestration that is specific to its job. Reuse is not improved by forcing every cast, roster, taxonomy, or set workflow into one universal plural API.
 
-## Active modes
+## Reusable semantic capabilities
+
+Typed callbacks such as:
+
+```ts
+generateGivenName(...)
+generateFamilyName(...)
+generatePlaceName(...)
+```
+
+represent reusable naming-domain semantics. They are built on the single generic singular `generateName(...)` primitive rather than becoming parallel sound generators.
+
+The same capability can appear in many surfaces. For example, `generatePlaceName(...)` may be useful inside Fiction Cast, a world-building surface, an NPC workflow, or another product. Each surface may expose different controls and feed different typed configuration to the same domain capability.
+
+A semantic callback may own domain-specific configuration and typed style behavior that would be inappropriate to force into one universal `NameCriteria` schema.
+
+## Active surfaces
 
 ### Fiction Cast
 
@@ -60,9 +93,11 @@ Primary job:
 
 > Help me build a coherent but distinct ensemble of character names.
 
-Fiction Cast owns the product semantics required by that job: roster construction, role-aware presentation, locks, targeted reroll, cast review, composed identities, same-roster relationships, and cast export.
+Fiction Cast owns the surface semantics required by that job: roster construction, roles, locks, targeted reroll, cast review, composed identities, same-roster relationships, cross-name selection pressure, and cast export.
 
-Those concepts are intentionally allowed to remain cast-specific instead of being generalized into the shared engine prematurely.
+As reusable given/family/place callbacks become available, Fiction Cast should compose and configure them rather than owning duplicate one-name generation logic.
+
+The aggregate operation that makes a cast coherent may remain Fiction Cast-specific. That specificity is compatible with a highly reusable lower naming library.
 
 ### Game NPC
 
@@ -70,33 +105,55 @@ Primary job:
 
 > Give me one usable generated name quickly for prep or live play.
 
-Game NPC is deliberately thinner. It reuses the shared request/artifact platform, shared inspector, spelling evidence, readability evidence, and browser audition, while owning its own fast reroll and product presentation.
+Game NPC is deliberately thinner. It reuses shared artifacts, inspection, evidence, and browser audition while owning its own fast UX and reroll behavior.
 
-The existence of two active modes is now the evidence that the mode boundary is real: shared mechanics can remain shared while product workflows remain distinct.
+As the semantic layer becomes explicit, Game NPC should select and configure the appropriate reusable semantic callback. `mode` metadata should not become a hidden switch inside generic generation.
 
-## Shared platform direction
+The existence of two active surfaces demonstrates the product boundary: shared mechanics and artifacts can remain common while surface UX and orchestration remain distinct.
 
-The implemented shared operation is:
+## Request platform direction
+
+The implemented shared request/transport operation is:
 
 ```text
 NameRequest -> NameResponse
 ```
 
-The contract supports the singular default and exact independent-set quantities from 1 through 100 with deterministic parent/child seeds and flat ordered artifact results.
+It supports the singular-compatible default and exact `independent-set` quantities from 1 through 100 with deterministic parent/child seeds and flat ordered artifact results.
 
-This multiplicity is a platform capability, not automatic product authorization for every mode to expose plural UI. For example, Game NPC remains intentionally singular until a separately bounded roster workflow is justified.
+This operation remains useful for shared criteria, deterministic replay, repeated independent generation, service/adapter boundaries, and artifact transport.
 
-The lower-level generation direction is sound-first:
+It is **not** the semantic callback hierarchy. The existence of one shared request schema does not prohibit typed domain APIs such as `generatePlaceName(...)`, and exact independent quantity does not imply every nuanced multi-name surface must become a richer grouping kind.
+
+## Mechanics direction
+
+The lower generation direction is:
 
 ```text
-typed style
+semantic callback
+  -> generic singular generateName(...)
+  -> typed style
   -> pure SoundProfile
   -> SoundCandidate / SegmentSequence
   -> supported spelling pool
   -> deterministic ranking and selection
 ```
 
-Product semantics such as Fiction Cast given/family/place/title/epithet grammar remain above that mechanics layer.
+Product and naming-domain semantics remain above sound mechanics.
+
+The current `GenerationSettings + NameSilhouette` pathway is transitional implementation structure. `NameSilhouette` is not a product concept or accepted caller-facing generation API. The next naming-layer refactor should establish `generateName(...)` and keep only silhouette-derived internal planning structure that still has a clear owner and purpose.
+
+## Plural behavior
+
+Plurality has more than one meaning:
+
+- **independent repeated generation** is already supported by the shared request platform;
+- **surface-specific aggregate behavior** belongs to the surface when the relationships themselves are product semantics;
+- **reusable aggregate behavior** should be extracted only after multiple surfaces demonstrate the same cross-name contract.
+
+A conceptual `generateFantasyCastNames(...)` may therefore be perfectly legitimate even if no other surface ever calls it, provided it composes reusable lower semantic capabilities rather than duplicating the naming engine.
+
+Horizontal scalability comes from the reusable lower layers, not from demanding that every top-level surface operation be universal.
 
 ## Product trust boundary
 
@@ -113,39 +170,43 @@ It should not convert internal weights into universal human claims such as “78
 
 Pronunciation is also a separate claim boundary. Current browser speech is useful audition, not canonical pronunciation. IPA, dictionary-backed pronunciation, provider phoneme markup, or persisted provider audio require their own contracts.
 
-## Candidate future modes
+## Candidate future surfaces and semantic capabilities
 
 These are product directions, not an implementation queue.
 
-| Mode | User job | Shared primitives it would stress |
+| Direction | Possible reusable domain capability | Surface-specific pressure |
 | --- | --- | --- |
-| Pen name | Generate/evaluate pseudonyms for creators or public identity. | criteria, screening, evidence-backed risk/fit models |
-| Product / codename | Name products, projects, tools, or launches. | practical criteria, spelling risk, collision evidence, shortlist workflows |
-| Place / toponym | Generate place names or regional naming systems. | semantic style languages, morphology, grouping, regional coherence |
-| Set / taxonomy | Name a coherent set of related items. | richer grouping, slots/hierarchy, comparison pressure, export |
-| Handle / username | Generate handles within explicit platform constraints. | practical constraints, variant generation, availability-aware boundaries if later supported |
+| Pen name | pen-name generation/evaluation | screening, privacy/risk posture, public-identity workflow |
+| Product / codename | product/codename generation | practical constraints, shortlist workflow, collision evidence |
+| Place / world builder | `generatePlaceName(...)` | regional systems, repeated place generation, optional coherence orchestration |
+| Set / taxonomy | semantic callbacks appropriate to the items | hierarchy, relationships, cross-item contrast, export |
+| Handle / username | handle generation | platform constraints, variants, later availability boundaries |
 
 Baby-name generation remains explicitly deferred because real-world personal naming raises materially different plausibility, cultural-sensitivity, and duty-of-care requirements.
 
 ## Sequencing principles
 
-1. **Select the next slice from current product need, not stale roadmap order.** Completed historical slice plans should not silently remain the active queue.
-2. **Keep product semantics in the product domain.** Do not move Fiction Cast or Game NPC concepts into generic sound mechanics merely to reuse code.
-3. **Promote shared primitives deliberately.** Share behavior because multiple modes need it or because it intrinsically belongs below mode presentation.
-4. **Do not genericize strong mode UX.** Fiction Cast can remain cast-specific; Game NPC can remain speed-oriented.
-5. **Reuse the shared request/artifact platform.** New modes should not fork request families, generators, artifact renderers, or analysis stacks without a concrete incompatibility.
-6. **Treat grouping as a spectrum of explicit contracts.** Exact independent sets are implemented; cohesion, diversity, slots, ranked alternatives, and richer group UX require separate decisions.
-7. **Separate mechanics from human claims.** Deterministic evidence may ship before validated human-facing metrics.
-8. **Separate audition from pronunciation authority.** Browser playback may improve independently of provider-quality or canonical pronunciation work.
-9. **Keep assistive parsing optional.** Future LLM assistance may help translate user language into criteria, but core generation should not depend on prompt-first behavior.
-10. **Prefer bounded changes over framework speculation.** Introduce reusable semantic APIs, provider abstractions, or plugin systems only when concrete product work requires them.
+1. **Establish the generic singular primitive before layering domain callbacks on top.** The next naming-layer step is `generateName(...)`, not another silhouette-shaped helper.
+2. **Build reusable semantic APIs from concrete domain meaning.** `generateGivenName(...)` and `generatePlaceName(...)` should exist because surfaces can reuse those meanings, not because every noun deserves a wrapper.
+3. **Let surfaces inject configuration.** UX, presets, roles, and local context can shape semantic callbacks without becoming generic engine state.
+4. **Keep surface aggregate behavior where its semantics live.** Fiction Cast does not need to become generic grouping merely because it produces many names.
+5. **Keep request transport distinct from semantic APIs.** Reuse `NameRequest -> NameResponse` for the platform jobs it solves without treating it as the only naming callback.
+6. **Keep product semantics above mechanics.** Do not move Fiction Cast, Game NPC, or semantic name-kind concepts into `SoundProfile` or `generateSound(...)`.
+7. **Promote shared abstractions from demonstrated reuse.** New surfaces, semantic capabilities, styles, and aggregate contracts can evolve independently.
+8. **Do not preserve historical helper abstractions by inertia.** `NameSilhouette` and related façade functions must earn any remaining internal role during the `generateName(...)` refactor.
+9. **Separate mechanics from human claims.** Deterministic evidence may ship before validated human-facing metrics.
+10. **Separate audition from pronunciation authority.** Browser playback may improve independently of provider-quality or canonical pronunciation work.
+11. **Keep assistive parsing optional.** Future LLM assistance may translate user language into criteria or semantic configuration, but core generation should not depend on prompt-first behavior.
+12. **Prefer bounded changes over framework speculation.** Introduce a universal Policy, grouping framework, compound grammar API, provider layer, or plugin system only when concrete reuse requires it.
 
 ## What this brief does not authorize
 
 This document does not by itself authorize:
 
-- a new mode;
-- richer grouping semantics;
+- a new surface;
+- a universal list of semantic callback APIs;
+- a universal multi-name abstraction;
+- richer shared grouping semantics;
 - public fit percentages;
 - provider-specific audio or IPA;
 - remote naming providers;
@@ -155,4 +216,4 @@ This document does not by itself authorize:
 - baby-name workflows;
 - broad shell redesign.
 
-Those decisions should begin from [`current-product-scope.md`](current-product-scope.md) and receive their own bounded requirement or issue when selected.
+Active implementation should begin from [`current-product-scope.md`](current-product-scope.md) and the accepted decisions. The current selected architecture sequence is to establish `generateName(...)`, audit the silhouette boundary, then introduce reusable semantic callbacks from real existing naming domains.
