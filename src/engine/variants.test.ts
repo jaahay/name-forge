@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { stylePacks } from '../data/stylePacks';
 import { createCastExportPayload, serializeCastAsMarkdown } from './export';
-import type { GeneratedEnsemble, GeneratedName, NameScores, NameSilhouette } from './types';
+import type { GeneratedEnsemble, GeneratedName, NameGenerationPlan, NameScores } from './types';
 import { generateVariants } from './variants';
 
 const pack = stylePacks[0];
@@ -19,7 +19,7 @@ const scores: NameScores = {
   overallFit: 0.72,
 };
 
-const silhouette: NameSilhouette = {
+const silhouette: NameGenerationPlan = {
   id: 'test-silhouette',
   syllableCount: 3,
   stressPattern: 'soft-middle',
