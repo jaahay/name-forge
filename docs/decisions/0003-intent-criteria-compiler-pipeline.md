@@ -2,49 +2,58 @@
 
 ## Status
 
-Accepted for planning.
+Accepted for planning, refined by Decision 0006.
+
+Decision 0006 narrows this decision's earlier implication that every product-facing intent surface must terminate exclusively in `NameCriteria`. `NameCriteria` remains the stable shared request-facing intent contract; reusable semantic naming callbacks may also own typed domain configuration derived directly from a surface's UX.
 
 ## Context
 
-The current implementation has a narrow `StyleInput -> compileStyle -> SoundProfile` path. That path is useful, but it should no longer be treated as the whole user-intent model.
+The implementation has a typed style-to-`SoundProfile` path below the naming layer. That path is useful, but it is not the whole user-intent or domain-semantics model.
 
-Name Forge needs room for richer user-facing controls such as intent families, criteria shelves, drawer-based chip libraries, mode defaults, presets, and eventually LLM-assisted control filling. Those surfaces should not each teach the generator a new input shape.
+Name Forge needs room for richer user-facing controls, surface defaults, presets, saved preferences, and eventually assistive control filling without teaching generic mechanics about every surface. It also needs reusable semantic capabilities such as given-name or place-name generation that can be configured differently by different surfaces.
 
 ## Decision
 
-The durable planning pipeline is:
+There are two compatible intent paths above the generic singular naming primitive:
 
 ```text
-Intent surfaces
-  -> NameCriteria
-  -> compiled criteria
-  -> SoundProfile / spelling preferences / exclusions / selection inputs
-  -> candidate generation and scoring
-  -> NameArtifact
+shared request-oriented intent
+  surface UX
+    -> NameCriteria
+    -> shared criteria compilation/adaptation
+    -> reusable semantic callback or generateName(...)
+
+semantic domain configuration
+  surface UX
+    -> typed semantic configuration
+    -> reusable semantic callback
+    -> generateName(...)
 ```
 
-`NameCriteria` is the stable intermediate contract between product-facing controls and engine-facing generation behavior.
+Both ultimately delegate one-name generation through the generic singular `generateName(...)` boundary and lower style/sound/spelling mechanics.
 
-`StyleInput` should be understood as one current ergonomic producer of criteria or profile inputs, not the final abstraction for all user intent. Future UI surfaces may produce the same `NameCriteria` without changing the core naming operation.
+`NameCriteria` is the stable intermediate contract for intent that should cross the shared generic request boundary. It is not required to encode every domain-specific semantic configuration.
+
+`StyleInput` remains a typed style language below naming semantics. It should not become the universal user-intent model, and semantic callbacks need not expose it directly to product surfaces.
 
 ## Intent surfaces
 
-Intent surfaces are frontend or product-level ways to help the user declare what they want. Examples include:
+Intent surfaces are product-level ways to help the user declare what they want. Examples include:
 
-- compact controls and sliders
-- intent-family chips
-- selected-criteria shelves
-- structured drawers and search for larger chip libraries
-- mode defaults
-- presets or starting points
-- saved preferences
-- future LLM-assisted parsing
+- compact controls and sliders;
+- intent-family chips;
+- selected-criteria shelves;
+- structured drawers and search for larger chip libraries;
+- surface/mode defaults;
+- presets or starting points;
+- saved preferences;
+- future assistive parsing.
 
-These surfaces should produce explicit criteria rather than directly generating names.
+A surface owns these UX choices and converts them into shared criteria, typed semantic configuration, or both. It should not bypass reusable naming capabilities to manipulate generic sound mechanics directly unless the product explicitly exposes a mechanics-oriented surface.
 
 ## Criteria families
 
-The user-facing criteria families should remain fewer and cleaner than the internal implementation details. The initial planning set is:
+The shared user-facing criteria families should remain fewer and cleaner than internal implementation details. The initial planning set is:
 
 - `sound`
 - `shape`
@@ -54,30 +63,51 @@ The user-facing criteria families should remain fewer and cleaner than the inter
 - `avoid`
 - `practical`
 
-The UI may group these more simply than the internal model. For example, a drawer labeled `Inspired by` may produce semantic, shape, register, and spelling criteria.
+The UI may group these more simply than the internal model.
 
-## Compiler responsibilities
+Do not continuously expand these families merely to encode every semantic distinction. A reusable `generatePlaceName(...)` capability, for example, may legitimately own typed place-name configuration that would be noise in a universal criteria taxonomy.
 
-The compiler translates criteria into lower-level generation concerns:
+## Compiler and adapter responsibilities
 
-- sound constraints and weights
-- spelling ranking preferences
-- exclusion pressure
-- practical constraints
-- candidate scoring inputs
-- future grouping or slot-specific behavior
+Shared criteria compilation/adaptation translates `NameCriteria` into lower-level naming inputs that the current implementation understands, including:
 
-The compiler should not require `mode`, `StylePack`, `BaseStyle`, or `Role` as foundational concepts. Those can prefill, shape, or annotate criteria before compilation.
+- sound constraints and weights;
+- spelling ranking preferences;
+- exclusion pressure;
+- practical constraints;
+- candidate scoring inputs.
+
+Semantic callbacks may additionally translate their own typed configuration into the style or naming inputs appropriate to that semantic domain before delegating to `generateName(...)`.
+
+Neither path should require `mode` as a hidden behavior switch. Product surfaces choose which semantic capability they call and provide explicit configuration.
+
+## Relationship to surface composition
+
+The accepted dependency direction is:
+
+```text
+surface UX/state
+  -> shared criteria and/or typed semantic configuration
+  -> reusable semantic callback(s)
+  -> generic singular generateName(...)
+  -> typed style compilation
+  -> SoundProfile
+  -> sound + spelling mechanics
+```
+
+A nuanced multi-name surface may compose several semantic callbacks and own aggregate behavior above them. That surface-specific orchestration need not be forced through generic criteria or grouping if the cross-name semantics are not reusable.
 
 ## Product vocabulary
 
-Use `criteria` for user-declared inputs.
+Use `criteria` for shared user-declared intent that belongs in the generic request contract.
 
-Use `brief` only for a concise downstream summary of configured work or generated results. Do not use `brief` as the name of the input contract, because that risks implying loose free-form text fields or an LLM prompt box.
+Use semantic configuration names for typed inputs owned by a reusable domain capability.
+
+Use `brief` only for a concise downstream summary of configured work or generated results. Do not use `brief` as the name of the shared input contract merely because future assistive parsing may exist.
 
 ## UI implications
 
-The primary criteria UI should show a compact selected state and a structured way to add more:
+A criteria-oriented surface may show a compact selected state and a structured way to add more:
 
 ```text
 Selected criteria shelf
@@ -85,12 +115,13 @@ Selected criteria shelf
   + family drawer/search for larger libraries
 ```
 
-The chip universe can be large, but it should not be rendered as a giant always-visible taxonomy wall. A normal run should remain legible as a small set of selected criteria.
+That is one valid surface pattern, not a requirement that every future naming surface expose the same criteria UI. A surface can expose domain-specific controls and translate them into the semantic callback configuration it owns.
 
 ## Consequences
 
-- The product can grow richer controls without making the backend mode-driven.
-- `NameCriteria` becomes the shared output of UI controls, presets, and future assistive parsing.
-- `StyleInput` can remain as an implementation bridge while the richer criteria model is introduced.
-- Public criteria-match explanation is still deferred; criteria first need to drive generation and internal selection.
+- The product can grow richer controls without making generic generation mode-driven.
+- `NameCriteria` remains the shared output contract for criteria-oriented controls, presets, and future assistive parsing where generic request portability matters.
+- Semantic callbacks can own typed domain configuration without bloating `NameCriteria`.
+- `StyleInput` remains below naming semantics rather than becoming a universal surface contract.
+- Public criteria-match explanation is still deferred; shared criteria first need to drive functional generation and internal selection.
 - Free-form prose and LLM parsing stay out of v1.
