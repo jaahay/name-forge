@@ -1,5 +1,6 @@
 import { createSeededRandom, clamp } from '../engine/random';
 import { castReadabilityDiagnostics, diagnoseNameReadability, readabilitySummary } from '../engine/diagnostics';
+import { generateGivenName, type GivenNamePreferences } from '../naming/givenName';
 import { generateName } from '../naming/generator';
 import { toNameGenerationSettings } from '../naming/settings';
 import { renderIdentityAuditionPhrase } from '../engine/identityAudition';
@@ -30,13 +31,25 @@ function planningSettingsForCandidate(settings: GenerationSettings, index: numbe
   };
 }
 
-function planningPreferencesForCandidate(settings: GenerationSettings, role: CastRoleAssignment | undefined, index: number): NameGenerationPlanPreferences | undefined {
+function supportingPlanningPreferencesForCandidate(settings: GenerationSettings, role: CastRoleAssignment | undefined, index: number): NameGenerationPlanPreferences | undefined {
   const influence = resolveRoleInfluence(settings, role);
   const rarityBand = resolveFictionCastRarityBand(settings, index);
   if (!influence && !rarityBand) return undefined;
   const profile = influence ? getRolePreferenceProfile(influence.role) : undefined;
   return {
     strength: influence?.strength ?? 0,
+    ...(profile === undefined ? {} : { syllableCounts: profile.syllableCounts, textures: profile.textures }),
+    ...(rarityBand === undefined ? {} : { rarityBand }),
+  };
+}
+
+function givenNamePreferencesForCandidate(settings: GenerationSettings, role: CastRoleAssignment | undefined, index: number): GivenNamePreferences | undefined {
+  const influence = resolveRoleInfluence(settings, role);
+  const rarityBand = resolveFictionCastRarityBand(settings, index);
+  if (!influence && !rarityBand) return undefined;
+  const profile = influence ? getRolePreferenceProfile(influence.role) : undefined;
+  return {
+    preferenceStrength: influence?.strength ?? 0,
     ...(profile === undefined ? {} : { syllableCounts: profile.syllableCounts, textures: profile.textures }),
     ...(rarityBand === undefined ? {} : { rarityBand }),
   };
@@ -70,7 +83,7 @@ function withNameIdentity(candidate: GeneratedName, settings: GenerationSettings
     ? generateName({
       settings: toNameGenerationSettings(supportingContext.settings),
       planningSettings: toNameGenerationSettings(planningSettingsForCandidate(supportingContext.settings, supportingIndex)),
-      planningPreferences: planningPreferencesForCandidate(supportingContext.settings, candidate.role, supportingIndex),
+      planningPreferences: supportingPlanningPreferencesForCandidate(supportingContext.settings, candidate.role, supportingIndex),
       pack,
       planningRandom: createSeededRandom(`${settings.seed}${roleSeedSegment(settings, candidate.role)}:slot-${index}:supporting-${attempt}:${supportingIndex}`),
       generationRandom: createSeededRandom(`${settings.seed}${roleSeedSegment(settings, candidate.role)}:supporting:${index}:${attempt}`),
@@ -129,10 +142,10 @@ export function generateEnsemble(settings: GenerationSettings, registry: SourceR
     const role = resolveCastRole(safeSettings, index);
     const primaryContext = resolveFictionCastComponentGenerationContext(safeSettings, role, 'given');
     const candidates = Array.from({ length: 16 }, (_, attempt) => {
-      const generated = generateName({
+      const generated = generateGivenName({
         settings: toNameGenerationSettings(primaryContext.settings),
         planningSettings: toNameGenerationSettings(planningSettingsForCandidate(primaryContext.settings, index)),
-        planningPreferences: planningPreferencesForCandidate(primaryContext.settings, role, index),
+        preferences: givenNamePreferencesForCandidate(primaryContext.settings, role, index),
         pack,
         planningRandom: createSeededRandom(`${safeSettings.seed}${roleSeedSegment(safeSettings, role)}:slot-${index}:attempt-${attempt}:${index}`),
         generationRandom: createSeededRandom(`${settings.seed}${roleSeedSegment(safeSettings, role)}:name:${index}:${attempt}`),
