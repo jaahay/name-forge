@@ -1,5 +1,6 @@
 import { createSeededRandom, clamp } from '../engine/random';
 import { castReadabilityDiagnostics, diagnoseNameReadability, readabilitySummary } from '../engine/diagnostics';
+import { generateGivenName, type GivenNamePreferences } from '../naming/givenName';
 import { generateName } from '../naming/generator';
 import { toNameGenerationSettings } from '../naming/settings';
 import { renderIdentityAuditionPhrase } from '../engine/identityAudition';
@@ -39,6 +40,17 @@ function planningPreferencesForCandidate(settings: GenerationSettings, role: Cas
     strength: influence?.strength ?? 0,
     ...(profile === undefined ? {} : { syllableCounts: profile.syllableCounts, textures: profile.textures }),
     ...(rarityBand === undefined ? {} : { rarityBand }),
+  };
+}
+
+function givenNamePreferencesForCandidate(settings: GenerationSettings, role: CastRoleAssignment | undefined, index: number): GivenNamePreferences | undefined {
+  const preferences = planningPreferencesForCandidate(settings, role, index);
+  if (!preferences) return undefined;
+  return {
+    preferenceStrength: preferences.strength,
+    ...(preferences.syllableCounts === undefined ? {} : { syllableCounts: preferences.syllableCounts }),
+    ...(preferences.textures === undefined ? {} : { textures: preferences.textures }),
+    ...(preferences.rarityBand === undefined ? {} : { rarityBand: preferences.rarityBand }),
   };
 }
 
@@ -129,10 +141,10 @@ export function generateEnsemble(settings: GenerationSettings, registry: SourceR
     const role = resolveCastRole(safeSettings, index);
     const primaryContext = resolveFictionCastComponentGenerationContext(safeSettings, role, 'given');
     const candidates = Array.from({ length: 16 }, (_, attempt) => {
-      const generated = generateName({
+      const generated = generateGivenName({
         settings: toNameGenerationSettings(primaryContext.settings),
         planningSettings: toNameGenerationSettings(planningSettingsForCandidate(primaryContext.settings, index)),
-        planningPreferences: planningPreferencesForCandidate(primaryContext.settings, role, index),
+        preferences: givenNamePreferencesForCandidate(primaryContext.settings, role, index),
         pack,
         planningRandom: createSeededRandom(`${safeSettings.seed}${roleSeedSegment(safeSettings, role)}:slot-${index}:attempt-${attempt}:${index}`),
         generationRandom: createSeededRandom(`${settings.seed}${roleSeedSegment(safeSettings, role)}:name:${index}:${attempt}`),
