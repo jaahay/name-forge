@@ -1,5 +1,6 @@
-import type { SoundProfile } from './soundProfile';
-import type { GeneratedEnsemble, GeneratedName, NameGenerationPlan, NameVariant, ReadabilityDiagnostic, RoleInfluenceMetadata } from './types';
+import type { SoundProfile } from '../engine/soundProfile';
+import type { GeneratedEnsemble, GeneratedName, NameGenerationPlan, NameVariant, ReadabilityDiagnostic, RoleInfluenceMetadata } from '../engine/types';
+import { requireFictionCastGeneratedName } from './types';
 
 export interface ExportedNamePart { role: string; value: string; sourceName: string; }
 export interface ExportedRoleInfluence { level: RoleInfluenceMetadata['level']; profileId: string; label: string; effects: string[]; }
@@ -8,7 +9,8 @@ export interface ExportedNameVariant { value: string; kind: NameVariant['kind'];
 export interface ExportedSpellingCandidate { text: string; rank: number; score: number; selected: boolean; }
 export interface ExportedSelectedSpelling extends ExportedSpellingCandidate { selected: true; }
 export interface ExportedSound { profile: SoundProfile; transcription: string; selectedSpelling: ExportedSelectedSpelling; spellingCandidates: ExportedSpellingCandidate[]; }
-export interface ExportedName { id: string; name: string; role?: string; roleInfluence?: ExportedRoleInfluence; readabilityDiagnostics: ExportedReadabilityDiagnostic[]; score: number; scores: GeneratedName['scores']; sound: ExportedSound; silhouette: Pick<NameGenerationPlan, 'syllableCount' | 'stressPattern' | 'rhythm' | 'rarityBand' | 'texture' | 'targetNovelty' | 'targetLength'>; format: string; parts: ExportedNamePart[]; variants: ExportedNameVariant[]; seed: string; warnings: string[]; }
+export type ExportedNameScores = Omit<GeneratedName['scores'], 'overallFit'> & { ensembleFit: number; roleFit: number; overallFit: number; };
+export interface ExportedName { id: string; name: string; role?: string; roleInfluence?: ExportedRoleInfluence; readabilityDiagnostics: ExportedReadabilityDiagnostic[]; score: number; scores: ExportedNameScores; sound: ExportedSound; silhouette: Pick<NameGenerationPlan, 'syllableCount' | 'stressPattern' | 'rhythm' | 'rarityBand' | 'texture' | 'targetNovelty' | 'targetLength'>; format: string; parts: ExportedNamePart[]; variants: ExportedNameVariant[]; seed: string; warnings: string[]; }
 export interface CastExportPayload { exportVersion: 'name-forge.cast.v2'; generatedBy: 'Name Forge'; seed: string; settings: GeneratedEnsemble['settings']; sourcePack: GeneratedEnsemble['sourcePack']; diagnostics: GeneratedEnsemble['diagnostics']; names: ExportedName[]; }
 
 type RetainedSpellingCandidate = GeneratedName['spellingCandidates'][number];
@@ -31,14 +33,21 @@ function soundProfileSummary(profile: SoundProfile): string { return `${profile.
 
 function exportName(name: GeneratedName, seed: string): ExportedName {
   const identity = name.identity;
+  const contextualScores = requireFictionCastGeneratedName(name).contextualScores;
+  const scores: ExportedNameScores = {
+    ...name.scores,
+    ensembleFit: contextualScores.ensembleFit,
+    roleFit: contextualScores.roleFit,
+    overallFit: contextualScores.overallFit,
+  };
   return {
     id: name.id,
     name: name.name,
     role: name.role?.label,
     roleInfluence: exportRoleInfluence(name.roleInfluence),
     readabilityDiagnostics: exportReadabilityDiagnostics(name.readabilityDiagnostics),
-    score: name.scores.overallFit,
-    scores: name.scores,
+    score: contextualScores.overallFit,
+    scores,
     sound: exportSound(name),
     silhouette: { syllableCount: name.silhouette.syllableCount, stressPattern: name.silhouette.stressPattern, rhythm: name.silhouette.rhythm, rarityBand: name.silhouette.rarityBand, texture: name.silhouette.texture, targetNovelty: name.silhouette.targetNovelty, targetLength: name.silhouette.targetLength },
     format: identity?.format.label ?? name.silhouette.rhythm,

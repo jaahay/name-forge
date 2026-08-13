@@ -38,9 +38,7 @@ export type ScoreKey =
   | 'culturalAnchoring'
   | 'orthographicNaturalness'
   | 'styleFit'
-  | 'silhouetteFit'
-  | 'ensembleFit'
-  | 'roleFit';
+  | 'silhouetteFit';
 export type RarityBand = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 export type RarityDistributionPresetKind = 'style-pack' | 'grounded' | 'balanced' | 'rare-forward' | 'mythic-arc';
 export type NameTexture = 'soft' | 'balanced' | 'hard' | 'liquid';
@@ -66,7 +64,7 @@ export interface CastRoleAssignment { role: CastRole; label: string; source: 'pr
 export interface RoleInfluenceMetadata { level: Exclude<RoleInfluenceLevel, 'off'>; role: CastRole; profileId: string; label: string; strength: number; effects: string[]; }
 export interface NameGenerationPlanPreferences { strength: number; syllableCounts?: Array<WeightedValue<number>>; textures?: Array<WeightedValue<NameTexture>>; rarityBand?: RarityBand; }
 export interface NameGenerationPlan { id: string; syllableCount: number; stressPattern: string; rhythm: string; shape: string[]; rarityBand: RarityBand; texture: NameTexture; targetNovelty: number; targetLength: 'short' | 'medium' | 'long'; roleInfluence?: RoleInfluenceMetadata; }
-export interface NameScores { pronounceability: number; memorability: number; novelty: number; culturalAnchoring: number; orthographicNaturalness: number; styleFit: number; silhouetteFit: number; ensembleFit: number; roleFit: number; overallFit: number; }
+export interface NameScores { pronounceability: number; memorability: number; novelty: number; culturalAnchoring: number; orthographicNaturalness: number; styleFit: number; silhouetteFit: number; overallFit: number; }
 export interface NameVariantSource { id: string; kind: SourceKind; label: string; detail: string; }
 export interface NameVariant { value: string; kind: VariantKind; relationship: NameVariantRelationship; confidence: NameVariantConfidence; source: NameVariantSource; locale?: string; generated: boolean; ruleId: string; }
 export interface GeneratedNamePartGeneration { soundProfile: SoundProfile; sound: SoundCandidate; spelling: RankedSpellingCandidate; }

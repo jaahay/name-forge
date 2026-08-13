@@ -39,8 +39,6 @@ export const scorePresentation: Array<{ key: ScoreKey; label: string }> = [
   { key: 'orthographicNaturalness', label: 'Natural' },
   { key: 'styleFit', label: 'Style fit' },
   { key: 'silhouetteFit', label: 'Shape fit' },
-  { key: 'ensembleFit', label: 'Cast fit' },
-  { key: 'roleFit', label: 'Role fit' },
 ];
 
 export const rarityPresentation: Record<RarityBand, { label: string; className: string }> = {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { generateEnsemble } from '../fictionCast/ensemble';
-import { createCastExportPayload, serializeCastAsJson, serializeCastAsMarkdown } from './export';
+import { createCastExportPayload, serializeCastAsJson, serializeCastAsMarkdown } from '../fictionCast/export';
 import { createDefaultRegistry } from './registry';
 import type { GenerationSettings } from './types';
 
@@ -48,8 +48,11 @@ describe('cast export serialization', () => {
     expect(firstName.role).toBe('Protagonist');
     expect(firstName.roleInfluence?.level).toBe('light');
     expect(firstName.roleInfluence?.profileId).toBe('role-profile:protagonist');
-    expect(firstName.score).toBe(sourceName.scores.overallFit);
-    expect(firstName.scores.roleFit).toBe(sourceName.scores.roleFit);
+    expect(firstName.score).toBe(sourceName.contextualScores.overallFit);
+    expect(firstName.scores.overallFit).toBe(sourceName.contextualScores.overallFit);
+    expect(firstName.scores.ensembleFit).toBe(sourceName.contextualScores.ensembleFit);
+    expect(firstName.scores.roleFit).toBe(sourceName.contextualScores.roleFit);
+    expect(firstName.scores.pronounceability).toBe(sourceName.scores.pronounceability);
     expect(firstName.sound.profile).toEqual(sourceName.soundProfile);
     expect(firstName.sound.transcription).toBe(sourceName.sound.transcription);
     expect(firstName.sound.selectedSpelling.text).toBe(sourceName.spelling.text);

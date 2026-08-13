@@ -4,7 +4,7 @@ import { generateGivenName, type GivenNamePreferences } from '../naming/givenNam
 import { generateName } from '../naming/generator';
 import { toNameGenerationSettings } from '../naming/settings';
 import { renderIdentityAuditionPhrase } from '../engine/identityAudition';
-import type { CastRoleAssignment, GeneratedEnsemble, GeneratedName, GenerationSettings, NameGenerationPlanPreferences } from '../engine/types';
+import type { CastRoleAssignment, GeneratedName, GenerationSettings, NameGenerationPlanPreferences } from '../engine/types';
 import type { SourceRegistry } from '../engine/registry';
 import {
   resolveFictionCastComponentGenerationContext,
@@ -14,6 +14,7 @@ import { createNameIdentity, requiresSupportingName, resolveMaterializedFormatKi
 import { resolveFictionCastRarityBand } from './rarity';
 import { getRolePreferenceProfile, isRoleInfluenceActive, resolveCastRole, resolveRoleInfluence } from './roles';
 import { combineFictionCastOverallFit, scoreFictionCastRoleFit } from './scoring';
+import { requireFictionCastGeneratedName, type FictionCastGeneratedEnsemble, type FictionCastGeneratedName } from './types';
 
 export interface LockedNameSlot { index: number; name: GeneratedName; }
 
@@ -21,8 +22,17 @@ function endingKey(name: string): string { const normalized = name.toLowerCase()
 function cadenceKey(name: GeneratedName): string { return `${name.silhouette.stressPattern}:${name.silhouette.syllableCount}:${name.silhouette.rhythm}`; }
 function countRepeated(values: string[]): number { const seen = new Set<string>(); let repeated = 0; for (const value of values) { if (seen.has(value)) repeated += 1; seen.add(value); } return repeated; }
 function roleSeedSegment(settings: GenerationSettings, role?: CastRoleAssignment): string { return role && isRoleInfluenceActive(settings) ? `:role-${role.role}` : ''; }
-function ensembleFitScore(candidate: GeneratedName, selected: GeneratedName[]): number { const initials = new Set(selected.map((name) => name.name.charAt(0).toLowerCase())); const endings = new Set(selected.map((name) => endingKey(name.name))); const cadences = new Set(selected.map(cadenceKey)); const rarities = new Set(selected.map((name) => name.silhouette.rarityBand)); const names = new Set(selected.map((name) => name.name.toLowerCase())); const penalty = (initials.has(candidate.name.charAt(0).toLowerCase()) ? 0.24 : 0) + (endings.has(endingKey(candidate.name)) ? 0.22 : 0) + (cadences.has(cadenceKey(candidate)) ? 0.16 : 0) + (rarities.has(candidate.silhouette.rarityBand) ? 0.08 : 0) + (names.has(candidate.name.toLowerCase()) ? 1 : 0); return clamp(1 - penalty); }
-function withEnsembleFit(candidate: GeneratedName, selected: GeneratedName[], settings: GenerationSettings): GeneratedName { const ensembleFit = ensembleFitScore(candidate, selected); const scores = { ...candidate.scores, ensembleFit }; const scoringSettings = resolveFictionCastComponentGenerationContext(settings, candidate.role, 'given').settings; return { ...candidate, scores: { ...scores, overallFit: combineFictionCastOverallFit(scores, scoringSettings) } }; }
+function ensembleFitScore(candidate: GeneratedName, selected: FictionCastGeneratedName[]): number { const initials = new Set(selected.map((name) => name.name.charAt(0).toLowerCase())); const endings = new Set(selected.map((name) => endingKey(name.name))); const cadences = new Set(selected.map(cadenceKey)); const rarities = new Set(selected.map((name) => name.silhouette.rarityBand)); const names = new Set(selected.map((name) => name.name.toLowerCase())); const penalty = (initials.has(candidate.name.charAt(0).toLowerCase()) ? 0.24 : 0) + (endings.has(endingKey(candidate.name)) ? 0.22 : 0) + (cadences.has(cadenceKey(candidate)) ? 0.16 : 0) + (rarities.has(candidate.silhouette.rarityBand) ? 0.08 : 0) + (names.has(candidate.name.toLowerCase()) ? 1 : 0); return clamp(1 - penalty); }
+function withEnsembleFit(candidate: FictionCastGeneratedName, selected: FictionCastGeneratedName[], settings: GenerationSettings): FictionCastGeneratedName {
+  const ensembleFit = ensembleFitScore(candidate, selected);
+  const scoringSettings = resolveFictionCastComponentGenerationContext(settings, candidate.role, 'given').settings;
+  const contextualScores = {
+    ...candidate.contextualScores,
+    ensembleFit,
+    overallFit: combineFictionCastOverallFit(candidate.scores, { ensembleFit, roleFit: candidate.contextualScores.roleFit }, scoringSettings),
+  };
+  return { ...candidate, contextualScores };
+}
 
 function planningSettingsForCandidate(settings: GenerationSettings, index: number): GenerationSettings {
   return {
@@ -55,23 +65,24 @@ function givenNamePreferencesForCandidate(settings: GenerationSettings, role: Ca
   };
 }
 
-function withRoleInfluence(candidate: GeneratedName, settings: GenerationSettings, role?: CastRoleAssignment): GeneratedName {
+function withRoleInfluence(candidate: GeneratedName, settings: GenerationSettings, role?: CastRoleAssignment): FictionCastGeneratedName {
   const roleInfluence = resolveRoleInfluence(settings, role);
-  if (!roleInfluence) return candidate;
-  const plan = { ...candidate.silhouette, roleInfluence };
-  const scores = {
-    ...candidate.scores,
-    roleFit: scoreFictionCastRoleFit(candidate.name, plan, roleInfluence),
+  const plan = roleInfluence ? { ...candidate.silhouette, roleInfluence } : candidate.silhouette;
+  const roleFit = scoreFictionCastRoleFit(candidate.name, plan, roleInfluence);
+  const contextualScores = {
+    ensembleFit: 0.72,
+    roleFit,
+    overallFit: combineFictionCastOverallFit(candidate.scores, { ensembleFit: 0.72, roleFit }, settings),
   };
   return {
     ...candidate,
     silhouette: plan,
-    roleInfluence,
-    scores: { ...scores, overallFit: combineFictionCastOverallFit(scores, settings) },
+    ...(roleInfluence === undefined ? {} : { roleInfluence }),
+    contextualScores,
   };
 }
 
-function withNameIdentity(candidate: GeneratedName, settings: GenerationSettings, registry: SourceRegistry, index: number, attempt: number): GeneratedName {
+function withNameIdentity(candidate: FictionCastGeneratedName, settings: GenerationSettings, registry: SourceRegistry, index: number, attempt: number): FictionCastGeneratedName {
   const formatKind = resolveMaterializedFormatKind(settings.nameFormat, index);
   const pack = registry.getStylePack(settings.stylePackId);
   const supportingKind = supportingComponentKindForFormat(formatKind);
@@ -103,7 +114,7 @@ function withNameIdentity(candidate: GeneratedName, settings: GenerationSettings
   };
 }
 
-function diagnosticsFor(selected: GeneratedName[], castSize: number): GeneratedEnsemble['diagnostics'] {
+function diagnosticsFor(selected: FictionCastGeneratedName[], castSize: number): FictionCastGeneratedEnsemble['diagnostics'] {
   const repeatedInitials = countRepeated(selected.map((name) => name.name.charAt(0).toLowerCase()));
   const repeatedEndings = countRepeated(selected.map((name) => endingKey(name.name)));
   const repeatedCadences = countRepeated(selected.map(cadenceKey));
@@ -117,19 +128,19 @@ function diagnosticsFor(selected: GeneratedName[], castSize: number): GeneratedE
   return { repeatedInitials, repeatedEndings, repeatedCadences, repeatedRarityBands, noveltySpread, readabilityIssues, readabilityWarnings, readabilitySummary: readabilitySummary(selected), readabilityDiagnostics, summary };
 }
 
-function lockedSlotMap(lockedSlots: LockedNameSlot[] | undefined, castSize: number): Map<number, GeneratedName> {
-  const slots = new Map<number, GeneratedName>();
+function lockedSlotMap(lockedSlots: LockedNameSlot[] | undefined, castSize: number): Map<number, FictionCastGeneratedName> {
+  const slots = new Map<number, FictionCastGeneratedName>();
   for (const locked of lockedSlots ?? []) {
-    if (locked.index >= 0 && locked.index < castSize) slots.set(locked.index, locked.name);
+    if (locked.index >= 0 && locked.index < castSize) slots.set(locked.index, requireFictionCastGeneratedName(locked.name));
   }
   return slots;
 }
 
-export function generateEnsemble(settings: GenerationSettings, registry: SourceRegistry, lockedSlots?: LockedNameSlot[]): GeneratedEnsemble {
+export function generateEnsemble(settings: GenerationSettings, registry: SourceRegistry, lockedSlots?: LockedNameSlot[]): FictionCastGeneratedEnsemble {
   const castSize = Math.round(clamp(settings.castSize, 1, 24));
   const safeSettings = { ...settings, castSize };
   const pack = registry.getStylePack(settings.stylePackId);
-  const selected: GeneratedName[] = [];
+  const selected: FictionCastGeneratedName[] = [];
   const lockedNames = lockedSlotMap(lockedSlots, castSize);
 
   for (let index = 0; index < castSize; index += 1) {
@@ -151,13 +162,13 @@ export function generateEnsemble(settings: GenerationSettings, registry: SourceR
         generationRandom: createSeededRandom(`${settings.seed}${roleSeedSegment(safeSettings, role)}:name:${index}:${attempt}`),
         index,
       });
-      const baseName = {
+      const baseName: FictionCastGeneratedName = {
         ...withRoleInfluence(generated, primaryContext.settings, role),
         role,
       };
       return withEnsembleFit(withNameIdentity(baseName, safeSettings, registry, index, attempt), selected, safeSettings);
     });
-    candidates.sort((left, right) => right.scores.overallFit - left.scores.overallFit);
+    candidates.sort((left, right) => right.contextualScores.overallFit - left.contextualScores.overallFit);
     selected.push(candidates[0]);
   }
 

@@ -1,5 +1,6 @@
 import { toNameArtifact } from '../engine/nameArtifact';
 import type { GeneratedName } from '../engine/types';
+import { requireFictionCastGeneratedName } from '../fictionCast/types';
 import { NameArtifactInspector } from './NameArtifactInspector';
 import { rarityPresentation, scorePresentation } from './presentation';
 import { formatScore } from './score';
@@ -19,6 +20,7 @@ function castSections(name: GeneratedName) {
   const roleInfluenceLabel = name.roleInfluence ? `${name.roleInfluence.level} influence` : 'Role-neutral';
   const textureLabel = `${labelFor(name.silhouette.texture)} texture`;
   const formatLabel = identity ? identity.format.label : `${labelFor(name.silhouette.rhythm)} rhythm`;
+  const contextualScores = requireFictionCastGeneratedName(name).contextualScores;
 
   return (
     <>
@@ -53,6 +55,8 @@ function castSections(name: GeneratedName) {
         <h3>Score detail</h3>
         <dl className="score-list detail-score-list">
           {scorePresentation.map((score) => <div key={`${name.id}-${score.key}`}><dt>{score.label}</dt><dd>{formatScore(name.scores[score.key])}</dd></div>)}
+          <div><dt>Cast fit</dt><dd>{formatScore(contextualScores.ensembleFit)}</dd></div>
+          <div><dt>Role fit</dt><dd>{formatScore(contextualScores.roleFit)}</dd></div>
         </dl>
       </section>
     </>
