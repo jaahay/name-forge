@@ -31,7 +31,7 @@ function planningSettingsForCandidate(settings: GenerationSettings, index: numbe
   };
 }
 
-function planningPreferencesForCandidate(settings: GenerationSettings, role: CastRoleAssignment | undefined, index: number): NameGenerationPlanPreferences | undefined {
+function supportingPlanningPreferencesForCandidate(settings: GenerationSettings, role: CastRoleAssignment | undefined, index: number): NameGenerationPlanPreferences | undefined {
   const influence = resolveRoleInfluence(settings, role);
   const rarityBand = resolveFictionCastRarityBand(settings, index);
   if (!influence && !rarityBand) return undefined;
@@ -44,13 +44,14 @@ function planningPreferencesForCandidate(settings: GenerationSettings, role: Cas
 }
 
 function givenNamePreferencesForCandidate(settings: GenerationSettings, role: CastRoleAssignment | undefined, index: number): GivenNamePreferences | undefined {
-  const preferences = planningPreferencesForCandidate(settings, role, index);
-  if (!preferences) return undefined;
+  const influence = resolveRoleInfluence(settings, role);
+  const rarityBand = resolveFictionCastRarityBand(settings, index);
+  if (!influence && !rarityBand) return undefined;
+  const profile = influence ? getRolePreferenceProfile(influence.role) : undefined;
   return {
-    preferenceStrength: preferences.strength,
-    ...(preferences.syllableCounts === undefined ? {} : { syllableCounts: preferences.syllableCounts }),
-    ...(preferences.textures === undefined ? {} : { textures: preferences.textures }),
-    ...(preferences.rarityBand === undefined ? {} : { rarityBand: preferences.rarityBand }),
+    preferenceStrength: influence?.strength ?? 0,
+    ...(profile === undefined ? {} : { syllableCounts: profile.syllableCounts, textures: profile.textures }),
+    ...(rarityBand === undefined ? {} : { rarityBand }),
   };
 }
 
@@ -82,7 +83,7 @@ function withNameIdentity(candidate: GeneratedName, settings: GenerationSettings
     ? generateName({
       settings: toNameGenerationSettings(supportingContext.settings),
       planningSettings: toNameGenerationSettings(planningSettingsForCandidate(supportingContext.settings, supportingIndex)),
-      planningPreferences: planningPreferencesForCandidate(supportingContext.settings, candidate.role, supportingIndex),
+      planningPreferences: supportingPlanningPreferencesForCandidate(supportingContext.settings, candidate.role, supportingIndex),
       pack,
       planningRandom: createSeededRandom(`${settings.seed}${roleSeedSegment(settings, candidate.role)}:slot-${index}:supporting-${attempt}:${supportingIndex}`),
       generationRandom: createSeededRandom(`${settings.seed}${roleSeedSegment(settings, candidate.role)}:supporting:${index}:${attempt}`),
