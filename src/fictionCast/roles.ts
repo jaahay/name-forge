@@ -7,8 +7,8 @@ import type {
   RoleInfluenceLevel,
   RoleInfluenceMetadata,
   WeightedValue,
-} from './types';
-import { clamp } from './random';
+} from '../engine/types';
+import { clamp } from '../engine/random';
 
 export const castRoleLabels: Record<CastRole, string> = {
   protagonist: 'Protagonist',
@@ -59,9 +59,7 @@ const rolePresetSlots: Record<Exclude<CastRolePresetKind, 'none'>, CastRole[]> =
 
 const rolePreferenceProfiles: Record<CastRole, CastRolePreferenceProfile> = {
   protagonist: {
-    id: 'role-profile:protagonist',
-    role: 'protagonist',
-    label: 'Protagonist clarity',
+    id: 'role-profile:protagonist', role: 'protagonist', label: 'Protagonist clarity',
     effects: ['slightly memorable', 'balanced texture', 'clear medium length'],
     settingShifts: { memorability: 0.08, culturalAnchoring: 0.03, orthographicWeirdness: -0.02 },
     syllableCounts: [{ value: 2, weight: 2.2 }, { value: 3, weight: 2.8 }, { value: 4, weight: 0.7 }],
@@ -70,9 +68,7 @@ const rolePreferenceProfiles: Record<CastRole, CastRolePreferenceProfile> = {
     rhythms: [{ value: 'balanced', weight: 2.3 }, { value: 'falling', weight: 1.5 }, { value: 'rising', weight: 1 }],
   },
   rival: {
-    id: 'role-profile:rival',
-    role: 'rival',
-    label: 'Rival edge',
+    id: 'role-profile:rival', role: 'rival', label: 'Rival edge',
     effects: ['harder texture', 'sharper novelty', 'compact pressure'],
     settingShifts: { novelty: 0.08, memorability: 0.04, orthographicWeirdness: 0.04 },
     syllableCounts: [{ value: 1, weight: 1.1 }, { value: 2, weight: 2.7 }, { value: 3, weight: 1.5 }],
@@ -81,9 +77,7 @@ const rolePreferenceProfiles: Record<CastRole, CastRolePreferenceProfile> = {
     rhythms: [{ value: 'falling', weight: 1.9 }, { value: 'balanced', weight: 1.4 }, { value: 'rising', weight: 1.2 }],
   },
   mentor: {
-    id: 'role-profile:mentor',
-    role: 'mentor',
-    label: 'Mentor gravitas',
+    id: 'role-profile:mentor', role: 'mentor', label: 'Mentor gravitas',
     effects: ['more anchored', 'slightly longer', 'liquid or balanced texture'],
     settingShifts: { novelty: -0.04, pronounceability: 0.03, culturalAnchoring: 0.09, orthographicWeirdness: -0.03 },
     syllableCounts: [{ value: 2, weight: 1 }, { value: 3, weight: 2.2 }, { value: 4, weight: 1.8 }],
@@ -92,9 +86,7 @@ const rolePreferenceProfiles: Record<CastRole, CastRolePreferenceProfile> = {
     rhythms: [{ value: 'falling', weight: 2.2 }, { value: 'braided', weight: 1.3 }, { value: 'balanced', weight: 1.1 }],
   },
   sidekick: {
-    id: 'role-profile:sidekick',
-    role: 'sidekick',
-    label: 'Sidekick warmth',
+    id: 'role-profile:sidekick', role: 'sidekick', label: 'Sidekick warmth',
     effects: ['shorter', 'pronounceable', 'soft memorable texture'],
     settingShifts: { novelty: -0.02, pronounceability: 0.06, memorability: 0.1, orthographicWeirdness: -0.05 },
     syllableCounts: [{ value: 1, weight: 1.4 }, { value: 2, weight: 3 }, { value: 3, weight: 1.1 }],
@@ -103,9 +95,7 @@ const rolePreferenceProfiles: Record<CastRole, CastRolePreferenceProfile> = {
     rhythms: [{ value: 'rising', weight: 1.9 }, { value: 'balanced', weight: 1.7 }, { value: 'falling', weight: 0.9 }],
   },
   guardian: {
-    id: 'role-profile:guardian',
-    role: 'guardian',
-    label: 'Guardian solidity',
+    id: 'role-profile:guardian', role: 'guardian', label: 'Guardian solidity',
     effects: ['grounded', 'stable cadence', 'hard or balanced texture'],
     settingShifts: { pronounceability: 0.02, culturalAnchoring: 0.05, memorability: 0.03 },
     syllableCounts: [{ value: 2, weight: 1.8 }, { value: 3, weight: 2.2 }, { value: 4, weight: 1.1 }],
@@ -114,9 +104,7 @@ const rolePreferenceProfiles: Record<CastRole, CastRolePreferenceProfile> = {
     rhythms: [{ value: 'balanced', weight: 2.3 }, { value: 'falling', weight: 1.6 }, { value: 'braided', weight: 0.8 }],
   },
   outsider: {
-    id: 'role-profile:outsider',
-    role: 'outsider',
-    label: 'Outsider strangeness',
+    id: 'role-profile:outsider', role: 'outsider', label: 'Outsider strangeness',
     effects: ['more novel', 'less anchored', 'unusual texture'],
     settingShifts: { novelty: 0.12, culturalAnchoring: -0.02, orthographicWeirdness: 0.08, pronounceability: -0.02 },
     syllableCounts: [{ value: 2, weight: 1 }, { value: 3, weight: 2.1 }, { value: 4, weight: 1.7 }],
@@ -125,9 +113,7 @@ const rolePreferenceProfiles: Record<CastRole, CastRolePreferenceProfile> = {
     rhythms: [{ value: 'braided', weight: 1.9 }, { value: 'rising', weight: 1.5 }, { value: 'falling', weight: 1.1 }],
   },
   villain: {
-    id: 'role-profile:villain',
-    role: 'villain',
-    label: 'Villain severity',
+    id: 'role-profile:villain', role: 'villain', label: 'Villain severity',
     effects: ['harder', 'darker novelty', 'longer or sharper silhouette'],
     settingShifts: { novelty: 0.09, pronounceability: -0.03, culturalAnchoring: 0.03, orthographicWeirdness: 0.07 },
     syllableCounts: [{ value: 2, weight: 1.2 }, { value: 3, weight: 2.1 }, { value: 4, weight: 1.8 }],
@@ -136,9 +122,7 @@ const rolePreferenceProfiles: Record<CastRole, CastRolePreferenceProfile> = {
     rhythms: [{ value: 'falling', weight: 2.4 }, { value: 'braided', weight: 1.4 }, { value: 'balanced', weight: 0.9 }],
   },
   wildcard: {
-    id: 'role-profile:wildcard',
-    role: 'wildcard',
-    label: 'Wildcard swing',
+    id: 'role-profile:wildcard', role: 'wildcard', label: 'Wildcard swing',
     effects: ['slightly novel', 'mixed texture', 'looser cadence'],
     settingShifts: { novelty: 0.05, orthographicWeirdness: 0.03 },
     syllableCounts: [{ value: 1, weight: 1 }, { value: 2, weight: 1.4 }, { value: 3, weight: 1.4 }, { value: 4, weight: 1 }],
@@ -165,13 +149,10 @@ export function parseCastRole(value: string): CastRole | undefined {
 
 export function resolveCastRole(settings: GenerationSettings, index: number): CastRoleAssignment | undefined {
   const slotRole = settings.slotRoleOverrides?.[index];
-  if (slotRole) {
-    return { role: slotRole, label: castRoleLabels[slotRole], source: 'slot', slot: index + 1 };
-  }
+  if (slotRole) return { role: slotRole, label: castRoleLabels[slotRole], source: 'slot', slot: index + 1 };
 
   const preset = settings.rolePreset ?? 'none';
   if (preset === 'none') return undefined;
-
   const presetSlots = rolePresetSlots[preset];
   const role = presetSlots[index % presetSlots.length];
   return { role, label: castRoleLabels[role], source: 'preset', slot: index + 1 };

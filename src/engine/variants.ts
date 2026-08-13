@@ -1,4 +1,4 @@
-import type { GenerationSettings, NameVariant, NameVariantConfidence, NameVariantRelationship, SourceKind, SpellingVariantRule, StylePack } from './types';
+import type { NameGenerationSettings, NameVariant, NameVariantConfidence, NameVariantRelationship, SourceKind, SpellingVariantRule, StylePack } from './types';
 import { lerp } from './random';
 
 function titleCase(value: string): string { return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase(); }
@@ -60,11 +60,11 @@ function ruleVariant(name: string, rule: SpellingVariantRule, pack: StylePack): 
   };
 }
 
-export function variantLimitFor(settings?: Pick<GenerationSettings, 'orthographicWeirdness'>): number {
+export function variantLimitFor(settings?: Pick<NameGenerationSettings, 'orthographicWeirdness'>): number {
   return Math.round(lerp(2, 4, settings?.orthographicWeirdness ?? 0.5));
 }
 
-export function generateVariants(name: string, pack: StylePack, settings?: Pick<GenerationSettings, 'orthographicWeirdness'>): NameVariant[] {
+export function generateVariants(name: string, pack: StylePack, settings?: Pick<NameGenerationSettings, 'orthographicWeirdness'>): NameVariant[] {
   const listed = pack.listedVariants[name] ?? [];
   const limit = variantLimitFor(settings);
   const variants = new Map<string, NameVariant>();

@@ -1,5 +1,5 @@
-import { roleInfluencedSettings } from '../engine/roles';
 import type { CastRoleAssignment, GenerationSettings, NameFormatKind } from '../engine/types';
+import { roleInfluencedSettings } from './roles';
 
 export type FictionCastSoundComponentKind = 'given' | 'family' | 'place';
 export type MaterializedComponentFormat = Exclude<NameFormatKind, 'mixed'>;

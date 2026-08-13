@@ -23,20 +23,22 @@ describe('createNameGenerationPlan', () => {
     expect(first.targetNovelty).toBeLessThanOrEqual(1);
   });
 
-  it('uses explicit rarity distribution independently from novelty', () => {
+  it('uses an explicit rarity preference independently from novelty', () => {
     const registry = createDefaultRegistry();
     const pack = registry.getStylePack(settings.stylePackId);
     const grounded = createNameGenerationPlan(
-      { ...settings, novelty: 1, rarityDistribution: 'grounded' },
+      { ...settings, novelty: 1 },
       pack,
       createSeededRandom(settings.seed),
       0,
+      { strength: 0, rarityBand: 'common' },
     );
     const mythic = createNameGenerationPlan(
-      { ...settings, novelty: 0, rarityDistribution: 'mythic-arc' },
+      { ...settings, novelty: 0 },
       pack,
       createSeededRandom(settings.seed),
       4,
+      { strength: 0, rarityBand: 'legendary' },
     );
 
     expect(grounded.rarityBand).toBe('common');

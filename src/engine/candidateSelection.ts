@@ -1,5 +1,5 @@
 import type { RankedSpellingCandidate } from './spellingGenerator';
-import type { GenerationSettings } from './types';
+import type { NameGenerationSettings } from './types';
 import { clamp } from './random';
 
 export type CandidateSelectionComponentId =
@@ -60,7 +60,7 @@ function distinctiveSpellingMatch(candidate: RankedSpellingCandidate): number {
 
 export function scoreRankedSpellingCandidate(
   candidate: RankedSpellingCandidate,
-  settings: GenerationSettings,
+  settings: NameGenerationSettings,
 ): CandidateSelectionScore {
   const hasSpellingPreference = settings.spellingSelectionPreference !== undefined;
   const components: CandidateSelectionScoreComponent[] = [
@@ -83,7 +83,7 @@ export function scoreRankedSpellingCandidate(
 
 export function selectRankedSpellingCandidate(
   candidates: readonly RankedSpellingCandidate[],
-  settings: GenerationSettings,
+  settings: NameGenerationSettings,
 ): CandidateSelectionResult<RankedSpellingCandidate> | undefined {
   return candidates
     .map((candidate) => ({
