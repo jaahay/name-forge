@@ -8,16 +8,28 @@ This decision refines the API and composition direction left open by Decisions 0
 
 ### Implementation status
 
-Issue #186 implements the first architectural step required by this decision:
+Issue #186 implements the generic singular boundary required by this decision:
 
 - `src/naming/generator.ts` exposes one generic singular `generateName(...)` orchestration callback;
 - callers no longer construct `NameSilhouette` or enter through silhouette-shaped generator callbacks;
 - internal pre-generation planning is represented by `NameGenerationPlan` and materialized behind `generateName(...)`;
 - `GenerateNameOptions` contains no product mode, Fiction Cast role, or semantic name-kind label;
-- Fiction Cast resolves role-specific behavior above `generateName(...)` into generic planning preferences, then attaches role evidence and role-fit scoring in its own orchestration layer;
 - the legacy `silhouette` result/artifact property and `silhouette-*` evidence IDs remain for compatibility and inspection/scoring evidence.
 
-Reusable typed semantic callbacks such as `generateGivenName(...)`, `generateFamilyName(...)`, and `generatePlaceName(...)` remain the next naming-layer work.
+Issue #190 finishes the immediate ownership cleanup exposed by that boundary:
+
+- Fiction Cast role vocabulary, rarity policy, and contextual role/ensemble scoring live above generic one-name mechanics;
+- `generateName(...)` consumes the narrower `NameGenerationSettings` contract rather than the broader surface-oriented `GenerationSettings` aggregate;
+- Fiction Cast still resolves its own role and rarity semantics before invoking lower naming capabilities.
+
+Issue #192 implements the first reusable typed semantic callback:
+
+- `src/naming/givenName.ts` exposes `generateGivenName(...)` above `generateName(...)`;
+- the callback owns `GenerateGivenNameOptions` and `GivenNamePreferences` rather than exposing `GenerateNameOptions` or `NameGenerationPlanPreferences` to semantic callers;
+- `GivenNamePreferences` are translated into generic planning pressure inside the semantic capability;
+- default given-name generation remains behavior-equivalent to the generic primitive rather than inventing unsupported given-name heuristics;
+- Fiction Cast primary given-name candidate generation now calls `generateGivenName(...)` while preserving its role, rarity, novelty, seed-partitioning, role-scoring, ensemble-scoring, and identity-composition responsibilities above the callback;
+- family/place supporting generation remains on `generateName(...)` until those semantic capabilities are justified by concrete behavior and configuration needs.
 
 The decision below remains the architectural rule; references to the pre-#186 silhouette-shaped implementation describe the context in which the decision was made rather than the current runtime boundary.
 
@@ -74,6 +86,8 @@ generateGivenName / generateFamilyName / generatePlaceName / ...
 
 A semantic callback is valuable precisely because multiple unrelated product surfaces may reuse it.
 
+The implemented `generateGivenName(...)` callback demonstrates one important constraint: a semantic capability does not need invented domain heuristics merely to justify its existence. It may initially provide a typed ownership boundary, hide lower planning representation, and preserve behavior while real semantic differences are learned from additional surfaces or product needs.
+
 ### 3. Product surfaces compose semantic callbacks and inject configuration
 
 A product surface owns its UX and converts that UX into configuration for the semantic naming capabilities it composes.
@@ -125,6 +139,8 @@ It must not be interpreted as saying that:
 
 The current `independent-set` quantity/grouping contract remains a generic platform capability for repeated independent generation. It is distinct from surface-specific multi-name orchestration with real cross-name semantics.
 
+The generic request adapter continues to call `generateName(...)` directly unless and until its request semantics assert a specific domain such as given, family, or place. A semantic callback must not be selected merely from transport metadata.
+
 ### 6. Criteria are shared intent, not the only possible semantic configuration vocabulary
 
 `NameCriteria` remains the shared structured intent model where intent is intended to cross the generic request boundary.
@@ -161,9 +177,9 @@ PRODUCT SURFACE
             | composes/configures
             v
 REUSABLE SEMANTIC NAMING CAPABILITIES
-  generateGivenName(...)
-  generateFamilyName(...)
-  generatePlaceName(...)
+  generateGivenName(...)   [implemented]
+  generateFamilyName(...)  [candidate]
+  generatePlaceName(...)   [candidate]
   ...only when a reusable domain meaning is earned
             |
             v
@@ -180,7 +196,7 @@ An optional surface-specific aggregate layer sits above semantic callbacks, not 
 ```text
 Fantasy Cast surface
   -> surface-specific cast orchestration
-  -> given/family/place semantic callbacks
+  -> given/family/place semantic callbacks where implemented
   -> generateName
   -> generic mechanics
 ```
@@ -200,23 +216,30 @@ Fantasy Cast surface
 - New styles and flavours can evolve in typed semantic configuration/compiler layers without forking the sound engine.
 - Surface-specific plural behavior can remain specific when its cross-name semantics are not reusable.
 - Shared independent-set quantity remains useful infrastructure without becoming the mandatory model for every roster or set workflow.
-- `src/naming` now owns the singular `generateName(...)` primitive rather than a silhouette-shaped caller contract.
-- Fiction Cast currently keeps cast-role semantics above the primitive and should next consume reusable given/family/place capabilities where those capabilities are real, while retaining cast-specific orchestration above them.
+- `src/naming` owns the singular `generateName(...)` primitive plus reusable semantic capabilities above it.
+- Fiction Cast now consumes `generateGivenName(...)` for its primary component while retaining cast-specific orchestration above it; family/place supporting components remain evidence for possible future semantic callbacks rather than a requirement for symmetric APIs.
 
 ## Next implementation question
 
-With the singular `generateName(...)` boundary established by issue #186, the next naming-layer question is which concrete semantic capability should become the first reusable typed callback on top of it.
+With `generateName(...)`, the immediate Fiction Cast ownership cleanup, and the first reusable `generateGivenName(...)` callback implemented, the next naming-layer question is no longer how to prove the callback hierarchy. It is which concrete pressure should drive the next bounded slice.
 
-Given, family, and place generation are the strongest existing candidates because Fiction Cast already distinguishes those component contexts and other surfaces could plausibly reuse them. The first slice should prove the callback/configuration contract from real existing semantics rather than inventing a universal catalog or style schema.
+The current evidence should be inspected before choosing among:
 
-Surface-specific aggregate callbacks should still be revisited only when a surface has real cross-name semantics to own; they are not a prerequisite for semantic callback extraction.
+- `generateFamilyName(...)` if family-name configuration or behavior can be stated honestly beyond merely renaming the generic options;
+- `generatePlaceName(...)` if place-name configuration or behavior can be stated honestly;
+- cleanup of remaining cast-specific type ownership below the semantic boundary if the new callback makes that dependency concrete;
+- separation of contextual Fiction Cast scoring schema from intrinsic one-name scores if the required artifact/UI migration can be bounded safely.
+
+Do not clone the given-name callback merely for API symmetry. The next callback or cleanup should remove a concrete coupling or represent a real semantic contract.
+
+Surface-specific aggregate callbacks should still be revisited only when a surface has real cross-name semantics to own; they are not a prerequisite for further semantic callback extraction.
 
 ## Non-goals
 
 This decision itself does not specify:
 
 - the exact TypeScript signature of `generateName(...)`; issue #186 provides the current implementation contract without retroactively making that signature part of this ADR;
-- the exact input or output types of `generateGivenName(...)`, `generateFamilyName(...)`, or `generatePlaceName(...)`;
+- the exact input or output types of future `generateFamilyName(...)` or `generatePlaceName(...)` callbacks;
 - a universal list of semantic name kinds;
 - a universal semantic-style schema;
 - a universal multi-name callback;
