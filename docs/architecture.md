@@ -40,10 +40,10 @@ Surface-specific multi-name orchestration may sit above semantic callbacks when 
 The important ownership split is:
 
 - **`src/engine`** owns reusable mechanics and durable shared request/artifact contracts.
-- **`src/naming`** owns the implemented singular `generateName(...)` orchestration above those mechanics. It materializes internal `NameGenerationPlan` evidence; callers do not construct that plan.
-- **semantic naming capabilities** should live above `generateName(...)` and own reusable domain meaning plus typed configuration such as given-name or place-name generation when those contracts are implemented.
+- **`src/naming`** owns the implemented singular `generateName(...)` orchestration above those mechanics plus reusable semantic one-name capabilities such as the implemented `generateGivenName(...)`.
+- **semantic naming capabilities** live above `generateName(...)` and own reusable domain meaning plus typed configuration such as given-name or place-name generation when those contracts are implemented.
 - **`src/styleCompilation`** owns typed style languages and compilation into `SoundProfile`.
-- **`src/fictionCast`** owns Fiction Cast identity grammar, lexical title/epithet material, surface-specific ensemble behavior, locks, roles, cast composition, and translation of cast-role semantics into generic planning preferences.
+- **`src/fictionCast`** owns Fiction Cast identity grammar, lexical title/epithet material, surface-specific ensemble behavior, locks, roles, contextual scoring, rarity policy/metadata, cast composition, and translation of cast-role semantics into generic planning preferences.
 - **`src/ui`** owns presentation and interaction, including the shared inspector and mode-specific views.
 
 Do not move product semantics into the sound engine merely because a generated identity eventually contains sound. Do not move surface-specific orchestration into a universal backend abstraction merely because more than one name is involved.
@@ -133,7 +133,7 @@ GenerateNameOptions
   -> GeneratedName
 ```
 
-`GenerateNameOptions` accepts generic generation settings, style pack, deterministic planning/generation random streams, artifact index, and optional generic planning settings/preferences. It does **not** accept product mode, Fiction Cast role, or semantic name-kind labels.
+`GenerateNameOptions` accepts generic generation settings, style pack, deterministic planning/generation random streams, artifact index, and optional generic planning settings/preferences. It does **not** accept product mode, Fiction Cast role, rarity category, or semantic name-kind labels.
 
 The current implementation therefore matches the accepted naming-layer dependency:
 
@@ -146,17 +146,17 @@ semantic callback configuration
   -> generated result
 ```
 
-The next naming-layer slice should establish the first reusable semantic callback(s) on top of this singular primitive. Surface-specific aggregate operations, if needed, sit above those semantic callbacks.
+The first reusable semantic callback, `generateGivenName(...)`, is implemented above this primitive. Family/place callbacks remain evidence-driven candidates rather than required symmetric APIs. Surface-specific aggregate operations, if needed, sit above semantic callbacks.
 
 ### Generation-plan and legacy silhouette boundary
 
 `NameSilhouette`, `createNameSilhouette(...)`, and `generateNameFromSilhouette(...)` are no longer caller-facing generation abstractions.
 
-`generateName(...)` materializes a `NameGenerationPlan` internally. The plan currently retains syllable count, stress/rhythm, shape, rarity, texture, target novelty, target length, and optional surface-attached role-influence evidence because those values still serve scoring, ensemble diagnostics, export, and inspection.
+`generateName(...)` materializes a `NameGenerationPlan` internally. The plan retains syllable count, stress/rhythm, shape, texture, target novelty, target length, and optional surface-attached role-influence evidence because those values still serve generic generation/scoring or retained compatibility evidence. It does **not** contain Fiction Cast rarity. Rarity is a surface classification attached to `FictionCastGeneratedName`, not a causal generic planning field.
 
 The existing `GeneratedName.silhouette` / `NameArtifact.silhouette` property name and `silhouette-*` evidence IDs remain for compatibility. They do not require callers to build the plan and do not define a fourth generation callback category.
 
-Product/domain-specific influences must be resolved above `generateName(...)`. Fiction Cast, for example, converts role preferences into generic `NameGenerationPlanPreferences`; it attaches role metadata and role-fit scoring in the Fiction Cast layer after singular generation.
+Product/domain-specific influences must be resolved above `generateName(...)`. Fiction Cast, for example, converts role preferences into generic `NameGenerationPlanPreferences`; it attaches role metadata and role-fit scoring in the Fiction Cast layer after singular generation. Its rarity policy is resolved separately and attached as surface result metadata without entering `generateName(...)`.
 
 Further plan reduction or compatibility-field renaming should be justified by a concrete consumer/persistence migration rather than bundled into semantic-callback work.
 
@@ -215,9 +215,11 @@ This is product grammar, not phonology. The identity layer may compose parts and
 
 Fiction Cast currently resolves role-specific generation semantics above `generateName(...)`: role-influenced settings stay in its component-generation context, role-specific syllable/texture preferences become generic planning preferences, and role metadata/role-fit scoring are attached by ensemble orchestration. The singular naming primitive never accepts a cast role.
 
-Given, family, and place are useful examples of semantic name kinds that may become reusable callbacks because multiple surfaces could plausibly need them. When implemented, Fiction Cast should consume those reusable capabilities and inject its own configuration rather than owning duplicate one-name generators.
+Rarity follows a different path because it does not alter the generated name. Fiction Cast owns the rarity band/distribution vocabulary and deterministic rarity policy, resolves a band at the surface layer, attaches it to `FictionCastGeneratedName`, and uses it for cast diagnostics/presentation/export. Generic planning, semantic given-name configuration, style-pack mechanics, and `NameArtifact` do not acquire a rarity field merely because Fiction Cast exposes that user knob.
 
-Fiction Cast itself still owns ensemble behavior, roles, locks, cast review, same-roster relationship presentation, targeted reroll, and cast export semantics. A future surface-specific cast aggregate may compose reusable semantic callbacks internally. These cross-name semantics do not become assumptions of `generateName(...)` or the shared `NameRequest` contract merely because they involve multiple names.
+Given, family, and place are useful examples of semantic name kinds that may become reusable callbacks because multiple surfaces could plausibly need them. `generateGivenName(...)` is implemented. If family/place callbacks are later justified, Fiction Cast should consume those reusable capabilities and inject its own configuration rather than owning duplicate one-name generators.
+
+Fiction Cast itself still owns ensemble behavior, roles, rarity, contextual scores, locks, cast review, same-roster relationship presentation, targeted reroll, and cast export semantics. A future surface-specific cast aggregate may compose reusable semantic callbacks internally. These cross-name semantics do not become assumptions of `generateName(...)` or the shared `NameRequest` contract merely because they involve multiple names.
 
 ## Game NPC boundary
 
@@ -286,16 +288,19 @@ src/
     identityAudition.ts    identity phrase audition projection
     analysis*.ts           pure artifact/set evidence where applicable
     registry.ts            source/style-pack lookup
-    export.ts              shared/cast export support
 
   naming/
     generator.ts           generic singular generateName(...) orchestration above mechanics
+    givenName.ts           reusable semantic generateGivenName(...) capability above generateName(...)
 
   styleCompilation/
     styleCompiler.ts       typed StyleInput -> SoundProfile compiler
 
   fictionCast/
     ensemble.ts            Fiction Cast surface-specific ensemble behavior and role-derived planning preferences
+    types.ts               Fiction Cast result/settings specialization and contextual result metadata
+    rarity.ts              Fiction Cast rarity vocabulary, distribution policy, and deterministic resolution
+    export.ts              Fiction Cast JSON/Markdown export and compatibility projections
     identity.ts            Fiction Cast identity grammar/materialization
     identityLexicon.ts     Fiction Cast lexical title/epithet material
     componentGenerationContext.ts
@@ -308,4 +313,4 @@ src/
                             shared artifact inspection and browser playback
 ```
 
-The exact file list can continue to evolve. The durable rule is ownership and dependency direction: surfaces compose semantic capabilities; semantic capabilities delegate to one singular naming primitive; mechanics stay below naming semantics; and neither legacy `silhouette` evidence, generic grouping, nor `mode` metadata becomes a shortcut around that structure.
+The exact file list can continue to evolve. The durable rule is ownership and dependency direction: surfaces compose semantic capabilities; semantic capabilities delegate to one singular naming primitive; mechanics stay below naming semantics; and neither legacy `silhouette` evidence, generic grouping, rarity presentation, nor `mode` metadata becomes a shortcut around that structure.

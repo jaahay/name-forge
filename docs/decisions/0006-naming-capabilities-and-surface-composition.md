@@ -28,7 +28,7 @@ Issue #192 implements the first reusable typed semantic callback:
 - the callback owns `GenerateGivenNameOptions` and `GivenNamePreferences` rather than exposing `GenerateNameOptions` or `NameGenerationPlanPreferences` to semantic callers;
 - `GivenNamePreferences` are translated into generic planning pressure inside the semantic capability;
 - default given-name generation remains behavior-equivalent to the generic primitive rather than inventing unsupported given-name heuristics;
-- Fiction Cast primary given-name candidate generation now calls `generateGivenName(...)` while preserving its role, rarity, novelty, seed-partitioning, role-scoring, ensemble-scoring, and identity-composition responsibilities above the callback;
+- Fiction Cast primary given-name candidate generation now calls `generateGivenName(...)` while preserving its role, novelty, seed-partitioning, role-scoring, ensemble-scoring, identity-composition, and surface metadata responsibilities above the callback;
 - family/place supporting generation remains on `generateName(...)` until those semantic capabilities are justified by concrete behavior and configuration needs.
 
 Issue #194 separates intrinsic generic scoring from Fiction Cast contextual evaluation:
@@ -38,6 +38,15 @@ Issue #194 separates intrinsic generic scoring from Fiction Cast contextual eval
 - Fiction Cast owns `FictionCastContextualScores` for role fit, ensemble fit, and the contextual overall used for cast candidate selection;
 - Fiction Cast score detail continues to present intrinsic and contextual evidence together without moving contextual fields back into generic score contracts;
 - Cast JSON/Markdown export preserves its existing flattened score shape at the surface boundary and moves from `src/engine` into `src/fictionCast` ownership.
+
+Issue #196 makes the earlier rarity ownership direction concrete:
+
+- rarity bands and distribution presets are Fiction Cast surface vocabulary owned by `src/fictionCast/rarity.ts`;
+- `NameGenerationPlan`, `NameGenerationPlanPreferences`, `GivenNamePreferences`, generic `GenerationSettings`, and generic style-pack silhouette bias no longer carry rarity;
+- Fiction Cast resolves rarity separately from one-name generation and attaches it to `FictionCastGeneratedName` for surface diagnostics, presentation, and export;
+- changing a Fiction Cast rarity distribution changes rarity labels without changing the generated names for the same other inputs;
+- Cast export may preserve its historical `silhouette.rarityBand` field only as a compatibility projection from surface-owned rarity metadata;
+- the historical planning RNG draw position is retained so removing the non-causal rarity selection does not perturb downstream fixed-seed name mechanics.
 
 The decision below remains the architectural rule; references to the pre-#186 silhouette-shaped implementation describe the context in which the decision was made rather than the current runtime boundary.
 
@@ -66,7 +75,7 @@ generateName(...)
 
 This decision intentionally did not prescribe its concrete request and result types. The architectural invariant is that this is the singular primitive for producing one generated name through the shared naming mechanics.
 
-The primitive owns generic one-name orchestration. It must not require a product surface, Fiction Cast role, Game NPC mode, or semantic component label merely to generate one name.
+The primitive owns generic one-name orchestration. It must not require a product surface, Fiction Cast role, Game NPC mode, rarity category, or semantic component label merely to generate one name.
 
 ### 2. Reusable typed callbacks carry domain semantics
 
@@ -122,6 +131,8 @@ generic mechanics
 
 Surface-specific contextual evaluation follows the same direction. Generic one-name scores describe one generated name without assuming a cast, role, roster, or other product context. A surface may compose those intrinsic scores with its own contextual evidence for selection or presentation without extending the generic score schema for every future product concern.
 
+Surface controls and classifications also stay at the surface when they do not causally configure semantic or generic generation. Fiction Cast rarity is the current example: it is useful UX and roster metadata, but it does not become a `NameGenerationPlan` or `GivenNamePreferences` field merely because the user can tune it.
+
 ### 4. Multi-name orchestration may be intentionally surface-specific
 
 A multi-name callback is justified when the plurality itself carries meaningful product semantics.
@@ -167,13 +178,15 @@ Callers must not be required to manufacture a silhouette in order to generate a 
 
 This decision did not require every silhouette-derived field to disappear. A smaller internal planning value may remain useful for deterministic sound planning, candidate selection evidence, or inspection. Each field must justify itself in the layer that owns the decision rather than being retained because the previous façade grouped it there.
 
-The implementation now retains `NameGenerationPlan` as that internal planning/scoring evidence. Its current fields should still be judged by ownership when later work has a concrete reason to change them:
+The implementation now retains `NameGenerationPlan` as that internal planning/scoring evidence. Its fields should still be judged by ownership when later work has a concrete reason to change them:
 
 - generic one-name mechanics;
 - a semantic naming capability;
 - surface/product orchestration;
 - derived inspection/scoring evidence;
 - or removal if the field no longer has a clear purpose.
+
+Issue #196 applies that rule to rarity: because the rarity label did not cause generic sound, spelling, or intrinsic scoring behavior, it was removed from the internal plan and moved to the Fiction Cast result that actually owns and consumes it.
 
 The legacy `silhouette` result/artifact property is compatibility evidence and must not become a fourth public generation callback category alongside generic singular generation, semantic singular generation, and surface-specific aggregate generation.
 
@@ -183,6 +196,7 @@ The legacy `silhouette` result/artifact property is compatibility evidence and m
 PRODUCT SURFACE
   owns UX, defaults, presets, surface state,
   contextual evaluation,
+  surface classifications such as Fiction Cast rarity,
   and any surface-specific aggregate behavior
             |
             | composes/configures
@@ -206,7 +220,7 @@ An optional surface-specific aggregate layer sits above semantic callbacks, not 
 
 ```text
 Fantasy Cast surface
-  -> surface-specific cast orchestration + contextual scoring
+  -> surface-specific cast orchestration + contextual scoring + rarity metadata
   -> given/family/place semantic callbacks where implemented
   -> generateName
   -> generic mechanics
@@ -226,20 +240,21 @@ Fantasy Cast surface
 - New semantic name kinds can be reused across unrelated surfaces without teaching `generateName(...)` or `SoundProfile` about every product job.
 - New styles and flavours can evolve in typed semantic configuration/compiler layers without forking the sound engine.
 - Surface-specific plural behavior can remain specific when its cross-name semantics are not reusable.
+- Surface-specific classifications that do not causally change generic generation, such as current Fiction Cast rarity, remain surface-owned instead of expanding generic plan/style contracts.
 - Shared independent-set quantity remains useful infrastructure without becoming the mandatory model for every roster or set workflow.
 - Generic `NameScores` remain intrinsic to one generated name; contextual product evaluation is composed above them instead of expanding the generic score schema.
 - `src/naming` owns the singular `generateName(...)` primitive plus reusable semantic capabilities above it.
-- Fiction Cast now consumes `generateGivenName(...)` for its primary component while retaining cast-specific orchestration and contextual scoring above it; family/place supporting components remain evidence for possible future semantic callbacks rather than a requirement for symmetric APIs.
+- Fiction Cast now consumes `generateGivenName(...)` for its primary component while retaining cast-specific orchestration, contextual scoring, and rarity metadata above it; family/place supporting components remain evidence for possible future semantic callbacks rather than a requirement for symmetric APIs.
 
 ## Next implementation question
 
-With `generateName(...)`, the immediate Fiction Cast ownership cleanup, `generateGivenName(...)`, and contextual score separation implemented, the remaining naming-layer question is which concrete semantic or type-ownership pressure should drive the next bounded slice.
+With `generateName(...)`, the immediate Fiction Cast ownership cleanup, `generateGivenName(...)`, contextual score separation, and rarity ownership separation implemented, the remaining naming-layer question is which concrete semantic or type-ownership pressure should drive the next bounded slice.
 
 The current evidence should be inspected before choosing among:
 
 - `generateFamilyName(...)` if family-name configuration or behavior can be stated honestly beyond merely renaming the generic options;
 - `generatePlaceName(...)` if place-name configuration or behavior can be stated honestly;
-- cleanup of remaining cast-specific role/configuration/result type ownership below the semantic boundary now that contextual score ownership is separate.
+- cleanup of remaining cast-specific role/configuration/result type ownership below the semantic boundary now that contextual score and rarity ownership are separate.
 
 Do not clone the given-name callback merely for API symmetry. The next callback or cleanup should remove a concrete coupling or represent a real semantic contract.
 
@@ -254,6 +269,7 @@ This decision itself does not specify:
 - a universal list of semantic name kinds;
 - a universal semantic-style schema;
 - a universal multi-name callback;
+- a universal rarity taxonomy or requirement that rarity exist outside surfaces that deliberately own such a classification;
 - a reusable compound-name grammar API;
 - a first-class Policy abstraction;
 - removal or renaming of every legacy silhouette-related result/property solely for conceptual cleanliness;

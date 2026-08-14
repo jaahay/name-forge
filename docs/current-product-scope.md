@@ -67,6 +67,8 @@ The first reusable semantic capability is also implemented: `generateGivenName(.
 
 Generic one-name scoring is now intrinsic as well. `NameScores` and `ScoreKey` contain only one-name evidence plus intrinsic `overallFit`; Fiction Cast owns `roleFit`, `ensembleFit`, and the contextual overall used for cast candidate selection in `FictionCastContextualScores`. Cast export now lives under `src/fictionCast` and preserves its existing flattened JSON/Markdown score shape at the surface boundary rather than teaching generic engine contracts about cast context.
 
+Rarity is also surface-owned rather than a semantic or mechanical property of generic name generation. `FictionCastRarityBand`, rarity-distribution policy, rarity diagnostics, and each generated cast name's `rarityBand` live under `src/fictionCast`. Generic `NameGenerationPlan`, `NameGenerationPlanPreferences`, `GivenNamePreferences`, and style-pack silhouette mechanics do not carry rarity. Fiction Cast may still expose rarity as a useful user control and export it as cast metadata; that projection does not make rarity causal input to `generateName(...)`.
+
 ## Current shipped baseline
 
 Shared platform capabilities now include:
@@ -79,7 +81,7 @@ Shared platform capabilities now include:
 - one generic singular `generateName(...)` orchestration boundary above style/sound/spelling mechanics;
 - one reusable semantic `generateGivenName(...)` callback that hides generic planning-preference representation from semantic callers and delegates to `generateName(...)`;
 - intrinsic generic one-name scoring that does not fabricate Fiction Cast role or ensemble values;
-- internal `NameGenerationPlan` materialization hidden behind `generateName(...)` rather than required from callers;
+- internal `NameGenerationPlan` materialization hidden behind `generateName(...)` rather than required from callers, with only causal generic planning evidence retained there;
 - sound-first generation through `SoundProfile` and `SegmentSequence`;
 - exhaustive spelling derivation from the current grapheme inventory;
 - deterministic rule-weighted spelling ranking with ordinal tie-breaking;
@@ -103,7 +105,8 @@ Fiction Cast additionally includes:
 
 - deterministic ensemble generation;
 - cast size, format, role mix, slot override, role influence, rarity, and tuning controls;
-- cast-role and rarity semantics resolved above `generateGivenName(...)` into typed given-name preferences for the primary component, with role evidence and role-fit scoring retained in Fiction Cast orchestration;
+- cast-role semantics resolved above `generateGivenName(...)` into typed given-name preferences for the primary component, with role evidence and role-fit scoring retained in Fiction Cast orchestration;
+- surface-owned rarity distribution, rarity labels, rarity diagnostics, and cast-result metadata that do not enter `generateGivenName(...)` or generic `NameGenerationPlan`;
 - surface-owned contextual `roleFit`, `ensembleFit`, and cast overall scoring, with generic `GeneratedName.scores` remaining intrinsic;
 - family/place supporting generation still using the generic `generateName(...)` planning seam pending evidence for their own semantic callbacks;
 - a compact post-generation summary bar that keeps Tune and Regenerate available without leaving the full criteria summary in the primary reading path (issue #176);
@@ -119,7 +122,7 @@ Fiction Cast additionally includes:
 - a collapsed Cast review surface that exposes actionable cast notes and same-roster sound relationships without permanently presenting healthy diagnostic prose (issue #176);
 - pair-grouped same-roster sound relationships with plain-language labels and typed technical evidence;
 - direct artifact-ID navigation from either sound-relationship name into the existing selected-name Inspect, Lock, and reroll workflow (issue #170);
-- JSON and Markdown cast export owned by the Fiction Cast layer while preserving the existing export format.
+- JSON and Markdown cast export owned by the Fiction Cast layer while preserving the existing export format, including rarity as a surface compatibility projection.
 
 Game NPC additionally includes:
 
@@ -159,7 +162,7 @@ The implementation preserves separate deterministic planning and generation rand
 
 The first semantic capability now sits above `generateName(...)` with its own `GenerateGivenNameOptions` and `GivenNamePreferences` contract. It deliberately preserves generic generation behavior by default rather than inventing given-name heuristics without product evidence.
 
-Fiction Cast primary given-name generation now calls `generateGivenName(...)`. Cast roles, rarity policy, novelty staggering, seed partitioning, role scoring, ensemble scoring, and identity composition remain surface-owned; the semantic callback only translates its given-name preference vocabulary into generic planning pressure and delegates one-name mechanics.
+Fiction Cast primary given-name generation now calls `generateGivenName(...)`. Cast roles, novelty staggering, seed partitioning, role scoring, ensemble scoring, identity composition, and rarity metadata remain surface-owned; rarity is resolved separately and does not enter the semantic callback. The callback only translates its given-name preference vocabulary into generic planning pressure and delegates one-name mechanics.
 
 The generic `NameRequest -> NameResponse` adapter still calls `generateName(...)` because that request boundary does not assert given-name semantics.
 
@@ -169,17 +172,23 @@ Generic scoring now owns only intrinsic one-name score components and intrinsic 
 
 Fiction Cast owns `FictionCastContextualScores` for role fit, ensemble fit, and its contextual overall used for candidate selection. The existing inspector presentation and cast export remain compatible; export flattens contextual values only at the Fiction Cast boundary. The Cast export implementation also moves out of `src/engine` into `src/fictionCast` so generic engine code does not depend upward on surface context.
 
-### 4. Choose the next semantic or type-ownership cleanup from evidence
+### 4. Rarity ownership separation — implemented in issue #196
+
+Rarity is a Fiction Cast user/surface classification, not part of generic one-name semantics or mechanics. The rarity band and distribution vocabulary, deterministic policy, repeated-rarity diagnostic, and generated-name rarity metadata now live in `src/fictionCast`.
+
+Generic `NameGenerationPlan`, generic planning preferences, `GivenNamePreferences`, and style-pack silhouette bias no longer contain rarity. The previous generic planning draw position is preserved so moving the non-causal label does not silently perturb existing fixed-seed sound/shape generation. Fiction Cast export keeps the existing `silhouette.rarityBand` field only as a compatibility projection of the surface-owned result metadata.
+
+### 5. Choose the next semantic or type-ownership cleanup from evidence
 
 Do not automatically clone `generateGivenName(...)` into family and place callbacks. Inspect the real caller boundary first and choose the next bounded slice based on concrete pressure. Current candidates are:
 
 - `generateFamilyName(...)` if family-name behavior/configuration can be stated honestly;
 - `generatePlaceName(...)` if place-name behavior/configuration can be stated honestly;
-- moving remaining cast-specific role/configuration/result type ownership out of generic engine contracts now that scoring ownership is separate.
+- moving remaining cast-specific role/configuration/result type ownership out of generic engine contracts now that scoring and rarity ownership are separate.
 
 Whichever slice comes next should preserve the rule that semantic callbacks hide semantic-to-generic planning translation rather than exposing `NameGenerationPlanPreferences` as a de facto public semantic schema.
 
-### 5. Keep aggregate generation surface-owned unless reuse is demonstrated
+### 6. Keep aggregate generation surface-owned unless reuse is demonstrated
 
 Fiction Cast ensemble generation and any future nuanced roster/set operation may remain surface-specific orchestration over semantic callbacks. Do not force surface-specific cross-name behavior into generic grouping merely because shared independent quantity exists.
 
@@ -225,6 +234,7 @@ Surface-specific aggregate orchestration is not automatically deferred merely be
 - No universal multi-name callback.
 - No universal semantic-style schema before concrete semantic callbacks earn one.
 - No automatic family/place callback cloning merely for symmetry.
+- No reintroduction of Fiction Cast rarity categories into generic planning or semantic callback contracts merely because the UI exposes a rarity knob.
 - No Fiction Cast aggregate redesign as a prerequisite for further semantic callback work.
 - No IPA, paid TTS integration, or pronunciation dictionaries.
 - No external demographic inference.
