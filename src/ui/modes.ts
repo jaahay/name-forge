@@ -1,4 +1,4 @@
-import type { GenerationSettings } from '../engine/types';
+import type { FictionCastSettings } from '../fictionCast/types';
 
 export type NamingModeId = 'fiction-cast' | 'game-npc';
 
@@ -16,7 +16,7 @@ export interface NamingModePresentation {
 
 export interface FictionCastModeConfig extends NamingModePresentation {
   id: 'fiction-cast';
-  defaultSettings: (stylePackId: string) => GenerationSettings;
+  defaultSettings: (stylePackId: string) => FictionCastSettings;
 }
 
 export type NamingModeConfig = FictionCastModeConfig;

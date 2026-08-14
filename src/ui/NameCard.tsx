@@ -1,4 +1,5 @@
 import type { GeneratedName } from '../engine/types';
+import { requireFictionCastGeneratedName } from '../fictionCast/types';
 import { rarityPresentation } from './presentation';
 import { textureClassName } from './score';
 import { getNameDisplayLength, protectInitialBreaks } from './namePresentation';
@@ -23,7 +24,7 @@ function readNoteLabel(name: GeneratedName): string {
 }
 
 function NameCardHeader({ name }: NameCardHeaderProps) {
-  const rarity = rarityPresentation[name.silhouette.rarityBand];
+  const rarity = rarityPresentation[requireFictionCastGeneratedName(name).rarityBand];
   const displayName = protectInitialBreaks(name.name);
   const displayLength = getNameDisplayLength(name.name);
 
@@ -59,6 +60,7 @@ function ExpandedCardSurface({ name }: NameCardHeaderProps) {
 export function NameCard({ name, isSelected, isLocked, showExpandedSurface = true, onSelect, onToggleLocked }: NameCardProps) {
   const displayLength = getNameDisplayLength(name.name);
   const readNoteCount = name.readabilityDiagnostics.length;
+  const rarityBand = requireFictionCastGeneratedName(name).rarityBand;
   const cardClassName = `name-card panel ${textureClassName(name.silhouette.texture)}${isSelected ? ' selected' : ''}${isLocked ? ' locked' : ''}`;
   const isExpanded = isSelected && showExpandedSurface;
   const lockActionLabel = `${isLocked ? 'Unlock' : 'Lock'} ${name.name}`;
@@ -68,7 +70,7 @@ export function NameCard({ name, isSelected, isLocked, showExpandedSurface = tru
       className={cardClassName}
       data-expanded={isExpanded ? 'true' : 'false'}
       data-name-length={displayLength}
-      data-rarity={name.silhouette.rarityBand}
+      data-rarity={rarityBand}
       data-role={name.role?.role ?? 'none'}
       data-read-notes={readNoteCount}
       aria-current={isSelected ? 'true' : undefined}

@@ -64,7 +64,7 @@ describe('cast export serialization', () => {
     expect(firstName.sound.spellingCandidates.map((candidate) => candidate.rank)).toEqual(sourceName.spellingCandidates.map((candidate) => candidate.rank));
     expect(firstName.sound.spellingCandidates.filter((candidate) => candidate.selected)).toEqual([firstName.sound.selectedSpelling]);
     expect(firstName.silhouette.syllableCount).toBeGreaterThan(0);
-    expect(firstName.silhouette.rarityBand).toBeDefined();
+    expect(firstName.silhouette.rarityBand).toBe(sourceName.rarityBand);
     expect(firstName.parts.length).toBeGreaterThan(0);
     expect(firstName.warnings).toEqual([]);
   });

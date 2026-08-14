@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { renderToString } from 'react-dom/server';
 import { generateEnsemble } from '../fictionCast/ensemble';
+import type { FictionCastGeneratedName } from '../fictionCast/types';
 import { createDefaultRegistry } from '../engine/registry';
-import type { GeneratedName, GenerationSettings } from '../engine/types';
+import type { GenerationSettings } from '../engine/types';
 import { rarityPresentation } from './presentation';
 import { NameCard } from './NameCard';
 
@@ -20,7 +21,7 @@ const settings: GenerationSettings = {
   roleInfluence: 'light',
 };
 
-function fixtureName(): GeneratedName {
+function fixtureName(): FictionCastGeneratedName {
   const ensemble = generateEnsemble(settings, createDefaultRegistry());
   const [name] = ensemble.names;
 
@@ -29,13 +30,13 @@ function fixtureName(): GeneratedName {
   return name;
 }
 
-function readStatusFor(name: GeneratedName): string {
+function readStatusFor(name: FictionCastGeneratedName): string {
   const noteCount = name.readabilityDiagnostics.length;
   if (noteCount === 0) return 'Clean read';
   return `${noteCount} read note${noteCount === 1 ? '' : 's'}`;
 }
 
-function renderCard(name: GeneratedName, isSelected: boolean, isLocked = false): string {
+function renderCard(name: FictionCastGeneratedName, isSelected: boolean, isLocked = false): string {
   return renderToString(
     <NameCard
       name={name}
@@ -51,11 +52,11 @@ describe('NameCard', () => {
   it('keeps collapsed cards to display-name text while retaining styling metadata as attributes', () => {
     const name = fixtureName();
     const html = renderCard(name, false);
-    const rarity = rarityPresentation[name.silhouette.rarityBand];
+    const rarity = rarityPresentation[name.rarityBand];
 
     expect(html).toContain(name.name);
     expect(html).toContain('data-expanded="false"');
-    expect(html).toContain(`data-rarity="${name.silhouette.rarityBand}"`);
+    expect(html).toContain(`data-rarity="${name.rarityBand}"`);
     expect(html).toContain(`data-role="${name.role?.role ?? 'none'}"`);
     expect(html).not.toContain(rarity.label);
     expect(html).not.toContain(`${name.silhouette.syllableCount} syllables`);

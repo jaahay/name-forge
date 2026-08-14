@@ -1,4 +1,5 @@
-import type { RarityBand, ScoreKey } from '../engine/types';
+import type { ScoreKey } from '../engine/types';
+import type { FictionCastRarityBand } from '../fictionCast/rarity';
 
 export type AppView = 'generator' | 'recent-names' | 'changelog' | 'about';
 
@@ -41,7 +42,7 @@ export const scorePresentation: Array<{ key: ScoreKey; label: string }> = [
   { key: 'silhouetteFit', label: 'Shape fit' },
 ];
 
-export const rarityPresentation: Record<RarityBand, { label: string; className: string }> = {
+export const rarityPresentation: Record<FictionCastRarityBand, { label: string; className: string }> = {
   common: { label: 'Common', className: 'rarity-common' },
   uncommon: { label: 'Uncommon', className: 'rarity-uncommon' },
   rare: { label: 'Rare', className: 'rarity-rare' },

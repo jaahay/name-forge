@@ -1,4 +1,5 @@
-import type { GenerationSettings, NameTexture, RarityBand } from '../engine/types';
+import type { GenerationSettings, NameTexture } from '../engine/types';
+import type { FictionCastRarityBand } from '../fictionCast/rarity';
 import { rarityPresentation, scoreControls } from './presentation';
 
 export function clampScore(value: number): number {
@@ -27,14 +28,14 @@ export function randomScore(): number {
   return Math.round(Math.random() * 100) / 100;
 }
 
-export function randomizeScoreSettings(settings: GenerationSettings): GenerationSettings {
-  return scoreControls.reduce<GenerationSettings>((nextSettings, control) => ({
+export function randomizeScoreSettings<T extends GenerationSettings>(settings: T): T {
+  return scoreControls.reduce<T>((nextSettings, control) => ({
     ...nextSettings,
     [control.key]: randomScore(),
-  }), settings);
+  } as T), settings);
 }
 
-export function rarityClassName(rarity: RarityBand): string {
+export function rarityClassName(rarity: FictionCastRarityBand): string {
   return `rarity-pill ${rarityPresentation[rarity].className}`;
 }
 

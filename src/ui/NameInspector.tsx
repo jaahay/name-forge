@@ -15,12 +15,13 @@ interface NameInspectorProps {
 
 function castSections(name: GeneratedName) {
   const identity = name.identity;
-  const rarity = rarityPresentation[name.silhouette.rarityBand];
+  const castName = requireFictionCastGeneratedName(name);
+  const rarity = rarityPresentation[castName.rarityBand];
   const roleLabel = name.role?.label ?? 'No role';
   const roleInfluenceLabel = name.roleInfluence ? `${name.roleInfluence.level} influence` : 'Role-neutral';
   const textureLabel = `${labelFor(name.silhouette.texture)} texture`;
   const formatLabel = identity ? identity.format.label : `${labelFor(name.silhouette.rhythm)} rhythm`;
-  const contextualScores = requireFictionCastGeneratedName(name).contextualScores;
+  const contextualScores = castName.contextualScores;
 
   return (
     <>

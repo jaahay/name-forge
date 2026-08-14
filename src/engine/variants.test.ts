@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { stylePacks } from '../data/stylePacks';
 import { createCastExportPayload, serializeCastAsMarkdown } from '../fictionCast/export';
-import type { FictionCastGeneratedName } from '../fictionCast/types';
-import type { GeneratedEnsemble, NameGenerationPlan, NameScores } from './types';
+import type { FictionCastGeneratedEnsemble, FictionCastGeneratedName } from '../fictionCast/types';
+import type { NameGenerationPlan, NameScores } from './types';
 import { generateVariants } from './variants';
 
 const pack = stylePacks[0];
@@ -24,7 +24,6 @@ const silhouette: NameGenerationPlan = {
   stressPattern: 'soft-middle',
   rhythm: 'lilting',
   shape: ['soft', 'liquid', 'open'],
-  rarityBand: 'uncommon',
   texture: 'soft',
   targetNovelty: 0.5,
   targetLength: 'medium',
@@ -120,12 +119,13 @@ function fixtureName(): FictionCastGeneratedName {
       roleFit: 0.5,
       overallFit: 0.72,
     },
+    rarityBand: 'uncommon',
     variants: generateVariants('Aveline', pack, { orthographicWeirdness: 0.5 }),
     readabilityDiagnostics: [],
   };
 }
 
-function fixtureEnsemble(): GeneratedEnsemble {
+function fixtureEnsemble(): FictionCastGeneratedEnsemble {
   return {
     settings: {
       castSize: 1,

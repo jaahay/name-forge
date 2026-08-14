@@ -21,27 +21,28 @@ describe('createNameGenerationPlan', () => {
     expect(first.targetLength).toMatch(/^(short|medium|long)$/);
     expect(first.targetNovelty).toBeGreaterThanOrEqual(0);
     expect(first.targetNovelty).toBeLessThanOrEqual(1);
+    expect('rarityBand' in first).toBe(false);
   });
 
-  it('uses an explicit rarity preference independently from novelty', () => {
+  it('keeps generic planning preferences limited to causal name-shape pressure', () => {
     const registry = createDefaultRegistry();
     const pack = registry.getStylePack(settings.stylePackId);
-    const grounded = createNameGenerationPlan(
-      { ...settings, novelty: 1 },
+    const preferred = createNameGenerationPlan(
+      settings,
       pack,
-      createSeededRandom(settings.seed),
+      createSeededRandom('preferred-syllable-count'),
       0,
-      { strength: 0, rarityBand: 'common' },
-    );
-    const mythic = createNameGenerationPlan(
-      { ...settings, novelty: 0 },
-      pack,
-      createSeededRandom(settings.seed),
-      4,
-      { strength: 0, rarityBand: 'legendary' },
+      {
+        strength: 1,
+        syllableCounts: [
+          { value: 2, weight: 100 },
+          { value: 3, weight: 0 },
+          { value: 4, weight: 0 },
+        ],
+      },
     );
 
-    expect(grounded.rarityBand).toBe('common');
-    expect(mythic.rarityBand).toBe('legendary');
+    expect(preferred.syllableCount).toBe(2);
+    expect('rarityBand' in preferred).toBe(false);
   });
 });

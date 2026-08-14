@@ -1,4 +1,5 @@
-import type { GeneratedName, RarityBand } from '../engine/types';
+import type { GeneratedName } from '../engine/types';
+import type { FictionCastRarityBand } from '../fictionCast/rarity';
 
 export type NameDisplayLength = 'short' | 'medium' | 'long' | 'very-long';
 
@@ -28,7 +29,7 @@ function terminalCueFor(name: GeneratedName): string {
   return (lettersOnly.slice(-3) || name.name.slice(-3)).toLowerCase();
 }
 
-export function rarityCueFor(rarityBand: RarityBand): string {
+export function rarityCueFor(rarityBand: FictionCastRarityBand): string {
   switch (rarityBand) {
     case 'common':
       return 'Grounded and table-ready; useful for guards, merchants, town records, and repeatable cultures.';

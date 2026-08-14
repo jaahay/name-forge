@@ -48,7 +48,6 @@ function testPlan(overrides: Partial<NameGenerationPlan> = {}): NameGenerationPl
     stressPattern: 'S',
     rhythm: 'balanced',
     shape: ['CV'],
-    rarityBand: 'uncommon',
     texture: 'balanced',
     targetNovelty: 0.5,
     targetLength: 'short',
@@ -68,20 +67,22 @@ describe('generator control knobs', () => {
 
   it('uses pronounceability as continuous open-syllable pressure', () => {
     const pack = createDefaultRegistry().getStylePack(settings.stylePackId);
-    const low = createNameGenerationPlan({ ...settings, pronounceability: 0 }, pack, fixedWeightedRandom([2, 'common', 'balanced']), 0);
-    const high = createNameGenerationPlan({ ...settings, pronounceability: 1 }, pack, fixedWeightedRandom([2, 'common', 'balanced']), 0);
+    const low = createNameGenerationPlan({ ...settings, pronounceability: 0 }, pack, fixedWeightedRandom([2, 'balanced']), 0);
+    const high = createNameGenerationPlan({ ...settings, pronounceability: 1 }, pack, fixedWeightedRandom([2, 'balanced']), 0);
 
     expect(low.shape).toEqual(['CVC', 'CVC']);
     expect(high.shape).toEqual(['CV', 'CV']);
   });
 
-  it('uses novelty to move rarity targets deterministically', () => {
+  it('uses novelty as generic target-novelty pressure without a rarity category', () => {
     const pack = createDefaultRegistry().getStylePack(settings.stylePackId);
-    const low = createNameGenerationPlan({ ...settings, novelty: 0 }, pack, fixedWeightedRandom([2, 'common', 'balanced']), 0);
-    const high = createNameGenerationPlan({ ...settings, novelty: 1 }, pack, fixedWeightedRandom([2, 'common', 'balanced']), 0);
+    const low = createNameGenerationPlan({ ...settings, novelty: 0 }, pack, fixedWeightedRandom([2, 'balanced']), 0);
+    const high = createNameGenerationPlan({ ...settings, novelty: 1 }, pack, fixedWeightedRandom([2, 'balanced']), 0);
 
-    expect(low.rarityBand).toBe('common');
-    expect(high.rarityBand).toBe('rare');
+    expect(low.targetNovelty).toBe(0);
+    expect(high.targetNovelty).toBe(1);
+    expect('rarityBand' in low).toBe(false);
+    expect('rarityBand' in high).toBe(false);
   });
 
   it('generates primary names from sound-first spelling selection instead of listed examples', () => {

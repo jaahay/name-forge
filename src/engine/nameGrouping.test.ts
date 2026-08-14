@@ -70,13 +70,10 @@ describe('shared exact quantity and grouping', () => {
     if (!stylePackId) throw new Error('Expected a default style pack.');
 
     const pack = registry.getStylePack(stylePackId);
-    const settings = {
-      ...compileNameCriteriaToGenerationSettings(emptyCriteria, {
-        seed: 'duplicate-display-parent',
-        stylePackId,
-      }),
-      rarityDistribution: 'grounded' as const,
-    };
+    const settings = compileNameCriteriaToGenerationSettings(emptyCriteria, {
+      seed: 'duplicate-display-parent',
+      stylePackId,
+    });
     const first = generateName({
       settings,
       pack,

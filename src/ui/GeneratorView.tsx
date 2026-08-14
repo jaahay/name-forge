@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { serializeCastAsJson, serializeCastAsMarkdown } from '../fictionCast/export';
-import type { GeneratedEnsemble, GenerationSettings, StylePackSummary } from '../engine/types';
+import type { FictionCastGeneratedEnsemble, FictionCastSettings } from '../fictionCast/types';
+import type { StylePackSummary } from '../engine/types';
 import { CastHealthPanel } from './CastHealth';
 import { ConfigureTray } from './ConfigureTray';
 import { ExportMenu } from './ExportMenu';
@@ -13,11 +14,11 @@ import { resolveNameSelection, sameNameSelection, selectedNameIdFromView, type N
 interface GeneratorViewProps {
   mode: FictionCastModeConfig;
   stylePacks: StylePackSummary[];
-  settings: GenerationSettings;
-  committedSettings?: GenerationSettings;
-  ensemble: GeneratedEnsemble;
+  settings: FictionCastSettings;
+  committedSettings?: FictionCastSettings;
+  ensemble: FictionCastGeneratedEnsemble;
   lockedNameIds: Set<string>;
-  onUpdateSetting: <K extends keyof GenerationSettings>(key: K, value: GenerationSettings[K]) => void;
+  onUpdateSetting: <K extends keyof FictionCastSettings>(key: K, value: FictionCastSettings[K]) => void;
   onGenerate: (event?: FormEvent<HTMLFormElement>) => void;
   onCommitSettings: () => void;
   onRandomizeSliders: () => void;
