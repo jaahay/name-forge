@@ -57,11 +57,21 @@ describe('generateEnsemble role and rarity controls', () => {
     expect(ensemble.names[2].role?.source).toBe('slot');
   });
 
-  it('threads rarity distributions through selected names', () => {
+  it('threads surface-owned rarity distributions through selected names', () => {
     const registry = createDefaultRegistry();
     const ensemble = generateEnsemble({ ...baseSettings, castSize: 5, rarityDistribution: 'mythic-arc' }, registry);
 
-    expect(ensemble.names.map((name) => name.silhouette.rarityBand)).toEqual(['common', 'uncommon', 'rare', 'epic', 'legendary']);
+    expect(ensemble.names.map((name) => name.rarityBand)).toEqual(['common', 'uncommon', 'rare', 'epic', 'legendary']);
+    expect(ensemble.names.every((name) => !('rarityBand' in name.silhouette))).toBe(true);
+  });
+
+  it('changes rarity labels without changing generated names', () => {
+    const registry = createDefaultRegistry();
+    const grounded = generateEnsemble({ ...baseSettings, castSize: 5, rarityDistribution: 'grounded' }, registry);
+    const mythic = generateEnsemble({ ...baseSettings, castSize: 5, rarityDistribution: 'mythic-arc' }, registry);
+
+    expect(mythic.names.map((name) => name.name)).toEqual(grounded.names.map((name) => name.name));
+    expect(mythic.names.map((name) => name.rarityBand)).not.toEqual(grounded.names.map((name) => name.rarityBand));
   });
 
   it('preserves modeled sounds and generation profiles for every sound-backed part of a composed identity', () => {

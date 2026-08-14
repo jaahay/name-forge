@@ -51,7 +51,6 @@ export const stylePacks: StylePack[] = [{
   silhouetteBias: {
     syllableCounts: [{ value: 2, weight: 7 }, { value: 3, weight: 9 }, { value: 4, weight: 3 }],
     textures: [{ value: 'soft', weight: 5 }, { value: 'balanced', weight: 6 }, { value: 'hard', weight: 2 }, { value: 'liquid', weight: 4 }],
-    rarityBands: [{ value: 'common', weight: 7 }, { value: 'uncommon', weight: 6 }, { value: 'rare', weight: 3 }, { value: 'epic', weight: 1 }, { value: 'legendary', weight: 0.35 }],
   },
   listedVariants: { Aveline: ['Avelyn', 'Avelina'], Elowen: ['Elowyn', 'Elowenn'], Merryn: ['Meryn', 'Merren'], Oswin: ['Oswyn', 'Ossian'], Rowena: ['Rowenna', 'Roena'], Tamsin: ['Tamsyn', 'Tamzin'], Theobald: ['Theobold', 'Tybalt'], Wystan: ['Wistan', 'Wysten'] },
   variantRules: [

@@ -1,7 +1,8 @@
 import type { FormEvent, KeyboardEvent } from 'react';
-import { rarityDistributionOptions } from '../fictionCast/rarity';
+import { rarityDistributionOptions, type FictionCastRarityDistributionPresetKind } from '../fictionCast/rarity';
 import { castRoleOptions, castRolePresetOptions, roleInfluenceOptions } from '../fictionCast/roles';
-import type { CastRole, CastRolePresetKind, GenerationSettings, NameFormatKind, RarityDistributionPresetKind, RoleInfluenceLevel, StylePackSummary } from '../engine/types';
+import type { FictionCastSettings } from '../fictionCast/types';
+import type { CastRole, CastRolePresetKind, NameFormatKind, RoleInfluenceLevel, StylePackSummary } from '../engine/types';
 import type { NamingModeConfig } from './modes';
 import { advancedScoreControls, primaryScoreControls, type ControlKey } from './presentation';
 import { ScoreControl } from './ScoreControl';
@@ -18,12 +19,12 @@ export const formatOptions: Array<{ value: NameFormatKind; label: string }> = [
 interface ConfigureTrayProps {
   mode: NamingModeConfig;
   stylePacks: StylePackSummary[];
-  settings: GenerationSettings;
-  committedSettings?: GenerationSettings;
+  settings: FictionCastSettings;
+  committedSettings?: FictionCastSettings;
   isOpen: boolean;
   lockedCount: number;
   onToggleOpen: () => void;
-  onUpdateSetting: <K extends keyof GenerationSettings>(key: K, value: GenerationSettings[K]) => void;
+  onUpdateSetting: <K extends keyof FictionCastSettings>(key: K, value: FictionCastSettings[K]) => void;
   onGenerate: (event?: FormEvent<HTMLFormElement>) => void;
   onCommitSettings: () => void;
   onRandomizeSliders: () => void;
@@ -36,7 +37,7 @@ function clampCastSize(value: number): number {
   return Math.max(1, Math.min(24, Math.round(value)));
 }
 
-function updateSlotRole(currentRoles: GenerationSettings['slotRoleOverrides'], index: number, role: CastRole | ''): GenerationSettings['slotRoleOverrides'] {
+function updateSlotRole(currentRoles: FictionCastSettings['slotRoleOverrides'], index: number, role: CastRole | ''): FictionCastSettings['slotRoleOverrides'] {
   const nextRoles = { ...(currentRoles ?? {}) };
   if (role === '') {
     delete nextRoles[index];
@@ -56,7 +57,7 @@ function tierLabel(value: number, low: string, middle: string, high: string): st
   return middle;
 }
 
-function criteriaSummaryItems(settings: GenerationSettings, stylePackLabel: string): string[] {
+function criteriaSummaryItems(settings: FictionCastSettings, stylePackLabel: string): string[] {
   return [
     `Style source: ${stylePackLabel}`,
     `Rarity target: ${tierLabel(settings.novelty, 'familiar', 'balanced', 'rarer')}`,
@@ -195,7 +196,7 @@ export function ConfigureTray({
             <div className="control-section-body">
               <label>
                 <span>Cast variety / rarity spread</span>
-                <select value={settings.rarityDistribution ?? 'style-pack'} onChange={(event) => onUpdateSetting('rarityDistribution', event.target.value as RarityDistributionPresetKind)}>
+                <select value={settings.rarityDistribution ?? 'style-pack'} onChange={(event) => onUpdateSetting('rarityDistribution', event.target.value as FictionCastRarityDistributionPresetKind)}>
                   {rarityDistributionOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                 </select>
               </label>

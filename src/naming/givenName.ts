@@ -4,7 +4,6 @@ import type {
   NameGenerationPlanPreferences,
   NameGenerationSettings,
   NameTexture,
-  RarityBand,
   StylePack,
   WeightedValue,
 } from '../engine/types';
@@ -14,7 +13,6 @@ export interface GivenNamePreferences {
   readonly preferenceStrength?: number;
   readonly syllableCounts?: ReadonlyArray<WeightedValue<number>>;
   readonly textures?: ReadonlyArray<WeightedValue<NameTexture>>;
-  readonly rarityBand?: RarityBand;
 }
 
 export interface GenerateGivenNameOptions {
@@ -33,7 +31,6 @@ function toPlanningPreferences(preferences: GivenNamePreferences | undefined): N
     strength: preferences.preferenceStrength ?? 0,
     ...(preferences.syllableCounts === undefined ? {} : { syllableCounts: [...preferences.syllableCounts] }),
     ...(preferences.textures === undefined ? {} : { textures: [...preferences.textures] }),
-    ...(preferences.rarityBand === undefined ? {} : { rarityBand: preferences.rarityBand }),
   };
 }
 

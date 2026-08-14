@@ -59,7 +59,7 @@ function validateStylePackSource(source: StylePackSourceDescriptor | undefined, 
     ...(!hasText(source.packId) ? [issue('source.packId', 'Style pack source packId is required.')] : []),
     ...(!hasText(source.packVersion) ? [issue('source.packVersion', 'Style pack source packVersion is required.')] : []),
     ...(!hasText(source.sourcePath) ? [issue('source.sourcePath', 'Style pack source path is required.')] : []),
-    ...(!hasText(source.styleNotes) ? [issue('source.styleNotes', 'Style pack style notes are required.')] : []),
+    ...(!hasText(source.styleNotes) ? [issue('source.styleNotes', 'Style pack source style notes are required.')] : []),
     ...validateStringArray('source.limitations', source.limitations),
   ];
 
@@ -142,7 +142,6 @@ export function validateStylePack(pack: StylePack): StylePackValidationResult {
     ...validateStringArray('phonotactics.forbiddenFragments', pack.phonotactics.forbiddenFragments),
     ...validateWeightedValues('silhouetteBias.syllableCounts', pack.silhouetteBias.syllableCounts),
     ...validateWeightedValues('silhouetteBias.textures', pack.silhouetteBias.textures),
-    ...validateWeightedValues('silhouetteBias.rarityBands', pack.silhouetteBias.rarityBands),
     ...validateListedVariants(pack),
     ...validateVariantRules(pack),
   ];

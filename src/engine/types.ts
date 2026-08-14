@@ -39,8 +39,6 @@ export type ScoreKey =
   | 'orthographicNaturalness'
   | 'styleFit'
   | 'silhouetteFit';
-export type RarityBand = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
-export type RarityDistributionPresetKind = 'style-pack' | 'grounded' | 'balanced' | 'rare-forward' | 'mythic-arc';
 export type NameTexture = 'soft' | 'balanced' | 'hard' | 'liquid';
 export type SpellingSelectionPreference = 'plain' | 'distinctive';
 export type VariantKind = 'listed' | 'generated';
@@ -58,12 +56,12 @@ export type ReadabilityDiagnosticScope = 'name' | 'cast';
 
 export interface ReadabilityDiagnostic { id: string; scope: ReadabilityDiagnosticScope; severity: ReadabilityDiagnosticSeverity; label: string; detail: string; }
 export interface NameGenerationSettings { novelty: number; pronounceability: number; memorability: number; culturalAnchoring: number; orthographicWeirdness: number; preferredTexture?: NameTexture; spellingSelectionPreference?: SpellingSelectionPreference; }
-export interface GenerationSettings extends NameGenerationSettings { castSize: number; stylePackId: string; seed: string; nameFormat?: NameFormatKind; rarityDistribution?: RarityDistributionPresetKind; rolePreset?: CastRolePresetKind; roleInfluence?: RoleInfluenceLevel; slotRoleOverrides?: SlotRoleOverrides; }
+export interface GenerationSettings extends NameGenerationSettings { castSize: number; stylePackId: string; seed: string; nameFormat?: NameFormatKind; rolePreset?: CastRolePresetKind; roleInfluence?: RoleInfluenceLevel; slotRoleOverrides?: SlotRoleOverrides; }
 export interface WeightedValue<T = string> { value: T; weight: number; }
 export interface CastRoleAssignment { role: CastRole; label: string; source: 'preset' | 'slot'; slot: number; }
 export interface RoleInfluenceMetadata { level: Exclude<RoleInfluenceLevel, 'off'>; role: CastRole; profileId: string; label: string; strength: number; effects: string[]; }
-export interface NameGenerationPlanPreferences { strength: number; syllableCounts?: Array<WeightedValue<number>>; textures?: Array<WeightedValue<NameTexture>>; rarityBand?: RarityBand; }
-export interface NameGenerationPlan { id: string; syllableCount: number; stressPattern: string; rhythm: string; shape: string[]; rarityBand: RarityBand; texture: NameTexture; targetNovelty: number; targetLength: 'short' | 'medium' | 'long'; roleInfluence?: RoleInfluenceMetadata; }
+export interface NameGenerationPlanPreferences { strength: number; syllableCounts?: Array<WeightedValue<number>>; textures?: Array<WeightedValue<NameTexture>>; }
+export interface NameGenerationPlan { id: string; syllableCount: number; stressPattern: string; rhythm: string; shape: string[]; texture: NameTexture; targetNovelty: number; targetLength: 'short' | 'medium' | 'long'; roleInfluence?: RoleInfluenceMetadata; }
 export interface NameScores { pronounceability: number; memorability: number; novelty: number; culturalAnchoring: number; orthographicNaturalness: number; styleFit: number; silhouetteFit: number; overallFit: number; }
 export interface NameVariantSource { id: string; kind: SourceKind; label: string; detail: string; }
 export interface NameVariant { value: string; kind: VariantKind; relationship: NameVariantRelationship; confidence: NameVariantConfidence; source: NameVariantSource; locale?: string; generated: boolean; ruleId: string; }
@@ -75,9 +73,9 @@ export type NameIdentityPhrasePart = NameIdentityPartReference | NameIdentityLit
 export interface NameFormatRule { id: string; kind: Exclude<NameFormatKind, 'mixed'>; label: string; }
 export interface NameIdentity { displayName: string; format: NameFormatRule; parts: GeneratedNamePart[]; phraseParts: readonly NameIdentityPhrasePart[]; }
 export interface GeneratedName { id: string; name: string; soundProfile: SoundProfile; sound: SoundCandidate; spelling: RankedSpellingCandidate; spellingCandidates: readonly RankedSpellingCandidate[]; silhouette: NameGenerationPlan; scores: NameScores; variants: NameVariant[]; role?: CastRoleAssignment; roleInfluence?: RoleInfluenceMetadata; readabilityDiagnostics: ReadabilityDiagnostic[]; identity?: NameIdentity; identityAudition?: IdentityAuditionPhrase; }
-export interface EnsembleDiagnostics { repeatedInitials: number; repeatedEndings: number; repeatedCadences: number; repeatedRarityBands: number; noveltySpread: number; readabilityIssues: number; readabilityWarnings: number; readabilitySummary: string; readabilityDiagnostics: ReadabilityDiagnostic[]; summary: string; }
+export interface EnsembleDiagnostics { repeatedInitials: number; repeatedEndings: number; repeatedCadences: number; noveltySpread: number; readabilityIssues: number; readabilityWarnings: number; readabilitySummary: string; readabilityDiagnostics: ReadabilityDiagnostic[]; summary: string; }
 export interface GeneratedEnsemble { settings: GenerationSettings; sourcePack: StylePackSummary; names: GeneratedName[]; diagnostics: EnsembleDiagnostics; }
 export interface SpellingVariantRule { id: string; label: string; from: string; to: string; maxApplications?: number; sourceKind: SourceKind; relationship?: NameVariantRelationship; confidence?: NameVariantConfidence; }
 export interface StylePackSummary { id: string; label: string; description: string; source: StylePackSourceDescriptor; style: StyleDescriptor; }
-export interface StylePack extends StylePackSummary { version: string; localeHint: string; culturalAnchors: string[]; phonotactics: { onsets: Array<WeightedValue>; nuclei: Array<WeightedValue>; codas: Array<WeightedValue>; preferredEndings: Array<WeightedValue>; rareGraphemes: string[]; forbiddenFragments: string[]; }; silhouetteBias: { syllableCounts: Array<WeightedValue<number>>; textures: Array<WeightedValue<NameTexture>>; rarityBands: Array<WeightedValue<RarityBand>>; }; listedVariants: Record<string, string[]>; variantRules: SpellingVariantRule[]; }
+export interface StylePack extends StylePackSummary { version: string; localeHint: string; culturalAnchors: string[]; phonotactics: { onsets: Array<WeightedValue>; nuclei: Array<WeightedValue>; codas: Array<WeightedValue>; preferredEndings: Array<WeightedValue>; rareGraphemes: string[]; forbiddenFragments: string[]; }; silhouetteBias: { syllableCounts: Array<WeightedValue<number>>; textures: Array<WeightedValue<NameTexture>>; }; listedVariants: Record<string, string[]>; variantRules: SpellingVariantRule[]; }
 export interface NameSourceProvider { id: string; label: string; kind: SourceKind; source: SourceDescriptor; listStylePacks(): StylePackSummary[]; getStylePack(id: string): StylePack | undefined; validateStylePack(id: string): StylePackValidationResult | undefined; }

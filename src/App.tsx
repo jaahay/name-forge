@@ -1,5 +1,6 @@
 import { FormEvent, useState } from 'react';
 import { generateEnsemble, type LockedNameSlot } from './fictionCast/ensemble';
+import type { FictionCastGeneratedEnsemble, FictionCastSettings } from './fictionCast/types';
 import {
   addNameHistoryEntries,
   clearNameHistory,
@@ -9,7 +10,6 @@ import {
 } from './engine/nameHistory';
 import { toNameArtifact, type NameArtifact } from './engine/nameArtifact';
 import { createDefaultRegistry } from './engine/registry';
-import type { GeneratedEnsemble, GenerationSettings } from './engine/types';
 import { rerollSelectedCastName } from './fictionCastReroll';
 import { AboutView } from './ui/AboutView';
 import { ChangelogView } from './ui/ChangelogView';
@@ -42,11 +42,11 @@ function createRandomSeed(): string {
   return `name-forge-${Math.random().toString(36).slice(2, 10)}`;
 }
 
-function lockedSlotsFor(ensemble: GeneratedEnsemble, lockedNameIds: Set<string>): LockedNameSlot[] {
+function lockedSlotsFor(ensemble: FictionCastGeneratedEnsemble, lockedNameIds: Set<string>): LockedNameSlot[] {
   return ensemble.names.flatMap((name, index) => (lockedNameIds.has(name.id) ? [{ index, name }] : []));
 }
 
-function retainedLockIds(ensemble: GeneratedEnsemble, lockedNameIds: Set<string>): Set<string> {
+function retainedLockIds(ensemble: FictionCastGeneratedEnsemble, lockedNameIds: Set<string>): Set<string> {
   const visibleIds = new Set(ensemble.names.map((name) => name.id));
   return new Set([...lockedNameIds].filter((id) => visibleIds.has(id)));
 }
@@ -54,9 +54,9 @@ function retainedLockIds(ensemble: GeneratedEnsemble, lockedNameIds: Set<string>
 export default function App() {
   const [currentView, setCurrentView] = useState<AppView>('generator');
   const [activeModeId, setActiveModeId] = useState<NamingModeId>('fiction-cast');
-  const [settings, setSettings] = useState<GenerationSettings>(initialSettings);
-  const [committedSettings, setCommittedSettings] = useState<GenerationSettings>(initialSettings);
-  const [ensemble, setEnsemble] = useState<GeneratedEnsemble>(initialEnsemble);
+  const [settings, setSettings] = useState<FictionCastSettings>(initialSettings);
+  const [committedSettings, setCommittedSettings] = useState<FictionCastSettings>(initialSettings);
+  const [ensemble, setEnsemble] = useState<FictionCastGeneratedEnsemble>(initialEnsemble);
   const [lockedNameIds, setLockedNameIds] = useState<Set<string>>(() => new Set());
   const [history, setHistory] = useState(() => loadNameHistory(browserStorage()));
 
@@ -81,11 +81,11 @@ export default function App() {
     setHistory(clearNameHistory(browserStorage()));
   }
 
-  function updateSetting<K extends keyof GenerationSettings>(key: K, value: GenerationSettings[K]) {
+  function updateSetting<K extends keyof FictionCastSettings>(key: K, value: FictionCastSettings[K]) {
     setSettings((current) => ({ ...current, [key]: value }));
   }
 
-  function commitGeneration(nextSettings: GenerationSettings, nextLockedNameIds = lockedNameIds) {
+  function commitGeneration(nextSettings: FictionCastSettings, nextLockedNameIds = lockedNameIds) {
     const nextEnsemble = generateEnsemble(nextSettings, registry, lockedSlotsFor(ensemble, nextLockedNameIds));
     setCommittedSettings(nextSettings);
     setEnsemble(nextEnsemble);

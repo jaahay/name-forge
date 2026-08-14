@@ -90,7 +90,6 @@ function artifact(id: string, displayText: string, options: ArtifactOptions = {}
       stressPattern: syllables.map((entry) => entry.stress).join('-'),
       rhythm: cadence,
       shape: syllables.map((entry) => entry.shape),
-      rarityBand: 'common',
       texture: 'balanced',
       targetNovelty: 0.5,
       targetLength: 'short',

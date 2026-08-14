@@ -44,10 +44,15 @@ describe('generateGivenName', () => {
       index: 0,
       preferences: {
         preferenceStrength: 1,
-        rarityBand: 'legendary',
+        syllableCounts: [
+          { value: 2, weight: 100 },
+          { value: 3, weight: 0 },
+          { value: 4, weight: 0 },
+        ],
       },
     });
 
-    expect(generated.silhouette.rarityBand).toBe('legendary');
+    expect(generated.silhouette.syllableCount).toBe(2);
+    expect('rarityBand' in generated.silhouette).toBe(false);
   });
 });

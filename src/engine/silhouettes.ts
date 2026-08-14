@@ -1,7 +1,6 @@
 import type { NameGenerationPlan, NameGenerationPlanPreferences, NameGenerationSettings, NameTexture, StylePack, WeightedValue } from './types';
 import type { SeededRandom } from './random';
 import { clamp, lerp } from './random';
-import { selectRarityBand } from './rarity';
 
 function blendWeightedValues<T>(baseValues: Array<WeightedValue<T>>, preferredValues: Array<WeightedValue<T>>, strength: number): Array<WeightedValue<T>> {
   return baseValues.map(({ value, weight }) => {
@@ -51,7 +50,9 @@ function selectTexture(settings: NameGenerationSettings, pack: StylePack, random
 export function createNameGenerationPlan(settings: NameGenerationSettings, pack: StylePack, random: SeededRandom, index: number, preferences?: NameGenerationPlanPreferences): NameGenerationPlan {
   const syllableCount = selectSyllableCount(settings, pack, random, preferences);
   const stressPattern = stressPatternFor(syllableCount, settings, random);
-  const rarityBand = preferences?.rarityBand ?? selectRarityBand(settings, pack, random);
+  // Before issue #196, generic rarity selection consumed one planning draw here. Rarity is now
+  // surface-owned, but retaining the draw prevents unrelated fixed-seed texture/shape drift.
+  random.next();
   const texture = selectTexture(settings, pack, random, preferences);
   const targetLength = syllableCount <= 2 ? 'short' : syllableCount === 3 ? 'medium' : 'long';
   const openSyllableBias = lerp(0.24, 0.76, settings.pronounceability);
@@ -69,7 +70,6 @@ export function createNameGenerationPlan(settings: NameGenerationSettings, pack:
     stressPattern,
     rhythm: rhythmFor(stressPattern),
     shape,
-    rarityBand,
     texture,
     targetNovelty: clamp(settings.novelty + random.next() * 0.18 - 0.09),
     targetLength,

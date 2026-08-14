@@ -119,7 +119,6 @@ const generatedName: GeneratedName = {
     stressPattern: 'primary-final',
     rhythm: 'balanced',
     shape: ['CV', 'CVC'],
-    rarityBand: 'uncommon',
     texture: 'soft',
     targetNovelty: 0.65,
     targetLength: 'medium',

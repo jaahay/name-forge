@@ -109,7 +109,6 @@ export function compileNameCriteriaToGenerationSettings(
     stylePackId: base.stylePackId,
     seed: base.seed,
     nameFormat: 'given-only',
-    rarityDistribution: 'style-pack',
     rolePreset: 'none',
     roleInfluence: 'off',
     slotRoleOverrides: {},

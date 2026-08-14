@@ -1,13 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { generateEnsemble } from '../fictionCast/ensemble';
 import { fictionCastEpithetLexemes, fictionCastTitleLexemes } from '../fictionCast/identityLexicon';
+import type { FictionCastRarityBand } from '../fictionCast/rarity';
 import { generateName } from '../naming/generator';
 import { createSeededRandom } from './random';
 import { createDefaultRegistry } from './registry';
-import type { GeneratedName, GenerationSettings, RarityBand } from './types';
+import type { GeneratedName, GenerationSettings } from './types';
 
 const settings: GenerationSettings = { castSize: 6, novelty: 0.5, pronounceability: 0.7, memorability: 0.6, culturalAnchoring: 0.65, orthographicWeirdness: 0.25, stylePackId: 'british-literary-fantasy', seed: 'deterministic-test-seed', nameFormat: 'given-only' };
-const mmoRarityBands: RarityBand[] = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
+const mmoRarityBands: FictionCastRarityBand[] = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
 
 function nameListFor(overrides: Partial<GenerationSettings> = {}): string[] {
   return generateEnsemble({ ...settings, ...overrides }, createDefaultRegistry()).names.map((name) => name.name);
@@ -63,6 +64,7 @@ describe('generateEnsemble', () => {
     expect(generated.sound.sequence.contract).toBe('SegmentSequence');
     expect(generated.sound.transcription).toMatch(/^\/.+\/$/);
     expect(generated.spellingCandidates.length).toBeGreaterThan(0);
+    expect('rarityBand' in generated.silhouette).toBe(false);
     const [topSpelling] = generated.spellingCandidates;
     expect(topSpelling).toBeDefined();
     if (!topSpelling) throw new Error('Expected top ranked spelling.');
@@ -149,11 +151,11 @@ describe('generateEnsemble', () => {
     expect(strongName.contextualScores.roleFit).toBeGreaterThan(0);
   });
 
-  it('uses classic MMO rarity bands', () => {
+  it('uses classic MMO rarity bands as Fiction Cast metadata', () => {
     const ensemble = generateEnsemble(settings, createDefaultRegistry());
     expect(ensemble.names).toHaveLength(settings.castSize);
     for (const name of ensemble.names) {
-      expect(mmoRarityBands).toContain(name.silhouette.rarityBand);
+      expect(mmoRarityBands).toContain(name.rarityBand);
     }
   });
 
