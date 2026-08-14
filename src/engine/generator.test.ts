@@ -28,7 +28,7 @@ describe('generateEnsemble', () => {
     const first = generateEnsemble(settings, registry);
     const second = generateEnsemble(settings, registry);
     expect(second.names.map((name) => name.name)).toEqual(first.names.map((name) => name.name));
-    expect(second.names.map((name) => name.scores.overallFit)).toEqual(first.names.map((name) => name.scores.overallFit));
+    expect(second.names.map((name) => name.contextualScores.overallFit)).toEqual(first.names.map((name) => name.contextualScores.overallFit));
     expect(second.names.map((name) => name.soundProfile)).toEqual(first.names.map((name) => name.soundProfile));
     expect(second.names.map((name) => name.sound.transcription)).toEqual(first.names.map((name) => name.sound.transcription));
     expect(second.names.map((name) => name.spelling.text)).toEqual(first.names.map((name) => name.spelling.text));
@@ -71,7 +71,7 @@ describe('generateEnsemble', () => {
     expect(generated.spelling.text.length).toBeGreaterThan(0);
   });
 
-  it('returns scored names, variants, fit signals, generated sound, and retained spelling candidates', () => {
+  it('returns intrinsic name scores plus Fiction Cast contextual fit signals', () => {
     const ensemble = generateEnsemble(settings, createDefaultRegistry());
     expect(ensemble.names).toHaveLength(settings.castSize);
     for (const name of ensemble.names) {
@@ -94,8 +94,11 @@ describe('generateEnsemble', () => {
       expect(name.scores.overallFit).toBeGreaterThan(0);
       expect(name.scores.styleFit).toBeGreaterThan(0);
       expect(name.scores.silhouetteFit).toBeGreaterThan(0);
-      expect(name.scores.ensembleFit).toBeGreaterThanOrEqual(0);
-      expect(name.scores.roleFit).toBeGreaterThanOrEqual(0);
+      expect('ensembleFit' in name.scores).toBe(false);
+      expect('roleFit' in name.scores).toBe(false);
+      expect(name.contextualScores.ensembleFit).toBeGreaterThanOrEqual(0);
+      expect(name.contextualScores.roleFit).toBeGreaterThanOrEqual(0);
+      expect(name.contextualScores.overallFit).toBeGreaterThanOrEqual(0);
     }
   });
 
@@ -112,7 +115,7 @@ describe('generateEnsemble', () => {
     const roleLabeled = generateEnsemble({ ...settings, rolePreset: 'classic-ensemble', roleInfluence: 'off' }, createDefaultRegistry());
 
     expect(roleLabeled.names.map((name) => name.name)).toEqual(roleNeutral.names.map((name) => name.name));
-    expect(roleLabeled.names.map((name) => name.scores.overallFit)).toEqual(roleNeutral.names.map((name) => name.scores.overallFit));
+    expect(roleLabeled.names.map((name) => name.contextualScores.overallFit)).toEqual(roleNeutral.names.map((name) => name.contextualScores.overallFit));
 
     const [firstName] = roleLabeled.names;
     expect(firstName).toBeDefined();
@@ -120,7 +123,7 @@ describe('generateEnsemble', () => {
     expect(firstName.role?.role).toBe('protagonist');
     expect(firstName.roleInfluence).toBeUndefined();
     expect(firstName.silhouette.roleInfluence).toBeUndefined();
-    expect(firstName.scores.roleFit).toBe(0.72);
+    expect(firstName.contextualScores.roleFit).toBe(0.72);
   });
 
   it('applies deterministic role influence when enabled', () => {
@@ -141,9 +144,9 @@ describe('generateEnsemble', () => {
     expect(lightName.roleInfluence?.level).toBe('light');
     expect(lightName.roleInfluence?.profileId).toBe('role-profile:protagonist');
     expect(lightName.silhouette.roleInfluence?.label).toBe('Protagonist clarity');
-    expect(lightName.scores.roleFit).toBeGreaterThan(0);
+    expect(lightName.contextualScores.roleFit).toBeGreaterThan(0);
     expect(strongName.roleInfluence?.level).toBe('strong');
-    expect(strongName.scores.roleFit).toBeGreaterThan(0);
+    expect(strongName.contextualScores.roleFit).toBeGreaterThan(0);
   });
 
   it('uses classic MMO rarity bands', () => {

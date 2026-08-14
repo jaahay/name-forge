@@ -65,6 +65,8 @@ The singular `generateName(...)` boundary is implemented in `src/naming`. It con
 
 The first reusable semantic capability is also implemented: `generateGivenName(...)` owns a given-name-specific caller contract, translates `GivenNamePreferences` into the generic planning seam internally, and delegates one-name mechanics to `generateName(...)`. Fiction Cast primary given-name generation now enters through that semantic callback while family/place supporting generation remains on the generic primitive until those domains earn their own callbacks.
 
+Generic one-name scoring is now intrinsic as well. `NameScores` and `ScoreKey` contain only one-name evidence plus intrinsic `overallFit`; Fiction Cast owns `roleFit`, `ensembleFit`, and the contextual overall used for cast candidate selection in `FictionCastContextualScores`. Cast export now lives under `src/fictionCast` and preserves its existing flattened JSON/Markdown score shape at the surface boundary rather than teaching generic engine contracts about cast context.
+
 ## Current shipped baseline
 
 Shared platform capabilities now include:
@@ -76,6 +78,7 @@ Shared platform capabilities now include:
 - criteria diagnostics and a compiler bridge into current generation settings;
 - one generic singular `generateName(...)` orchestration boundary above style/sound/spelling mechanics;
 - one reusable semantic `generateGivenName(...)` callback that hides generic planning-preference representation from semantic callers and delegates to `generateName(...)`;
+- intrinsic generic one-name scoring that does not fabricate Fiction Cast role or ensemble values;
 - internal `NameGenerationPlan` materialization hidden behind `generateName(...)` rather than required from callers;
 - sound-first generation through `SoundProfile` and `SegmentSequence`;
 - exhaustive spelling derivation from the current grapheme inventory;
@@ -101,6 +104,7 @@ Fiction Cast additionally includes:
 - deterministic ensemble generation;
 - cast size, format, role mix, slot override, role influence, rarity, and tuning controls;
 - cast-role and rarity semantics resolved above `generateGivenName(...)` into typed given-name preferences for the primary component, with role evidence and role-fit scoring retained in Fiction Cast orchestration;
+- surface-owned contextual `roleFit`, `ensembleFit`, and cast overall scoring, with generic `GeneratedName.scores` remaining intrinsic;
 - family/place supporting generation still using the generic `generateName(...)` planning seam pending evidence for their own semantic callbacks;
 - a compact post-generation summary bar that keeps Tune and Regenerate available without leaving the full criteria summary in the primary reading path (issue #176);
 - lock and selection iteration;
@@ -115,7 +119,7 @@ Fiction Cast additionally includes:
 - a collapsed Cast review surface that exposes actionable cast notes and same-roster sound relationships without permanently presenting healthy diagnostic prose (issue #176);
 - pair-grouped same-roster sound relationships with plain-language labels and typed technical evidence;
 - direct artifact-ID navigation from either sound-relationship name into the existing selected-name Inspect, Lock, and reroll workflow (issue #170);
-- JSON and Markdown cast export.
+- JSON and Markdown cast export owned by the Fiction Cast layer while preserving the existing export format.
 
 Game NPC additionally includes:
 
@@ -159,18 +163,23 @@ Fiction Cast primary given-name generation now calls `generateGivenName(...)`. C
 
 The generic `NameRequest -> NameResponse` adapter still calls `generateName(...)` because that request boundary does not assert given-name semantics.
 
-### 3. Choose the next semantic or cleanup slice from evidence
+### 3. Contextual Fiction Cast score separation — implemented in issue #194
 
-Do not automatically clone `generateGivenName(...)` into family and place callbacks. Inspect the real caller boundary first and choose the next bounded slice based on concrete pressure. Current candidates include:
+Generic scoring now owns only intrinsic one-name score components and intrinsic `overallFit`. It no longer fabricates neutral `roleFit` or `ensembleFit` values or weights a nonexistent ensemble in generic name scoring.
+
+Fiction Cast owns `FictionCastContextualScores` for role fit, ensemble fit, and its contextual overall used for candidate selection. The existing inspector presentation and cast export remain compatible; export flattens contextual values only at the Fiction Cast boundary. The Cast export implementation also moves out of `src/engine` into `src/fictionCast` so generic engine code does not depend upward on surface context.
+
+### 4. Choose the next semantic or type-ownership cleanup from evidence
+
+Do not automatically clone `generateGivenName(...)` into family and place callbacks. Inspect the real caller boundary first and choose the next bounded slice based on concrete pressure. Current candidates are:
 
 - `generateFamilyName(...)` if family-name behavior/configuration can be stated honestly;
 - `generatePlaceName(...)` if place-name behavior/configuration can be stated honestly;
-- moving remaining cast-specific type ownership out of generic engine contracts if the new callback makes that migration concrete;
-- separating contextual Fiction Cast score fields from intrinsic one-name scoring if a consumer migration can be bounded safely.
+- moving remaining cast-specific role/configuration/result type ownership out of generic engine contracts now that scoring ownership is separate.
 
 Whichever slice comes next should preserve the rule that semantic callbacks hide semantic-to-generic planning translation rather than exposing `NameGenerationPlanPreferences` as a de facto public semantic schema.
 
-### 4. Keep aggregate generation surface-owned unless reuse is demonstrated
+### 5. Keep aggregate generation surface-owned unless reuse is demonstrated
 
 Fiction Cast ensemble generation and any future nuanced roster/set operation may remain surface-specific orchestration over semantic callbacks. Do not force surface-specific cross-name behavior into generic grouping merely because shared independent quantity exists.
 

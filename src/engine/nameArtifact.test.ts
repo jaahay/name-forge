@@ -132,8 +132,6 @@ const generatedName: GeneratedName = {
     orthographicNaturalness: 0.88,
     styleFit: 0.79,
     silhouetteFit: 0.84,
-    ensembleFit: 0.76,
-    roleFit: 0.73,
     overallFit: 0.81,
   },
   variants: [

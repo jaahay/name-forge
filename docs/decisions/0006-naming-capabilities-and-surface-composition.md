@@ -31,6 +31,14 @@ Issue #192 implements the first reusable typed semantic callback:
 - Fiction Cast primary given-name candidate generation now calls `generateGivenName(...)` while preserving its role, rarity, novelty, seed-partitioning, role-scoring, ensemble-scoring, and identity-composition responsibilities above the callback;
 - family/place supporting generation remains on `generateName(...)` until those semantic capabilities are justified by concrete behavior and configuration needs.
 
+Issue #194 separates intrinsic generic scoring from Fiction Cast contextual evaluation:
+
+- generic `ScoreKey` / `NameScores` contain only intrinsic one-name score components plus intrinsic `overallFit`;
+- generic scoring no longer invents neutral `roleFit` or `ensembleFit` values or weights a cast context that does not exist;
+- Fiction Cast owns `FictionCastContextualScores` for role fit, ensemble fit, and the contextual overall used for cast candidate selection;
+- Fiction Cast score detail continues to present intrinsic and contextual evidence together without moving contextual fields back into generic score contracts;
+- Cast JSON/Markdown export preserves its existing flattened score shape at the surface boundary and moves from `src/engine` into `src/fictionCast` ownership.
+
 The decision below remains the architectural rule; references to the pre-#186 silhouette-shaped implementation describe the context in which the decision was made rather than the current runtime boundary.
 
 ## Context
@@ -112,6 +120,8 @@ generic mechanics
 
 `mode` metadata must not become a hidden switch inside `generateName(...)`. A surface chooses and configures capabilities explicitly.
 
+Surface-specific contextual evaluation follows the same direction. Generic one-name scores describe one generated name without assuming a cast, role, roster, or other product context. A surface may compose those intrinsic scores with its own contextual evidence for selection or presentation without extending the generic score schema for every future product concern.
+
 ### 4. Multi-name orchestration may be intentionally surface-specific
 
 A multi-name callback is justified when the plurality itself carries meaningful product semantics.
@@ -172,6 +182,7 @@ The legacy `silhouette` result/artifact property is compatibility evidence and m
 ```text
 PRODUCT SURFACE
   owns UX, defaults, presets, surface state,
+  contextual evaluation,
   and any surface-specific aggregate behavior
             |
             | composes/configures
@@ -195,7 +206,7 @@ An optional surface-specific aggregate layer sits above semantic callbacks, not 
 
 ```text
 Fantasy Cast surface
-  -> surface-specific cast orchestration
+  -> surface-specific cast orchestration + contextual scoring
   -> given/family/place semantic callbacks where implemented
   -> generateName
   -> generic mechanics
@@ -216,19 +227,19 @@ Fantasy Cast surface
 - New styles and flavours can evolve in typed semantic configuration/compiler layers without forking the sound engine.
 - Surface-specific plural behavior can remain specific when its cross-name semantics are not reusable.
 - Shared independent-set quantity remains useful infrastructure without becoming the mandatory model for every roster or set workflow.
+- Generic `NameScores` remain intrinsic to one generated name; contextual product evaluation is composed above them instead of expanding the generic score schema.
 - `src/naming` owns the singular `generateName(...)` primitive plus reusable semantic capabilities above it.
-- Fiction Cast now consumes `generateGivenName(...)` for its primary component while retaining cast-specific orchestration above it; family/place supporting components remain evidence for possible future semantic callbacks rather than a requirement for symmetric APIs.
+- Fiction Cast now consumes `generateGivenName(...)` for its primary component while retaining cast-specific orchestration and contextual scoring above it; family/place supporting components remain evidence for possible future semantic callbacks rather than a requirement for symmetric APIs.
 
 ## Next implementation question
 
-With `generateName(...)`, the immediate Fiction Cast ownership cleanup, and the first reusable `generateGivenName(...)` callback implemented, the next naming-layer question is no longer how to prove the callback hierarchy. It is which concrete pressure should drive the next bounded slice.
+With `generateName(...)`, the immediate Fiction Cast ownership cleanup, `generateGivenName(...)`, and contextual score separation implemented, the remaining naming-layer question is which concrete semantic or type-ownership pressure should drive the next bounded slice.
 
 The current evidence should be inspected before choosing among:
 
 - `generateFamilyName(...)` if family-name configuration or behavior can be stated honestly beyond merely renaming the generic options;
 - `generatePlaceName(...)` if place-name configuration or behavior can be stated honestly;
-- cleanup of remaining cast-specific type ownership below the semantic boundary if the new callback makes that dependency concrete;
-- separation of contextual Fiction Cast scoring schema from intrinsic one-name scores if the required artifact/UI migration can be bounded safely.
+- cleanup of remaining cast-specific role/configuration/result type ownership below the semantic boundary now that contextual score ownership is separate.
 
 Do not clone the given-name callback merely for API symmetry. The next callback or cleanup should remove a concrete coupling or represent a real semantic contract.
 

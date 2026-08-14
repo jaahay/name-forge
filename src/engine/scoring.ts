@@ -1,7 +1,7 @@
 import type { NameGenerationPlan, NameGenerationSettings, NameScores, ScoreKey, StylePack } from './types';
 import { clamp, lerp } from './random';
 
-const scoreWeights: Record<ScoreKey, number> = { pronounceability: 0.22, memorability: 0.16, novelty: 0.12, culturalAnchoring: 0.12, orthographicNaturalness: 0.14, styleFit: 0.1, silhouetteFit: 0.08, ensembleFit: 0.06, roleFit: 0 };
+const scoreWeights: Record<ScoreKey, number> = { pronounceability: 0.22, memorability: 0.16, novelty: 0.12, culturalAnchoring: 0.12, orthographicNaturalness: 0.14, styleFit: 0.1, silhouetteFit: 0.08 };
 
 const vowels = new Set(['a', 'e', 'i', 'o', 'u', 'y']);
 
@@ -52,14 +52,12 @@ function settingWeightedScoreWeights(settings?: NameGenerationSettings): Record<
     orthographicNaturalness: lerp(0.2, 0.06, settings.orthographicWeirdness),
     styleFit: 0.1,
     silhouetteFit: 0.08,
-    ensembleFit: lerp(0.04, 0.11, settings.memorability),
-    roleFit: 0,
   };
 }
 export function combineOverallFit(scores: Pick<NameScores, ScoreKey>, settings?: NameGenerationSettings): number {
   const weights = settingWeightedScoreWeights(settings);
   const totalWeight = Object.values(weights).reduce((sum, weight) => sum + weight, 0);
-  return clamp((weights.pronounceability * scores.pronounceability + weights.memorability * scores.memorability + weights.novelty * scores.novelty + weights.culturalAnchoring * scores.culturalAnchoring + weights.orthographicNaturalness * scores.orthographicNaturalness + weights.styleFit * scores.styleFit + weights.silhouetteFit * scores.silhouetteFit + weights.ensembleFit * scores.ensembleFit + weights.roleFit * scores.roleFit) / totalWeight);
+  return clamp((weights.pronounceability * scores.pronounceability + weights.memorability * scores.memorability + weights.novelty * scores.novelty + weights.culturalAnchoring * scores.culturalAnchoring + weights.orthographicNaturalness * scores.orthographicNaturalness + weights.styleFit * scores.styleFit + weights.silhouetteFit * scores.silhouetteFit) / totalWeight);
 }
 export function scoreName(name: string, plan: NameGenerationPlan, pack: StylePack, settings: NameGenerationSettings): NameScores {
   const lower = name.toLowerCase();
@@ -75,8 +73,6 @@ export function scoreName(name: string, plan: NameGenerationPlan, pack: StylePac
   const orthographicNaturalness = clamp(0.92 - (containsForbiddenFragment(name, pack) ? 0.42 : 0) - Math.max(0, consonantRun - 2) * 0.1 - rareFragments * 0.04);
   const styleFit = styleFitScore(name, pack);
   const silhouetteFit = silhouetteFitScore(name, plan);
-  const ensembleFit = 0.72;
-  const roleFit = 0.72;
-  const baseScores = { pronounceability, memorability, novelty, culturalAnchoring, orthographicNaturalness, styleFit, silhouetteFit, ensembleFit, roleFit };
+  const baseScores = { pronounceability, memorability, novelty, culturalAnchoring, orthographicNaturalness, styleFit, silhouetteFit };
   return { ...baseScores, overallFit: combineOverallFit(baseScores, settings) };
 }

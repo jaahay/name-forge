@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { stylePacks } from '../data/stylePacks';
-import { createCastExportPayload, serializeCastAsMarkdown } from './export';
-import type { GeneratedEnsemble, GeneratedName, NameGenerationPlan, NameScores } from './types';
+import { createCastExportPayload, serializeCastAsMarkdown } from '../fictionCast/export';
+import type { FictionCastGeneratedName } from '../fictionCast/types';
+import type { GeneratedEnsemble, NameGenerationPlan, NameScores } from './types';
 import { generateVariants } from './variants';
 
 const pack = stylePacks[0];
@@ -14,8 +15,6 @@ const scores: NameScores = {
   orthographicNaturalness: 0.9,
   styleFit: 0.8,
   silhouetteFit: 0.7,
-  ensembleFit: 0.6,
-  roleFit: 0.5,
   overallFit: 0.72,
 };
 
@@ -31,7 +30,7 @@ const silhouette: NameGenerationPlan = {
   targetLength: 'medium',
 };
 
-function fixtureName(): GeneratedName {
+function fixtureName(): FictionCastGeneratedName {
   const soundProfile = {
     targets: {
       length: 'medium' as const,
@@ -116,6 +115,11 @@ function fixtureName(): GeneratedName {
     spellingCandidates: [spelling],
     silhouette,
     scores,
+    contextualScores: {
+      ensembleFit: 0.6,
+      roleFit: 0.5,
+      overallFit: 0.72,
+    },
     variants: generateVariants('Aveline', pack, { orthographicWeirdness: 0.5 }),
     readabilityDiagnostics: [],
   };
