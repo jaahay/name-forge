@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { generateEnsemble } from '../fictionCast/ensemble';
+import { rarityDistributionOptions, resolveFictionCastRarityBand } from '../fictionCast/rarity';
 import { createDefaultRegistry } from './registry';
 import type { GenerationSettings } from './types';
 
@@ -55,6 +56,32 @@ describe('generateEnsemble role and rarity controls', () => {
     expect(ensemble.names[0].role?.source).toBe('slot');
     expect(ensemble.names[1].role?.source).toBe('preset');
     expect(ensemble.names[2].role?.source).toBe('slot');
+  });
+
+  it('preserves established rarity control labels and preset sequences', () => {
+    expect(rarityDistributionOptions).toEqual([
+      { value: 'style-pack', label: 'Style-pack weighted' },
+      { value: 'grounded', label: 'Grounded cast' },
+      { value: 'balanced', label: 'Balanced spread' },
+      { value: 'rare-forward', label: 'Rare-forward cast' },
+      { value: 'mythic-arc', label: 'Mythic arc' },
+    ]);
+
+    const bandsFor = (rarityDistribution: 'grounded' | 'balanced' | 'rare-forward' | 'mythic-arc') => (
+      Array.from({ length: 8 }, (_, index) => resolveFictionCastRarityBand({ ...baseSettings, rarityDistribution }, index))
+    );
+
+    expect(bandsFor('grounded')).toEqual(['common', 'common', 'uncommon', 'common', 'uncommon', 'rare', 'common', 'uncommon']);
+    expect(bandsFor('balanced')).toEqual(['common', 'uncommon', 'rare', 'uncommon', 'epic', 'common', 'rare', 'legendary']);
+    expect(bandsFor('rare-forward')).toEqual(['rare', 'uncommon', 'epic', 'rare', 'common', 'legendary', 'rare', 'epic']);
+    expect(bandsFor('mythic-arc')).toEqual(['common', 'uncommon', 'rare', 'epic', 'legendary', 'rare', 'epic', 'legendary']);
+  });
+
+  it('preserves the historical style-pack novelty shift in the surface rarity policy', () => {
+    const settings = { ...baseSettings, novelty: 0.5, rarityDistribution: 'style-pack' as const };
+    const rarityBands = Array.from({ length: 8 }, (_, index) => resolveFictionCastRarityBand(settings, index));
+
+    expect(rarityBands).toEqual(['rare', 'epic', 'rare', 'rare', 'rare', 'uncommon', 'uncommon', 'uncommon']);
   });
 
   it('threads surface-owned rarity distributions through selected names', () => {
