@@ -47,8 +47,8 @@ The accepted naming-layer direction is:
 product surface
   -> reusable typed semantic callback(s)
      generateGivenName(...)   [implemented]
-     generateFamilyName(...)  [candidate]
-     generatePlaceName(...)   [candidate]
+     generateFamilyName(...)  [accepted; implementation pending]
+     generatePlaceName(...)   [accepted; implementation pending]
   -> generic singular generateName(...)
   -> typed style compilation
   -> SoundProfile / SegmentSequence
@@ -59,19 +59,35 @@ product surface
 
 A surface owns its UX, defaults, presets, and surface-specific state. It derives configuration for one or more reusable semantic callbacks. Those callbacks carry domain semantics and delegate to the single generic `generateName(...)` primitive.
 
+First-class semantic treatment does not require every wrapper to have distinct mechanics. The currently supported generated name roles—given, family, and place—are all first-class semantic API categories. `generateFamilyName(...)` and `generatePlaceName(...)` may initially be behavior-equivalent pass-throughs so long as they delegate to `generateName(...)` and expose the stable semantic caller boundary.
+
 A surface may also own a multi-name operation when the cross-name behavior itself is meaningful to that surface. Such orchestration sits **above** reusable semantic callbacks. Shared `independent-set` quantity remains useful infrastructure for repeated independent generation but is not the mandatory abstraction for every roster or set workflow.
 
 The singular `generateName(...)` boundary is implemented in `src/naming`. It constructs an internal `NameGenerationPlan` from generic planning inputs before style, sound, spelling, scoring, and variants. Product semantics such as Fiction Cast roles are resolved above that boundary into generic planning pressure and surface-owned scoring evidence. The existing `silhouette` result/artifact property remains compatibility and inspection evidence; callers no longer construct a `NameSilhouette` or call a silhouette-shaped generator.
 
 The generic plan constructor itself remains one-name mechanics, but the broader generic plan/result/artifact type contracts still carry optional Fiction Cast role-influence residue attached above generation. Issue #201 tracks removing that surface metadata and separating the wider application/Fiction Cast settings aggregate from generic naming/request contracts.
 
-The first reusable semantic capability is also implemented: `generateGivenName(...)` owns `GivenNamePreferences`, translates them into generic planning pressure internally, and delegates one-name mechanics to `generateName(...)`. Fiction Cast primary given-name generation enters through that semantic callback while family/place supporting generation remains on the generic primitive. Review #199 found no current evidence that separate family/place callbacks have been earned, and issue #202 tracks narrowing the remaining RNG/index/planning plumbing in the concrete `generateGivenName(...)` invocation contract before treating it as the settled template for future semantic capabilities.
+The first reusable semantic capability is implemented: `generateGivenName(...)` owns `GivenNamePreferences`, translates them into generic planning pressure internally, and delegates one-name mechanics to `generateName(...)`. Fiction Cast primary given-name generation enters through that semantic callback while family/place supporting generation still uses the generic primitive until #202 implements their first-class wrappers. Review #199 correctly observed that family/place currently have no distinct one-name mechanics; the subsequent #198 checkpoint decision clarifies that distinct mechanics are not required for first-class semantic API treatment.
 
 Generic one-name scoring is now intrinsic as well. `NameScores` and `ScoreKey` contain only one-name evidence plus intrinsic `overallFit`; Fiction Cast owns `roleFit`, `ensembleFit`, and the contextual overall used for cast candidate selection in `FictionCastContextualScores`. Cast export lives under `src/fictionCast` and preserves its existing flattened JSON/Markdown score shape at the surface boundary rather than teaching generic engine contracts about cast context.
 
 Rarity is also surface-owned rather than a semantic or mechanical property of generic name generation. `FictionCastRarityBand`, rarity-distribution policy, rarity diagnostics, and each generated cast name's `rarityBand` live under `src/fictionCast`. Generic `NameGenerationPlan`, `NameGenerationPlanPreferences`, `GivenNamePreferences`, and style-pack silhouette mechanics do not carry rarity. Fiction Cast may still expose rarity as a useful user control and export it as cast metadata; that projection does not make rarity causal input to `generateName(...)`.
 
 The app-facing result model is not yet fully settled for compound identities. Fiction Cast can currently compose multiple generated/lexical parts while top-level generated-name sound/spelling evidence still describes the primary generated component. Issue #203 tracks separating the primitive sound-backed generated-name result from composed product identities so future surfaces do not have to guess what one result object means.
+
+## Lexical inventory and finite-choice direction
+
+Not every identity component belongs on the generated-name path. Bounded lexical material such as particles, honorifics, titles, or generational suffixes should use a separate reusable finite-choice path rather than pretending that a `SoundProfile` generated those values.
+
+The accepted mechanical direction is a small deterministic generic selector such as `selectFromOptions(...)`, wrapped by semantic selectors such as `selectParticle(...)`, `selectGenerationalSuffix(...)`, or `selectHonorific(...)` where a domain-level API is useful.
+
+The underlying option lists should be persisted as typed naming lexicon / lexical inventory data alongside the existing sound and grapheme inventories rather than scattered as accidental hard-coded policy. Those inventory sources should be able to retain provenance and linguistic/regional scope—language, region, dialect, period, register, or comparable qualifiers—without forcing every caller to pass each detail separately.
+
+Caller-facing semantic APIs may expose a typed `options` facade that resolves or encapsulates those granular inventory/source details. Name Forge owns the inventory contract, validation, deterministic selection behavior, versioning, and the bundled datasets it ships; it does not claim that a bundled dataset is the definitive linguistic truth for a locale or naming tradition.
+
+This direction does not create a universal `NameSegment` abstraction or an omnibus `generatePersonName(...)` function. Composition of generated names, selected lexical values, derived values, and literals remains with the surface/domain whose grammar is actually known.
+
+The exact lexical inventory types and migration of existing surface-owned lists should be a separate bounded implementation slice unless #201-#203 require them directly.
 
 ## Current shipped baseline
 
@@ -83,7 +99,7 @@ Shared platform capabilities now include:
 - singular-compatible defaults when quantity and grouping are omitted;
 - criteria diagnostics and a compiler bridge into current generation settings;
 - one generic singular `generateName(...)` orchestration boundary above style/sound/spelling mechanics;
-- one reusable semantic `generateGivenName(...)` callback that owns given-name preference vocabulary and delegates to `generateName(...)`; issue #202 tracks narrowing its remaining orchestration-facing invocation inputs before interface sign-off;
+- one reusable semantic `generateGivenName(...)` callback that owns given-name preference vocabulary and delegates to `generateName(...)`; issue #202 tracks narrowing its remaining orchestration-facing invocation inputs before interface sign-off and adding the accepted family/place wrappers;
 - intrinsic generic one-name scoring that does not fabricate Fiction Cast role or ensemble values;
 - internal `NameGenerationPlan` materialization hidden behind `generateName(...)` rather than required from callers; its generic constructor produces one-name planning evidence, while issue #201 tracks remaining optional Cast role-influence residue in the generic plan/result/artifact type contracts;
 - sound-first generation through `SoundProfile` and `SegmentSequence`;
@@ -112,7 +128,7 @@ Fiction Cast additionally includes:
 - cast-role semantics resolved above `generateGivenName(...)` into typed given-name preferences for the primary component, with role evidence and role-fit scoring retained in Fiction Cast orchestration;
 - surface-owned rarity distribution, rarity labels, rarity diagnostics, and cast-result metadata that do not enter `generateGivenName(...)` or generic `NameGenerationPlan` construction;
 - surface-owned contextual `roleFit`, `ensembleFit`, and cast overall scoring, with generic `GeneratedName.scores` remaining intrinsic;
-- family/place supporting generation still using the generic `generateName(...)` planning seam pending evidence for their own semantic callbacks;
+- family/place supporting generation still using the generic `generateName(...)` planning seam pending #202 implementation of their accepted first-class wrappers;
 - a compact post-generation summary bar that keeps Tune and Regenerate available without leaving the full criteria summary in the primary reading path (issue #176);
 - lock and selection iteration;
 - selected-name single-slot reroll with non-target preservation, lock semantics, selection continuity, and targeted Recent names recording (issue #167);
@@ -162,7 +178,7 @@ Parent checkpoint #198 is the active gate before new surface-specific requiremen
 
 The engine and naming-interface review concluded **foundation not yet settled**.
 
-It also found that neither `generateFamilyName(...)` nor `generatePlaceName(...)` is currently earned: the existing Fiction Cast supporting-component kind affects composition but does not define distinct reusable family/place generation behavior or configuration.
+That review correctly observed that current family/place supporting components do not yet have distinct one-name generation mechanics or configuration. The subsequent checkpoint decision refines the conclusion: distinct mechanics are not required for first-class semantic API treatment. Given, family, and place are stable generated-name categories already present in the product and should each have a first-class wrapper over `generateName(...)`.
 
 ### Blocking correction — issue #201
 
@@ -170,7 +186,7 @@ Separate Fiction Cast/application settings and role metadata from generic naming
 
 ### Blocking correction — issue #202
 
-Narrow semantic naming callbacks to semantic/deterministic inputs that actually belong at that reusable boundary. `generateGivenName(...)` should not accidentally make planning RNGs, generation RNGs, indexes, and planning-specific overrides the permanent template for future semantic APIs merely because the first implementation exposed them.
+Define the smallest stable semantic-callback invocation contract, remove orchestration plumbing that does not belong there, retain `generateGivenName(...)`, and add first-class `generateFamilyName(...)` / `generatePlaceName(...)` wrappers. All semantic `-Name` wrappers must delegate lexical-name generation to `generateName(...)`; distinct mechanics are not required for the wrapper to be first-class.
 
 ### Blocking correction — issue #203
 
@@ -178,7 +194,11 @@ Separate the primitive sound-backed generated-name result from composed product 
 
 ### Documentation alignment — issue #200
 
-Audit current documentation against the post-#197/#199 state, correct stale live guidance, preserve historical bodies, and explicitly demote superseded design snapshots rather than rewriting history.
+Audit current documentation against the post-#197/#199 state and subsequent checkpoint decisions, correct stale live guidance, preserve historical bodies, and explicitly demote superseded design snapshots rather than rewriting history.
+
+### Accepted lexical vocabulary direction
+
+Finite lexical vocabularies should use typed persisted inventories plus deterministic selection rather than generic sound generation. Semantic selectors may facade granular inventory/source details behind typed `options` contracts. The exact implementation should be separately scoped unless it becomes necessary to complete #201-#203.
 
 ### Foundation gate
 
@@ -224,9 +244,12 @@ Surface-specific aggregate orchestration is not automatically deferred merely be
 - No prompt-first UX or LLM-driven criteria compilation.
 - No public criteria-fit percentage.
 - No mode-specific sound generator or `mode` branch inside `generateName(...)`.
+- No duplicate family/place sound-generation implementation; their semantic wrappers delegate to `generateName(...)`.
 - No universal multi-name callback.
-- No universal semantic-style schema before concrete semantic callbacks earn one.
-- No automatic family/place callback cloning merely for symmetry.
+- No universal `NameSegment` abstraction merely to unify heterogeneous identity parts.
+- No omnibus `generatePersonName(...)` API that owns given/family/clan/house/title/affiliation composition.
+- No universal lexical-inventory taxonomy or claim that Name Forge is the definitive authority for a locale or naming tradition.
+- No universal semantic-style schema before concrete semantic callbacks need one.
 - No reintroduction of Fiction Cast rarity categories into generic planning or semantic callback contracts merely because the UI exposes a rarity knob.
 - No Fiction Cast aggregate redesign as part of the foundation corrections.
 - No IPA, paid TTS integration, or pronunciation dictionaries.
