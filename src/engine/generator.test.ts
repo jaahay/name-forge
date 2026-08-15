@@ -2,19 +2,20 @@ import { describe, expect, it } from 'vitest';
 import { generateEnsemble } from '../fictionCast/ensemble';
 import { fictionCastEpithetLexemes, fictionCastTitleLexemes } from '../fictionCast/identityLexicon';
 import type { FictionCastRarityBand } from '../fictionCast/rarity';
+import type { FictionCastSettings } from '../fictionCast/types';
 import { generateName } from '../naming/generator';
 import { createSeededRandom } from './random';
 import { createDefaultRegistry } from './registry';
-import type { GeneratedName, GenerationSettings } from './types';
+import type { GeneratedName } from './types';
 
-const settings: GenerationSettings = { castSize: 6, novelty: 0.5, pronounceability: 0.7, memorability: 0.6, culturalAnchoring: 0.65, orthographicWeirdness: 0.25, stylePackId: 'british-literary-fantasy', seed: 'deterministic-test-seed', nameFormat: 'given-only' };
+const settings: FictionCastSettings = { castSize: 6, novelty: 0.5, pronounceability: 0.7, memorability: 0.6, culturalAnchoring: 0.65, orthographicWeirdness: 0.25, stylePackId: 'british-literary-fantasy', seed: 'deterministic-test-seed', nameFormat: 'given-only' };
 const mmoRarityBands: FictionCastRarityBand[] = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
 
-function nameListFor(overrides: Partial<GenerationSettings> = {}): string[] {
+function nameListFor(overrides: Partial<FictionCastSettings> = {}): string[] {
   return generateEnsemble({ ...settings, ...overrides }, createDefaultRegistry()).names.map((name) => name.name);
 }
 
-function onlyNameFor(overrides: Partial<GenerationSettings> = {}): GeneratedName {
+function onlyNameFor(overrides: Partial<FictionCastSettings> = {}): GeneratedName {
   const ensemble = generateEnsemble({ ...settings, castSize: 1, ...overrides }, createDefaultRegistry());
   expect(ensemble.names).toHaveLength(1);
   const [name] = ensemble.names;
@@ -65,6 +66,7 @@ describe('generateEnsemble', () => {
     expect(generated.sound.transcription).toMatch(/^\/.+\/$/);
     expect(generated.spellingCandidates.length).toBeGreaterThan(0);
     expect('rarityBand' in generated.silhouette).toBe(false);
+    expect('roleInfluence' in generated.silhouette).toBe(false);
     const [topSpelling] = generated.spellingCandidates;
     expect(topSpelling).toBeDefined();
     if (!topSpelling) throw new Error('Expected top ranked spelling.');
@@ -124,7 +126,7 @@ describe('generateEnsemble', () => {
     if (!firstName) throw new Error('Expected first role-labeled name.');
     expect(firstName.role?.role).toBe('protagonist');
     expect(firstName.roleInfluence).toBeUndefined();
-    expect(firstName.silhouette.roleInfluence).toBeUndefined();
+    expect('roleInfluence' in firstName.silhouette).toBe(false);
     expect(firstName.contextualScores.roleFit).toBe(0.72);
   });
 
@@ -145,7 +147,8 @@ describe('generateEnsemble', () => {
     expect(lightName.role?.role).toBe('protagonist');
     expect(lightName.roleInfluence?.level).toBe('light');
     expect(lightName.roleInfluence?.profileId).toBe('role-profile:protagonist');
-    expect(lightName.silhouette.roleInfluence?.label).toBe('Protagonist clarity');
+    expect(lightName.roleInfluence?.label).toBe('Protagonist clarity');
+    expect('roleInfluence' in lightName.silhouette).toBe(false);
     expect(lightName.contextualScores.roleFit).toBeGreaterThan(0);
     expect(strongName.roleInfluence?.level).toBe('strong');
     expect(strongName.contextualScores.roleFit).toBeGreaterThan(0);
