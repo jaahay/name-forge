@@ -2,25 +2,13 @@ import { describe, expect, it } from 'vitest';
 import { toNameArtifact } from './nameArtifact';
 import type { GeneratedName } from './types';
 
-function requireValue<T>(value: T | undefined, label: string): T {
-  if (value === undefined) {
-    throw new Error(`Expected ${label}.`);
-  }
-
-  return value;
-}
-
 const generatedName: GeneratedName = {
   id: 'generated-aurel',
   name: 'Aurel',
   soundProfile: {
     targets: {
       length: 'medium',
-      syllableCount: {
-        min: 2,
-        max: 3,
-        preferred: 2,
-      },
+      syllableCount: { min: 2, max: 3, preferred: 2 },
       texture: 'soft',
       distinctiveness: 0.6,
       cadences: ['balanced'],
@@ -42,20 +30,18 @@ const generatedName: GeneratedName = {
       contract: 'SegmentSequence',
       version: 1,
       segments: ['l', 'a', 'r'],
-      syllables: [
-        {
-          start: 0,
-          end: 3,
-          onset: [0],
-          nucleus: [1],
-          coda: [2],
-          shape: 'CVC',
-          weight: 'heavy',
-          sonorityProfile: 'rise-fall',
-          stress: 'primary',
-          stressSource: 'sequence',
-        },
-      ],
+      syllables: [{
+        start: 0,
+        end: 3,
+        onset: [0],
+        nucleus: [1],
+        coda: [2],
+        shape: 'CVC',
+        weight: 'heavy',
+        sonorityProfile: 'rise-fall',
+        stress: 'primary',
+        stressSource: 'sequence',
+      }],
     },
     transcription: 'lar',
   },
@@ -63,55 +49,13 @@ const generatedName: GeneratedName = {
     contract: 'SpellingCandidate',
     version: 1,
     text: 'Aurel',
-    mappings: [
-      {
-        segmentIndex: 0,
-        segmentId: 'l',
-        syllableIndex: 0,
-        syllableRole: 'onset',
-        text: 'A',
-        start: 0,
-        end: 1,
-      },
-      {
-        segmentIndex: 1,
-        segmentId: 'a',
-        syllableIndex: 0,
-        syllableRole: 'nucleus',
-        text: 'ur',
-        start: 1,
-        end: 3,
-      },
-      {
-        segmentIndex: 2,
-        segmentId: 'r',
-        syllableIndex: 0,
-        syllableRole: 'coda',
-        text: 'el',
-        start: 3,
-        end: 5,
-      },
-    ],
+    mappings: [{ segmentIndex: 0, segmentId: 'l', syllableIndex: 0, syllableRole: 'onset', text: 'A', start: 0, end: 1 }],
     rank: 1,
     score: 0.94,
   },
   spellingCandidates: [
-    {
-      contract: 'SpellingCandidate',
-      version: 1,
-      text: 'Aurel',
-      mappings: [],
-      rank: 1,
-      score: 0.94,
-    },
-    {
-      contract: 'SpellingCandidate',
-      version: 1,
-      text: 'Orel',
-      mappings: [],
-      rank: 2,
-      score: 0.82,
-    },
+    { contract: 'SpellingCandidate', version: 1, text: 'Aurel', mappings: [], rank: 1, score: 0.94 },
+    { contract: 'SpellingCandidate', version: 1, text: 'Orel', mappings: [], rank: 2, score: 0.82 },
   ],
   silhouette: {
     id: 'silhouette-medium-soft',
@@ -133,131 +77,59 @@ const generatedName: GeneratedName = {
     silhouetteFit: 0.84,
     overallFit: 0.81,
   },
-  variants: [
-    {
-      value: 'Aurell',
-      kind: 'generated',
-      relationship: 'creative_respelling',
-      confidence: 'medium',
-      source: {
-        id: 'variant-rule-double-l',
-        kind: 'algorithm',
-        label: 'Double final liquid',
-        detail: 'Generated spelling variant.',
-      },
-      generated: true,
-      ruleId: 'double-final-liquid',
+  variants: [{
+    value: 'Aurell',
+    kind: 'generated',
+    relationship: 'creative_respelling',
+    confidence: 'medium',
+    source: {
+      id: 'variant-rule-double-l',
+      kind: 'algorithm',
+      label: 'Double final liquid',
+      detail: 'Generated spelling variant.',
     },
-  ],
-  readabilityDiagnostics: [
-    {
-      id: 'readability-soft-repeat',
-      scope: 'name',
-      severity: 'notice',
-      label: 'Soft repeated liquid',
-      detail: 'The name has a soft repeated liquid cadence.',
-    },
-  ],
-  identity: {
-    displayName: 'Aurel the Bright',
-    format: {
-      id: 'epithet-place',
-      kind: 'epithet-place',
-      label: 'Epithet place',
-    },
-    parts: [
-      {
-        id: 'part-aurel',
-        role: 'given',
-        value: 'Aurel',
-        sourceNameId: 'generated-aurel',
-        sourceName: 'Aurel',
-      },
-    ],
-    phraseParts: [
-      {
-        kind: 'part',
-        partId: 'part-aurel',
-        role: 'given',
-      },
-      {
-        kind: 'literal',
-        value: ' the Bright',
-      },
-    ],
-  },
-};
-
-const generatedNameWithPartProvenance: GeneratedName = {
-  ...generatedName,
-  identity: {
-    ...requireValue(generatedName.identity, 'generated identity'),
-    parts: requireValue(generatedName.identity, 'generated identity').parts.map((part) => part.role === 'given' ? {
-      ...part,
-      generation: {
-        soundProfile: generatedName.soundProfile,
-        sound: generatedName.sound,
-        spelling: generatedName.spelling,
-      },
-    } : part),
-  },
+    generated: true,
+    ruleId: 'double-final-liquid',
+  }],
+  readabilityDiagnostics: [{
+    id: 'readability-soft-repeat',
+    scope: 'name',
+    severity: 'notice',
+    label: 'Soft repeated liquid',
+    detail: 'The name has a soft repeated liquid cadence.',
+  }],
 };
 
 describe('toNameArtifact', () => {
-  it('maps display text from identity display composition when available', () => {
+  it('maps a singular generated name to a generated-name artifact with coherent display text', () => {
     const artifact = toNameArtifact(generatedName);
 
-    expect(artifact.id).toBe('generated-aurel');
-    expect(artifact.displayText).toBe('Aurel the Bright');
-    expect(artifact.identity).toBe(generatedName.identity);
+    expect(artifact.kind).toBe('generated-name');
+    expect(artifact.id).toBe(generatedName.id);
+    expect(artifact.displayText).toBe(generatedName.name);
+    expect(artifact.displayText).toBe(generatedName.spelling.text);
+    expect('identity' in artifact).toBe(false);
+    expect('identityAudition' in artifact).toBe(false);
   });
 
-  it('falls back to the generated name when no identity display composition is present', () => {
-    const { identity: _identity, ...nameWithoutIdentity } = generatedName;
-    const artifact = toNameArtifact(nameWithoutIdentity);
-
-    expect(artifact.displayText).toBe('Aurel');
-    expect(artifact.identity).toBeUndefined();
-  });
-
-  it('preserves sound and selected spelling metadata', () => {
+  it('preserves exact primitive sound, spelling, plan, variants, and readability evidence', () => {
     const artifact = toNameArtifact(generatedName);
 
     expect(artifact.soundProfile).toBe(generatedName.soundProfile);
     expect(artifact.sound).toBe(generatedName.sound);
     expect(artifact.spelling).toBe(generatedName.spelling);
-
-    const spelling = requireValue(artifact.spelling, 'selected spelling');
-    expect(spelling.text).toBe('Aurel');
-  });
-
-  it('preserves generated sound provenance owned by identity parts', () => {
-    const artifact = toNameArtifact(generatedNameWithPartProvenance);
-    const part = requireValue(artifact.identity?.parts.find((candidate) => candidate.role === 'given'), 'generated identity part');
-
-    expect(part.generation?.soundProfile).toBe(generatedName.soundProfile);
-    expect(part.generation?.sound).toBe(generatedName.sound);
-    expect(part.generation?.spelling).toBe(generatedName.spelling);
-  });
-
-  it('preserves ranked spelling alternatives and current selected-name diagnostics', () => {
-    const artifact = toNameArtifact(generatedName);
-
     expect(artifact.spellingCandidates).toBe(generatedName.spellingCandidates);
-    expect(artifact.spellingCandidates).toHaveLength(2);
+    expect(artifact.silhouette).toBe(generatedName.silhouette);
+    expect(artifact.variants).toBe(generatedName.variants);
     expect(artifact.readabilityDiagnostics).toBe(generatedName.readabilityDiagnostics);
-
-    const diagnostics = requireValue(artifact.readabilityDiagnostics, 'readability diagnostics');
-    const diagnostic = requireValue(diagnostics[0], 'first readability diagnostic');
-    expect(diagnostic.severity).toBe('notice');
   });
 
-  it('does not expose Fiction Cast role metadata on generic artifacts', () => {
+  it('does not expose Fiction Cast or composition metadata on generic artifacts', () => {
     const artifact = toNameArtifact(generatedName);
 
     expect('role' in artifact).toBe(false);
     expect('roleInfluence' in artifact).toBe(false);
-    expect(artifact.silhouette).toBe(generatedName.silhouette);
-    expect(artifact.variants).toBe(generatedName.variants);
+    expect('contextualScores' in artifact).toBe(false);
+    expect('identity' in artifact).toBe(false);
   });
 });
