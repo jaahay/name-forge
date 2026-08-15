@@ -4,7 +4,7 @@
 
 This document records the implementation sequence that established the criteria-driven request contract and the first shared quantity/grouping extension.
 
-It is an implementation-history document, not the active naming-API roadmap. Decision 0006 distinguishes the request platform from the reusable semantic callback hierarchy and explicitly demotes silhouette-shaped generation from architectural API status. Issue #186 has since implemented the singular `generateName(...)` boundary beneath this request platform.
+It is an implementation-history document, not the active naming-API roadmap. Decision 0006 distinguishes the request platform from the reusable semantic callback hierarchy and explicitly demotes silhouette-shaped generation from architectural API status. Issue #186 has since implemented the singular `generateName(...)` boundary beneath this request platform, and the first reusable `generateGivenName(...)` capability was implemented later above it.
 
 Read the active requirements and architecture first:
 
@@ -247,4 +247,4 @@ Repository CI must run TypeScript/Vite build and Vitest against the exact pull-r
 
 Supported-target knowledge remains duplicated between `nameCriteriaCompiler.ts` and `nameCriteriaDiagnostics.ts`. Centralizing that knowledge should be a separate coherent cleanup before substantially expanding criteria targets.
 
-The active naming-layer sequence is tracked in [`../current-product-scope.md`](../current-product-scope.md). With issue #186 complete, the next architecture slice is to build reusable typed semantic callbacks from real domain semantics on top of `generateName(...)`, while keeping nuanced aggregate behavior surface-owned unless reuse is demonstrated.
+The active architecture sequence is tracked in [`../current-product-scope.md`](../current-product-scope.md) and parent checkpoint #198. Review #199 concluded that the engine/interface foundation is **not yet settled** and opened blockers #201, #202, and #203. The later checkpoint decision refined #202: given, family, and place are all first-class semantic generated-name roles, and #202 should add family/place wrappers over the same `generateName(...)` primitive while narrowing the shared semantic invocation contract. The lexical-inventory / deterministic finite-choice direction is accepted separately. Preserve this document as implementation history; do not treat its old slice order as the current roadmap.

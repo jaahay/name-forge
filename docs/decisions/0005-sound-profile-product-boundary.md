@@ -4,7 +4,7 @@
 
 Accepted and refined through the current migration slices. Decision 0006 defines the naming capability hierarchy above this sound/style boundary.
 
-The sound/profile/containment decisions here remain authoritative. The earlier statement that reusable semantic name generators were merely deferred is refined: reusable typed semantic callbacks are now an accepted architectural layer, while their concrete TypeScript contracts and domain-specific configuration remain implementation work.
+The sound/profile/containment decisions here remain authoritative. The earlier statement that reusable semantic name generators were merely deferred is refined: reusable typed semantic callbacks are now an accepted architectural layer. Given, family, and place are current first-class semantic generated-name categories; `generateGivenName(...)` is implemented, while `generateFamilyName(...)` and `generatePlaceName(...)` are accepted pending #202. Their exact stable TypeScript invocation contract remains implementation work.
 
 Issue #186 has implemented the singular `generateName(...)` boundary anticipated by this decision. References below to the old silhouette-shaped bridge describe the pre-#186 context unless explicitly stated otherwise.
 
@@ -24,7 +24,7 @@ Name orchestration also compiles style, selects spelling, scores names, and gene
 
 `given`, `family`, `place`, `epithet`, `title`, `initial`, and literal roles describe naming-domain or product-level meaning. They are not primitives of generic sound generation.
 
-Reusable naming capabilities may expose typed operations such as `generateGivenName(...)`, `generateFamilyName(...)`, or `generatePlaceName(...)` without requiring those meanings to become sound-engine concepts.
+Reusable naming capabilities expose typed operations such as `generateGivenName(...)`, `generateFamilyName(...)`, or `generatePlaceName(...)` without requiring those meanings to become sound-engine concepts. Distinct sound mechanics are not required merely for those stable semantic roles to have first-class callbacks.
 
 A product surface composes one or more such capabilities and injects configuration derived from its UX. Fiction Cast may consume them while continuing to own cast-specific identity and aggregate behavior.
 
@@ -188,21 +188,22 @@ SoundCandidate -> spelling mechanics
 
 - `generateSound(profile, rng)` remains generic and does not branch on product semantics.
 - `generateName(...)` is the implemented singular naming primitive above mechanics.
-- Reusable semantic callbacks represent domain semantics and will delegate to `generateName(...)`.
+- Reusable semantic callbacks represent domain semantics and delegate to `generateName(...)`.
+- Given, family, and place are first-class semantic generated-name categories; given is implemented, and family/place wrappers are accepted pending #202.
 - Product surfaces compose semantic callbacks and inject their own configuration rather than teaching generic mechanics about the surface.
 - Surface-specific aggregate callbacks may remain product-specific when their cross-name semantics are not reusable.
 - Style compilation, naming orchestration, and sound generation have separate responsibilities and may evolve independently.
 - `SoundProfile` can be compared, retained, and passed by value without identity infrastructure.
 - Nested sound/sequence/spelling values are related through containment rather than synthetic ids and joins.
 - Different semantic capabilities may use distinct typed style languages while compiling to the same `SoundProfile` type.
-- Fiction Cast may evolve given/family/place into reusable capabilities without changing the sound engine and while retaining its own cast orchestration.
+- Fiction Cast can consume given/family/place semantic callbacks without changing the sound engine and while retaining its own cast orchestration.
 - Lexical epithets and titles remain valid product grammar parts without pretending to be generated sounds.
 - Legacy silhouette evidence remains compatibility data, not a naming API boundary.
 
 ## Deferred decisions
 
-- The concrete style languages, defaults, and typed configuration that distinguish given, family, place, and other semantic capabilities.
-- Which additional semantic callbacks earn reusable API status from real cross-surface use.
+- Whether concrete style languages, defaults, or typed configuration later distinguish given, family, place, and other semantic capabilities beyond their stable caller boundaries.
+- Which additional semantic callbacks earn reusable API status from real product use.
 - Whether epithets remain lexical, become generated, or support both realizations.
 - Whether request-resolution behavior ever warrants a first-class policy abstraction.
 - Whether the generic system should later expose a reusable compound-name or grammar/composition extension.
