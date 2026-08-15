@@ -10,19 +10,37 @@ import type {
   ReadabilityDiagnostic,
 } from './types';
 
-export interface NameArtifact {
+interface NameArtifactBase {
   readonly id: string;
   readonly displayText: string;
-  readonly soundProfile?: SoundProfile;
-  readonly sound?: SoundCandidate;
-  readonly spelling?: RankedSpellingCandidate;
-  readonly spellingCandidates?: readonly RankedSpellingCandidate[];
-  readonly silhouette?: NameGenerationPlan;
-  readonly variants?: readonly NameVariant[];
-  readonly readabilityDiagnostics?: readonly ReadabilityDiagnostic[];
-  readonly identity?: NameIdentity;
-  readonly identityAudition?: IdentityAuditionPhrase;
+  readonly readabilityDiagnostics: readonly ReadabilityDiagnostic[];
 }
+
+export interface GeneratedNameArtifact extends NameArtifactBase {
+  readonly kind: 'generated-name';
+  readonly soundProfile: SoundProfile;
+  readonly sound: SoundCandidate;
+  readonly spelling: RankedSpellingCandidate;
+  readonly spellingCandidates: readonly RankedSpellingCandidate[];
+  readonly silhouette: NameGenerationPlan;
+  readonly variants: readonly NameVariant[];
+  readonly identity?: never;
+  readonly identityAudition?: never;
+}
+
+export interface ComposedNameArtifact extends NameArtifactBase {
+  readonly kind: 'composed-identity';
+  readonly identity: NameIdentity;
+  readonly identityAudition?: IdentityAuditionPhrase;
+  readonly soundProfile?: never;
+  readonly sound?: never;
+  readonly spelling?: never;
+  readonly spellingCandidates?: never;
+  readonly silhouette?: never;
+  readonly variants?: never;
+}
+
+export type NameArtifact = GeneratedNameArtifact | ComposedNameArtifact;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -79,6 +97,10 @@ function isReadabilityDiagnostic(value: unknown): boolean {
     && isNonEmptyString(value.severity)
     && isNonEmptyString(value.label)
     && isNonEmptyString(value.detail);
+}
+
+function isReadabilityDiagnostics(value: unknown): value is readonly ReadabilityDiagnostic[] {
+  return Array.isArray(value) && value.every(isReadabilityDiagnostic);
 }
 
 function isNameVariant(value: unknown): boolean {
@@ -194,28 +216,56 @@ function isNameIdentity(value: unknown): value is NameIdentity {
   });
 }
 
-export function isNameArtifact(value: unknown): value is NameArtifact {
-  return isRecord(value)
-    && isNonEmptyString(value.id)
-    && isNonEmptyString(value.displayText)
-    && (value.sound === undefined || isSoundCandidate(value.sound))
-    && (value.spelling === undefined || isSpellingCandidate(value.spelling))
-    && (value.spellingCandidates === undefined
-      || (Array.isArray(value.spellingCandidates) && value.spellingCandidates.every(isSpellingCandidate)))
-    && (value.variants === undefined
-      || (Array.isArray(value.variants) && value.variants.every(isNameVariant)))
-    && (value.readabilityDiagnostics === undefined
-      || (Array.isArray(value.readabilityDiagnostics) && value.readabilityDiagnostics.every(isReadabilityDiagnostic)))
-    && (value.soundProfile === undefined || isSoundProfile(value.soundProfile))
-    && (value.silhouette === undefined || isRecord(value.silhouette))
-    && (value.identity === undefined || isNameIdentity(value.identity))
-    && (value.identityAudition === undefined || isIdentityAuditionPhrase(value.identityAudition));
+function hasNoCompositionFields(value: Record<string, unknown>): boolean {
+  return value.identity === undefined && value.identityAudition === undefined;
 }
 
-export function toNameArtifact(generatedName: GeneratedName): NameArtifact {
+function hasNoPrimitiveGenerationFields(value: Record<string, unknown>): boolean {
+  return value.soundProfile === undefined
+    && value.sound === undefined
+    && value.spelling === undefined
+    && value.spellingCandidates === undefined
+    && value.silhouette === undefined
+    && value.variants === undefined;
+}
+
+function isGeneratedNameArtifact(value: Record<string, unknown>): boolean {
+  if (value.kind !== 'generated-name' || !hasNoCompositionFields(value)) return false;
+  if (!isNonEmptyString(value.id) || !isNonEmptyString(value.displayText)) return false;
+  if (!isSoundProfile(value.soundProfile) || !isSoundCandidate(value.sound)) return false;
+  if (!isGeneratedSpellingCandidate(value.spelling) || !spellingMatchesSound(value.spelling, value.sound)) return false;
+  if (value.displayText !== value.spelling.text) return false;
+
+  return Array.isArray(value.spellingCandidates)
+    && value.spellingCandidates.every(isGeneratedSpellingCandidate)
+    && isRecord(value.silhouette)
+    && Array.isArray(value.variants)
+    && value.variants.every(isNameVariant)
+    && isReadabilityDiagnostics(value.readabilityDiagnostics);
+}
+
+function isComposedNameArtifact(value: Record<string, unknown>): boolean {
+  if (value.kind !== 'composed-identity' || !hasNoPrimitiveGenerationFields(value)) return false;
+  if (!isNonEmptyString(value.id) || !isNonEmptyString(value.displayText) || !isNameIdentity(value.identity)) return false;
+  if (value.displayText !== value.identity.displayName) return false;
+  if (!isReadabilityDiagnostics(value.readabilityDiagnostics)) return false;
+  if (value.identityAudition !== undefined) {
+    if (!isIdentityAuditionPhrase(value.identityAudition)) return false;
+    if (value.identityAudition.identityText !== value.displayText) return false;
+  }
+  return true;
+}
+
+export function isNameArtifact(value: unknown): value is NameArtifact {
+  if (!isRecord(value)) return false;
+  return isGeneratedNameArtifact(value) || isComposedNameArtifact(value);
+}
+
+export function toNameArtifact(generatedName: GeneratedName): GeneratedNameArtifact {
   return {
+    kind: 'generated-name',
     id: generatedName.id,
-    displayText: generatedName.identity?.displayName ?? generatedName.name,
+    displayText: generatedName.name,
     soundProfile: generatedName.soundProfile,
     sound: generatedName.sound,
     spelling: generatedName.spelling,
@@ -223,7 +273,5 @@ export function toNameArtifact(generatedName: GeneratedName): NameArtifact {
     silhouette: generatedName.silhouette,
     variants: generatedName.variants,
     readabilityDiagnostics: generatedName.readabilityDiagnostics,
-    ...(generatedName.identity === undefined ? {} : { identity: generatedName.identity }),
-    ...(generatedName.identityAudition === undefined ? {} : { identityAudition: generatedName.identityAudition }),
   };
 }
