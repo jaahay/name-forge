@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { generateEnsemble } from '../fictionCast/ensemble';
 import { rarityDistributionOptions, resolveFictionCastRarityBand } from '../fictionCast/rarity';
+import type { FictionCastSettings } from '../fictionCast/types';
 import { createDefaultRegistry } from './registry';
-import type { GenerationSettings } from './types';
 
-const baseSettings: GenerationSettings = {
+const baseSettings: FictionCastSettings = {
   castSize: 6,
   novelty: 0.5,
   pronounceability: 0.7,
@@ -27,13 +27,15 @@ describe('generateEnsemble role and rarity controls', () => {
     expect(first.names.map((name) => name.role?.role)).toEqual(['protagonist', 'rival', 'mentor', 'sidekick']);
   });
 
-  it('keeps intrinsic scores separate from Fiction Cast contextual scores', () => {
+  it('keeps intrinsic scores and plans separate from Fiction Cast contextual metadata', () => {
     const registry = createDefaultRegistry();
     const ensemble = generateEnsemble({ ...baseSettings, castSize: 2, rolePreset: 'classic-ensemble', roleInfluence: 'light' }, registry);
 
     for (const name of ensemble.names) {
       expect('ensembleFit' in name.scores).toBe(false);
       expect('roleFit' in name.scores).toBe(false);
+      expect('roleInfluence' in name.silhouette).toBe(false);
+      expect(name.roleInfluence?.level).toBe('light');
       expect(name.contextualScores.ensembleFit).toBeGreaterThanOrEqual(0);
       expect(name.contextualScores.ensembleFit).toBeLessThanOrEqual(1);
       expect(name.contextualScores.roleFit).toBeGreaterThanOrEqual(0);
