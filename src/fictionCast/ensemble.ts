@@ -4,7 +4,7 @@ import { generateGivenName, type GivenNamePreferences } from '../naming/givenNam
 import { generateName } from '../naming/generator';
 import { toNameGenerationSettings } from '../naming/settings';
 import { renderIdentityAuditionPhrase } from '../engine/identityAudition';
-import type { CastRoleAssignment, GeneratedName, GenerationSettings, NameGenerationPlanPreferences } from '../engine/types';
+import type { GeneratedName, NameGenerationPlanPreferences } from '../engine/types';
 import type { SourceRegistry } from '../engine/registry';
 import {
   resolveFictionCastComponentGenerationContext,
@@ -14,18 +14,25 @@ import { createNameIdentity, requiresSupportingName, resolveMaterializedFormatKi
 import { resolveFictionCastRarityBand } from './rarity';
 import { getRolePreferenceProfile, isRoleInfluenceActive, resolveCastRole, resolveRoleInfluence } from './roles';
 import { combineFictionCastOverallFit, scoreFictionCastRoleFit } from './scoring';
-import { requireFictionCastGeneratedName, type FictionCastContextualScores, type FictionCastGeneratedEnsemble, type FictionCastGeneratedName, type FictionCastSettings } from './types';
+import {
+  requireFictionCastGeneratedName,
+  type CastRoleAssignment,
+  type FictionCastContextualScores,
+  type FictionCastGeneratedEnsemble,
+  type FictionCastGeneratedName,
+  type FictionCastSettings,
+} from './types';
 
 export interface LockedNameSlot { index: number; name: GeneratedName; }
 
-type ContextualizedGeneratedName = GeneratedName & { readonly contextualScores: FictionCastContextualScores };
+type ContextualizedGeneratedName = GeneratedName & Pick<FictionCastGeneratedName, 'roleInfluence' | 'contextualScores'>;
 
 function endingKey(name: string): string { const normalized = name.toLowerCase(); return normalized.slice(Math.max(0, normalized.length - 2)); }
 function cadenceKey(name: GeneratedName): string { return `${name.silhouette.stressPattern}:${name.silhouette.syllableCount}:${name.silhouette.rhythm}`; }
 function countRepeated(values: string[]): number { const seen = new Set<string>(); let repeated = 0; for (const value of values) { if (seen.has(value)) repeated += 1; seen.add(value); } return repeated; }
-function roleSeedSegment(settings: GenerationSettings, role?: CastRoleAssignment): string { return role && isRoleInfluenceActive(settings) ? `:role-${role.role}` : ''; }
+function roleSeedSegment(settings: FictionCastSettings, role?: CastRoleAssignment): string { return role && isRoleInfluenceActive(settings) ? `:role-${role.role}` : ''; }
 function ensembleFitScore(candidate: GeneratedName, selected: FictionCastGeneratedName[]): number { const initials = new Set(selected.map((name) => name.name.charAt(0).toLowerCase())); const endings = new Set(selected.map((name) => endingKey(name.name))); const cadences = new Set(selected.map(cadenceKey)); const names = new Set(selected.map((name) => name.name.toLowerCase())); const penalty = (initials.has(candidate.name.charAt(0).toLowerCase()) ? 0.24 : 0) + (endings.has(endingKey(candidate.name)) ? 0.22 : 0) + (cadences.has(cadenceKey(candidate)) ? 0.16 : 0) + (names.has(candidate.name.toLowerCase()) ? 1 : 0); return clamp(1 - penalty); }
-function withEnsembleFit(candidate: FictionCastGeneratedName, selected: FictionCastGeneratedName[], settings: GenerationSettings): FictionCastGeneratedName {
+function withEnsembleFit(candidate: FictionCastGeneratedName, selected: FictionCastGeneratedName[], settings: FictionCastSettings): FictionCastGeneratedName {
   const ensembleFit = ensembleFitScore(candidate, selected);
   const scoringSettings = resolveFictionCastComponentGenerationContext(settings, candidate.role, 'given').settings;
   const contextualScores = {
@@ -36,14 +43,14 @@ function withEnsembleFit(candidate: FictionCastGeneratedName, selected: FictionC
   return { ...candidate, contextualScores };
 }
 
-function planningSettingsForCandidate(settings: GenerationSettings, index: number): GenerationSettings {
+function planningSettingsForCandidate(settings: FictionCastSettings, index: number): FictionCastSettings {
   return {
     ...settings,
     novelty: clamp(settings.novelty + ((index % 5) - 2) * 0.06),
   };
 }
 
-function supportingPlanningPreferencesForCandidate(settings: GenerationSettings, role: CastRoleAssignment | undefined): NameGenerationPlanPreferences | undefined {
+function supportingPlanningPreferencesForCandidate(settings: FictionCastSettings, role: CastRoleAssignment | undefined): NameGenerationPlanPreferences | undefined {
   const influence = resolveRoleInfluence(settings, role);
   if (!influence) return undefined;
   const profile = getRolePreferenceProfile(influence.role);
@@ -54,7 +61,7 @@ function supportingPlanningPreferencesForCandidate(settings: GenerationSettings,
   };
 }
 
-function givenNamePreferencesForCandidate(settings: GenerationSettings, role: CastRoleAssignment | undefined): GivenNamePreferences | undefined {
+function givenNamePreferencesForCandidate(settings: FictionCastSettings, role: CastRoleAssignment | undefined): GivenNamePreferences | undefined {
   const influence = resolveRoleInfluence(settings, role);
   if (!influence) return undefined;
   const profile = getRolePreferenceProfile(influence.role);
@@ -65,10 +72,9 @@ function givenNamePreferencesForCandidate(settings: GenerationSettings, role: Ca
   };
 }
 
-function withRoleInfluence(candidate: GeneratedName, settings: GenerationSettings, role?: CastRoleAssignment): ContextualizedGeneratedName {
+function withRoleInfluence(candidate: GeneratedName, settings: FictionCastSettings, role?: CastRoleAssignment): ContextualizedGeneratedName {
   const roleInfluence = resolveRoleInfluence(settings, role);
-  const plan = roleInfluence ? { ...candidate.silhouette, roleInfluence } : candidate.silhouette;
-  const roleFit = scoreFictionCastRoleFit(candidate.name, plan, roleInfluence);
+  const roleFit = scoreFictionCastRoleFit(candidate.name, candidate.silhouette, roleInfluence);
   const contextualScores = {
     ensembleFit: 0.72,
     roleFit,
@@ -76,13 +82,12 @@ function withRoleInfluence(candidate: GeneratedName, settings: GenerationSetting
   };
   return {
     ...candidate,
-    silhouette: plan,
     ...(roleInfluence === undefined ? {} : { roleInfluence }),
     contextualScores,
   };
 }
 
-function withNameIdentity(candidate: FictionCastGeneratedName, settings: GenerationSettings, registry: SourceRegistry, index: number, attempt: number): FictionCastGeneratedName {
+function withNameIdentity(candidate: FictionCastGeneratedName, settings: FictionCastSettings, registry: SourceRegistry, index: number, attempt: number): FictionCastGeneratedName {
   const formatKind = resolveMaterializedFormatKind(settings.nameFormat, index);
   const pack = registry.getStylePack(settings.stylePackId);
   const supportingKind = supportingComponentKindForFormat(formatKind);
