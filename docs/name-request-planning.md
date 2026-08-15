@@ -39,13 +39,15 @@ The accepted reusable naming hierarchy is ordered separately:
 product surface
   -> reusable semantic callback(s)
      generateGivenName(...)   [implemented]
-     generateFamilyName(...)  [candidate]
-     generatePlaceName(...)   [candidate]
+     generateFamilyName(...)  [accepted; implementation pending]
+     generatePlaceName(...)   [accepted; implementation pending]
   -> generic singular generateName(...)
   -> style / sound / spelling mechanics
 ```
 
-Surface-specific aggregate operations may sit above semantic callbacks when cross-name behavior is meaningful to that surface.
+All semantic `-Name` wrappers delegate lexical-name generation to `generateName(...)`; distinct mechanics are not required for first-class semantic API treatment. Surface-specific aggregate operations may sit above semantic callbacks when cross-name behavior is meaningful to that surface.
+
+Finite lexical values such as particles or generational suffixes are a separate capability family. They may use typed naming lexicons and semantic selectors over a generic deterministic `selectFromOptions(...)` mechanic rather than entering `generateName(...)` or `SoundProfile`.
 
 ## Implemented request sequence
 
@@ -84,7 +86,7 @@ Despite the historical filename, that document records the accepted exact indepe
 ## Read order
 
 1. [`decisions/0006-naming-capabilities-and-surface-composition.md`](decisions/0006-naming-capabilities-and-surface-composition.md)
-   - Authoritative `generateName` / reusable semantic callback / surface composition hierarchy.
+   - Authoritative `generateName`, semantic `-Name` wrapper, lexical inventory/finite-choice, and surface-composition direction.
 2. [`current-product-scope.md`](current-product-scope.md)
    - Active product-scope lens and the current foundation-checkpoint sequence.
 3. [`architecture.md`](architecture.md)
@@ -130,6 +132,8 @@ Implemented platform behavior:
 
 The `silhouette` property remains a current result/artifact compatibility fact backed by `NameGenerationPlan`; it is not a caller-facing generation API or an architectural requirement for future semantic callbacks.
 
+The request adapter still calls `generateName(...)` directly because `NameRequest` does not currently assert a semantic name kind. Accepting first-class given/family/place wrappers does not change that transport rule.
+
 ## Active architecture sequence
 
 The request/grouping platform is implemented and is **not** the active expansion target.
@@ -138,13 +142,13 @@ Parent checkpoint #198 is now the active gate before new surface-specific requir
 
 1. #199 reviewed the engine and naming interfaces and concluded **not yet settled**.
 2. #201 must separate Fiction Cast/application settings and role metadata from generic naming contracts.
-3. #202 must narrow semantic callback inputs so `generateGivenName(...)` does not establish orchestration plumbing as the reusable semantic API pattern.
+3. #202 must establish the stable semantic invocation contract, narrow orchestration plumbing, retain `generateGivenName(...)`, and add first-class `generateFamilyName(...)` / `generatePlaceName(...)` wrappers that delegate to `generateName(...)`.
 4. #203 must separate one primitive sound-backed generated-name result from composed product identities.
-5. #200 aligns stale documentation with that actual state.
-6. Family/place callbacks remain unearned until distinct reusable semantics/configuration are demonstrated.
+5. #200 aligns stale documentation with the review and subsequent checkpoint decisions.
+6. The lexical inventory / `selectFromOptions(...)` direction is accepted but should be implemented as a separate bounded slice unless required by #201-#203.
 7. Only after #198 signs off the foundation should a new Fiction Cast UI/UX requirements boundary be defined.
 
-Nuanced multi-name behavior remains surface-specific unless a cross-surface aggregate abstraction is demonstrated later.
+Nuanced multi-name behavior and heterogeneous identity composition remain surface/domain-specific unless a cross-surface abstraction is demonstrated later. No universal `NameSegment` or omnibus `generatePersonName(...)` contract is implied by the request platform.
 
 ## Deferred generic request/grouping work
 
