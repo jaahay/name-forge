@@ -45,14 +45,17 @@ describe('NameInspector', () => {
   it('keeps the primary inspector focused on the composed display and component-owned sound', () => {
     const name = fixtureName();
     const html = renderInspector(name);
+    const soundPart = name.identityAudition.parts.find((part) => part.kind === 'sound');
 
+    expect(soundPart).toBeDefined();
+    if (!soundPart || soundPart.kind !== 'sound') throw new Error('Expected a modeled sound part.');
     expect(html).toContain('inspector-primary');
     expect(html).toContain('Sound');
     expect(html).toContain('Display');
     expect(html).toContain('composed identity');
     expect(html).toContain(name.displayName);
     expect(html).toContain('modeled parts');
-    expect(html).toContain(name.primaryName.sound.transcription.replace(/^\//, '').replace(/\/$/, ''));
+    expect(html).toContain(soundPart.displayText);
     expect(html).not.toContain('Alternates');
 
     for (const removed of ['Other spellings (', 'Pronunciation guide', 'Playback', 'Technical sound structure', 'Preference rank', 'Supported spellings', 'Next option', 'Spelling display cap']) {
