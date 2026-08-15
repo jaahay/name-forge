@@ -56,7 +56,7 @@ The important ownership split is:
 - **semantic naming capabilities** live above `generateName(...)`, carry stable domain meaning, and may own typed configuration without duplicating generic lexical-name mechanics.
 - **finite lexical inventory/selection** is an accepted adjacent platform capability: typed lexical source data plus small deterministic selection mechanics under semantic selectors. The exact runtime module/type shape is not implemented yet and should be introduced in a bounded slice.
 - **`src/styleCompilation`** owns typed style languages and compilation into `SoundProfile`.
-- **`src/fictionCast`** owns Fiction Cast identity grammar, current lexical title/epithet material, surface-specific ensemble behavior, locks, roles, contextual scoring, rarity policy/metadata, cast composition, and translation of cast-role semantics into generic planning preferences.
+- **`src/fictionCast`** owns Fiction Cast settings/result contracts, identity grammar, current lexical title/epithet material, surface-specific ensemble behavior, locks, roles, contextual scoring, rarity policy/metadata, cast composition, and translation of cast-role semantics into generic planning preferences.
 - **`src/ui`** owns presentation and interaction, including the shared inspector and mode-specific views.
 
 Do not move product semantics into the sound engine merely because a generated identity eventually contains sound. Do not move surface-specific orchestration into a universal backend abstraction merely because more than one name is involved. Do not introduce a universal `NameSegment` abstraction or omnibus `generatePersonName(...)` API merely because one surface composes heterogeneous identity values.
@@ -120,7 +120,7 @@ It also does not provide cohesion optimization, diversity optimization, slots, p
 
 ## Criteria and request adaptation
 
-`NameCriteria` is the shared structured intent model for intent that crosses the generic request boundary. Current UI controls and presets may still use lower-level settings, and shared request behavior compiles supported criteria into current `GenerationSettings` through the existing compiler bridge.
+`NameCriteria` is the shared structured intent model for intent that crosses the generic request boundary. Shared request behavior compiles supported criteria into current `GenerationSettings`, which contains generic one-name controls plus shared `stylePackId` / `seed` orchestration fields. The compiler does not manufacture Fiction Cast defaults; surface-specific settings remain above the shared request boundary.
 
 A semantic callback may also expose strongly typed configuration meaningful only for its domain. A surface can derive shared criteria, semantic configuration, or both from its UX. Typed semantic `options` may facade more granular source/inventory details without expanding `NameCriteria` into a universal schema. Do not force every given-name, place-name, faction-name, lexical-vocabulary, or future style distinction into one universal criteria contract solely to preserve one input shape.
 
@@ -172,7 +172,7 @@ Surface-specific aggregate operations, if needed, sit above semantic callbacks.
 
 `NameSilhouette`, `createNameSilhouette(...)`, and `generateNameFromSilhouette(...)` are no longer caller-facing generation abstractions.
 
-`generateName(...)` materializes a `NameGenerationPlan` internally. The plan retains syllable count, stress/rhythm, shape, texture, target novelty, target length, and optional surface-attached role-influence evidence because those values still serve generic generation/scoring or retained compatibility evidence. It does **not** contain Fiction Cast rarity. Rarity is a surface classification attached to `FictionCastGeneratedName`, not a causal generic planning field.
+`generateName(...)` materializes a `NameGenerationPlan` internally. The plan retains syllable count, stress/rhythm, shape, texture, target novelty, and target length as generic generation/scoring and inspection evidence. It contains no Fiction Cast role, role-influence, or rarity metadata.
 
 The existing `GeneratedName.silhouette` / `NameArtifact.silhouette` property name and `silhouette-*` evidence IDs remain for compatibility. They do not require callers to build the plan and do not define a fourth generation callback category.
 
