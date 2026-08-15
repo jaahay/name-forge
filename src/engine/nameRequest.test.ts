@@ -52,8 +52,16 @@ describe('NameRequest v1 contracts', () => {
 
   it('represents a resolved response with grouping, name artifacts, an emitted seed, and criteria diagnostics', () => {
     const artifact: NameArtifact = {
+      kind: 'composed-identity',
       id: 'name-artifact-1',
       displayText: 'Aurel',
+      identity: {
+        displayName: 'Aurel',
+        format: { id: 'format:given-only', kind: 'given-only', label: 'Given name' },
+        parts: [{ id: 'name-artifact-1:given', role: 'given', value: 'Aurel', sourceNameId: 'name-artifact-1', sourceName: 'Aurel' }],
+        phraseParts: [{ kind: 'part', partId: 'name-artifact-1:given', role: 'given' }],
+      },
+      readabilityDiagnostics: [],
     };
 
     const response: NameResponse = {
