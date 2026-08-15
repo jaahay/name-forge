@@ -3,13 +3,11 @@ import type { SoundCandidate } from './soundGenerator';
 import type { SoundProfile } from './soundProfile';
 import type { RankedSpellingCandidate } from './spellingGenerator';
 import type {
-  CastRoleAssignment,
   GeneratedName,
   NameGenerationPlan,
   NameIdentity,
   NameVariant,
   ReadabilityDiagnostic,
-  RoleInfluenceMetadata,
 } from './types';
 
 export interface NameArtifact {
@@ -24,8 +22,6 @@ export interface NameArtifact {
   readonly readabilityDiagnostics?: readonly ReadabilityDiagnostic[];
   readonly identity?: NameIdentity;
   readonly identityAudition?: IdentityAuditionPhrase;
-  readonly role?: CastRoleAssignment;
-  readonly roleInfluence?: RoleInfluenceMetadata;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -213,9 +209,7 @@ export function isNameArtifact(value: unknown): value is NameArtifact {
     && (value.soundProfile === undefined || isSoundProfile(value.soundProfile))
     && (value.silhouette === undefined || isRecord(value.silhouette))
     && (value.identity === undefined || isNameIdentity(value.identity))
-    && (value.identityAudition === undefined || isIdentityAuditionPhrase(value.identityAudition))
-    && (value.role === undefined || isRecord(value.role))
-    && (value.roleInfluence === undefined || isRecord(value.roleInfluence));
+    && (value.identityAudition === undefined || isIdentityAuditionPhrase(value.identityAudition));
 }
 
 export function toNameArtifact(generatedName: GeneratedName): NameArtifact {
@@ -231,7 +225,5 @@ export function toNameArtifact(generatedName: GeneratedName): NameArtifact {
     readabilityDiagnostics: generatedName.readabilityDiagnostics,
     ...(generatedName.identity === undefined ? {} : { identity: generatedName.identity }),
     ...(generatedName.identityAudition === undefined ? {} : { identityAudition: generatedName.identityAudition }),
-    ...(generatedName.role === undefined ? {} : { role: generatedName.role }),
-    ...(generatedName.roleInfluence === undefined ? {} : { roleInfluence: generatedName.roleInfluence }),
   };
 }
