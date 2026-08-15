@@ -1,7 +1,6 @@
 import type { SoundCandidate } from './soundGenerator';
 import type { SoundProfile } from './soundProfile';
 import type { RankedSpellingCandidate } from './spellingGenerator';
-import type { IdentityAuditionPhrase } from './identityAudition';
 import type { SourceDescriptor, SourceValidationIssue, StylePackValidationResult } from './sourceTypes';
 import type { StyleDescriptor, StylePackSourceDescriptor } from './stylePackTypes';
 
@@ -66,7 +65,8 @@ export interface NameIdentityLiteralPart { kind: 'literal'; value: string; }
 export type NameIdentityPhrasePart = NameIdentityPartReference | NameIdentityLiteralPart;
 export interface NameFormatRule { id: string; kind: Exclude<NameFormatKind, 'mixed'>; label: string; }
 export interface NameIdentity { displayName: string; format: NameFormatRule; parts: GeneratedNamePart[]; phraseParts: readonly NameIdentityPhrasePart[]; }
-export interface GeneratedName { id: string; name: string; soundProfile: SoundProfile; sound: SoundCandidate; spelling: RankedSpellingCandidate; spellingCandidates: readonly RankedSpellingCandidate[]; silhouette: NameGenerationPlan; scores: NameScores; variants: NameVariant[]; readabilityDiagnostics: ReadabilityDiagnostic[]; identity?: NameIdentity; identityAudition?: IdentityAuditionPhrase; }
+/** One singular sound-backed generated name. `name` is exactly the selected spelling described by this result's sound/spelling evidence. */
+export interface GeneratedName { id: string; name: string; soundProfile: SoundProfile; sound: SoundCandidate; spelling: RankedSpellingCandidate; spellingCandidates: readonly RankedSpellingCandidate[]; silhouette: NameGenerationPlan; scores: NameScores; variants: NameVariant[]; readabilityDiagnostics: ReadabilityDiagnostic[]; }
 export interface SpellingVariantRule { id: string; label: string; from: string; to: string; maxApplications?: number; sourceKind: SourceKind; relationship?: NameVariantRelationship; confidence?: NameVariantConfidence; }
 export interface StylePackSummary { id: string; label: string; description: string; source: StylePackSourceDescriptor; style: StyleDescriptor; }
 export interface StylePack extends StylePackSummary { version: string; localeHint: string; culturalAnchors: string[]; phonotactics: { onsets: Array<WeightedValue>; nuclei: Array<WeightedValue>; codas: Array<WeightedValue>; preferredEndings: Array<WeightedValue>; rareGraphemes: string[]; forbiddenFragments: string[]; }; silhouetteBias: { syllableCounts: Array<WeightedValue<number>>; textures: Array<WeightedValue<NameTexture>>; }; listedVariants: Record<string, string[]>; variantRules: SpellingVariantRule[]; }
