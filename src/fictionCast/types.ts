@@ -1,14 +1,15 @@
+import type { IdentityAuditionPhrase } from '../engine/identityAudition';
 import type {
   GeneratedName,
   GenerationSettings,
   NameFormatKind,
+  NameIdentity,
   ReadabilityDiagnostic,
   StylePackSummary,
 } from '../engine/types';
-import {
-  isFictionCastRarityBand,
-  type FictionCastRarityBand,
-  type FictionCastRarityDistributionPresetKind,
+import type {
+  FictionCastRarityBand,
+  FictionCastRarityDistributionPresetKind,
 } from './rarity';
 
 export type CastRole = 'protagonist' | 'rival' | 'mentor' | 'sidekick' | 'guardian' | 'outsider' | 'villain' | 'wildcard';
@@ -47,7 +48,19 @@ export interface FictionCastContextualScores {
   readonly overallFit: number;
 }
 
-export interface FictionCastGeneratedName extends GeneratedName {
+/**
+ * One Fiction Cast product identity composed around an unchanged primitive
+ * sound-backed generated name. The compound display identity owns no aggregate
+ * sound/spelling evidence; callers reach that evidence through `primaryName` or
+ * through the generated parts retained by `identity`.
+ */
+export interface FictionCastGeneratedName {
+  readonly id: string;
+  readonly displayName: string;
+  readonly primaryName: GeneratedName;
+  readonly identity: NameIdentity;
+  readonly identityAudition: IdentityAuditionPhrase;
+  readonly readabilityDiagnostics: ReadabilityDiagnostic[];
   readonly role?: CastRoleAssignment;
   readonly roleInfluence?: RoleInfluenceMetadata;
   readonly contextualScores: FictionCastContextualScores;
@@ -72,13 +85,4 @@ export interface FictionCastGeneratedEnsemble {
   readonly sourcePack: StylePackSummary;
   readonly names: FictionCastGeneratedName[];
   readonly diagnostics: FictionCastEnsembleDiagnostics;
-}
-
-export function requireFictionCastGeneratedName(name: GeneratedName): FictionCastGeneratedName {
-  const contextualScores = (name as Partial<FictionCastGeneratedName>).contextualScores;
-  const rarityBand = (name as Partial<FictionCastGeneratedName>).rarityBand;
-  if (!contextualScores || !isFictionCastRarityBand(rarityBand)) {
-    throw new Error(`Expected Fiction Cast context for ${name.id}.`);
-  }
-  return name as FictionCastGeneratedName;
 }
