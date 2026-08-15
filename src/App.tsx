@@ -1,5 +1,6 @@
 import { FormEvent, useState } from 'react';
 import { generateEnsemble, type LockedNameSlot } from './fictionCast/ensemble';
+import { toFictionCastNameArtifact } from './fictionCast/nameArtifact';
 import type { FictionCastGeneratedEnsemble, FictionCastSettings } from './fictionCast/types';
 import {
   addNameHistoryEntries,
@@ -8,7 +9,7 @@ import {
   saveNameHistory,
   type NameHistoryStorage,
 } from './engine/nameHistory';
-import { toNameArtifact, type NameArtifact } from './engine/nameArtifact';
+import type { NameArtifact } from './engine/nameArtifact';
 import { createDefaultRegistry } from './engine/registry';
 import { rerollSelectedCastName } from './fictionCastReroll';
 import { AboutView } from './ui/AboutView';
@@ -90,7 +91,7 @@ export default function App() {
     setCommittedSettings(nextSettings);
     setEnsemble(nextEnsemble);
     setLockedNameIds(retainedLockIds(nextEnsemble, nextLockedNameIds));
-    recordArtifacts(nextEnsemble.names.map(toNameArtifact), { mode: 'fiction-cast', seed: nextSettings.seed });
+    recordArtifacts(nextEnsemble.names.map(toFictionCastNameArtifact), { mode: 'fiction-cast', seed: nextSettings.seed });
   }
 
   function generate(event?: FormEvent<HTMLFormElement>) {
