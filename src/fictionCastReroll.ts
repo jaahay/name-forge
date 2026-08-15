@@ -1,6 +1,7 @@
 import { generateEnsemble, type LockedNameSlot } from './fictionCast/ensemble';
+import { toFictionCastNameArtifact } from './fictionCast/nameArtifact';
 import type { FictionCastGeneratedEnsemble, FictionCastSettings } from './fictionCast/types';
-import { toNameArtifact, type NameArtifact } from './engine/nameArtifact';
+import type { NameArtifact } from './engine/nameArtifact';
 import type { SourceRegistry } from './engine/registry';
 
 export interface FictionCastRerollResult {
@@ -44,6 +45,6 @@ export function rerollSelectedCastName(
     committedSettings,
     replacementId: replacement.id,
     lockedNameIds: retainedLockIds(nextEnsemble, lockedNameIds),
-    historyArtifacts: [toNameArtifact(replacement)],
+    historyArtifacts: [toFictionCastNameArtifact(replacement)],
   };
 }
