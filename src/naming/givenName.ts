@@ -1,53 +1,20 @@
-import type { SeededRandom } from '../engine/random';
-import type {
-  GeneratedName,
-  NameGenerationPlanPreferences,
-  NameGenerationSettings,
-  NameTexture,
-  StylePack,
-  WeightedValue,
-} from '../engine/types';
-import { generateName } from './generator';
+import type { GeneratedName } from '../engine/types';
+import {
+  generateSemanticName,
+  type SemanticNameOptions,
+  type SemanticNamePreferences,
+} from './semanticName';
 
-export interface GivenNamePreferences {
-  readonly preferenceStrength?: number;
-  readonly syllableCounts?: ReadonlyArray<WeightedValue<number>>;
-  readonly textures?: ReadonlyArray<WeightedValue<NameTexture>>;
-}
-
-export interface GenerateGivenNameOptions {
-  readonly settings: NameGenerationSettings;
-  readonly pack: StylePack;
-  readonly planningRandom: SeededRandom;
-  readonly generationRandom: SeededRandom;
-  readonly index: number;
-  readonly planningSettings?: NameGenerationSettings;
-  readonly preferences?: GivenNamePreferences;
-}
-
-function toPlanningPreferences(preferences: GivenNamePreferences | undefined): NameGenerationPlanPreferences | undefined {
-  if (!preferences) return undefined;
-  return {
-    strength: preferences.preferenceStrength ?? 0,
-    ...(preferences.syllableCounts === undefined ? {} : { syllableCounts: [...preferences.syllableCounts] }),
-    ...(preferences.textures === undefined ? {} : { textures: [...preferences.textures] }),
-  };
-}
+export type GivenNamePreferences = SemanticNamePreferences;
+export type GenerateGivenNameOptions = SemanticNameOptions<GivenNamePreferences>;
 
 /**
  * Generates one given name through the shared singular name-generation primitive.
  *
- * The semantic callback owns the given-name contract and translates its preferences
- * into generic planning pressure without exposing the internal planning shape.
+ * The semantic callback owns the given-name contract while the shared semantic
+ * invocation boundary hides source resolution, random-stream construction, and
+ * generic planning representation from callers.
  */
 export function generateGivenName(options: GenerateGivenNameOptions): GeneratedName {
-  return generateName({
-    settings: options.settings,
-    pack: options.pack,
-    planningRandom: options.planningRandom,
-    generationRandom: options.generationRandom,
-    index: options.index,
-    ...(options.planningSettings === undefined ? {} : { planningSettings: options.planningSettings }),
-    ...(options.preferences === undefined ? {} : { planningPreferences: toPlanningPreferences(options.preferences) }),
-  });
+  return generateSemanticName(options);
 }
