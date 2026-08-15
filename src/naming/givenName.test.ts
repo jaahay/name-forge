@@ -1,23 +1,27 @@
 import { describe, expect, it } from 'vitest';
 import { createSeededRandom } from '../engine/random';
 import { createDefaultRegistry } from '../engine/registry';
-import type { NameGenerationSettings } from '../engine/types';
+import type { GenerationSettings } from '../engine/types';
 import { generateName } from './generator';
 import { generateGivenName } from './givenName';
+import { toNameGenerationSettings } from './settings';
 
-const settings: NameGenerationSettings = {
+const registry = createDefaultRegistry();
+const settings: GenerationSettings = {
   novelty: 0.5,
   pronounceability: 0.7,
   memorability: 0.6,
   culturalAnchoring: 0.65,
   orthographicWeirdness: 0.25,
+  stylePackId: 'british-literary-fantasy',
+  seed: 'given-name-test',
 };
 
 describe('generateGivenName', () => {
   it('preserves the generic singular generation result when no semantic preferences are supplied', () => {
-    const pack = createDefaultRegistry().getStylePack('british-literary-fantasy');
+    const pack = registry.getStylePack(settings.stylePackId);
     const direct = generateName({
-      settings,
+      settings: toNameGenerationSettings(settings),
       pack,
       planningRandom: createSeededRandom('given-name:plan'),
       generationRandom: createSeededRandom('given-name:sound'),
@@ -25,23 +29,26 @@ describe('generateGivenName', () => {
     });
     const semantic = generateGivenName({
       settings,
-      pack,
-      planningRandom: createSeededRandom('given-name:plan'),
-      generationRandom: createSeededRandom('given-name:sound'),
-      index: 2,
+      registry,
+      determinism: {
+        planningSeed: 'given-name:plan',
+        generationSeed: 'given-name:sound',
+        resultIndex: 2,
+      },
     });
 
     expect(semantic).toEqual(direct);
   });
 
   it('translates given-name preferences into generic planning pressure internally', () => {
-    const pack = createDefaultRegistry().getStylePack('british-literary-fantasy');
     const generated = generateGivenName({
       settings,
-      pack,
-      planningRandom: createSeededRandom('given-name:preferred-plan'),
-      generationRandom: createSeededRandom('given-name:preferred-sound'),
-      index: 0,
+      registry,
+      determinism: {
+        planningSeed: 'given-name:preferred-plan',
+        generationSeed: 'given-name:preferred-sound',
+        resultIndex: 0,
+      },
       preferences: {
         preferenceStrength: 1,
         syllableCounts: [
