@@ -2,9 +2,9 @@ import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { generateEnsemble } from './fictionCast/ensemble';
+import { toFictionCastNameArtifact, toFictionCastPrimaryNameArtifact } from './fictionCast/nameArtifact';
 import type { FictionCastSettings } from './fictionCast/types';
 import { analyzeNameArtifactSoundRelationships } from './engine/nameArtifactAnalysis';
-import { toNameArtifact } from './engine/nameArtifact';
 import { createDefaultRegistry } from './engine/registry';
 import { rerollSelectedCastName } from './fictionCastReroll';
 import { CastHealthPanel } from './ui/CastHealth';
@@ -25,7 +25,7 @@ const settings: FictionCastSettings = {
 };
 
 describe('rerollSelectedCastName', () => {
-  it('replaces one slot while preserving every non-target GeneratedName and unaffected lock', () => {
+  it('replaces one slot while preserving every non-target composed identity and unaffected lock', () => {
     const registry = createDefaultRegistry();
     const before = generateEnsemble(settings, registry);
     const targetIndex = 1;
@@ -59,11 +59,12 @@ describe('rerollSelectedCastName', () => {
     expect(result.replacementId).toBe(replacement.id);
     expect(result.replacementId).not.toBe(target.id);
     expect(replacement.role?.role).toBe(target.role?.role);
-    expect(replacement.identity?.format.kind).toBe(target.identity?.format.kind);
+    expect(replacement.identity.format.kind).toBe(target.identity.format.kind);
     expect(result.committedSettings.seed).toBe('selected-reroll-after');
     expect(result.lockedNameIds).toEqual(lockedNameIds);
     expect(result.lockedNameIds.has(result.replacementId)).toBe(false);
-    expect(result.historyArtifacts).toEqual([toNameArtifact(replacement)]);
+    expect(result.historyArtifacts).toEqual([toFictionCastNameArtifact(replacement)]);
+    expect(result.historyArtifacts[0]?.kind).toBe('composed-identity');
     expect(result.ensemble.diagnostics).not.toBe(before.diagnostics);
   });
 
@@ -73,21 +74,29 @@ describe('rerollSelectedCastName', () => {
     const anchor = before.names[0];
     const target = before.names[1];
 
-    if (!anchor || !target || !anchor.sound) throw new Error('Expected generated sound fixtures.');
+    if (!anchor || !target) throw new Error('Expected generated sound fixtures.');
 
-    const sentinelName = 'Retired Target Sentinel';
+    const sentinelName = 'RetiredTargetSentinel';
     const sentinelTarget = {
       ...target,
       id: 'name-reroll-retired-target',
-      name: sentinelName,
-      sound: anchor.sound,
-      ...(target.identity ? { identity: { ...target.identity, displayName: sentinelName } } : {}),
+      displayName: sentinelName,
+      primaryName: {
+        ...target.primaryName,
+        id: 'generated-reroll-retired-target',
+        name: sentinelName,
+        soundProfile: anchor.primaryName.soundProfile,
+        sound: anchor.primaryName.sound,
+        spelling: { ...target.primaryName.spelling, text: sentinelName, mappings: [] },
+        spellingCandidates: [{ ...target.primaryName.spelling, text: sentinelName, mappings: [], rank: 1 }],
+      },
+      identity: { ...target.identity, displayName: sentinelName },
     };
     const beforeWithSentinel = {
       ...before,
       names: before.names.map((name, index) => (index === 1 ? sentinelTarget : name)),
     };
-    const beforeRelationships = analyzeNameArtifactSoundRelationships(beforeWithSentinel.names.map(toNameArtifact));
+    const beforeRelationships = analyzeNameArtifactSoundRelationships(beforeWithSentinel.names.map(toFictionCastPrimaryNameArtifact));
     const beforeHtml = renderToString(createElement(CastHealthPanel, {
       ensemble: beforeWithSentinel,
       lockedNameIds: new Set<string>(),
@@ -109,7 +118,7 @@ describe('rerollSelectedCastName', () => {
     if (!result) throw new Error('Expected selected-name reroll to succeed.');
 
     const activeIds = new Set(result.ensemble.names.map((name) => name.id));
-    const afterRelationships = analyzeNameArtifactSoundRelationships(result.ensemble.names.map(toNameArtifact));
+    const afterRelationships = analyzeNameArtifactSoundRelationships(result.ensemble.names.map(toFictionCastPrimaryNameArtifact));
     const afterHtml = renderToString(createElement(CastHealthPanel, {
       ensemble: result.ensemble,
       lockedNameIds: result.lockedNameIds,
