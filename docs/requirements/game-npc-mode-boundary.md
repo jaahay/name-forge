@@ -51,7 +51,7 @@ The exact semantic callback Game NPC should use depends on the naming job the su
 
 The surface owns how its UX derives configuration. The reusable semantic callback owns the domain meaning. The generic `generateName(...)` primitive owns one-name orchestration. `mode: "game-npc"` must not become a hidden semantic switch in generic generation.
 
-The semantic callback layer is not implemented yet. The shared request adapter now delegates singular production through the implemented generic `generateName(...)` boundary, so Game NPC no longer reaches a silhouette-shaped naming API.
+The first reusable semantic callback, `generateGivenName(...)`, is implemented. The current Game NPC request does not assert a semantic name kind, so its shared request adapter legitimately continues to delegate singular production through generic `generateName(...)`. A future Game NPC requirements slice may explicitly choose and configure an appropriate semantic capability; `mode` must not select one implicitly.
 
 ## Current platform pipeline
 
@@ -79,7 +79,7 @@ The current `GameNpcView` supplies:
 
 The surface does not own a second sound generator, request family, artifact model, analysis model, or artifact renderer.
 
-The current generic singular boundary is deliberately domain-neutral: `GenerateNameOptions` contains no Game NPC mode or semantic name-kind label. Future semantic callbacks should sit above it without changing Game NPC's current user-facing behavior merely for architecture cleanup.
+The current generic singular boundary is deliberately domain-neutral: `GenerateNameOptions` contains no Game NPC mode or semantic name-kind label. Reusable semantic callbacks sit above it without changing Game NPC's current user-facing behavior merely for architecture cleanup.
 
 ## Current input boundary
 
@@ -203,7 +203,7 @@ The broader platform additionally supports exact independent-set quantity/groupi
 
 The following remain possible future Game NPC slices, not implied current behavior:
 
-- selection/configuration of reusable semantic callbacks once those callbacks are implemented;
+- explicit selection/configuration of an appropriate reusable semantic capability if future Game NPC requirements assert a semantic naming domain;
 - independent NPC quantity UX where the existing `independent-set` contract is sufficient;
 - NPC-specific roster orchestration where the cross-name semantics belong to this surface;
 - context presets backed by explicit shared criteria and/or typed semantic naming configuration;

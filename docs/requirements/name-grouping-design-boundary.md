@@ -66,7 +66,7 @@ This contract is useful when the requested plurality has **no semantic relations
 
 A surface-specific aggregate operation is a different concern.
 
-For example, a Fiction Cast operation may need roles, locks, per-component semantic configuration, cross-name contrast, cast-specific selection pressure, and preservation of existing roster state. Such an operation may compose reusable `generateGivenName(...)`, `generateFamilyName(...)`, `generatePlaceName(...)`, or other semantic callbacks above the generic singular `generateName(...)` primitive.
+For example, a Fiction Cast operation may need roles, locks, per-component semantic configuration, cross-name contrast, cast-specific selection pressure, and preservation of existing roster state. Such an operation may compose the implemented `generateGivenName(...)` capability and any future family/place or other semantic callbacks that are earned by distinct reusable contracts, all above the generic singular `generateName(...)` primitive.
 
 It does not have to become a richer `NameGrouping` kind merely because multiple names are involved.
 
@@ -94,7 +94,7 @@ For the same normalized request, parent seed, algorithm version, and engine data
 - extending quantity preserves the existing result prefix;
 - adding or changing `mode` metadata alone does not change outputs.
 
-Current silhouette indexing may continue while the existing implementation uses `NameSilhouette`, but silhouette identity is not a durable grouping invariant and must not constrain the naming-layer refactor.
+Current legacy `silhouette-*` evidence indexing may continue while the implementation uses internal `NameGenerationPlan` materialization. Silhouette identity is not a durable grouping invariant and must not constrain the naming-layer architecture.
 
 Index 0 uses the parent seed directly so omitted quantity/grouping preserves the previous singular output stream. Later indexes use deterministic child-seed labels.
 

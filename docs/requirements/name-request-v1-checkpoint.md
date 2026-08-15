@@ -1,8 +1,8 @@
 # NameRequest v1 checkpoint
 
-This checkpoint records the implemented `NameRequest -> NameResponse` platform state after the singular criteria-driven foundation, the first shared exact independent-set slice, and the singular `generateName(...)` boundary established in issue #186.
+This checkpoint records the implemented `NameRequest -> NameResponse` platform state after the singular criteria-driven foundation, the first shared exact independent-set slice, and the singular `generateName(...)` boundary established in issue #186. The first reusable semantic callback, `generateGivenName(...)`, has since been implemented above that primitive; this document remains a checkpoint for the request/response platform rather than the semantic naming API.
 
-It is a checkpoint for the request/response platform, not the reusable semantic naming callback hierarchy. See [`../decisions/0006-naming-capabilities-and-surface-composition.md`](../decisions/0006-naming-capabilities-and-surface-composition.md) for the accepted naming-layer direction.
+See [`../decisions/0006-naming-capabilities-and-surface-composition.md`](../decisions/0006-naming-capabilities-and-surface-composition.md) for the accepted naming-layer direction.
 
 ## Implemented arc
 
@@ -36,7 +36,7 @@ The current runtime path is:
 NameRequest
   -> resolve criteria, optional mode metadata, exact quantity, grouping, and parent seed
   -> diagnostics
-  -> compile NameCriteria into current GenerationSettings
+  -> compile NameCriteria into the current GenerationSettings bridge
   -> derive one deterministic child seed per artifact index
   -> invoke generic singular generateName(...) for each child
   -> materialize internal NameGenerationPlan behind the naming API
@@ -62,7 +62,7 @@ surface-specific aggregate orchestration, when needed
 
 `NameRequest -> NameResponse` remains useful for shared criteria, independent quantity, deterministic replay, service/adapter boundaries, and artifact transport without becoming the only domain-level callback surface.
 
-The request adapter now consumes `generateName(...)` directly. Callers do not construct `NameSilhouette`; the retained `NameGenerationPlan` is internal planning/scoring evidence. The legacy `silhouette` artifact property is compatibility evidence rather than a request or naming-API concept.
+The request adapter consumes `generateName(...)` directly because the request does not currently assert a semantic name kind. `generateGivenName(...)` exists separately above that primitive and is used where a caller actually owns given-name semantics. Callers do not construct `NameSilhouette`; the retained `NameGenerationPlan` is internal planning/scoring evidence. The legacy `silhouette` artifact property is compatibility evidence rather than a request or naming-API concept.
 
 ## Quantity and grouping boundary
 
@@ -84,11 +84,13 @@ Artifact identities remain distinct for ordered outputs even when display values
 
 ## Current criteria support boundary
 
-The criteria compiler supports a small implemented subset of `NameCriteria` by translating shared criteria into current `GenerationSettings`.
+The criteria compiler supports a small implemented subset of `NameCriteria` by translating shared criteria into the current `GenerationSettings` bridge.
+
+That bridge still contains broader application/Fiction-Cast-shaped fields that generic request generation does not semantically need. Issue #201 tracks separating those settings and role metadata from generic naming/request contracts; this checkpoint records the current bridge without declaring it a stable architecture boundary.
 
 Diagnostics report unsupported and partially implemented criteria honestly. Unsupported criteria should not fail ordinary generation by default; the adapter continues with neutral best-effort settings for every requested artifact.
 
-A future semantic callback may additionally own typed configuration meaningful only for its domain. `NameCriteria` should not expand into a universal schema merely to encode every semantic name kind.
+Semantic callbacks may additionally own typed configuration meaningful only for their domain. `NameCriteria` should not expand into a universal schema merely to encode every semantic name kind.
 
 Follow-up risk: supported-criteria knowledge is duplicated between `nameCriteriaCompiler.ts` and `nameCriteriaDiagnostics.ts`. Before materially expanding shared criteria targets, centralize supported-target metadata or introduce a shared helper such as `isCriteriaClauseCompiled(...)`.
 
@@ -100,21 +102,24 @@ It can influence which generated result or spelling candidate is selected. It mu
 
 ## Active app surface boundary
 
-Fiction Cast keeps cast-facing concepts such as role mix, slot controls, locks, cross-name selection pressure, review, and export language in its surface behavior. It resolves cast-role generation pressure above `generateName(...)` into generic planning preferences and retains role evidence/scoring in the Fiction Cast layer.
+Fiction Cast keeps cast-facing concepts such as role mix, slot controls, locks, cross-name selection pressure, review, and export language in its surface behavior. Its primary given-name generation now enters through `generateGivenName(...)`; family/place supporting generation remains on `generateName(...)` because #199 found no current evidence that distinct reusable family/place callbacks have been earned. Cast role, contextual scoring, rarity, identity composition, and aggregate behavior stay above those one-name mechanics.
 
-Those concepts are not global grouping assumptions. As reusable semantic callbacks emerge, Fiction Cast should compose and configure those capabilities while retaining its own aggregate orchestration where the cross-name semantics are cast-specific.
+Those concepts are not global grouping assumptions.
 
-Game NPC continues using the singular request default. As the semantic layer is implemented, the surface should choose the appropriate reusable semantic callback explicitly rather than relying on `mode` to branch generic generation.
+Game NPC continues using the singular request default and generic request adapter because its current request does not assert a semantic name kind. A future Game NPC requirements slice may explicitly choose and configure a reusable semantic capability; `mode` must not select one implicitly.
 
-## Active next work
+## Active foundation handoff
 
-The singular naming boundary and caller-facing silhouette collapse are implemented in issue #186. The next implementation work is the first reusable semantic naming capability, not another generic grouping expansion:
+The request/grouping platform is implemented and is not the active expansion target. Parent checkpoint #198 is the current gate before new surface-specific requirements work.
 
-1. select a concrete existing semantic domain such as given, family, or place names;
-2. define the minimum typed semantic configuration that domain honestly owns;
-3. delegate generic one-name mechanics through `generateName(...)`;
-4. migrate applicable surface callers to the reusable semantic callback without leaking surface identity into the primitive;
-5. keep nuanced aggregate behavior surface-owned until cross-surface reuse is demonstrated.
+- #199 completed the engine/naming-interface review and concluded **not yet settled**.
+- #201 tracks separation of Fiction Cast/application settings and role metadata from generic naming contracts.
+- #202 tracks narrowing semantic callback inputs so orchestration plumbing does not become the reusable semantic API pattern.
+- #203 tracks separation of one primitive sound-backed generated-name result from composed product identities.
+- #200 aligns stale documentation with that current state.
+- Family/place callbacks remain unearned until distinct reusable semantics or configuration are demonstrated.
+
+Do not begin the comprehensive Fiction Cast UI/UX requirements boundary until #198 reaches an explicit foundation-signoff decision.
 
 ## Deferred shared platform work
 
@@ -134,12 +139,13 @@ These deferrals do not prohibit a surface from implementing a product-specific a
 
 ## Current handoff
 
-For the next implementation sequence, begin from:
+For active architecture sequencing, begin from:
 
 ```text
-docs/decisions/0006-naming-capabilities-and-surface-composition.md
+issue #198
 docs/current-product-scope.md
 docs/architecture.md
+docs/decisions/0006-naming-capabilities-and-surface-composition.md
 ```
 
 For maintenance of the already-implemented request and independent-set contracts, use:
