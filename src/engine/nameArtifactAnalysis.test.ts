@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { NameArtifact } from './nameArtifact';
+import type { ComposedNameArtifact, GeneratedNameArtifact, NameArtifact } from './nameArtifact';
 import {
   analyzeNameArtifact,
   analyzeNameArtifactSet,
@@ -8,7 +8,7 @@ import {
 import type { SoundProfileCadence } from './soundProfile';
 import type { SoundSegmentId } from './starterSoundInventory';
 
-type TestSyllable = NonNullable<NameArtifact['sound']>['sequence']['syllables'][number];
+type TestSyllable = GeneratedNameArtifact['sound']['sequence']['syllables'][number];
 
 interface ArtifactOptions {
   readonly cadence?: SoundProfileCadence;
@@ -38,14 +38,32 @@ function syllable(
   };
 }
 
-function artifact(id: string, displayText: string, options: ArtifactOptions = {}): NameArtifact {
+function artifact(id: string, displayText: string, options: ArtifactOptions = {}): GeneratedNameArtifact {
   const cadence = options.cadence ?? 'balanced';
   const segments = options.segments ?? ['m', 'a', 'r'];
   const syllables = options.syllables ?? [syllable(0, segments.length, [0], [1], [segments.length - 1])];
 
   return {
+    kind: 'generated-name',
     id,
     displayText,
+    soundProfile: {
+      targets: {
+        length: 'short',
+        syllableCount: { min: syllables.length, max: syllables.length, preferred: syllables.length },
+        texture: 'balanced',
+        distinctiveness: 0.5,
+        cadences: [cadence],
+      },
+      phonotactics: {
+        preferredSyllableShapes: syllables.map((entry) => entry.shape),
+        onsetWeight: 0.7,
+        codaWeight: 0.4,
+        liquidWeight: 0.3,
+        glideWeight: 0.2,
+        clusterTolerance: 0.2,
+      },
+    },
     sound: {
       contract: 'SoundCandidate',
       version: 1,
@@ -94,6 +112,7 @@ function artifact(id: string, displayText: string, options: ArtifactOptions = {}
       targetNovelty: 0.5,
       targetLength: 'short',
     },
+    variants: [],
     readabilityDiagnostics: [
       {
         id: `diagnostic-${id}`,
@@ -106,9 +125,26 @@ function artifact(id: string, displayText: string, options: ArtifactOptions = {}
   };
 }
 
-function withoutSound(value: NameArtifact): NameArtifact {
-  const { sound: _sound, ...rest } = value;
-  return rest;
+function withoutSound(value: NameArtifact): ComposedNameArtifact {
+  const partId = `${value.id}:literal`;
+  return {
+    kind: 'composed-identity',
+    id: value.id,
+    displayText: value.displayText,
+    identity: {
+      displayName: value.displayText,
+      format: { id: 'format:given-only', kind: 'given-only', label: 'Given name' },
+      parts: [{
+        id: partId,
+        role: 'given',
+        value: value.displayText,
+        sourceNameId: value.id,
+        sourceName: value.displayText,
+      }],
+      phraseParts: [{ kind: 'part', partId, role: 'given' }],
+    },
+    readabilityDiagnostics: value.readabilityDiagnostics,
+  };
 }
 
 describe('analyzeNameArtifact', () => {
