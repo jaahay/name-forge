@@ -2,15 +2,15 @@ import { Children, isValidElement, type ReactElement, type ReactNode } from 'rea
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { generateEnsemble } from '../fictionCast/ensemble';
+import type { FictionCastSettings } from '../fictionCast/types';
 import { createDefaultRegistry } from '../engine/registry';
-import type { GenerationSettings } from '../engine/types';
 import { CastHealthPanel } from './CastHealth';
 import { NameInspector } from './NameInspector';
 import { NameSelectionSurface } from './NameSelectionSurface';
 import { SoundRelationshipsPanel } from './SoundRelationshipsPanel';
 import { resolveNameSelection, selectedNameIdFromView } from './workbenchSelection';
 
-const settings: GenerationSettings = {
+const settings: FictionCastSettings = {
   castSize: 2,
   novelty: 0.5,
   pronounceability: 0.7,

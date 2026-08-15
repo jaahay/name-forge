@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
+import type { FictionCastSettings } from '../fictionCast/types';
 import { createDefaultRegistry } from '../engine/registry';
-import type { GenerationSettings } from '../engine/types';
 import { ConfigureTray } from './ConfigureTray';
 import { fictionCastMode } from './modes';
 import type { ControlKey } from './presentation';
@@ -11,7 +11,7 @@ const stylePacks = registry.listStylePacks();
 const stylePackId = stylePacks[0]?.id ?? 'british-literary-fantasy';
 const settings = fictionCastMode.defaultSettings(stylePackId);
 
-function renderConfigureTray(overrides: Partial<GenerationSettings> = {}, isOpen = true): string {
+function renderConfigureTray(overrides: Partial<FictionCastSettings> = {}, isOpen = true): string {
   const renderedSettings = { ...settings, ...overrides };
 
   return renderToStaticMarkup(

@@ -1,15 +1,14 @@
-import type { GeneratedName } from '../engine/types';
-import { requireFictionCastGeneratedName } from '../fictionCast/types';
+import type { FictionCastGeneratedName } from '../fictionCast/types';
 import { rarityPresentation } from './presentation';
 import { textureClassName } from './score';
 import { getNameDisplayLength, protectInitialBreaks } from './namePresentation';
 
 interface NameCardHeaderProps {
-  name: GeneratedName;
+  name: FictionCastGeneratedName;
 }
 
 interface NameCardProps {
-  name: GeneratedName;
+  name: FictionCastGeneratedName;
   isSelected: boolean;
   isLocked: boolean;
   showExpandedSurface?: boolean;
@@ -17,14 +16,14 @@ interface NameCardProps {
   onToggleLocked: (id: string) => void;
 }
 
-function readNoteLabel(name: GeneratedName): string {
+function readNoteLabel(name: FictionCastGeneratedName): string {
   const noteCount = name.readabilityDiagnostics.length;
   if (noteCount === 0) return 'Clean read';
   return `${noteCount} read note${noteCount === 1 ? '' : 's'}`;
 }
 
 function NameCardHeader({ name }: NameCardHeaderProps) {
-  const rarity = rarityPresentation[requireFictionCastGeneratedName(name).rarityBand];
+  const rarity = rarityPresentation[name.rarityBand];
   const displayName = protectInitialBreaks(name.name);
   const displayLength = getNameDisplayLength(name.name);
 
@@ -60,7 +59,7 @@ function ExpandedCardSurface({ name }: NameCardHeaderProps) {
 export function NameCard({ name, isSelected, isLocked, showExpandedSurface = true, onSelect, onToggleLocked }: NameCardProps) {
   const displayLength = getNameDisplayLength(name.name);
   const readNoteCount = name.readabilityDiagnostics.length;
-  const rarityBand = requireFictionCastGeneratedName(name).rarityBand;
+  const rarityBand = name.rarityBand;
   const cardClassName = `name-card panel ${textureClassName(name.silhouette.texture)}${isSelected ? ' selected' : ''}${isLocked ? ' locked' : ''}`;
   const isExpanded = isSelected && showExpandedSurface;
   const lockActionLabel = `${isLocked ? 'Unlock' : 'Lock'} ${name.name}`;

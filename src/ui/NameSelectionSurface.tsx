@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react';
-import type { GeneratedEnsemble } from '../engine/types';
+import type { FictionCastGeneratedEnsemble } from '../fictionCast/types';
 import { NameCard } from './NameCard';
 import { allNamesSelectorValue, selectedNameIdFromView, type NameSelectionView } from './workbenchSelection';
 
 interface NameSelectionSurfaceProps {
-  ensemble: GeneratedEnsemble;
+  ensemble: FictionCastGeneratedEnsemble;
   lockedNameIds: Set<string>;
   selection: NameSelectionView;
   selectedNameId: string;

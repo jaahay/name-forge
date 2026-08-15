@@ -1,8 +1,7 @@
 import { analyzeNameArtifactSoundRelationships } from '../engine/nameArtifactAnalysis';
 import { toNameArtifact } from '../engine/nameArtifact';
-import type { GeneratedEnsemble } from '../engine/types';
+import type { FictionCastGeneratedEnsemble } from '../fictionCast/types';
 import type { FictionCastRarityBand } from '../fictionCast/rarity';
-import { requireFictionCastGeneratedName } from '../fictionCast/types';
 import { SoundRelationshipsPanel } from './SoundRelationshipsPanel';
 
 type CastHealthTone = 'good' | 'warn';
@@ -15,15 +14,15 @@ interface CastHealthItem {
 }
 
 interface CastHealthPanelProps {
-  ensemble: GeneratedEnsemble;
+  ensemble: FictionCastGeneratedEnsemble;
   lockedNameIds: Set<string>;
   onSelectName: (id: string) => void;
 }
 
 const spotlightRarityBands: FictionCastRarityBand[] = ['rare', 'epic', 'legendary'];
 
-function castHealthFor(ensemble: GeneratedEnsemble, lockedNameIds: Set<string>): CastHealthItem[] {
-  const names = ensemble.names.map(requireFictionCastGeneratedName);
+function castHealthFor(ensemble: FictionCastGeneratedEnsemble, lockedNameIds: Set<string>): CastHealthItem[] {
+  const names = ensemble.names;
   const spotlightCount = names.filter((name) => spotlightRarityBands.includes(name.rarityBand)).length;
   const groundedCount = names.length - spotlightCount;
   const spotlightBudget = Math.max(1, Math.ceil(names.length * 0.33));
@@ -73,7 +72,7 @@ function relationshipPairCount(relationships: ReturnType<typeof analyzeNameArtif
 
 export function CastHealthPanel({ ensemble, lockedNameIds, onSelectName }: CastHealthPanelProps) {
   const warningItems = castHealthFor(ensemble, lockedNameIds).filter((item) => item.tone === 'warn');
-  // The current GeneratedEnsemble is the explicit active-roster snapshot for this presentation.
+  // The current FictionCastGeneratedEnsemble is the explicit active-roster snapshot for this presentation.
   const soundRelationships = analyzeNameArtifactSoundRelationships(ensemble.names.map(toNameArtifact));
   const pairCount = relationshipPairCount(soundRelationships);
 
