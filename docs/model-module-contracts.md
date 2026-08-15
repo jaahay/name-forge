@@ -33,21 +33,35 @@ The implemented shared request/transport operation is:
 NameRequest -> NameResponse
 ```
 
-The reusable naming API hierarchy is:
+The reusable generated-name API hierarchy is:
 
 ```text
 surface-specific aggregate orchestration, when needed
-  -> reusable typed semantic callback(s)
-     generateGivenName(...)
-     generateFamilyName(...)
-     generatePlaceName(...)
+  -> reusable typed semantic `-Name` callback(s)
+     generateGivenName(...)   [implemented]
+     generateFamilyName(...)  [accepted; implementation pending]
+     generatePlaceName(...)   [accepted; implementation pending]
   -> generic singular generateName(...)
   -> typed style / sound / spelling mechanics
 ```
 
-`NameRequest` provides shared criteria, deterministic replay, exact independent quantity, and artifact transport. Semantic callbacks provide reusable domain meaning. A surface composes semantic callbacks and injects configuration derived from its UX. Surface-specific multi-name orchestration may remain surface-owned when its cross-name semantics are not reusable.
+`NameRequest` provides shared criteria, deterministic replay, exact independent quantity, and artifact transport. Semantic `-Name` callbacks provide reusable domain meaning. A surface composes semantic callbacks and injects configuration derived from its UX. Surface-specific multi-name orchestration may remain surface-owned when its cross-name semantics are not reusable.
 
-The generic singular `generateName(...)` contract and the first semantic callback, `generateGivenName(...)`, are implemented. Family/place semantic callbacks remain candidates that must be justified by concrete domain behavior rather than symmetry. `NameSilhouette` and silhouette-shaped generator entry points are no longer part of the naming API.
+Every semantic `-Name` callback delegates lexical-name generation to the one `generateName(...)` primitive. Distinct sound-generation mechanics are not required for first-class semantic treatment: a wrapper may initially be behavior-equivalent while establishing a typed caller contract and future specialization point.
+
+The generic singular `generateName(...)` contract and the first semantic callback, `generateGivenName(...)`, are implemented. `generateFamilyName(...)` and `generatePlaceName(...)` are accepted first-class wrappers pending #202. `NameSilhouette` and silhouette-shaped generator entry points are no longer part of the naming API.
+
+Finite lexical values follow a separate accepted capability direction:
+
+```text
+NamingLexicon / LexicalInventory
+  -> semantic selector
+  -> selectFromOptions(...)
+```
+
+That direction is not yet a shared runtime module contract. When implemented, it should use typed persisted inventory data and a small deterministic finite-choice primitive, with semantic selectors owning meanings such as particle, honorific, or generational suffix. It must not push lexical vocabularies into `SoundProfile`.
+
+Heterogeneous identity composition does not establish a universal `NameSegment` contract or omnibus `generatePersonName(...)` API. Composition remains with the surface/domain whose grammar is known.
 
 ## Implemented shared request contract
 
@@ -137,6 +151,8 @@ An independent-set response remains a collection of individually addressable art
 
 The current artifact still exposes a property named `silhouette` for compatibility. Its value is `NameGenerationPlan` evidence; the property name does not imply that callers construct a silhouette or that `NameSilhouette` remains an API contract. Fiction Cast rarity is not part of that generic plan or the durable shared artifact contract.
 
+Issue #203 owns the unresolved result boundary between one coherent sound-backed generated name and a composed product identity. This document records current executable types without treating the present top-level composition shape as the final semantic result contract.
+
 ### `NameCriteria`
 
 ```ts
@@ -160,7 +176,7 @@ type NameCriteriaClause = {
 };
 ```
 
-Criteria are structured shared request intent, not free-form generation prompts. A reusable semantic callback may additionally own typed configuration specific to its domain rather than expanding `NameCriteria` into a universal schema.
+Criteria are structured shared request intent, not free-form generation prompts. A reusable semantic callback may additionally own typed configuration specific to its domain rather than expanding `NameCriteria` into a universal schema. Caller-facing semantic `options` may facade more granular source/inventory details while the underlying typed data preserves them.
 
 ### Randomization models
 
@@ -205,13 +221,23 @@ Fiction Cast ensemble behavior is surface-specific and does not imply those capa
 | `NameGroupMetadata` | `src/engine/nameRequest.ts` | Parent/child seed metadata for the current independent set. |
 | `NameCriteria` | `src/engine/nameCriteria.ts` | Shared structured request-intent model. |
 | `NameGenerationSettings` | `src/engine/types.ts` | Narrow generic one-name settings consumed by `generateName(...)`; excludes surface-only rarity distribution and other non-causal product metadata. |
-| `GenerationSettings` | `src/engine/types.ts` / app adapters | Broader current settings aggregate used by product/request adapters; not the semantic callback vocabulary and not itself the singular generator contract. |
+| `GenerationSettings` | `src/engine/types.ts` / app adapters | Broader current settings aggregate used by product/request adapters; not the semantic callback vocabulary and not itself the singular generator contract. Issue #201 owns the remaining surface/generic split. |
 | `NameGenerationPlanPreferences` | `src/engine/types.ts` | Generic resolved causal planning pressure for syllable/texture preferences without product roles, rarity labels, or semantic name-kind labels. |
 | `NameGenerationPlan` | `src/engine/types.ts` | Internal pre-generation planning/scoring evidence materialized behind `generateName(...)`; does not contain Fiction Cast rarity. |
-| `GenerateGivenNameOptions` | `src/naming/givenName.ts` | Implemented semantic given-name input that hides `GenerateNameOptions` from callers while preserving deterministic orchestration inputs. |
+| `GenerateGivenNameOptions` | `src/naming/givenName.ts` | Current implemented given-name callback input; #202 owns narrowing its orchestration-facing fields into the stable semantic invocation pattern. |
 | `GivenNamePreferences` | `src/naming/givenName.ts` | Given-name semantic preference vocabulary translated internally into generic causal planning pressure; does not contain rarity. |
 | `StyleInput` | `src/styleCompilation/styleCompiler.ts` | Current typed style language compiled into `SoundProfile`. |
 | `StylePack` | `src/engine/types.ts` / `src/data/stylePacks.ts` | Built-in style/source data used by current product flows; silhouette bias contains generic causal shape/texture data, not Fiction Cast rarity weights. |
+
+Accepted but not yet implemented shared contracts:
+
+- `generateFamilyName(...)` and `generatePlaceName(...)` are first-class semantic wrappers to be implemented in #202 over the same `generateName(...)` primitive;
+- a typed naming-lexicon / lexical-inventory contract should own bounded lexical option data with declared provenance and relevant linguistic/regional scope;
+- a generic deterministic `selectFromOptions(...)`-style primitive should own finite choice, with semantic selectors owning the meaning of their option lists;
+- exact inventory/source resolution may be hidden behind typed semantic `options` facades rather than exposed as a flat parameter list;
+- the inventory contract should support Name Forge built-ins without implying that Name Forge is the definitive linguistic authority for a locale or naming tradition.
+
+The exact TypeScript names/shapes for the lexical inventory and finite-choice contracts remain implementation work and are not claimed as current runtime models here.
 
 ### Sound and spelling mechanics values
 
@@ -235,36 +261,40 @@ Fiction Cast ensemble behavior is surface-specific and does not imply those capa
 | --- | --- | --- |
 | `GenerateNameOptions` | `src/naming/generator.ts` | Generic singular orchestration input: settings, pack, planning/generation randomness, index, and optional generic planning settings/preferences. |
 | `NameGenerationCandidate` | `src/naming/generator.ts` | Private pre-materialization result containing exact profile, sound, ranked spellings, and selected spelling. |
-| `GeneratedName` | `src/engine/types.ts` + `src/naming/generator.ts` | Current selected app-facing generated-name value; legacy `silhouette` property contains `NameGenerationPlan` evidence and does not carry Fiction Cast rarity. |
-| `NameArtifact` | `src/engine/nameArtifact.ts` | Durable result mapped from one selected `GeneratedName`. |
+| `GeneratedName` | `src/engine/types.ts` + `src/naming/generator.ts` | Current selected app-facing generated-name value; legacy `silhouette` property contains `NameGenerationPlan` evidence and does not carry Fiction Cast rarity. Issue #203 tracks its primitive-versus-composed meaning. |
+| `NameArtifact` | `src/engine/nameArtifact.ts` | Durable result mapped from one selected `GeneratedName`; issue #203 owns clarification of composed-identity evidence semantics. |
 
-Implemented contract direction:
+Implemented and accepted contract direction:
 
-- `src/naming` exposes one generic singular `generateName(...)` primitive;
+- `src/naming` exposes one generic singular `generateName(...)` lexical-name primitive;
 - `generateName(...)` internally materializes `NameGenerationPlan` rather than accepting one from the caller;
 - `GenerateNameOptions` contains no product mode, Fiction Cast role, rarity category, or semantic name-kind label;
 - `generateGivenName(...)` is the first implemented reusable semantic callback above the primitive;
-- future semantic callbacks sit above the primitive and own domain meaning/configuration only when justified;
+- `generateFamilyName(...)` and `generatePlaceName(...)` are accepted first-class semantic callbacks pending #202;
+- every semantic `-Name` callback delegates lexical-name generation to `generateName(...)` and may initially be behavior-equivalent;
+- future generated-name semantic wrappers follow the same pattern when the product supports a stable name-bearing noun; they do not create parallel sound generators;
 - current `NameGenerationCandidate` remains private implementation structure.
 
 ### Fiction Cast semantic models
 
 | Model | Owner | Meaning |
 | --- | --- | --- |
-| `NameIdentity` | `src/fictionCast/identity.ts` + `src/engine/types.ts` | Materialized Fiction Cast display identity and phrase-part structure. |
-| `GeneratedNamePart` | `src/fictionCast/identity.ts` + `src/engine/types.ts` | Product-semantic identity part; sound-backed parts may contain exact generation evidence. |
+| `NameIdentity` | `src/fictionCast/identity.ts` + `src/engine/types.ts` | Materialized Fiction Cast display identity and phrase-part structure. Issue #203 reviews longer-term result/composition ownership. |
+| `GeneratedNamePart` | `src/fictionCast/identity.ts` + `src/engine/types.ts` | Current product-semantic identity part; sound-backed parts may contain exact generation evidence. It does not establish a universal `NameSegment` contract. |
 | `FictionCastSettings` | `src/fictionCast/types.ts` | Fiction Cast settings specialization, including surface-owned rarity distribution. |
 | `FictionCastGeneratedName` | `src/fictionCast/types.ts` | Generic generated name decorated with Fiction Cast contextual scores and surface-owned rarity metadata. |
 | `FictionCastContextualScores` | `src/fictionCast/types.ts` | Role/ensemble/contextual overall evidence owned by Fiction Cast rather than generic scoring. |
 | `FictionCastGeneratedEnsemble` | `src/fictionCast/types.ts` + `src/fictionCast/ensemble.ts` | Fiction Cast roster result with surface settings, decorated names, and cast diagnostics; separate from shared independent-set grouping. |
-| `FictionCastRarityBand` / rarity distribution | `src/fictionCast/rarity.ts` | User/surface classification and deterministic distribution policy; not generic planning or semantic given-name input. |
-| component generation context | `src/fictionCast/componentGenerationContext.ts` | Current given/family/place context seam; likely precursor to reusable semantic callback configuration, not generic sound mechanics. |
+| `FictionCastRarityBand` / rarity distribution | `src/fictionCast/rarity.ts` | User/surface classification and deterministic distribution policy; not generic planning or semantic generated-name input. |
+| component generation context | `src/fictionCast/componentGenerationContext.ts` | Current given/family/place context seam; precursor to the stable semantic wrapper invocation boundary, not generic sound mechanics. |
 
 Titles, epithets, given/family/place roles, and Fiction Cast grammar are naming/product semantics. They are not fields of `SoundProfile` and do not enter `GenerateNameOptions` as semantic labels.
 
 Fiction Cast currently converts role-specific profile preferences into `GivenNamePreferences` for its primary component and generic `NameGenerationPlanPreferences` for still-generic supporting components. It then attaches role metadata and contextual scoring in its own ensemble layer. Rarity is resolved independently at the surface and attached to `FictionCastGeneratedName`; it is not translated into generic planning pressure.
 
-Given/family/place are plausible reusable semantic callbacks because multiple surfaces may need those meanings. `generateGivenName(...)` is implemented; family/place remain candidates. Fiction Cast still owns the way it composes and coordinates those capabilities as a cast.
+Given, family, and place are first-class reusable semantic generated-name roles. `generateGivenName(...)` is implemented; #202 should add family/place wrappers over the same primitive and migrate the supporting calls. Fiction Cast still owns the way it composes and coordinates those capabilities as a cast.
+
+Fiction Cast's current title/epithet lexical material remains surface-owned runtime data. The accepted future shared lexical-inventory direction may provide typed storage/selection for reusable finite vocabularies without moving Fiction Cast identity grammar into the generic engine.
 
 ### Audition/projection models
 
@@ -307,7 +337,7 @@ Owns:
 - mapping generated names to `NameArtifact`;
 - returning flat artifacts and positional independent-set metadata.
 
-It does not own semantic callback definitions, richer group optimization, product-specific roster UX, or mode semantics. It consumes the singular naming primitive directly and does not construct a silhouette or planning aggregate.
+It does not own semantic callback definitions, richer group optimization, product-specific roster UX, mode semantics, or finite lexical vocabulary selection. It consumes the singular naming primitive directly because the generic request does not assert a semantic name kind, and it does not construct a silhouette or planning aggregate.
 
 ### Criteria diagnostics and compiler
 
@@ -318,7 +348,7 @@ NameCriteria + base settings -> GenerationSettings
 
 Owners: `src/engine/nameCriteriaDiagnostics.ts` and `src/engine/nameCriteriaCompiler.ts`.
 
-They own current shared support classification, deterministic mappings, and honest fallback/partial diagnostics. They do not own semantic callback configuration, UI taxonomy, public match percentages, Fiction Cast rarity distribution, or universal taste claims.
+They own current shared support classification, deterministic mappings, and honest fallback/partial diagnostics. They do not own semantic callback configuration, lexical inventory resolution, UI taxonomy, public match percentages, Fiction Cast rarity distribution, or universal taste claims.
 
 Supported-target knowledge remains duplicated between the two modules and should be centralized before major shared-criteria expansion.
 
@@ -339,22 +369,52 @@ Owner: `src/naming/generator.ts`.
 
 Owns generic one-name orchestration: internal generation-plan materialization, style compilation, sound generation, spelling pool/ranking/selection, scoring, variants, and readability diagnostics.
 
-It does **not** own Fiction Cast identity grammar, titles/epithets, cast roles, rarity categories/distribution, ensemble behavior, request quantity/grouping semantics, product modes, semantic name-kind labels, or low-level sound rules.
+It does **not** own Fiction Cast identity grammar, titles/epithets, cast roles, rarity categories/distribution, ensemble behavior, request quantity/grouping semantics, product modes, semantic name-kind labels, naming lexicons, or low-level sound rules.
 
-The planning and generation random streams are separate inputs so callers can preserve deterministic partitioning without constructing intermediate planning objects.
+The planning and generation random streams are separate inputs in the current primitive so callers can preserve deterministic partitioning without constructing intermediate planning objects. #202 decides how much of that orchestration plumbing belongs on the reusable semantic wrapper interface.
 
 ### Semantic naming callbacks — accepted layer, first callback implemented
 
 ```text
 surface configuration
-  -> semantic callback
+  -> semantic `-Name` callback
   -> generateName(...)
   -> generated one-name result
 ```
 
-Semantic callbacks own reusable domain meaning and typed configuration while delegating one-name mechanics to `generateName(...)`. `generateGivenName(...)` is the first implemented callback and hides generic planning representation behind `GivenNamePreferences`. Rarity is not part of that semantic preference vocabulary because Fiction Cast rarity is surface metadata rather than a given-name mechanic.
+Semantic callbacks own reusable domain meaning and typed configuration while delegating one-name mechanics to `generateName(...)`.
+
+Current/accepted status:
+
+- `generateGivenName(...)` is implemented;
+- `generateFamilyName(...)` is accepted and pending #202;
+- `generatePlaceName(...)` is accepted and pending #202;
+- all three delegate to `generateName(...)`;
+- family/place may initially be exact pass-throughs with typed semantic contracts rather than distinct phonological logic;
+- #202 must keep semantic caller options from simply republishing lower planning RNG/index/override plumbing unless an input is intentionally part of the stable deterministic invocation contract.
+
+`GivenNamePreferences` currently hides generic planning-preference representation. Rarity is not part of semantic `-Name` preference vocabulary because Fiction Cast rarity is surface metadata rather than a generated-name mechanic.
 
 A surface may own aggregate orchestration above semantic callbacks. That orchestration does not become a generic grouping or naming primitive unless cross-surface reuse demonstrates the need.
+
+### Finite lexical inventory and selection — accepted, not yet implemented as shared runtime
+
+Conceptual contract:
+
+```text
+typed NamingLexicon / LexicalInventory
+  -> semantic selector
+  -> selectFromOptions(...)
+  -> selected lexical value
+```
+
+The generic finite-choice primitive should own deterministic selection only. Semantic selectors own the meaning of their option set. The persisted inventory owns the actual vocabulary plus declared provenance/scope.
+
+The eventual typed inventory should be capable of representing relevant language, region, dialect, historical period, register, or source distinctions without requiring all of those fields to be direct semantic-call parameters. Typed `options` facades may resolve or hide that granularity.
+
+Name Forge owns the inventory schema/validation/versioning and built-in datasets it ships; it does not claim those datasets are definitive linguistic truth. The exact type/module names remain deliberately unspecified until a bounded implementation slice.
+
+Derived forms such as patronymics may need dedicated derivation mechanics rather than either finite selection or `generateName(...)`.
 
 ### Internal generation-plan materialization
 
@@ -386,7 +446,7 @@ Collection semantics:
 - `SegmentSequence.segments` is source-order;
 - `SegmentSequence.syllables` is source-order.
 
-The generator consumes the pure resolved profile value and does not branch on semantic name kind, Fiction Cast roles, rarity categories, or product modes.
+The generator consumes the pure resolved profile value and does not branch on semantic name kind, Fiction Cast roles, rarity categories, lexical vocabularies, or product modes.
 
 ### Spelling generator
 
@@ -411,13 +471,15 @@ GeneratedName -> toNameArtifact -> NameArtifact
 
 Owner: `src/engine/nameArtifact.ts`.
 
-The mapper preserves generated facts; it must not invent information absent from the generated result. Fiction Cast rarity remains surface result metadata and is therefore not promoted into the shared artifact solely for Cast compatibility.
+The mapper preserves generated facts; it must not invent information absent from the generated result. Fiction Cast rarity remains surface result metadata and is therefore not promoted into the shared artifact solely for Cast compatibility. #203 owns any result-envelope/composition change needed to keep primitive generated evidence coherent when a surface composes a larger identity.
 
 ### Fiction Cast identity and ensemble
 
-`src/fictionCast/identity.ts` owns Fiction Cast identity grammar and materialization. Sound-backed given/family/place parts may retain the exact `SoundProfile`, `SoundCandidate`, and selected spelling used for that component. Titles, epithets, initials, and literals remain explicit product semantics.
+`src/fictionCast/identity.ts` owns the current Fiction Cast identity grammar and materialization. Sound-backed given/family/place parts may retain the exact `SoundProfile`, `SoundCandidate`, and selected spelling used for that component. Titles, epithets, initials, and literals remain explicit product semantics.
 
-`src/fictionCast/ensemble.ts` owns Fiction Cast surface-specific ensemble selection and roster behavior. It is separate from the shared `independent-set` request contract. It resolves cast-role preferences above `generateName(...)`, decorates results with contextual scoring, and attaches rarity resolved through `src/fictionCast/rarity.ts`. The rarity classification does not alter candidate sound/spelling generation. As semantic callbacks emerge, Fiction Cast should compose them rather than duplicate their one-name domain behavior.
+This current identity structure does not create a universal heterogeneous `NameSegment` contract. Nor does it establish an omnibus `generatePersonName(...)` API that owns every possible personal-name, house/clan, title, or affiliation component.
+
+`src/fictionCast/ensemble.ts` owns Fiction Cast surface-specific ensemble selection and roster behavior. It is separate from the shared `independent-set` request contract. It resolves cast-role preferences above `generateName(...)`, decorates results with contextual scoring, and attaches rarity resolved through `src/fictionCast/rarity.ts`. The rarity classification does not alter candidate sound/spelling generation. After #202, supporting family/place generation should enter through their semantic wrappers while retaining Cast orchestration above them.
 
 `src/fictionCast/export.ts` owns Cast JSON/Markdown serialization. It may preserve the existing exported `silhouette.rarityBand` shape as a compatibility projection from `FictionCastGeneratedName.rarityBand` without making rarity part of `NameGenerationPlan` again.
 
