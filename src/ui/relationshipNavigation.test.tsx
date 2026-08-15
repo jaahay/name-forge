@@ -57,16 +57,23 @@ function collectSelectButtons(node: ReactNode, buttons: SelectButtonElement[] = 
 }
 
 describe('sound relationship navigation integration', () => {
-  it('routes a relationship member through shared selection into the selected-name inspector', () => {
+  it('routes a primary-sound relationship member through shared selection into the composed-name inspector', () => {
     const generated = generateEnsemble(settings, createDefaultRegistry());
     const left = generated.names[0];
     const right = generated.names[1];
 
-    if (!left || !right || !left.sound) throw new Error('Expected two generated names with modeled sound.');
+    if (!left || !right) throw new Error('Expected two generated names with modeled sound.');
 
+    const rightWithMatchingPrimarySound = {
+      ...right,
+      primaryName: {
+        ...right.primaryName,
+        sound: left.primaryName.sound,
+      },
+    };
     const ensemble = {
       ...generated,
-      names: [left, { ...right, sound: left.sound }],
+      names: [left, rightWithMatchingPrimarySound],
     };
     const lockedNameIds = new Set<string>();
     let selectedId = '';
@@ -84,7 +91,7 @@ describe('sound relationship navigation integration', () => {
 
     const relationshipTree = SoundRelationshipsPanel(relationshipPanel.props);
     const buttons = collectSelectButtons(relationshipTree);
-    const targetButton = buttons.find((button) => button.props['aria-label'] === `Select ${right.name} from sound relationships`);
+    const targetButton = buttons.find((button) => button.props['aria-label'] === `Select ${right.primaryName.name} from sound relationships`);
 
     expect(targetButton).toBeDefined();
     targetButton?.props.onClick?.();
@@ -121,8 +128,8 @@ describe('sound relationship navigation integration', () => {
     );
 
     expect(html).toContain(`artifact-heading-${right.id}`);
-    expect(html).toContain(`${right.name} selected-name actions`);
-    expect(html).toContain(`aria-label="Reroll ${right.name}"`);
+    expect(html).toContain(`${right.displayName} selected-name actions`);
+    expect(html).toContain(`aria-label="Reroll ${right.displayName}"`);
     expect(html).toContain('>Reroll</button>');
   });
 });
