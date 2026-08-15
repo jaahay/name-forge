@@ -1,12 +1,13 @@
-import type { CastRoleAssignment, GenerationSettings, NameFormatKind } from '../engine/types';
+import type { NameFormatKind } from '../engine/types';
 import { roleInfluencedSettings } from './roles';
+import type { CastRoleAssignment, FictionCastSettings } from './types';
 
 export type FictionCastSoundComponentKind = 'given' | 'family' | 'place';
 export type MaterializedComponentFormat = Exclude<NameFormatKind, 'mixed'>;
 
 export interface FictionCastComponentGenerationContext {
   readonly kind: FictionCastSoundComponentKind;
-  readonly settings: GenerationSettings;
+  readonly settings: FictionCastSettings;
 }
 
 export function supportingComponentKindForFormat(format: MaterializedComponentFormat): FictionCastSoundComponentKind | undefined {
@@ -16,7 +17,7 @@ export function supportingComponentKindForFormat(format: MaterializedComponentFo
 }
 
 export function resolveFictionCastComponentGenerationContext(
-  settings: GenerationSettings,
+  settings: FictionCastSettings,
   role: CastRoleAssignment | undefined,
   kind: FictionCastSoundComponentKind,
 ): FictionCastComponentGenerationContext {
