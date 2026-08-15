@@ -72,7 +72,7 @@ export function NameSelectionSurface({
           <span>Name</span>
           <select value={selectorValue} onChange={(event) => selectValue(event.target.value)} aria-label="Selected name">
             <option value={allNamesSelectorValue}>All names</option>
-            {ensemble.names.map((name) => <option key={name.id} value={name.id}>{name.name}</option>)}
+            {ensemble.names.map((name) => <option key={name.id} value={name.id}>{name.displayName}</option>)}
           </select>
         </label>
         <div className="name-stepper" aria-label="Review names sequentially">
