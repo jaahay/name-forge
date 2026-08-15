@@ -41,9 +41,9 @@ The accepted dependency direction is:
 ```text
 product surface
   -> reusable typed semantic callback(s)
-     generateGivenName(...)
-     generateFamilyName(...)
-     generatePlaceName(...)
+     generateGivenName(...)   [implemented]
+     generateFamilyName(...)  [candidate]
+     generatePlaceName(...)   [candidate]
   -> generic singular generateName(...)
   -> typed style compilation
   -> pure SoundProfile value
@@ -55,17 +55,17 @@ A product surface owns its UX, defaults, presets, and surface state. It injects 
 
 Surface-specific multi-name orchestration may sit above those callbacks when plurality itself has meaningful product semantics. Fiction Cast, for example, may coordinate given/family/place generation, roles, locks, and cross-name pressure without requiring that cast orchestration become a universal grouping API.
 
-`src/naming` now exposes the singular `generateName(...)` orchestration boundary. Callers provide generation settings plus deterministic planning/generation randomness; the naming layer materializes an internal `NameGenerationPlan` before style, sound, spelling, scoring, and variants. Product/domain semantics such as Fiction Cast roles are resolved above this boundary into generic planning preferences rather than being accepted by `generateName(...)` itself.
+`src/naming` exposes the singular `generateName(...)` orchestration boundary and the first reusable semantic callback, `generateGivenName(...)`. The generic primitive materializes an internal `NameGenerationPlan` before style, sound, spelling, scoring, and variants. Product/domain semantics such as Fiction Cast roles are resolved above this boundary into generic planning preferences rather than being accepted by `generateName(...)` itself.
 
 The existing `silhouette` property on generated names and artifacts remains compatibility and inspection/scoring evidence. It is backed by `NameGenerationPlan`; callers no longer construct a `NameSilhouette`, and silhouette-shaped generator callbacks are no longer part of the naming API.
 
-The next naming-layer work is to introduce reusable typed semantic callbacks from concrete product semantics—such as given, family, or place names—on top of `generateName(...)`.
+The active architecture sequence is tracked by parent checkpoint #198. Review #199 concluded that the engine/interface foundation is **not yet settled** and opened bounded blockers #201, #202, and #203. Family/place callbacks are not currently earned merely for symmetry. Surface-specific requirements work remains gated on resolving or explicitly accepting those blockers.
 
 See [`docs/decisions/0006-naming-capabilities-and-surface-composition.md`](docs/decisions/0006-naming-capabilities-and-surface-composition.md) for the authoritative capability and surface-composition rule.
 
 ## Architecture ownership
 
-`src/engine` owns reusable mechanics and durable request/artifact contracts. `src/naming` owns the generic singular `generateName(...)` orchestration above those mechanics. `src/styleCompilation` owns typed style-to-profile compilation. `src/fictionCast` owns Fiction Cast semantics such as identity grammar, lexical titles/epithets, role-derived planning preferences, and ensemble behavior.
+`src/engine` owns reusable mechanics and durable shared request/artifact contracts plus shared analysis. `src/naming` owns the generic singular `generateName(...)` orchestration and reusable semantic one-name capabilities above those mechanics. `src/styleCompilation` owns typed style-to-profile compilation. `src/fictionCast` owns Fiction Cast semantics such as identity grammar, lexical titles/epithets, role-derived planning preferences, ensemble behavior, contextual scoring, rarity policy/metadata, and Cast export.
 
 Generated sound, sequence, and spelling values use containment for provenance rather than synthetic relational IDs. Product and artifact objects may still have IDs where callers need independent addressability.
 
@@ -73,7 +73,7 @@ Generated sound, sequence, and spelling values use containment for provenance ra
 
 Start here:
 
-- [`docs/current-product-scope.md`](docs/current-product-scope.md) — active shipped baseline, claim boundaries, deferred work, and the current rule for choosing the next slice.
+- [`docs/current-product-scope.md`](docs/current-product-scope.md) — active shipped baseline, claim boundaries, deferred work, and the current foundation-checkpoint sequence.
 - [`docs/architecture.md`](docs/architecture.md) — current technical architecture and ownership boundaries.
 - [`docs/decisions/0006-naming-capabilities-and-surface-composition.md`](docs/decisions/0006-naming-capabilities-and-surface-composition.md) — accepted `generateName` / semantic-callback / surface-composition hierarchy.
 - [`docs/model-module-contracts.md`](docs/model-module-contracts.md) — executable model shapes, collection semantics, and module seams.
@@ -85,7 +85,7 @@ Historical planning and requirements remain useful context, but they are not the
 
 ## Current product capabilities
 
-Shared capabilities include deterministic seeded replay, exact independent-set generation, singular `generateName(...)` orchestration, sound-first candidate generation, exhaustive supported spelling derivation, ranked spelling retention, deterministic readability observations, browser voice-draft audition, pure artifact analysis, shared inspection, source descriptors, and recent-artifact persistence.
+Shared capabilities include deterministic seeded replay, exact independent-set generation, singular `generateName(...)` orchestration, reusable `generateGivenName(...)`, sound-first candidate generation, exhaustive supported spelling derivation, ranked spelling retention, deterministic readability observations, browser voice-draft audition, pure artifact analysis, shared inspection, source descriptors, and recent-artifact persistence.
 
 Fiction Cast additionally owns roster generation and balancing, cast-specific roles and formats, locks and targeted reroll, composed identities, provenance-preserving phrase audition, same-roster sound relationships, cast review, and JSON/Markdown export.
 
@@ -122,10 +122,10 @@ npm test
 src/
   App.tsx                 product shell and navigation
   data/                   built-in style/source data
-  engine/                 reusable generation mechanics, request/artifact contracts, analysis, export
-  naming/                 generic singular generateName(...) orchestration above mechanics
+  engine/                 reusable generation mechanics, request/artifact contracts, analysis
+  naming/                 generic generateName(...) plus reusable semantic one-name capabilities
   styleCompilation/       typed style languages and SoundProfile compilation
-  fictionCast/            Fiction Cast identity grammar, lexicon, role-derived planning, and ensemble semantics
+  fictionCast/            Fiction Cast identity, roles, rarity, ensemble semantics, contextual scoring, export
   ui/                     shared and mode-specific React presentation
 ```
 

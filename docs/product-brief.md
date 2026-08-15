@@ -22,9 +22,9 @@ PRODUCT SURFACE
             | composes/configures
             v
 REUSABLE SEMANTIC NAMING CAPABILITIES
-  generateGivenName(...)
-  generateFamilyName(...)
-  generatePlaceName(...)
+  generateGivenName(...)   [implemented]
+  generateFamilyName(...)  [candidate]
+  generatePlaceName(...)   [candidate]
   ...as real reusable domains are earned
             |
             v
@@ -81,7 +81,9 @@ generatePlaceName(...)
 
 represent reusable naming-domain semantics. They are built on the single generic singular `generateName(...)` primitive rather than becoming parallel sound generators.
 
-The same capability can appear in many surfaces. For example, `generatePlaceName(...)` may be useful inside Fiction Cast, a world-building surface, an NPC workflow, or another product. Each surface may expose different controls and feed different typed configuration to the same domain capability.
+`generateGivenName(...)` is the first implemented semantic capability. Family/place callbacks remain candidates that should be introduced only when reusable behavior or configuration is honestly defined; they are not required for API symmetry.
+
+The same capability can appear in many surfaces. For example, a future `generatePlaceName(...)` may be useful inside Fiction Cast, a world-building surface, an NPC workflow, or another product. Each surface may expose different controls and feed different typed configuration to the same domain capability.
 
 A semantic callback may own domain-specific configuration and typed style behavior that would be inappropriate to force into one universal `NameCriteria` schema.
 
@@ -95,9 +97,7 @@ Primary job:
 
 Fiction Cast owns the surface semantics required by that job: roster construction, roles, locks, targeted reroll, cast review, composed identities, same-roster relationships, cross-name selection pressure, and cast export.
 
-Fiction Cast already delegates generic one-name mechanics to `generateName(...)`. It resolves cast-role behavior above that primitive into generic planning preferences and retains cast-role evidence/scoring in its own orchestration layer.
-
-As reusable given/family/place callbacks become available, Fiction Cast should compose and configure them rather than owning duplicate semantic one-name behavior.
+Fiction Cast primary given-name generation delegates through reusable `generateGivenName(...)`. Family/place supporting generation still uses generic `generateName(...)` because #199 found no current evidence that separate reusable family/place callbacks have been earned. Cast-specific roles, contextual scoring, rarity, composition, and aggregate behavior remain above those one-name mechanics.
 
 The aggregate operation that makes a cast coherent may remain Fiction Cast-specific. That specificity is compatible with a highly reusable lower naming library.
 
@@ -109,7 +109,7 @@ Primary job:
 
 Game NPC is deliberately thinner. It reuses shared artifacts, inspection, evidence, browser audition, and the generic singular naming path while owning its own fast UX and reroll behavior.
 
-As the semantic layer becomes explicit, Game NPC should select and configure the appropriate reusable semantic callback. `mode` metadata should not become a hidden switch inside generic generation.
+The first semantic capability exists, but the current Game NPC request does not assert a semantic name kind and therefore legitimately continues through the generic request adapter. A future Game NPC requirements slice may choose and configure an appropriate reusable semantic callback explicitly; `mode` metadata must not become a hidden switch inside generic generation.
 
 The existence of two active surfaces demonstrates the product boundary: shared mechanics and artifacts can remain common while surface UX and orchestration remain distinct.
 
@@ -145,7 +145,7 @@ Product and naming-domain semantics remain above sound mechanics.
 
 The generic singular `generateName(...)` boundary is implemented. It materializes internal `NameGenerationPlan` evidence rather than requiring callers to construct a silhouette. The legacy `silhouette` result/artifact property remains compatibility and inspection/scoring evidence, not a product concept or generation callback.
 
-The next naming-layer work is to introduce the first reusable typed semantic callback(s) on top of `generateName(...)` from concrete existing domain semantics.
+The architecture is currently in foundation checkpoint #198. Review #199 found the dependency direction sound but the concrete engine/interface foundation not yet settled. Bounded blockers #201, #202, and #203 cover generic/surface type ownership, semantic-callback invocation plumbing, and primitive-result versus composed-identity meaning. Surface-specific requirements work should follow only after that foundation is explicitly signed off.
 
 ## Plural behavior
 
@@ -191,7 +191,7 @@ Baby-name generation remains explicitly deferred because real-world personal nam
 ## Sequencing principles
 
 1. **Keep one generic singular primitive below domain semantics.** `generateName(...)` is implemented; semantic callbacks should delegate to it rather than recreating generation mechanics.
-2. **Build reusable semantic APIs from concrete domain meaning.** `generateGivenName(...)` and `generatePlaceName(...)` should exist because surfaces can reuse those meanings, not because every noun deserves a wrapper.
+2. **Build reusable semantic APIs from concrete domain meaning.** `generateGivenName(...)` exists because an actual reusable domain boundary was established; family/place callbacks should wait until comparable evidence exists.
 3. **Let surfaces inject configuration.** UX, presets, roles, and local context can shape semantic callbacks without becoming generic engine state.
 4. **Keep surface aggregate behavior where its semantics live.** Fiction Cast does not need to become generic grouping merely because it produces many names.
 5. **Keep request transport distinct from semantic APIs.** Reuse `NameRequest -> NameResponse` for the platform jobs it solves without treating it as the only naming callback.
@@ -220,4 +220,4 @@ This document does not by itself authorize:
 - baby-name workflows;
 - broad shell redesign.
 
-Active implementation should begin from [`current-product-scope.md`](current-product-scope.md) and the accepted decisions. With the singular `generateName(...)` boundary implemented in issue #186, the current selected architecture sequence is to introduce reusable semantic callbacks from real existing naming domains and let surfaces compose them without leaking surface semantics into the generic primitive.
+Active implementation should begin from [`current-product-scope.md`](current-product-scope.md), accepted decisions, and parent checkpoint #198. The current sequence is to resolve the evidence-backed foundation blockers from #199, align stale documentation through #200, and only then decide whether the platform is stable enough to begin a new Fiction Cast UI/UX requirements boundary.

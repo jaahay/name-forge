@@ -40,7 +40,7 @@ User-facing settings describe the desired feel and product context of the result
 
 These settings are ergonomic. They should not ask the user to know phonology terms.
 
-A product surface owns how the user expresses intent. It derives configuration for one or more reusable semantic naming callbacks such as given-name, family-name, or place-name generation when those callbacks are implemented. Those semantic callbacks carry domain meaning and delegate generic one-name orchestration to the singular `generateName(...)` primitive.
+A product surface owns how the user expresses intent. It derives configuration for one or more reusable semantic naming callbacks. `generateGivenName(...)` is implemented; family/place callbacks remain candidates that should be introduced only when distinct reusable semantics or configuration are earned. Those semantic callbacks carry domain meaning and delegate generic one-name orchestration to the singular `generateName(...)` primitive.
 
 The naming layer then resolves the typed style needed by the sound mechanics. The low-level sound engine does not own product semantics such as Fiction Cast roles, Game NPC mode identity, title/epithet vocabularies, or semantic callback selection.
 
@@ -94,6 +94,8 @@ This is the core generated sound value. It is not browser text, IPA, spelling, o
 The containing result establishes the relationship among those values. Nested generation values do not need relational ids merely so adjacent values can point back at one another.
 
 The current `silhouette` property on `GeneratedName` is compatibility/inspection evidence backed by `NameGenerationPlan`; it is not an input to the singular naming callback.
+
+Checkpoint #199 found that the meaning of this app-facing result is not fully settled once Fiction Cast composes multiple parts: #203 tracks the required separation between one primitive sound-backed result and a composed product identity. This document therefore describes the current representation without declaring that representation a stable future surface contract.
 
 ### 6. Identity composition
 
@@ -267,7 +269,7 @@ Phonotactics belong in the resolved `SoundProfile` and `soundGenerator` behavior
 | --- | --- | --- | --- |
 | product surface | Captures UX intent and composes naming capabilities | Surface controls, defaults, presets, state, surface-specific aggregate behavior | Generic sound mechanics or hidden mode-driven generator branches |
 | semantic naming capability | Represents a reusable kind of name | Typed domain configuration and semantic defaults before delegating to `generateName(...)` | Parallel low-level sound generator implementations |
-| `src/naming` | Owns generic one-name orchestration above mechanics | Singular `generateName(...)`, internal generation-plan materialization, style/sound/spelling orchestration | Fiction Cast composition grammar, cast roles, surface-specific aggregate behavior, caller-facing silhouette prerequisite |
+| `src/naming` | Owns generic one-name orchestration above mechanics | Singular `generateName(...)`, internal generation-plan materialization, reusable semantic one-name capabilities such as `generateGivenName(...)` | Fiction Cast composition grammar, cast roles, surface-specific aggregate behavior, caller-facing silhouette prerequisite |
 | `src/styleCompilation` | Turns a typed style language into a resolved engine recipe | Style compilation and `SoundProfile` values | Generated names or product identity grammar |
 | `soundProfile.ts` | Describes the low-level sound recipe | Resolved sound targets and phonotactic preferences | Ids, compiler provenance, semantic name kinds, product roles, lexicons, UI state |
 | `soundGenerator.ts` | Creates generated sound plans | Segment sequences, syllable spans, syllable metadata, sound candidates | Browser text, spelling display, product semantics |
@@ -297,9 +299,9 @@ Phonotactics belong in the resolved `SoundProfile` and `soundGenerator` behavior
 
 ## Near-term direction
 
-The singular `generateName(...)` boundary is established and silhouette-shaped generation has been removed from caller-facing orchestration. The retained `NameGenerationPlan` is internal planning/scoring evidence; the legacy `silhouette` property remains only as compatibility/presentation evidence.
+The singular `generateName(...)` boundary and first semantic `generateGivenName(...)` capability are implemented. Family/place callbacks remain evidence-driven candidates rather than the automatic next step. The retained `NameGenerationPlan` is internal planning/scoring evidence; the legacy `silhouette` property remains compatibility/presentation evidence.
 
-The next naming-layer work is to introduce reusable semantic callbacks above `generateName(...)` from concrete domain semantics. Those callbacks should resolve domain configuration before delegating to generic one-name orchestration; the sound model should remain unaware of the semantic name kind.
+The current architecture work is checkpoint #198 and its evidence-backed blockers from #199. In particular, #202 must decide what deterministic invocation inputs genuinely belong on semantic callbacks, while #203 must stabilize the meaning of a primitive generated-name result versus a composed identity. None of those corrections should push semantic name kind or product-surface identity down into `SoundProfile` or `generateSound(...)`.
 
 The explicit syllable metadata fields are in the durable sound model. Future work should make stress assignment smarter only when the generator has a real rule to own, such as cadence-driven or weight-driven stress. Until then, fallback stress belongs in audition projection and must remain labeled as fallback.
 

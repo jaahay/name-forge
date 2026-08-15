@@ -20,7 +20,7 @@ The implemented v1 runtime pipeline is:
 NameRequest
   -> resolve criteria, optional mode metadata, exact quantity, grouping, and parent seed
   -> diagnostics
-  -> compile NameCriteria into current GenerationSettings
+  -> compile NameCriteria into current GenerationSettings bridge
   -> derive one deterministic child seed per artifact index
   -> invoke generic singular generateName(...) per child seed
   -> map each GeneratedName to NameArtifact
@@ -38,9 +38,9 @@ The accepted reusable naming hierarchy is ordered separately:
 ```text
 product surface
   -> reusable semantic callback(s)
-     generateGivenName(...)
-     generateFamilyName(...)
-     generatePlaceName(...)
+     generateGivenName(...)   [implemented]
+     generateFamilyName(...)  [candidate]
+     generatePlaceName(...)   [candidate]
   -> generic singular generateName(...)
   -> style / sound / spelling mechanics
 ```
@@ -86,7 +86,7 @@ Despite the historical filename, that document records the accepted exact indepe
 1. [`decisions/0006-naming-capabilities-and-surface-composition.md`](decisions/0006-naming-capabilities-and-surface-composition.md)
    - Authoritative `generateName` / reusable semantic callback / surface composition hierarchy.
 2. [`current-product-scope.md`](current-product-scope.md)
-   - Active product-scope lens and the selected next naming-layer sequence.
+   - Active product-scope lens and the current foundation-checkpoint sequence.
 3. [`architecture.md`](architecture.md)
    - Current technical architecture and naming-layer direction.
 4. [`requirements/name-request-v1.md`](requirements/name-request-v1.md)
@@ -94,7 +94,7 @@ Despite the historical filename, that document records the accepted exact indepe
 5. [`requirements/name-grouping-design-boundary.md`](requirements/name-grouping-design-boundary.md)
    - Implemented exact independent-set boundary and deferred reusable grouping semantics.
 6. [`requirements/name-request-v1-checkpoint.md`](requirements/name-request-v1-checkpoint.md)
-   - Current checkpoint after the singular request foundation and first independent-set slice.
+   - Request-platform checkpoint and current handoff into the foundation checkpoint.
 7. [`decisions/0001-name-artifact-and-request-contract.md`](decisions/0001-name-artifact-and-request-contract.md)
    - Establishes `NameArtifact` and `NameRequest -> NameResponse`, as refined by Decision 0006.
 8. [`decisions/0002-criteria-driven-generation.md`](decisions/0002-criteria-driven-generation.md)
@@ -130,14 +130,21 @@ Implemented platform behavior:
 
 The `silhouette` property remains a current result/artifact compatibility fact backed by `NameGenerationPlan`; it is not a caller-facing generation API or an architectural requirement for future semantic callbacks.
 
-## Active next naming-layer sequence
+## Active architecture sequence
 
-The singular `generateName(...)` boundary and silhouette-caller collapse are implemented in issue #186. The next implementation work is **not another grouping expansion**.
+The request/grouping platform is implemented and is **not** the active expansion target.
 
-1. Build the first reusable typed semantic callback(s), such as given/family/place generation, on top of `generateName(...)` from concrete product semantics.
-2. Let surfaces inject domain-specific configuration into those callbacks without branching generic generation on mode or surface identity.
-3. Move existing Fiction Cast component generation onto reusable semantic callbacks where the contracts are actually shared.
-4. Keep nuanced multi-name behavior surface-specific unless a cross-surface aggregate abstraction is demonstrated later.
+Parent checkpoint #198 is now the active gate before new surface-specific requirements work:
+
+1. #199 reviewed the engine and naming interfaces and concluded **not yet settled**.
+2. #201 must separate Fiction Cast/application settings and role metadata from generic naming contracts.
+3. #202 must narrow semantic callback inputs so `generateGivenName(...)` does not establish orchestration plumbing as the reusable semantic API pattern.
+4. #203 must separate one primitive sound-backed generated-name result from composed product identities.
+5. #200 aligns stale documentation with that actual state.
+6. Family/place callbacks remain unearned until distinct reusable semantics/configuration are demonstrated.
+7. Only after #198 signs off the foundation should a new Fiction Cast UI/UX requirements boundary be defined.
+
+Nuanced multi-name behavior remains surface-specific unless a cross-surface aggregate abstraction is demonstrated later.
 
 ## Deferred generic request/grouping work
 
@@ -159,8 +166,8 @@ These deferrals do not prohibit a product surface from owning its own aggregate 
 
 Supported-criteria knowledge is duplicated between `nameCriteriaCompiler.ts` and `nameCriteriaDiagnostics.ts`.
 
-Before materially expanding shared criteria targets, supported-target metadata should be centralized or a shared helper such as `isCriteriaClauseCompiled(...)` should be introduced. Keep that as a separately scoped runtime cleanup rather than coupling it to the first semantic-callback slice unless required.
+Before materially expanding shared criteria targets, supported-target metadata should be centralized or a shared helper such as `isCriteriaClauseCompiled(...)` should be introduced. Keep that as a separately scoped runtime cleanup rather than coupling it to the foundation corrections unless required.
 
 ## Historical docs
 
-Some older documents describe earlier Fiction Cast, style-pack, source-descriptor, singular-only, or universal-grouping planning states. Keep genuinely historical documents for context, but current-state guidance must defer to Decision 0006, current product scope, current architecture, the active request requirements, and the model/module contracts listed above.
+Some older documents describe earlier Fiction Cast, style-pack, source-descriptor, singular-only, or universal-grouping planning states. Keep genuinely historical documents for context, but current-state guidance must defer to Decision 0006, current product scope, current architecture, the active request requirements, and the #198 foundation checkpoint.

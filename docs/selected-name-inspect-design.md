@@ -1,8 +1,14 @@
 # Selected-name Inspect surface design
 
-This document records the current UI/UX direction for the Fiction cast selected-name surface. It is a design contract for upcoming implementation slices, not a record of current shipped behavior.
+## Status
 
-The core product framing is:
+**Historical design snapshot. Not the current Fiction Cast UI/UX requirements contract and not an active implementation plan.**
+
+This document records an earlier selected-name Inspect direction that informed subsequently shipped UI work. Several details below are intentionally historical, including references to upcoming implementation slices and the absence of audio/TTS. Do not modernize the body into current doctrine.
+
+The comprehensive Fiction Cast UI/UX requirements boundary has **not** yet been written. Parent checkpoint #198 gates that work until the engine/naming foundation is explicitly settled. When that later requirements work begins, it may question the current rarity, role, preset, tuning, format, Configure/Inspect, and presentation choices rather than treating this snapshot as authoritative.
+
+The core product framing at the time was:
 
 ```text
 The names are the product artifacts.
@@ -247,7 +253,7 @@ Do not make cards or default selection controls explain the name back to the use
 
 ## Implementation sequencing
 
-Recommended slices:
+Recommended slices at the time this snapshot was written:
 
 1. **Documentation and design contract**: this document.
 2. **Configure tray**: move Configure above the product surfaces and collapse to a run summary after generation.
