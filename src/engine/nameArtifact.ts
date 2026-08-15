@@ -261,6 +261,48 @@ export function isNameArtifact(value: unknown): value is NameArtifact {
   return isGeneratedNameArtifact(value) || isComposedNameArtifact(value);
 }
 
+/**
+ * Normalize the pre-#203 durable artifact shape used by history v1. Compound
+ * legacy records retain their identity/component provenance while ambiguous
+ * top-level primitive evidence is deliberately discarded.
+ */
+export function migrateLegacyNameArtifact(value: unknown): NameArtifact | undefined {
+  if (isNameArtifact(value)) return value;
+  if (!isRecord(value) || !isNonEmptyString(value.id) || !isNonEmptyString(value.displayText)) return undefined;
+
+  const readabilityDiagnostics = isReadabilityDiagnostics(value.readabilityDiagnostics)
+    ? value.readabilityDiagnostics
+    : [];
+
+  if (value.identity !== undefined) {
+    if (!isNameIdentity(value.identity) || value.identity.displayName !== value.displayText) return undefined;
+    if (value.identityAudition !== undefined && !isIdentityAuditionPhrase(value.identityAudition)) return undefined;
+    const composed: ComposedNameArtifact = {
+      kind: 'composed-identity',
+      id: value.id,
+      displayText: value.displayText,
+      identity: value.identity,
+      readabilityDiagnostics,
+      ...(value.identityAudition === undefined ? {} : { identityAudition: value.identityAudition }),
+    };
+    return isNameArtifact(composed) ? composed : undefined;
+  }
+
+  const generated: Record<string, unknown> = {
+    kind: 'generated-name',
+    id: value.id,
+    displayText: value.displayText,
+    soundProfile: value.soundProfile,
+    sound: value.sound,
+    spelling: value.spelling,
+    spellingCandidates: value.spellingCandidates,
+    silhouette: value.silhouette,
+    variants: value.variants,
+    readabilityDiagnostics,
+  };
+  return isNameArtifact(generated) ? generated : undefined;
+}
+
 export function toNameArtifact(generatedName: GeneratedName): GeneratedNameArtifact {
   return {
     kind: 'generated-name',
