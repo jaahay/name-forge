@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { renderToString } from 'react-dom/server';
 import { generateEnsemble } from '../fictionCast/ensemble';
+import { toFictionCastNameArtifact } from '../fictionCast/nameArtifact';
 import type { FictionCastGeneratedName, FictionCastSettings } from '../fictionCast/types';
 import { toNameArtifact } from '../engine/nameArtifact';
 import { createDefaultRegistry } from '../engine/registry';
@@ -19,8 +20,6 @@ const settings: FictionCastSettings = {
   nameFormat: 'given-only',
 };
 
-type SpellingCandidate = FictionCastGeneratedName['spellingCandidates'][number];
-
 function fixtureName(overrides: Partial<FictionCastSettings> = {}): FictionCastGeneratedName {
   const ensemble = generateEnsemble({ ...settings, ...overrides }, createDefaultRegistry());
   const [name] = ensemble.names;
@@ -29,31 +28,6 @@ function fixtureName(overrides: Partial<FictionCastSettings> = {}): FictionCastG
   if (!name) throw new Error('Expected fixture ensemble to generate a name.');
 
   return name;
-}
-
-function firstSpellingCandidate(name: FictionCastGeneratedName): SpellingCandidate {
-  const [candidate] = name.spellingCandidates;
-
-  expect(candidate).toBeDefined();
-  if (!candidate) throw new Error('Expected retained selected spelling candidate.');
-
-  return candidate;
-}
-
-function withSpellingCandidateCount(name: FictionCastGeneratedName, candidateCount: number): FictionCastGeneratedName {
-  const baseCandidate = firstSpellingCandidate(name);
-  const spellingCandidates = Array.from({ length: candidateCount }, (_, index): SpellingCandidate => ({
-    ...baseCandidate,
-    text: `SameSound${index + 1}`,
-    rank: index + 1,
-    score: Math.max(0, baseCandidate.score - index * 0.01),
-  }));
-  const [selectedSpelling] = spellingCandidates;
-
-  expect(selectedSpelling).toBeDefined();
-  if (!selectedSpelling) throw new Error('Expected same-sound fixture to include a selected spelling.');
-
-  return { ...name, spelling: selectedSpelling, spellingCandidates };
 }
 
 function renderInspector(name: FictionCastGeneratedName, isLocked = false): string {
@@ -68,16 +42,18 @@ function renderInspector(name: FictionCastGeneratedName, isLocked = false): stri
 }
 
 describe('NameInspector', () => {
-  it('keeps the primary inspector focused on sound and spelling', () => {
-    const name = withSpellingCandidateCount(fixtureName(), 4);
+  it('keeps the primary inspector focused on the composed display and component-owned sound', () => {
+    const name = fixtureName();
     const html = renderInspector(name);
 
     expect(html).toContain('inspector-primary');
     expect(html).toContain('Sound');
-    expect(html).toContain('Spelling');
-    expect(html).toContain('SameSound2');
-    expect(html).toContain('SameSound4');
-    expect(html).toContain('Alternates');
+    expect(html).toContain('Display');
+    expect(html).toContain('composed identity');
+    expect(html).toContain(name.displayName);
+    expect(html).toContain('modeled parts');
+    expect(html).toContain(name.primaryName.sound.transcription.replace(/^\//, '').replace(/\/$/, ''));
+    expect(html).not.toContain('Alternates');
 
     for (const removed of ['Other spellings (', 'Pronunciation guide', 'Playback', 'Technical sound structure', 'Preference rank', 'Supported spellings', 'Next option', 'Spelling display cap']) {
       expect(html).not.toContain(removed);
@@ -100,15 +76,14 @@ describe('NameInspector', () => {
 
   it('shows only modeled generated sound parts with an audition action for each component', () => {
     const name = fixtureName({ nameFormat: 'epithet-place', seed: 'name-inspector-composed-sound' });
-    const soundParts = name.identityAudition?.parts.filter((part) => part.kind === 'sound') ?? [];
+    const soundParts = name.identityAudition.parts.filter((part) => part.kind === 'sound');
     const html = renderInspector(name);
 
-    expect(name.identity?.format.kind).toBe('epithet-place');
-    expect(name.identityAudition).toBeDefined();
+    expect(name.identity.format.kind).toBe('epithet-place');
     expect(soundParts).toHaveLength(2);
     expect(html).toContain('modeled parts');
     expect(html).toContain('inspector-sound-components');
-    expect(html).not.toContain(name.identityAudition?.displayText ?? 'missing audition display');
+    expect(html).not.toContain(name.identityAudition.displayText);
     expect((html.match(/inspector-component-play/g) ?? [])).toHaveLength(soundParts.length);
 
     for (const part of soundParts) {
@@ -147,20 +122,20 @@ describe('NameInspector', () => {
 
     expect(html).toContain('selected-name-actions');
     expect(html).toContain('selected-name-utilities');
-    expect(html).toContain(`aria-label="Copy name ${name.name}"`);
-    expect(html).toContain(`aria-label="Copy details ${name.name}"`);
+    expect(html).toContain(`aria-label="Copy name ${name.displayName}"`);
+    expect(html).toContain(`aria-label="Copy details ${name.displayName}"`);
     expect(html).toContain('selected-name-reroll-action');
-    expect(html).toContain(`aria-label="Reroll ${name.name}"`);
+    expect(html).toContain(`aria-label="Reroll ${name.displayName}"`);
     expect(html).toContain('>Reroll</button>');
-    expect(html).toContain(`aria-label="Lock ${name.name}"`);
+    expect(html).toContain(`aria-label="Lock ${name.displayName}"`);
     expect(html).toContain('aria-pressed="false"');
-    expect(html).toContain(`aria-label="Browser voice draft unavailable for ${name.name}"`);
+    expect(html).toContain(`aria-label="Browser voice draft unavailable for ${name.displayName}"`);
     expect(html).toContain('Play name');
   });
 
   it('uses semantic phrase chunks for paced full-identity voice drafts', () => {
     const composed = fixtureName({ nameFormat: 'epithet-place', seed: 'name-inspector-voice-phrase' });
-    const artifact = toNameArtifact(composed);
+    const artifact = toFictionCastNameArtifact(composed);
     const soundParts = artifact.identityAudition?.parts.filter((part) => part.kind === 'sound') ?? [];
     const segments = browserVoiceDraftSegments(artifact, 'fallback');
 
@@ -171,7 +146,9 @@ describe('NameInspector', () => {
     expect(segments[0]).toBe(soundParts[0]?.speechText);
     expect(segments[1]).toContain('of');
     expect(segments[2]).toBe(soundParts[1]?.speechText);
-    expect(browserVoiceDraftSegments({ id: 'simple', displayText: 'Na' }, 'nah')).toEqual(['nah']);
+
+    const primitiveArtifact = toNameArtifact(composed.primaryName);
+    expect(browserVoiceDraftSegments(primitiveArtifact, 'nah')).toEqual(['nah']);
   });
 
   it('reflects the locked state and disables selected-name reroll', () => {
@@ -179,11 +156,11 @@ describe('NameInspector', () => {
     const html = renderInspector(name, true);
 
     expect(html).toContain('selected-name-reroll-action');
-    expect(html).toContain(`aria-label="Reroll ${name.name}"`);
+    expect(html).toContain(`aria-label="Reroll ${name.displayName}"`);
     expect(html).toContain('disabled=""');
     expect(html).toContain('title="Unlock this name to reroll it."');
     expect(html).toContain('selected-name-lock-action');
-    expect(html).toContain(`aria-label="Unlock ${name.name}"`);
+    expect(html).toContain(`aria-label="Unlock ${name.displayName}"`);
     expect(html).toContain('aria-pressed="true"');
   });
 });
