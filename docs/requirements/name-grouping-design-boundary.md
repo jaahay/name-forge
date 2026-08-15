@@ -66,7 +66,7 @@ This contract is useful when the requested plurality has **no semantic relations
 
 A surface-specific aggregate operation is a different concern.
 
-For example, a Fiction Cast operation may need roles, locks, per-component semantic configuration, cross-name contrast, cast-specific selection pressure, and preservation of existing roster state. Such an operation may compose the implemented `generateGivenName(...)` capability and any future family/place or other semantic callbacks that are earned by distinct reusable contracts, all above the generic singular `generateName(...)` primitive.
+For example, a Fiction Cast operation may need roles, locks, per-component semantic configuration, cross-name contrast, cast-specific selection pressure, and preservation of existing roster state. Such an operation may compose the implemented `generateGivenName(...)` capability plus the accepted `generateFamilyName(...)` and `generatePlaceName(...)` wrappers once #202 implements them, all above the same generic singular `generateName(...)` primitive. Their first-class semantic status does not depend on distinct sound-generation mechanics.
 
 It does not have to become a richer `NameGrouping` kind merely because multiple names are involved.
 
