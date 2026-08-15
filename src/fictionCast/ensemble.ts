@@ -1,10 +1,10 @@
-import { createSeededRandom, clamp } from '../engine/random';
+import { clamp } from '../engine/random';
 import { castReadabilityDiagnostics, diagnoseNameReadability, readabilitySummary } from '../engine/diagnostics';
+import { generateFamilyName } from '../naming/familyName';
 import { generateGivenName, type GivenNamePreferences } from '../naming/givenName';
-import { generateName } from '../naming/generator';
-import { toNameGenerationSettings } from '../naming/settings';
+import { generatePlaceName } from '../naming/placeName';
 import { renderIdentityAuditionPhrase } from '../engine/identityAudition';
-import type { GeneratedName, NameGenerationPlanPreferences } from '../engine/types';
+import type { GeneratedName } from '../engine/types';
 import type { SourceRegistry } from '../engine/registry';
 import {
   resolveFictionCastComponentGenerationContext,
@@ -43,29 +43,17 @@ function withEnsembleFit(candidate: FictionCastGeneratedName, selected: FictionC
   return { ...candidate, contextualScores };
 }
 
-function planningSettingsForCandidate(settings: FictionCastSettings, index: number): FictionCastSettings {
-  return {
-    ...settings,
-    novelty: clamp(settings.novelty + ((index % 5) - 2) * 0.06),
-  };
+function planningNoveltyOffsetForCandidate(index: number): number {
+  return ((index % 5) - 2) * 0.06;
 }
 
-function supportingPlanningPreferencesForCandidate(settings: FictionCastSettings, role: CastRoleAssignment | undefined): NameGenerationPlanPreferences | undefined {
+function semanticNamePreferencesForCandidate(settings: FictionCastSettings, role: CastRoleAssignment | undefined, index: number): GivenNamePreferences {
+  const noveltyOffset = planningNoveltyOffsetForCandidate(index);
   const influence = resolveRoleInfluence(settings, role);
-  if (!influence) return undefined;
+  if (!influence) return { noveltyOffset };
   const profile = getRolePreferenceProfile(influence.role);
   return {
-    strength: influence.strength,
-    syllableCounts: profile.syllableCounts,
-    textures: profile.textures,
-  };
-}
-
-function givenNamePreferencesForCandidate(settings: FictionCastSettings, role: CastRoleAssignment | undefined): GivenNamePreferences | undefined {
-  const influence = resolveRoleInfluence(settings, role);
-  if (!influence) return undefined;
-  const profile = getRolePreferenceProfile(influence.role);
-  return {
+    noveltyOffset,
     preferenceStrength: influence.strength,
     syllableCounts: profile.syllableCounts,
     textures: profile.textures,
@@ -89,22 +77,29 @@ function withRoleInfluence(candidate: GeneratedName, settings: FictionCastSettin
 
 function withNameIdentity(candidate: FictionCastGeneratedName, settings: FictionCastSettings, registry: SourceRegistry, index: number, attempt: number): FictionCastGeneratedName {
   const formatKind = resolveMaterializedFormatKind(settings.nameFormat, index);
-  const pack = registry.getStylePack(settings.stylePackId);
   const supportingKind = supportingComponentKindForFormat(formatKind);
   const supportingContext = supportingKind
     ? resolveFictionCastComponentGenerationContext(settings, candidate.role, supportingKind)
     : undefined;
   const supportingIndex = index + 1000;
-  const supportingName = requiresSupportingName(formatKind) && supportingKind && supportingContext
-    ? generateName({
-      settings: toNameGenerationSettings(supportingContext.settings),
-      planningSettings: toNameGenerationSettings(planningSettingsForCandidate(supportingContext.settings, supportingIndex)),
-      planningPreferences: supportingPlanningPreferencesForCandidate(supportingContext.settings, candidate.role),
-      pack,
-      planningRandom: createSeededRandom(`${settings.seed}${roleSeedSegment(settings, candidate.role)}:slot-${index}:supporting-${attempt}:${supportingIndex}`),
-      generationRandom: createSeededRandom(`${settings.seed}${roleSeedSegment(settings, candidate.role)}:supporting:${index}:${attempt}`),
-      index: supportingIndex,
-    })
+  const supportingOptions = supportingContext
+    ? {
+      settings: supportingContext.settings,
+      registry,
+      determinism: {
+        planningSeed: `${settings.seed}${roleSeedSegment(settings, candidate.role)}:slot-${index}:supporting-${attempt}:${supportingIndex}`,
+        generationSeed: `${settings.seed}${roleSeedSegment(settings, candidate.role)}:supporting:${index}:${attempt}`,
+        resultIndex: supportingIndex,
+      },
+      preferences: semanticNamePreferencesForCandidate(supportingContext.settings, candidate.role, supportingIndex),
+    }
+    : undefined;
+  const supportingName = requiresSupportingName(formatKind) && supportingKind && supportingOptions
+    ? supportingKind === 'family'
+      ? generateFamilyName(supportingOptions)
+      : supportingKind === 'place'
+        ? generatePlaceName(supportingOptions)
+        : undefined
     : undefined;
   const identity = createNameIdentity(candidate, supportingName, formatKind);
   const identityAudition = renderIdentityAuditionPhrase(identity);
@@ -160,13 +155,14 @@ export function generateEnsemble(settings: FictionCastSettings, registry: Source
     const primaryContext = resolveFictionCastComponentGenerationContext(safeSettings, role, 'given');
     const candidates = Array.from({ length: 16 }, (_, attempt) => {
       const generated = generateGivenName({
-        settings: toNameGenerationSettings(primaryContext.settings),
-        planningSettings: toNameGenerationSettings(planningSettingsForCandidate(primaryContext.settings, index)),
-        preferences: givenNamePreferencesForCandidate(primaryContext.settings, role),
-        pack,
-        planningRandom: createSeededRandom(`${safeSettings.seed}${roleSeedSegment(safeSettings, role)}:slot-${index}:attempt-${attempt}:${index}`),
-        generationRandom: createSeededRandom(`${settings.seed}${roleSeedSegment(safeSettings, role)}:name:${index}:${attempt}`),
-        index,
+        settings: primaryContext.settings,
+        registry,
+        determinism: {
+          planningSeed: `${safeSettings.seed}${roleSeedSegment(safeSettings, role)}:slot-${index}:attempt-${attempt}:${index}`,
+          generationSeed: `${settings.seed}${roleSeedSegment(safeSettings, role)}:name:${index}:${attempt}`,
+          resultIndex: index,
+        },
+        preferences: semanticNamePreferencesForCandidate(primaryContext.settings, role, index),
       });
       const baseName: FictionCastGeneratedName = {
         ...withRoleInfluence(generated, primaryContext.settings, role),
