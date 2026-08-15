@@ -149,7 +149,7 @@ It retains the selected generated result and enough structure for inspection, an
 
 An independent-set response remains a collection of individually addressable artifacts. Grouping does not replace artifacts with one aggregate name-set entity.
 
-The current artifact still exposes a property named `silhouette` for compatibility. Its value is `NameGenerationPlan` evidence; the property name does not imply that callers construct a silhouette or that `NameSilhouette` remains an API contract. Fiction Cast rarity is not part of that generic plan or the durable shared artifact contract.
+The current artifact still exposes a property named `silhouette` for compatibility. Its value is generic `NameGenerationPlan` evidence; the property name does not imply that callers construct a silhouette or that `NameSilhouette` remains an API contract. Fiction Cast role, role-influence, contextual score, and rarity metadata are not part of the durable shared artifact contract.
 
 Issue #203 owns the unresolved result boundary between one coherent sound-backed generated name and a composed product identity. This document records current executable types without treating the present top-level composition shape as the final semantic result contract.
 
@@ -221,9 +221,9 @@ Fiction Cast ensemble behavior is surface-specific and does not imply those capa
 | `NameGroupMetadata` | `src/engine/nameRequest.ts` | Parent/child seed metadata for the current independent set. |
 | `NameCriteria` | `src/engine/nameCriteria.ts` | Shared structured request-intent model. |
 | `NameGenerationSettings` | `src/engine/types.ts` | Narrow generic one-name settings consumed by `generateName(...)`; excludes surface-only rarity distribution and other non-causal product metadata. |
-| `GenerationSettings` | `src/engine/types.ts` / app adapters | Broader current settings aggregate used by product/request adapters; not the semantic callback vocabulary and not itself the singular generator contract. Issue #201 owns the remaining surface/generic split. |
+| `GenerationSettings` | `src/engine/types.ts` / app adapters | Shared generic settings aggregate: `NameGenerationSettings` plus `stylePackId` and `seed`; contains no Fiction Cast-only settings. |
 | `NameGenerationPlanPreferences` | `src/engine/types.ts` | Generic resolved causal planning pressure for syllable/texture preferences without product roles, rarity labels, or semantic name-kind labels. |
-| `NameGenerationPlan` | `src/engine/types.ts` | Internal pre-generation planning/scoring evidence materialized behind `generateName(...)`; does not contain Fiction Cast rarity. |
+| `NameGenerationPlan` | `src/engine/types.ts` | Internal pre-generation planning/scoring evidence materialized behind `generateName(...)`; contains no Fiction Cast role, role-influence, or rarity metadata. |
 | `GenerateGivenNameOptions` | `src/naming/givenName.ts` | Current implemented given-name callback input; #202 owns narrowing its orchestration-facing fields into the stable semantic invocation pattern. |
 | `GivenNamePreferences` | `src/naming/givenName.ts` | Given-name semantic preference vocabulary translated internally into generic causal planning pressure; does not contain rarity. |
 | `StyleInput` | `src/styleCompilation/styleCompiler.ts` | Current typed style language compiled into `SoundProfile`. |
@@ -261,7 +261,7 @@ The exact TypeScript names/shapes for the lexical inventory and finite-choice co
 | --- | --- | --- |
 | `GenerateNameOptions` | `src/naming/generator.ts` | Generic singular orchestration input: settings, pack, planning/generation randomness, index, and optional generic planning settings/preferences. |
 | `NameGenerationCandidate` | `src/naming/generator.ts` | Private pre-materialization result containing exact profile, sound, ranked spellings, and selected spelling. |
-| `GeneratedName` | `src/engine/types.ts` + `src/naming/generator.ts` | Current selected app-facing generated-name value; legacy `silhouette` property contains `NameGenerationPlan` evidence and does not carry Fiction Cast rarity. Issue #203 tracks its primitive-versus-composed meaning. |
+| `GeneratedName` | `src/engine/types.ts` + `src/naming/generator.ts` | Current selected app-facing generated-name value; legacy `silhouette` property contains generic `NameGenerationPlan` evidence and does not carry Fiction Cast role, role-influence, contextual-score, or rarity metadata. Issue #203 tracks its primitive-versus-composed meaning. |
 | `NameArtifact` | `src/engine/nameArtifact.ts` | Durable result mapped from one selected `GeneratedName`; issue #203 owns clarification of composed-identity evidence semantics. |
 
 Implemented and accepted contract direction:
@@ -281,8 +281,8 @@ Implemented and accepted contract direction:
 | --- | --- | --- |
 | `NameIdentity` | `src/fictionCast/identity.ts` + `src/engine/types.ts` | Materialized Fiction Cast display identity and phrase-part structure. Issue #203 reviews longer-term result/composition ownership. |
 | `GeneratedNamePart` | `src/fictionCast/identity.ts` + `src/engine/types.ts` | Current product-semantic identity part; sound-backed parts may contain exact generation evidence. It does not establish a universal `NameSegment` contract. |
-| `FictionCastSettings` | `src/fictionCast/types.ts` | Fiction Cast settings specialization, including surface-owned rarity distribution. |
-| `FictionCastGeneratedName` | `src/fictionCast/types.ts` | Generic generated name decorated with Fiction Cast contextual scores and surface-owned rarity metadata. |
+| `FictionCastSettings` | `src/fictionCast/types.ts` | Fiction Cast settings specialization, including surface-owned cast size, format, role configuration, and rarity distribution. |
+| `FictionCastGeneratedName` | `src/fictionCast/types.ts` | Generic generated name decorated with Fiction Cast role/influence metadata, contextual scores, and surface-owned rarity metadata. |
 | `FictionCastContextualScores` | `src/fictionCast/types.ts` | Role/ensemble/contextual overall evidence owned by Fiction Cast rather than generic scoring. |
 | `FictionCastGeneratedEnsemble` | `src/fictionCast/types.ts` + `src/fictionCast/ensemble.ts` | Fiction Cast roster result with surface settings, decorated names, and cast diagnostics; separate from shared independent-set grouping. |
 | `FictionCastRarityBand` / rarity distribution | `src/fictionCast/rarity.ts` | User/surface classification and deterministic distribution policy; not generic planning or semantic generated-name input. |
@@ -348,7 +348,7 @@ NameCriteria + base settings -> GenerationSettings
 
 Owners: `src/engine/nameCriteriaDiagnostics.ts` and `src/engine/nameCriteriaCompiler.ts`.
 
-They own current shared support classification, deterministic mappings, and honest fallback/partial diagnostics. They do not own semantic callback configuration, lexical inventory resolution, UI taxonomy, public match percentages, Fiction Cast rarity distribution, or universal taste claims.
+They own current shared support classification, deterministic mappings, and honest fallback/partial diagnostics. The compiler returns only generic/shared `GenerationSettings` and does not fabricate Fiction Cast defaults. These modules do not own semantic callback configuration, lexical inventory resolution, UI taxonomy, public match percentages, Fiction Cast rarity distribution, or universal taste claims.
 
 Supported-target knowledge remains duplicated between the two modules and should be centralized before major shared-criteria expansion.
 
@@ -429,7 +429,7 @@ NameGenerationSettings
 
 Owner: `src/engine/silhouettes.ts` (legacy filename).
 
-`NameGenerationPlan` is internal mechanics/evidence. Generic planning preferences may adjust syllable-count and texture pressures without carrying a product role, rarity category, or semantic name-kind label into the naming primitive. The current `silhouette` result/artifact property and `silhouette-*` IDs are compatibility evidence, not caller-facing generation contracts.
+`NameGenerationPlan` is internal mechanics/evidence. Generic planning preferences may adjust syllable-count and texture pressures without carrying a product role, role-influence record, rarity category, or semantic name-kind label into the naming primitive. The current `silhouette` result/artifact property and `silhouette-*` IDs are compatibility evidence, not caller-facing generation contracts.
 
 For deterministic compatibility, the implementation currently consumes the historical planning RNG position where generic rarity selection used to occur before issue #196. That draw preserves downstream fixed-seed texture/shape behavior; it does not restore rarity as a generic model field.
 
@@ -471,7 +471,7 @@ GeneratedName -> toNameArtifact -> NameArtifact
 
 Owner: `src/engine/nameArtifact.ts`.
 
-The mapper preserves generated facts; it must not invent information absent from the generated result. Fiction Cast rarity remains surface result metadata and is therefore not promoted into the shared artifact solely for Cast compatibility. #203 owns any result-envelope/composition change needed to keep primitive generated evidence coherent when a surface composes a larger identity.
+The mapper preserves generated facts; it must not invent information absent from the generated result. Fiction Cast role/influence, contextual scoring, and rarity remain surface result metadata and are therefore not promoted into the shared artifact for Cast compatibility. #203 owns any result-envelope/composition change needed to keep primitive generated evidence coherent when a surface composes a larger identity.
 
 ### Fiction Cast identity and ensemble
 

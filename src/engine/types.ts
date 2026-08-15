@@ -47,21 +47,15 @@ export type NameVariantConfidence = 'low' | 'medium' | 'high';
 export type SourceKind = 'style-pack' | 'algorithm' | 'listed-source' | 'remote-pack';
 export type NameFormatKind = 'given-only' | 'given-family' | 'initials-family' | 'title-name' | 'epithet-place' | 'mixed';
 export type NamePartRole = 'given' | 'family' | 'initial' | 'title' | 'epithet' | 'place';
-export type CastRole = 'protagonist' | 'rival' | 'mentor' | 'sidekick' | 'guardian' | 'outsider' | 'villain' | 'wildcard';
-export type CastRolePresetKind = 'none' | 'classic-ensemble' | 'quest-party' | 'court-intrigue';
-export type RoleInfluenceLevel = 'off' | 'light' | 'strong';
-export type SlotRoleOverrides = Partial<Record<number, CastRole>>;
 export type ReadabilityDiagnosticSeverity = 'notice' | 'warning';
 export type ReadabilityDiagnosticScope = 'name' | 'cast';
 
 export interface ReadabilityDiagnostic { id: string; scope: ReadabilityDiagnosticScope; severity: ReadabilityDiagnosticSeverity; label: string; detail: string; }
 export interface NameGenerationSettings { novelty: number; pronounceability: number; memorability: number; culturalAnchoring: number; orthographicWeirdness: number; preferredTexture?: NameTexture; spellingSelectionPreference?: SpellingSelectionPreference; }
-export interface GenerationSettings extends NameGenerationSettings { castSize: number; stylePackId: string; seed: string; nameFormat?: NameFormatKind; rolePreset?: CastRolePresetKind; roleInfluence?: RoleInfluenceLevel; slotRoleOverrides?: SlotRoleOverrides; }
+export interface GenerationSettings extends NameGenerationSettings { stylePackId: string; seed: string; }
 export interface WeightedValue<T = string> { value: T; weight: number; }
-export interface CastRoleAssignment { role: CastRole; label: string; source: 'preset' | 'slot'; slot: number; }
-export interface RoleInfluenceMetadata { level: Exclude<RoleInfluenceLevel, 'off'>; role: CastRole; profileId: string; label: string; strength: number; effects: string[]; }
 export interface NameGenerationPlanPreferences { strength: number; syllableCounts?: Array<WeightedValue<number>>; textures?: Array<WeightedValue<NameTexture>>; }
-export interface NameGenerationPlan { id: string; syllableCount: number; stressPattern: string; rhythm: string; shape: string[]; texture: NameTexture; targetNovelty: number; targetLength: 'short' | 'medium' | 'long'; roleInfluence?: RoleInfluenceMetadata; }
+export interface NameGenerationPlan { id: string; syllableCount: number; stressPattern: string; rhythm: string; shape: string[]; texture: NameTexture; targetNovelty: number; targetLength: 'short' | 'medium' | 'long'; }
 export interface NameScores { pronounceability: number; memorability: number; novelty: number; culturalAnchoring: number; orthographicNaturalness: number; styleFit: number; silhouetteFit: number; overallFit: number; }
 export interface NameVariantSource { id: string; kind: SourceKind; label: string; detail: string; }
 export interface NameVariant { value: string; kind: VariantKind; relationship: NameVariantRelationship; confidence: NameVariantConfidence; source: NameVariantSource; locale?: string; generated: boolean; ruleId: string; }
@@ -72,9 +66,7 @@ export interface NameIdentityLiteralPart { kind: 'literal'; value: string; }
 export type NameIdentityPhrasePart = NameIdentityPartReference | NameIdentityLiteralPart;
 export interface NameFormatRule { id: string; kind: Exclude<NameFormatKind, 'mixed'>; label: string; }
 export interface NameIdentity { displayName: string; format: NameFormatRule; parts: GeneratedNamePart[]; phraseParts: readonly NameIdentityPhrasePart[]; }
-export interface GeneratedName { id: string; name: string; soundProfile: SoundProfile; sound: SoundCandidate; spelling: RankedSpellingCandidate; spellingCandidates: readonly RankedSpellingCandidate[]; silhouette: NameGenerationPlan; scores: NameScores; variants: NameVariant[]; role?: CastRoleAssignment; roleInfluence?: RoleInfluenceMetadata; readabilityDiagnostics: ReadabilityDiagnostic[]; identity?: NameIdentity; identityAudition?: IdentityAuditionPhrase; }
-export interface EnsembleDiagnostics { repeatedInitials: number; repeatedEndings: number; repeatedCadences: number; noveltySpread: number; readabilityIssues: number; readabilityWarnings: number; readabilitySummary: string; readabilityDiagnostics: ReadabilityDiagnostic[]; summary: string; }
-export interface GeneratedEnsemble { settings: GenerationSettings; sourcePack: StylePackSummary; names: GeneratedName[]; diagnostics: EnsembleDiagnostics; }
+export interface GeneratedName { id: string; name: string; soundProfile: SoundProfile; sound: SoundCandidate; spelling: RankedSpellingCandidate; spellingCandidates: readonly RankedSpellingCandidate[]; silhouette: NameGenerationPlan; scores: NameScores; variants: NameVariant[]; readabilityDiagnostics: ReadabilityDiagnostic[]; identity?: NameIdentity; identityAudition?: IdentityAuditionPhrase; }
 export interface SpellingVariantRule { id: string; label: string; from: string; to: string; maxApplications?: number; sourceKind: SourceKind; relationship?: NameVariantRelationship; confidence?: NameVariantConfidence; }
 export interface StylePackSummary { id: string; label: string; description: string; source: StylePackSourceDescriptor; style: StyleDescriptor; }
 export interface StylePack extends StylePackSummary { version: string; localeHint: string; culturalAnchors: string[]; phonotactics: { onsets: Array<WeightedValue>; nuclei: Array<WeightedValue>; codas: Array<WeightedValue>; preferredEndings: Array<WeightedValue>; rareGraphemes: string[]; forbiddenFragments: string[]; }; silhouetteBias: { syllableCounts: Array<WeightedValue<number>>; textures: Array<WeightedValue<NameTexture>>; }; listedVariants: Record<string, string[]>; variantRules: SpellingVariantRule[]; }

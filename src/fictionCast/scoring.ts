@@ -1,7 +1,7 @@
 import { clamp, lerp } from '../engine/random';
-import type { GenerationSettings, NameGenerationPlan, NameScores, RoleInfluenceMetadata, ScoreKey } from '../engine/types';
+import type { NameGenerationPlan, NameScores, ScoreKey } from '../engine/types';
 import { getRolePreferenceProfile } from './roles';
-import type { FictionCastContextualScores } from './types';
+import type { FictionCastContextualScores, FictionCastSettings, RoleInfluenceMetadata } from './types';
 
 type FictionCastScoreKey = ScoreKey | 'ensembleFit' | 'roleFit';
 
@@ -28,7 +28,7 @@ export function scoreFictionCastRoleFit(name: string, plan: NameGenerationPlan, 
   return clamp(lengthFit * 0.3 + textureFit * 0.28 + rhythmFit * 0.22 + syllableFit * 0.2);
 }
 
-function fictionCastScoreWeights(settings: GenerationSettings): Record<FictionCastScoreKey, number> {
+function fictionCastScoreWeights(settings: FictionCastSettings): Record<FictionCastScoreKey, number> {
   const roleFitWeight = settings.roleInfluence === 'strong' ? 0.12 : settings.roleInfluence === 'light' ? 0.06 : 0;
   return {
     pronounceability: lerp(0.08, 0.24, settings.pronounceability),
@@ -46,7 +46,7 @@ function fictionCastScoreWeights(settings: GenerationSettings): Record<FictionCa
 export function combineFictionCastOverallFit(
   scores: Pick<NameScores, ScoreKey>,
   contextualScores: Pick<FictionCastContextualScores, 'ensembleFit' | 'roleFit'>,
-  settings: GenerationSettings,
+  settings: FictionCastSettings,
 ): number {
   const weights = fictionCastScoreWeights(settings);
   const totalWeight = Object.values(weights).reduce((sum, weight) => sum + weight, 0);

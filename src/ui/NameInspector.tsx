@@ -1,27 +1,25 @@
 import { toNameArtifact } from '../engine/nameArtifact';
-import type { GeneratedName } from '../engine/types';
-import { requireFictionCastGeneratedName } from '../fictionCast/types';
+import type { FictionCastGeneratedName } from '../fictionCast/types';
 import { NameArtifactInspector } from './NameArtifactInspector';
 import { rarityPresentation, scorePresentation } from './presentation';
 import { formatScore } from './score';
 import { labelFor } from './namePresentation';
 
 interface NameInspectorProps {
-  name: GeneratedName;
+  name: FictionCastGeneratedName;
   isLocked: boolean;
   onRerollName: () => void;
   onToggleLockedName: (id: string) => void;
 }
 
-function castSections(name: GeneratedName) {
+function castSections(name: FictionCastGeneratedName) {
   const identity = name.identity;
-  const castName = requireFictionCastGeneratedName(name);
-  const rarity = rarityPresentation[castName.rarityBand];
+  const rarity = rarityPresentation[name.rarityBand];
   const roleLabel = name.role?.label ?? 'No role';
   const roleInfluenceLabel = name.roleInfluence ? `${name.roleInfluence.level} influence` : 'Role-neutral';
   const textureLabel = `${labelFor(name.silhouette.texture)} texture`;
   const formatLabel = identity ? identity.format.label : `${labelFor(name.silhouette.rhythm)} rhythm`;
-  const contextualScores = castName.contextualScores;
+  const contextualScores = name.contextualScores;
 
   return (
     <>

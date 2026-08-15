@@ -1,11 +1,11 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { generateEnsemble } from '../fictionCast/ensemble';
+import type { FictionCastSettings } from '../fictionCast/types';
 import { createDefaultRegistry } from '../engine/registry';
-import type { GenerationSettings } from '../engine/types';
 import { CastHealthPanel } from './CastHealth';
 
-const settings: GenerationSettings = {
+const settings: FictionCastSettings = {
   castSize: 3,
   novelty: 0.5,
   pronounceability: 0.7,

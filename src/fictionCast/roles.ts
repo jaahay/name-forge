@@ -1,14 +1,17 @@
 import type {
-  CastRole,
-  CastRoleAssignment,
-  CastRolePresetKind,
-  GenerationSettings,
+  NameGenerationSettings,
   NameTexture,
-  RoleInfluenceLevel,
-  RoleInfluenceMetadata,
   WeightedValue,
 } from '../engine/types';
 import { clamp } from '../engine/random';
+import type {
+  CastRole,
+  CastRoleAssignment,
+  CastRolePresetKind,
+  FictionCastSettings,
+  RoleInfluenceLevel,
+  RoleInfluenceMetadata,
+} from './types';
 
 export const castRoleLabels: Record<CastRole, string> = {
   protagonist: 'Protagonist',
@@ -44,7 +47,7 @@ export interface CastRolePreferenceProfile {
   role: CastRole;
   label: string;
   effects: string[];
-  settingShifts: Partial<Pick<GenerationSettings, 'novelty' | 'pronounceability' | 'memorability' | 'culturalAnchoring' | 'orthographicWeirdness'>>;
+  settingShifts: Partial<Pick<NameGenerationSettings, 'novelty' | 'pronounceability' | 'memorability' | 'culturalAnchoring' | 'orthographicWeirdness'>>;
   syllableCounts: Array<WeightedValue<number>>;
   textures: Array<WeightedValue<NameTexture>>;
   targetLengths: Array<WeightedValue<'short' | 'medium' | 'long'>>;
@@ -147,7 +150,7 @@ export function parseCastRole(value: string): CastRole | undefined {
   return castRoleOptions.some((option) => option.value === normalized) ? normalized as CastRole : undefined;
 }
 
-export function resolveCastRole(settings: GenerationSettings, index: number): CastRoleAssignment | undefined {
+export function resolveCastRole(settings: FictionCastSettings, index: number): CastRoleAssignment | undefined {
   const slotRole = settings.slotRoleOverrides?.[index];
   if (slotRole) return { role: slotRole, label: castRoleLabels[slotRole], source: 'slot', slot: index + 1 };
 
@@ -158,7 +161,7 @@ export function resolveCastRole(settings: GenerationSettings, index: number): Ca
   return { role, label: castRoleLabels[role], source: 'preset', slot: index + 1 };
 }
 
-export function isRoleInfluenceActive(settings: GenerationSettings): boolean {
+export function isRoleInfluenceActive(settings: FictionCastSettings): boolean {
   return roleInfluenceStrength(settings.roleInfluence) > 0;
 }
 
@@ -166,7 +169,7 @@ export function getRolePreferenceProfile(role: CastRole): CastRolePreferenceProf
   return rolePreferenceProfiles[role];
 }
 
-export function resolveRoleInfluence(settings: GenerationSettings, role?: CastRoleAssignment): RoleInfluenceMetadata | undefined {
+export function resolveRoleInfluence(settings: FictionCastSettings, role?: CastRoleAssignment): RoleInfluenceMetadata | undefined {
   const strength = roleInfluenceStrength(settings.roleInfluence);
   if (!role || strength === 0) return undefined;
   const profile = getRolePreferenceProfile(role.role);
@@ -180,7 +183,7 @@ export function resolveRoleInfluence(settings: GenerationSettings, role?: CastRo
   };
 }
 
-export function roleInfluencedSettings(settings: GenerationSettings, role?: CastRoleAssignment): GenerationSettings {
+export function roleInfluencedSettings(settings: FictionCastSettings, role?: CastRoleAssignment): FictionCastSettings {
   const influence = resolveRoleInfluence(settings, role);
   if (!influence) return settings;
   const profile = getRolePreferenceProfile(influence.role);

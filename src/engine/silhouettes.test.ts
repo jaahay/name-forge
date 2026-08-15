@@ -4,7 +4,7 @@ import { createDefaultRegistry } from './registry';
 import { createNameGenerationPlan } from './silhouettes';
 import type { GenerationSettings } from './types';
 
-const settings: GenerationSettings = { castSize: 6, novelty: 0.5, pronounceability: 0.7, memorability: 0.6, culturalAnchoring: 0.65, orthographicWeirdness: 0.25, stylePackId: 'british-literary-fantasy', seed: 'silhouette-test-seed' };
+const settings: GenerationSettings = { novelty: 0.5, pronounceability: 0.7, memorability: 0.6, culturalAnchoring: 0.65, orthographicWeirdness: 0.25, stylePackId: 'british-literary-fantasy', seed: 'silhouette-test-seed' };
 
 describe('createNameGenerationPlan', () => {
   it('materializes deterministic planning evidence before exact name letters exist', () => {

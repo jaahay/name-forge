@@ -2,15 +2,15 @@ import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { generateEnsemble } from './fictionCast/ensemble';
+import type { FictionCastSettings } from './fictionCast/types';
 import { analyzeNameArtifactSoundRelationships } from './engine/nameArtifactAnalysis';
 import { toNameArtifact } from './engine/nameArtifact';
 import { createDefaultRegistry } from './engine/registry';
-import type { GenerationSettings } from './engine/types';
 import { rerollSelectedCastName } from './fictionCastReroll';
 import { CastHealthPanel } from './ui/CastHealth';
 import { resolveNameSelection, selectedNameIdFromView } from './ui/workbenchSelection';
 
-const settings: GenerationSettings = {
+const settings: FictionCastSettings = {
   castSize: 4,
   novelty: 0.5,
   pronounceability: 0.7,

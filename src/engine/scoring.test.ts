@@ -5,7 +5,7 @@ import { scoreName } from './scoring';
 import { createNameGenerationPlan } from './silhouettes';
 import type { GenerationSettings, ScoreKey } from './types';
 
-const settings: GenerationSettings = { castSize: 6, novelty: 0.5, pronounceability: 0.7, memorability: 0.6, culturalAnchoring: 0.65, orthographicWeirdness: 0.25, stylePackId: 'british-literary-fantasy', seed: 'scoring-test-seed' };
+const settings: GenerationSettings = { novelty: 0.5, pronounceability: 0.7, memorability: 0.6, culturalAnchoring: 0.65, orthographicWeirdness: 0.25, stylePackId: 'british-literary-fantasy', seed: 'scoring-test-seed' };
 const scoreKeys: ScoreKey[] = ['pronounceability', 'memorability', 'novelty', 'culturalAnchoring', 'orthographicNaturalness', 'styleFit', 'silhouetteFit'];
 
 describe('scoreName', () => {

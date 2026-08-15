@@ -100,7 +100,6 @@ export function compileNameCriteriaToGenerationSettings(
   base: NameCriteriaCompilerBaseSettings,
 ): GenerationSettings {
   const initialSettings: GenerationSettings = {
-    castSize: 1,
     novelty: 0.48,
     pronounceability: 0.72,
     memorability: 0.65,
@@ -108,10 +107,6 @@ export function compileNameCriteriaToGenerationSettings(
     orthographicWeirdness: 0.28,
     stylePackId: base.stylePackId,
     seed: base.seed,
-    nameFormat: 'given-only',
-    rolePreset: 'none',
-    roleInfluence: 'off',
-    slotRoleOverrides: {},
   };
 
   return criteria.clauses.reduce(applyCriteriaClause, initialSettings);

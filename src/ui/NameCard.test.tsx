@@ -1,13 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { renderToString } from 'react-dom/server';
 import { generateEnsemble } from '../fictionCast/ensemble';
-import type { FictionCastGeneratedName } from '../fictionCast/types';
+import type { FictionCastGeneratedName, FictionCastSettings } from '../fictionCast/types';
 import { createDefaultRegistry } from '../engine/registry';
-import type { GenerationSettings } from '../engine/types';
 import { rarityPresentation } from './presentation';
 import { NameCard } from './NameCard';
 
-const settings: GenerationSettings = {
+const settings: FictionCastSettings = {
   castSize: 2,
   novelty: 0.5,
   pronounceability: 0.7,

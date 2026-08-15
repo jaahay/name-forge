@@ -1,4 +1,4 @@
-import type { GeneratedEnsemble } from '../engine/types';
+import type { FictionCastGeneratedEnsemble } from '../fictionCast/types';
 
 export type NameSelectionView =
   | { kind: 'all-names' }
@@ -18,7 +18,7 @@ export function sameNameSelection(left: NameSelectionView, right: NameSelectionV
   return left.nameId === right.nameId;
 }
 
-export function resolveNameSelection(selection: NameSelectionView, ensemble: GeneratedEnsemble, lockedNameIds: Set<string>): NameSelectionView {
+export function resolveNameSelection(selection: NameSelectionView, ensemble: FictionCastGeneratedEnsemble, lockedNameIds: Set<string>): NameSelectionView {
   if (selection.kind === 'all-names') return selection;
   if (selection.nameId && ensemble.names.some((name) => name.id === selection.nameId)) return selection;
 

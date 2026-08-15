@@ -252,11 +252,11 @@ describe('toNameArtifact', () => {
     expect(diagnostic.severity).toBe('notice');
   });
 
-  it('does not require cast role metadata on every artifact', () => {
+  it('does not expose Fiction Cast role metadata on generic artifacts', () => {
     const artifact = toNameArtifact(generatedName);
 
-    expect(artifact.role).toBeUndefined();
-    expect(artifact.roleInfluence).toBeUndefined();
+    expect('role' in artifact).toBe(false);
+    expect('roleInfluence' in artifact).toBe(false);
     expect(artifact.silhouette).toBe(generatedName.silhouette);
     expect(artifact.variants).toBe(generatedName.variants);
   });

@@ -1,7 +1,7 @@
 import type { SoundProfile } from '../engine/soundProfile';
-import type { GeneratedName, NameGenerationPlan, NameVariant, ReadabilityDiagnostic, RoleInfluenceMetadata } from '../engine/types';
+import type { GeneratedName, NameGenerationPlan, NameVariant, ReadabilityDiagnostic } from '../engine/types';
 import type { FictionCastRarityBand } from './rarity';
-import type { FictionCastGeneratedEnsemble, FictionCastGeneratedName } from './types';
+import type { FictionCastGeneratedEnsemble, FictionCastGeneratedName, RoleInfluenceMetadata } from './types';
 
 export interface ExportedNamePart { role: string; value: string; sourceName: string; }
 export interface ExportedRoleInfluence { level: RoleInfluenceMetadata['level']; profileId: string; label: string; effects: string[]; }

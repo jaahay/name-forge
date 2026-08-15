@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { renderToString } from 'react-dom/server';
 import { generateEnsemble } from '../fictionCast/ensemble';
+import type { FictionCastGeneratedName, FictionCastSettings } from '../fictionCast/types';
 import { toNameArtifact } from '../engine/nameArtifact';
 import { createDefaultRegistry } from '../engine/registry';
-import type { GeneratedName, GenerationSettings } from '../engine/types';
 import { browserVoiceDraftSegments, browserVoiceDraftText } from './NameArtifactInspector';
 import { NameInspector } from './NameInspector';
 
-const settings: GenerationSettings = {
+const settings: FictionCastSettings = {
   castSize: 1,
   novelty: 0.5,
   pronounceability: 0.7,
@@ -19,9 +19,9 @@ const settings: GenerationSettings = {
   nameFormat: 'given-only',
 };
 
-type SpellingCandidate = GeneratedName['spellingCandidates'][number];
+type SpellingCandidate = FictionCastGeneratedName['spellingCandidates'][number];
 
-function fixtureName(overrides: Partial<GenerationSettings> = {}): GeneratedName {
+function fixtureName(overrides: Partial<FictionCastSettings> = {}): FictionCastGeneratedName {
   const ensemble = generateEnsemble({ ...settings, ...overrides }, createDefaultRegistry());
   const [name] = ensemble.names;
 
@@ -31,7 +31,7 @@ function fixtureName(overrides: Partial<GenerationSettings> = {}): GeneratedName
   return name;
 }
 
-function firstSpellingCandidate(name: GeneratedName): SpellingCandidate {
+function firstSpellingCandidate(name: FictionCastGeneratedName): SpellingCandidate {
   const [candidate] = name.spellingCandidates;
 
   expect(candidate).toBeDefined();
@@ -40,7 +40,7 @@ function firstSpellingCandidate(name: GeneratedName): SpellingCandidate {
   return candidate;
 }
 
-function withSpellingCandidateCount(name: GeneratedName, candidateCount: number): GeneratedName {
+function withSpellingCandidateCount(name: FictionCastGeneratedName, candidateCount: number): FictionCastGeneratedName {
   const baseCandidate = firstSpellingCandidate(name);
   const spellingCandidates = Array.from({ length: candidateCount }, (_, index): SpellingCandidate => ({
     ...baseCandidate,
@@ -56,7 +56,7 @@ function withSpellingCandidateCount(name: GeneratedName, candidateCount: number)
   return { ...name, spelling: selectedSpelling, spellingCandidates };
 }
 
-function renderInspector(name: GeneratedName, isLocked = false): string {
+function renderInspector(name: FictionCastGeneratedName, isLocked = false): string {
   return renderToString(
     <NameInspector
       name={name}

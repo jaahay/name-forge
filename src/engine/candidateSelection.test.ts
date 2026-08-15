@@ -105,6 +105,23 @@ const candidatePool: readonly RankedSpellingCandidate[] = [
 ];
 
 describe('candidate selection scoring', () => {
+  it('keeps criteria compilation free of Fiction Cast defaults', () => {
+    expect(baseSettings).toEqual({
+      novelty: 0.48,
+      pronounceability: 0.72,
+      memorability: 0.65,
+      culturalAnchoring: 0.62,
+      orthographicWeirdness: 0.28,
+      stylePackId: 'test-style-pack',
+      seed: 'selection-test-seed',
+    });
+    expect('castSize' in baseSettings).toBe(false);
+    expect('nameFormat' in baseSettings).toBe(false);
+    expect('rolePreset' in baseSettings).toBe(false);
+    expect('roleInfluence' in baseSettings).toBe(false);
+    expect('slotRoleOverrides' in baseSettings).toBe(false);
+  });
+
   it('uses ranked spelling order when no compiled selection preference exists', () => {
     const selection = selectRankedSpellingCandidate(candidatePool, baseSettings);
 

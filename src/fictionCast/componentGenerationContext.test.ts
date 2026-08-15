@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import type { GenerationSettings } from '../engine/types';
 import {
   resolveFictionCastComponentGenerationContext,
   supportingComponentKindForFormat,
 } from './componentGenerationContext';
+import type { FictionCastSettings } from './types';
 
-const settings: GenerationSettings = {
+const settings: FictionCastSettings = {
   castSize: 4,
   novelty: 0.5,
   pronounceability: 0.7,
