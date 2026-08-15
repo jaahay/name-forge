@@ -113,9 +113,11 @@ function modeledSoundParts(artifact: NameArtifact): readonly IdentityAuditionSou
 
 function detailsText(artifact: NameArtifact, pronunciationGuide?: string): string {
   const analysis = analyzeNameArtifact(artifact);
-  const spellings = (artifact.spellingCandidates ?? [])
-    .map((candidate) => `${candidate.text} (${sameSoundSpellingMetadataLabel(candidate, artifact.spelling)})`)
-    .join(', ') || 'None';
+  const spellings = artifact.kind === 'generated-name'
+    ? artifact.spellingCandidates
+      .map((candidate) => `${candidate.text} (${sameSoundSpellingMetadataLabel(candidate, artifact.spelling)})`)
+      .join(', ') || 'None'
+    : undefined;
   const phraseSound = artifact.identityAudition?.displayText;
   const soundParts = modeledSoundParts(artifact)
     .map((part) => `${part.value}: ${part.transcription}`)
@@ -130,19 +132,20 @@ function detailsText(artifact: NameArtifact, pronunciationGuide?: string): strin
     analysis.structure ? `Structure: ${analysis.structure.syllableCount} syllable(s); ${analysis.structure.segmentCount} segments; ${analysis.structure.syllableShapes.join('-')}` : undefined,
     artifact.spelling ? `Selected spelling: ${artifact.spelling.text} (preference rank ${artifact.spelling.rank})` : undefined,
     analysis.spelling?.selectionSummary,
-    `Same-sound spellings: ${spellings}`,
+    spellings ? `Same-sound spellings: ${spellings}` : undefined,
     `Read status: ${analysis.readability.diagnosticCount === 0 ? 'No deterministic read-friction notes' : `${analysis.readability.diagnosticCount} read notes`}`,
   ].filter(Boolean).join('\n');
 }
 
 export function NameArtifactInspector({ artifact, eyebrow = 'Inspect', extraActions, extraSections }: NameArtifactInspectorProps) {
+  const isComposed = artifact.kind === 'composed-identity';
   const sameSoundSpellings = artifact.spellingCandidates ?? [];
   const otherSpellings = sameSoundSpellings.filter((candidate) => !isSelectedSpelling(candidate, artifact.spelling));
-  const readNotes = artifact.readabilityDiagnostics ?? [];
+  const readNotes = artifact.readabilityDiagnostics;
   const variants = artifact.variants ?? [];
   const auditionCue = artifact.sound ? renderAuditionCue(artifact.sound.sequence) : undefined;
   const soundParts = modeledSoundParts(artifact);
-  const showComponentSounds = Boolean(artifact.identity && artifact.identity.format.kind !== 'given-only' && soundParts.length > 0);
+  const showComponentSounds = isComposed && soundParts.length > 0;
   const soundDescription = auditionCue?.displayText ?? artifact.sound?.transcription;
   const voiceDraftSegments = browserVoiceDraftSegments(artifact, auditionCue?.speechText);
   const browserSpeechAvailable = canUseBrowserSpeech();
@@ -152,7 +155,7 @@ export function NameArtifactInspector({ artifact, eyebrow = 'Inspect', extraActi
     ? `Play browser voice draft for ${artifact.displayText}`
     : `Browser voice draft unavailable for ${artifact.displayText}`;
   const hasMoreDetails = readNotes.length > 0 || variants.length > 0 || Boolean(extraSections);
-  const spellingLabel = artifact.identity && artifact.identity.format.kind !== 'given-only' ? 'Base spelling' : 'Spelling';
+  const spellingLabel = isComposed ? 'Display' : 'Spelling';
 
   return (
     <aside className="selected-name-panel panel" aria-labelledby={`artifact-heading-${artifact.id}`}>
@@ -215,9 +218,9 @@ export function NameArtifactInspector({ artifact, eyebrow = 'Inspect', extraActi
         <section className="inspector-essential inspector-spelling" aria-labelledby={`spelling-heading-${artifact.id}`}>
           <div className="inspector-essential-heading">
             <h3 id={`spelling-heading-${artifact.id}`}>{spellingLabel}</h3>
-            {artifact.identity && artifact.identity.format.kind !== 'given-only' ? <span>generated core</span> : null}
+            {isComposed ? <span>composed identity</span> : null}
           </div>
-          <p className="inspector-spelling-primary">{artifact.spelling?.text ?? artifact.displayText}</p>
+          <p className="inspector-spelling-primary">{isComposed ? artifact.displayText : artifact.spelling.text}</p>
           {otherSpellings.length > 0 ? (
             <div className="inspector-alternates">
               <span>Alternates</span>
