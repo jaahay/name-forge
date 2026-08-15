@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { generateEnsemble } from '../fictionCast/ensemble';
 import { createCastExportPayload, serializeCastAsJson, serializeCastAsMarkdown } from '../fictionCast/export';
+import type { FictionCastSettings } from '../fictionCast/types';
 import { createDefaultRegistry } from './registry';
-import type { GenerationSettings } from './types';
 
-const settings: GenerationSettings = {
+const settings: FictionCastSettings = {
   castSize: 4,
   novelty: 0.5,
   pronounceability: 0.7,

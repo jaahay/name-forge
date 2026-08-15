@@ -7,7 +7,7 @@ import { createNameGenerationPlan } from './silhouettes';
 import type { GenerationSettings, NameGenerationPlan, ScoreKey } from './types';
 import { generateVariants, variantLimitFor } from './variants';
 
-const settings: GenerationSettings = { castSize: 6, novelty: 0.5, pronounceability: 0.7, memorability: 0.6, culturalAnchoring: 0.65, orthographicWeirdness: 0.25, stylePackId: 'british-literary-fantasy', seed: 'control-test-seed' };
+const settings: GenerationSettings = { novelty: 0.5, pronounceability: 0.7, memorability: 0.6, culturalAnchoring: 0.65, orthographicWeirdness: 0.25, stylePackId: 'british-literary-fantasy', seed: 'control-test-seed' };
 const componentKeys: ScoreKey[] = ['pronounceability', 'memorability', 'novelty', 'culturalAnchoring', 'orthographicNaturalness', 'styleFit', 'silhouetteFit'];
 
 type WeightedChoice = string | number;

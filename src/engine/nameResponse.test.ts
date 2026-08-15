@@ -140,7 +140,7 @@ describe('generateNameResponse', () => {
     expect(artifact.sound).toBeDefined();
     expect(artifact.spelling).toBeDefined();
     expect(spellingCandidates.length).toBeGreaterThan(0);
-    expect(artifact.role).toBeUndefined();
+    expect('role' in artifact).toBe(false);
   });
 
   it('maps supported sound criteria into current silhouette and sound profile texture', () => {

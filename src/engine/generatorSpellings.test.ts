@@ -6,7 +6,6 @@ import { generateSpellingCandidatePool } from './spellingGenerator';
 import type { GenerationSettings } from './types';
 
 const settings: GenerationSettings = {
-  castSize: 1,
   novelty: 0.5,
   pronounceability: 0.7,
   memorability: 0.6,
@@ -14,7 +13,6 @@ const settings: GenerationSettings = {
   orthographicWeirdness: 0.25,
   stylePackId: 'british-literary-fantasy',
   seed: 'exhaustive-same-sound-spellings',
-  nameFormat: 'given-only',
 };
 
 describe('same-sound spelling retention', () => {
