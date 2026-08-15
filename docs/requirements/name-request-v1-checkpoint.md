@@ -55,14 +55,16 @@ Decision 0006 establishes a separate ordered dependency:
 
 ```text
 surface-specific aggregate orchestration, when needed
-  -> reusable semantic callbacks
+  -> reusable semantic `-Name` callbacks
   -> generic singular generateName(...)
   -> style / sound / spelling mechanics
 ```
 
 `NameRequest -> NameResponse` remains useful for shared criteria, independent quantity, deterministic replay, service/adapter boundaries, and artifact transport without becoming the only domain-level callback surface.
 
-The request adapter consumes `generateName(...)` directly because the request does not currently assert a semantic name kind. `generateGivenName(...)` exists separately above that primitive and is used where a caller actually owns given-name semantics. Callers do not construct `NameSilhouette`; the retained `NameGenerationPlan` is internal planning/scoring evidence. The legacy `silhouette` artifact property is compatibility evidence rather than a request or naming-API concept.
+The request adapter consumes `generateName(...)` directly because the request does not currently assert a semantic name kind. That remains correct even though given, family, and place are first-class semantic API categories outside this transport boundary. `generateGivenName(...)` is implemented; `generateFamilyName(...)` and `generatePlaceName(...)` are accepted wrappers pending #202. All delegate lexical-name generation to `generateName(...)`. Callers do not construct `NameSilhouette`; the retained `NameGenerationPlan` is internal planning/scoring evidence. The legacy `silhouette` artifact property is compatibility evidence rather than a request or naming-API concept.
+
+Finite lexical selection is also outside this request contract. Typed naming lexicons and semantic selectors over a generic deterministic `selectFromOptions(...)` mechanic may serve bounded vocabularies such as particles or generational suffixes without changing `NameRequest` or `generateName(...)` semantics.
 
 ## Quantity and grouping boundary
 
@@ -90,7 +92,7 @@ That bridge still contains broader application/Fiction-Cast-shaped fields that g
 
 Diagnostics report unsupported and partially implemented criteria honestly. Unsupported criteria should not fail ordinary generation by default; the adapter continues with neutral best-effort settings for every requested artifact.
 
-Semantic callbacks may additionally own typed configuration meaningful only for their domain. `NameCriteria` should not expand into a universal schema merely to encode every semantic name kind.
+Semantic callbacks may additionally own typed configuration meaningful only for their domain. Typed `options` facades may encapsulate more granular source or linguistic details without requiring `NameCriteria` to become the universal schema for every semantic name or lexical inventory concern.
 
 Follow-up risk: supported-criteria knowledge is duplicated between `nameCriteriaCompiler.ts` and `nameCriteriaDiagnostics.ts`. Before materially expanding shared criteria targets, centralize supported-target metadata or introduce a shared helper such as `isCriteriaClauseCompiled(...)`.
 
@@ -102,9 +104,9 @@ It can influence which generated result or spelling candidate is selected. It mu
 
 ## Active app surface boundary
 
-Fiction Cast keeps cast-facing concepts such as role mix, slot controls, locks, cross-name selection pressure, review, and export language in its surface behavior. Its primary given-name generation now enters through `generateGivenName(...)`; family/place supporting generation remains on `generateName(...)` because #199 found no current evidence that distinct reusable family/place callbacks have been earned. Cast role, contextual scoring, rarity, identity composition, and aggregate behavior stay above those one-name mechanics.
+Fiction Cast keeps cast-facing concepts such as role mix, slot controls, locks, cross-name selection pressure, review, and export language in its surface behavior. Its primary given-name generation now enters through `generateGivenName(...)`; family/place supporting generation remains on `generateName(...)` in the current runtime until #202 adds their accepted first-class semantic wrappers. The absence of distinct family/place mechanics does not block those wrappers. Cast role, contextual scoring, rarity, identity composition, and aggregate behavior stay above the one-name mechanics.
 
-Those concepts are not global grouping assumptions.
+Those concepts are not global grouping assumptions. Heterogeneous composition also does not imply a universal `NameSegment` or omnibus `generatePersonName(...)` contract.
 
 Game NPC continues using the singular request default and generic request adapter because its current request does not assert a semantic name kind. A future Game NPC requirements slice may explicitly choose and configure a reusable semantic capability; `mode` must not select one implicitly.
 
@@ -114,10 +116,10 @@ The request/grouping platform is implemented and is not the active expansion tar
 
 - #199 completed the engine/naming-interface review and concluded **not yet settled**.
 - #201 tracks separation of Fiction Cast/application settings and role metadata from generic naming contracts.
-- #202 tracks narrowing semantic callback inputs so orchestration plumbing does not become the reusable semantic API pattern.
+- #202 now owns the stable semantic invocation contract: narrow orchestration plumbing, retain `generateGivenName(...)`, and add first-class `generateFamilyName(...)` / `generatePlaceName(...)` wrappers that all delegate to `generateName(...)`.
 - #203 tracks separation of one primitive sound-backed generated-name result from composed product identities.
-- #200 aligns stale documentation with that current state.
-- Family/place callbacks remain unearned until distinct reusable semantics or configuration are demonstrated.
+- #200 aligns stale documentation with the review and subsequent checkpoint decisions.
+- typed lexical inventories plus deterministic finite-choice selection are an accepted adjacent direction, but their exact implementation should remain a separately bounded slice unless required by #201-#203.
 
 Do not begin the comprehensive Fiction Cast UI/UX requirements boundary until #198 reaches an explicit foundation-signoff decision.
 
@@ -133,7 +135,8 @@ The following remain explicit non-goals for the current request platform:
 - generic per-artifact reroll or child replacement;
 - public group-fit scoring;
 - LLM prompt-first UI;
-- public Criteria Match UI or fit percentages.
+- public Criteria Match UI or fit percentages;
+- universal heterogeneous person-name/identity composition.
 
 These deferrals do not prohibit a surface from implementing a product-specific aggregate callback when the semantics genuinely belong to that surface.
 
