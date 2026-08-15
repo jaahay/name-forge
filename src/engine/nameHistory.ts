@@ -1,4 +1,4 @@
-import { isNameArtifact, type NameArtifact } from './nameArtifact';
+import { migrateLegacyNameArtifact, type NameArtifact } from './nameArtifact';
 
 export const NAME_HISTORY_STORAGE_KEY = 'name-forge.recent-names.v1';
 export const NAME_HISTORY_VERSION = 1;
@@ -31,13 +31,25 @@ function isNonEmptyString(value: unknown): value is string {
   return typeof value === 'string' && value.length > 0;
 }
 
-function isHistoryEntry(value: unknown): value is NameHistoryEntry {
-  return isRecord(value)
-    && isNonEmptyString(value.id)
-    && isNameArtifact(value.artifact)
-    && isNonEmptyString(value.mode)
-    && typeof value.seed === 'string'
-    && isNonEmptyString(value.savedAt);
+function parseHistoryEntry(value: unknown): NameHistoryEntry | undefined {
+  if (!isRecord(value)
+    || !isNonEmptyString(value.id)
+    || !isNonEmptyString(value.mode)
+    || typeof value.seed !== 'string'
+    || !isNonEmptyString(value.savedAt)) {
+    return undefined;
+  }
+
+  const artifact = migrateLegacyNameArtifact(value.artifact);
+  if (!artifact) return undefined;
+
+  return {
+    id: value.id,
+    artifact,
+    mode: value.mode,
+    seed: value.seed,
+    savedAt: value.savedAt,
+  };
 }
 
 export function parseNameHistory(serialized: string | null): NameHistoryEnvelopeV1 {
@@ -51,7 +63,10 @@ export function parseNameHistory(serialized: string | null): NameHistoryEnvelope
 
     return {
       version: NAME_HISTORY_VERSION,
-      entries: parsed.entries.filter(isHistoryEntry).slice(0, DEFAULT_NAME_HISTORY_LIMIT),
+      entries: parsed.entries.flatMap((entry) => {
+        const migrated = parseHistoryEntry(entry);
+        return migrated ? [migrated] : [];
+      }).slice(0, DEFAULT_NAME_HISTORY_LIMIT),
     };
   } catch {
     return { version: NAME_HISTORY_VERSION, entries: [] };
