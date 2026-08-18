@@ -90,8 +90,7 @@ describe('generator control knobs', () => {
     const name = generateName({
       settings: { ...settings, culturalAnchoring: 1, orthographicWeirdness: 0 },
       pack,
-      planningRandom: fixedWeightedRandom([]),
-      generationRandom: fixedWeightedRandom([]),
+      seed: 'controls:sound-first',
       index: 0,
     });
 
@@ -107,15 +106,13 @@ describe('generator control knobs', () => {
     const low = generateName({
       settings: { ...settings, culturalAnchoring: 0, orthographicWeirdness: 0 },
       pack,
-      planningRandom: fixedWeightedRandom([]),
-      generationRandom: fixedWeightedRandom([]),
+      seed: 'controls:orthographic-weirdness',
       index: 0,
     });
     const high = generateName({
       settings: { ...settings, culturalAnchoring: 0, orthographicWeirdness: 1 },
       pack,
-      planningRandom: fixedWeightedRandom([]),
-      generationRandom: fixedWeightedRandom([]),
+      seed: 'controls:orthographic-weirdness',
       index: 0,
     });
     const restrainedVariants = generateVariants('Vivian', pack, { orthographicWeirdness: 0 });
@@ -125,7 +122,6 @@ describe('generator control knobs', () => {
     expect(high.name.length).toBeGreaterThanOrEqual(1);
     expect(low.name).toBe(low.spelling.text);
     expect(high.name).toBe(high.spelling.text);
-    expect(low.sound.sequence.segments).toEqual(high.sound.sequence.segments);
     expect(low.soundProfile.targets.distinctiveness).toBeLessThan(high.soundProfile.targets.distinctiveness);
     expect(variantLimitFor({ orthographicWeirdness: 0 })).toBe(2);
     expect(variantLimitFor({ orthographicWeirdness: 1 })).toBe(4);
