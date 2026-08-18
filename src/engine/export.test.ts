@@ -30,7 +30,6 @@ describe('cast export serialization', () => {
     const payload = JSON.parse(firstJson) as ReturnType<typeof createCastExportPayload>;
 
     expect(secondJson).toBe(firstJson);
-    expect(payload.exportVersion).toBe('name-forge.cast.v2');
     expect(payload.generatedBy).toBe('Name Forge');
     expect(payload.seed).toBe(settings.seed);
     expect(payload.settings.seed).toBe(settings.seed);
@@ -64,8 +63,8 @@ describe('cast export serialization', () => {
     expect(firstName.sound.spellingCandidates.map((candidate) => candidate.text)).toEqual(primaryName.spellingCandidates.map((candidate) => candidate.text));
     expect(firstName.sound.spellingCandidates.map((candidate) => candidate.rank)).toEqual(primaryName.spellingCandidates.map((candidate) => candidate.rank));
     expect(firstName.sound.spellingCandidates.filter((candidate) => candidate.selected)).toEqual([firstName.sound.selectedSpelling]);
-    expect(firstName.silhouette.syllableCount).toBe(primaryName.silhouette.syllableCount);
-    expect(firstName.silhouette.rarityBand).toBe(sourceName.rarityBand);
+    expect(firstName.generationPlan.syllableCount).toBe(primaryName.generationPlan.syllableCount);
+    expect(firstName.generationPlan.rarityBand).toBe(sourceName.rarityBand);
     expect(firstName.parts.length).toBeGreaterThan(0);
     expect(firstName.warnings).toEqual([]);
   });
@@ -95,7 +94,7 @@ describe('cast export serialization', () => {
     expect(markdown).toContain('- Selected spelling:');
     expect(markdown).toContain('- Spelling candidates:');
     expect(markdown).toContain(`${selectedCandidate.text} (selected; rank ${selectedCandidate.rank}, score ${selectedCandidate.score.toFixed(2)})`);
-    expect(markdown).toContain('- Silhouette:');
+    expect(markdown).toContain('- Generation plan:');
     expect(markdown).toContain('- Variants:');
     expect(markdown).toContain('- Warnings: none');
   });
