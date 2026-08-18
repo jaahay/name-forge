@@ -16,7 +16,7 @@ Related decisions and boundaries:
 
 ## Active product contract
 
-Name Forge is a multi-mode random-name workbench whose durable result is an inspectable `NameArtifact`. Durable artifacts are explicitly either a singular sound-backed generated-name artifact or a composed identity whose generated evidence remains attached to its generated components.
+Name Forge is a multi-mode random-name workbench whose durable shared result is an inspectable singular `NameArtifact`. Product surfaces may compose generated names with other generated components, lexical values, derived values, initials, or literals, but those surface results do not become a broader shared artifact type.
 
 The shared product contract is:
 
@@ -55,7 +55,7 @@ product surface
   -> complete supported spelling pool
   -> deterministic selection
   -> singular GeneratedName
-  -> generated-name NameArtifact when persisted directly
+  -> singular NameArtifact when persisted through the shared artifact boundary
 ```
 
 A surface owns its UX, defaults, presets, and surface-specific state. It derives configuration for one or more reusable semantic callbacks. Those callbacks carry domain semantics and delegate to the single generic `generateName(...)` primitive.
@@ -64,11 +64,11 @@ First-class semantic treatment does not require every wrapper to have distinct m
 
 A surface may also own a multi-name operation when the cross-name behavior itself is meaningful to that surface. Such orchestration sits **above** reusable semantic callbacks. Shared `independent-set` quantity remains useful infrastructure for repeated independent generation but is not the mandatory abstraction for every roster or set workflow.
 
-The singular `generateName(...)` boundary is implemented in `src/naming`. It constructs an internal `NameGenerationPlan` from generic planning inputs before style, sound, spelling, scoring, and variants. Product semantics such as Fiction Cast roles are resolved above that boundary into semantic planning pressure and surface-owned scoring evidence. The existing `silhouette` property remains compatibility and inspection evidence on singular generated names/generated-name artifacts; callers no longer construct a `NameSilhouette` or call a silhouette-shaped generator.
+The singular `generateName(...)` boundary is implemented in `src/naming`. It accepts one immutable deterministic seed and owns partitioning that seed into its internal planning/generation random streams. It constructs an internal `NameGenerationPlan` from generic planning inputs before style, sound, spelling, scoring, and variants. Product semantics such as Fiction Cast roles are resolved above that boundary into semantic planning pressure and surface-owned scoring evidence. The existing `silhouette` property remains compatibility and inspection evidence on singular generated names/artifacts; callers no longer construct a `NameSilhouette` or call a silhouette-shaped generator.
 
-The #201 correction keeps Fiction Cast settings and role metadata above the generic boundary. `GenerationSettings` contains generic one-name controls plus shared `stylePackId` / `seed`; generic `NameGenerationPlan`, `GeneratedName`, and durable generated-name artifacts do not carry Cast role or role-influence metadata. Fiction Cast owns the richer settings/result contracts and projects role, rarity, contextual scoring, and ensemble evidence only at its surface boundary.
+The #201 correction keeps Fiction Cast settings and role metadata above the generic boundary. `GenerationSettings` contains generic one-name controls plus shared `stylePackId` / `seed`; generic `NameGenerationPlan`, `GeneratedName`, and `NameArtifact` do not carry Cast role or role-influence metadata. Fiction Cast owns the richer settings/result contracts and projects role, rarity, contextual scoring, and ensemble evidence only at its surface boundary.
 
-The #202 correction established one reusable semantic invocation pattern for given, family, and place names. Semantic callers provide `GenerationSettings`, a source registry, deterministic seed material/result addressability, and typed semantic preferences; the naming layer owns style-pack resolution, seeded RNG construction, and translation into generic planning representation. Fiction Cast primary given and supporting family/place generation all enter through their corresponding semantic wrappers.
+The #202 correction established one reusable semantic invocation pattern for given, family, and place names. Semantic callers provide `GenerationSettings`, a source registry, one deterministic seed/result address, and typed semantic preferences. The semantic layer owns style-pack resolution and preference translation; `generateName(...)` owns internal RNG construction/partitioning and generic planning representation. Fiction Cast primary given and supporting family/place generation all enter through their corresponding semantic wrappers.
 
 Generic one-name scoring is intrinsic. `NameScores` and `ScoreKey` contain only one-name evidence plus intrinsic `overallFit`; Fiction Cast owns `roleFit`, `ensembleFit`, and the contextual overall used for cast candidate selection in `FictionCastContextualScores`. Cast export lives under `src/fictionCast` and preserves its existing flattened JSON/Markdown score shape at the surface boundary rather than teaching generic engine contracts about cast context.
 
@@ -76,7 +76,7 @@ Rarity is also surface-owned rather than a semantic or mechanical property of ge
 
 The #203 correction separates primitive generated-name evidence from composed product identities. `GeneratedName.name` is exactly the selected spelling described by that result's sound/spelling/planning evidence and no longer carries optional compound identity composition. `FictionCastGeneratedName` is a composed surface result with its own `displayName`, identity/audition, Cast metadata, and a contained unchanged `primaryName`. Generated supporting-component evidence remains on the corresponding identity part rather than being flattened into aggregate top-level primitive fields.
 
-Durable `NameArtifact` values make that boundary explicit with `generated-name` and `composed-identity` variants. A composed artifact does not expose one aggregate sound/spelling/plan/variant bundle. Browser history remains version/key compatible by normalizing legacy v1 records on read: coherent singular records become explicit generated-name artifacts; legacy composed records retain identity/component provenance while ambiguous aggregate top-level primitive evidence is discarded.
+`NameArtifact` deliberately stays singular rather than becoming a composition envelope. Shared history persists singular artifacts and performs strict validation on read; older composition-shaped records are dropped rather than migrated into a wider shared type. Fiction Cast history records the generated `primaryName`, while the full composed display/provenance remains represented by the live Fiction Cast result and its surface-owned export contract. A narrow primary-name projection may retain a Cast result ID for inspector/relationship navigation without adding composition fields to `NameArtifact`.
 
 ## Lexical inventory and finite-choice direction
 
@@ -101,17 +101,17 @@ Shared platform capabilities now include:
 - deterministic index-stable child seeds, ordered artifacts, and grouping metadata;
 - singular-compatible defaults when quantity and grouping are omitted;
 - criteria diagnostics and a compiler bridge into generic generation settings without fabricating Fiction Cast defaults;
-- one generic singular `generateName(...)` orchestration boundary above style/sound/spelling mechanics;
+- one generic singular `generateName(...)` orchestration boundary that accepts one seed and owns internal RNG partitioning above style/sound/spelling mechanics;
 - first-class `generateGivenName(...)`, `generateFamilyName(...)`, and `generatePlaceName(...)` semantic callbacks using one stable semantic invocation boundary and delegating one-name synthesis to `generateName(...)`;
 - intrinsic generic one-name scoring that does not fabricate Fiction Cast role or ensemble values;
 - internal `NameGenerationPlan` materialization hidden behind `generateName(...)` rather than required from callers; its generic constructor produces one-name planning evidence and carries no Fiction Cast role, role-influence, or rarity metadata;
 - sound-first generation through `SoundProfile` and `SegmentSequence`;
 - exhaustive spelling derivation from the current grapheme inventory;
 - deterministic rule-weighted spelling ranking with ordinal tie-breaking;
-- complete ranked spelling retention on singular generated names and generated-name artifacts;
+- complete ranked spelling retention on singular generated names and `NameArtifact` values;
 - exact bounded-result prefix invariance after full-pool ranking;
-- explicit `NameArtifact` variants for singular generated names versus composed product identities;
-- shared `NameArtifactInspector` rendering that treats composed identities as component-owned sound evidence rather than an aggregate primitive spelling/sound record;
+- one singular `NameArtifact` contract containing the exact sound/spelling/plan/variant/readability evidence for its own display spelling, with composition fields rejected by runtime validation;
+- a shared `NameArtifactInspector` that remains primitive-only while product surfaces may supply their own display/voice presentation and secondary UI;
 - deterministic readability observations and browser audition projection;
 - provenance-preserving identity audition phrases for composed names, retaining generated sound evidence for sound-backed given, family, and place parts while leaving lexical text and literals explicit (issue #174);
 - sound-backed identity parts retain their own generation provenance bundle, including the exact compiled `SoundProfile`, `SoundCandidate`, and selected spelling used for that component rather than treating a compound identity as if one top-level profile described every part (issue #178);
@@ -121,8 +121,8 @@ Shared platform capabilities now include:
 - deterministic same-roster sound-relationship evidence with typed details, exact pair identity, and fixed precedence and ordering;
 - source descriptors and built-in style-pack validation;
 - richer variant relationship, confidence, source, and locale metadata where available;
-- versioned, bounded browser persistence for explicit user-generated `NameArtifact` snapshots, including read-time migration of legacy v1 artifact shapes into explicit artifact variants;
-- a Recent names surface that restores saved artifacts into the shared inspector without regeneration;
+- versioned, bounded browser persistence for singular user-generated `NameArtifact` snapshots, with strict validation and no read-time reinterpretation of composition-shaped records;
+- a Recent names surface that restores saved singular artifacts into the shared inspector without regeneration;
 - explicit clear-history behavior and safe handling of malformed, unsupported, or unavailable browser storage.
 
 Fiction Cast additionally includes:
@@ -134,16 +134,15 @@ Fiction Cast additionally includes:
 - surface-owned rarity distribution, rarity labels, rarity diagnostics, and cast-result metadata that do not enter semantic name generation or generic `NameGenerationPlan` construction;
 - surface-owned contextual `roleFit`, `ensembleFit`, and cast overall scoring, with `primaryName.scores` remaining intrinsic;
 - composed `FictionCastGeneratedName` results with a product-level `displayName`/identity and contained singular `primaryName`, rather than inheriting `GeneratedName` and overwriting its text;
-- explicit Cast artifact projections: composed artifacts for persistence/inspection and primary generated-name artifacts for sound-relationship analysis while retaining Cast IDs for navigation;
+- singular `primaryName` history persistence plus a narrow primary-name artifact projection that retains Cast result IDs for relationship and inspector navigation without creating a composed shared artifact;
 - a compact post-generation summary bar that keeps Tune and Regenerate available without leaving the full criteria summary in the primary reading path (issue #176);
 - lock and selection iteration;
-- selected-name single-slot reroll with non-target preservation, lock semantics, selection continuity, and targeted Recent names recording (issue #167);
+- selected-name single-slot reroll with non-target preservation, lock semantics, selection continuity, and targeted Recent names recording of the rerolled primary generated name (issue #167);
 - full-card collapsed-name selection with a separately actionable bottom-right lock control (issues #172 and #178);
 - an integrated Names + Inspect workbench whose desktop regions share a stable vertical frame; roster overflow and expanded secondary details stay within their own panes so either side does not repeatedly become much longer than the other (issues #176 and #178);
-- a decision-oriented primary inspector centered on modeled component sound and the composed display identity, with readability notes, variants/context/composition/scoring kept secondary (issues #174, #176, and #203);
-- composed-name sound presentation that exposes only generated sound-backed components in the visible Sound surface while full phrase-level browser playback retains lexical and literal connective text (issue #176);
-- per-component browser audition actions for generated sound-backed given, family, and place parts, alongside paced whole-identity playback (issue #178);
-- full phrase-level browser voice drafts for composed identities while retaining modeled sound projection for simple names (issue #174);
+- a decision-oriented inspector whose primary shared sound/spelling evidence belongs to `primaryName` while composed display, composition, Cast context, scoring, and component sound drafts remain Fiction Cast-owned presentation (issues #174, #176, #178, and #203);
+- per-component browser audition actions for generated sound-backed given, family, and place parts in the Cast-owned detail surface, alongside whole-identity playback (issue #178);
+- full phrase-level browser voice drafts for composed identities while retaining modeled primary-name sound projection through the shared inspector (issue #174);
 - cast-level balancing and collision diagnostics without repeated-initials presentation chrome;
 - a collapsed Cast review surface that exposes actionable cast notes and same-roster sound relationships without permanently presenting healthy diagnostic prose (issue #176);
 - pair-grouped same-roster sound relationships with plain-language labels and typed technical evidence;
@@ -192,11 +191,11 @@ Fiction Cast/application settings and role metadata are separated from generic n
 
 ### Completed correction — issue #202
 
-The semantic-callback invocation contract accepts shared settings/source context plus reusable deterministic seed material and semantic preferences while hiding lower style-pack/RNG/planning plumbing. `generateGivenName(...)`, `generateFamilyName(...)`, and `generatePlaceName(...)` all delegate lexical-name generation to `generateName(...)`; family/place remain behavior-equivalent where no supported semantic heuristic distinguishes them.
+The semantic-callback invocation contract accepts shared settings/source context plus one deterministic seed, result addressability, and semantic preferences while hiding lower style-pack/planning plumbing. `generateGivenName(...)`, `generateFamilyName(...)`, and `generatePlaceName(...)` all delegate lexical-name generation to the seed-driven `generateName(...)`, which owns its internal RNG streams; family/place remain behavior-equivalent where no supported semantic heuristic distinguishes them.
 
 ### Completed correction — issue #203
 
-The primitive sound-backed `GeneratedName` is separate from composed product identities. One generated component remains semantically coherent with its own sound/spelling/planning evidence; Fiction Cast contains that primitive as `primaryName` instead of redefining its text; generated supporting-part evidence stays per component; and durable composed artifacts do not claim one aggregate primitive evidence bundle.
+The primitive sound-backed `GeneratedName` is separate from composed product identities. One generated component remains semantically coherent with its own sound/spelling/planning evidence; Fiction Cast contains that primitive as `primaryName` instead of redefining its text; generated supporting-part evidence stays per component; and the shared durable `NameArtifact` remains singular rather than pretending one aggregate primitive evidence bundle describes a composed identity.
 
 ### Documentation alignment — issue #200
 
