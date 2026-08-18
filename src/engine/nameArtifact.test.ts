@@ -101,13 +101,13 @@ const generatedName: GeneratedName = {
 };
 
 describe('toNameArtifact', () => {
-  it('maps a singular generated name to a generated-name artifact with coherent display text', () => {
+  it('maps a singular generated name to a coherent singular artifact', () => {
     const artifact = toNameArtifact(generatedName);
 
-    expect(artifact.kind).toBe('generated-name');
     expect(artifact.id).toBe(generatedName.id);
     expect(artifact.displayText).toBe(generatedName.name);
     expect(artifact.displayText).toBe(generatedName.spelling.text);
+    expect('kind' in artifact).toBe(false);
     expect('identity' in artifact).toBe(false);
     expect('identityAudition' in artifact).toBe(false);
   });
