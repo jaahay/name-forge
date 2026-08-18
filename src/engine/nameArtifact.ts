@@ -153,6 +153,9 @@ function sameSpelling(left: RankedSpellingCandidate, right: RankedSpellingCandid
 
 export function isNameArtifact(value: unknown): value is NameArtifact {
   if (!isRecord(value)
+    || value.kind !== undefined
+    || value.identity !== undefined
+    || value.identityAudition !== undefined
     || !isNonEmptyString(value.id)
     || !isNonEmptyString(value.displayText)
     || !isSoundProfile(value.soundProfile)
