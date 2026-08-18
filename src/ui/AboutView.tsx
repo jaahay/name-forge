@@ -1,37 +1,28 @@
-import { scoreControls } from './presentation';
-
 interface AboutViewProps {
   authorSiteUrl: string;
 }
-
-const dialExamples: Record<string, string> = {
-  novelty: 'Low novelty keeps names familiar; high novelty can move a cast from "Merryn" toward rarer shapes with less common sounds.',
-  pronounceability: 'Low pronounceability allows chunkier clusters; high pronounceability prefers open syllables and fewer tongue-twisters.',
-  memorability: 'Low memorability permits longer, softer blends; high memorability favors compact names with a clearer beat and stronger cast distinction.',
-  culturalAnchoring: 'Low anchoring wanders away from the preset; high anchoring leans harder on curated examples and preferred endings from the selected style pack.',
-  orthographicWeirdness: 'Low weirdness keeps spelling plain; high weirdness allows stranger letters and more aggressive spelling variants while still tracking naturalness separately.',
-};
 
 export function AboutView({ authorSiteUrl }: AboutViewProps) {
   return (
     <section className="about panel" aria-labelledby="about-title">
       <div className="about-heading">
         <p className="eyebrow">About</p>
-        <h1 id="about-title">What Name Forge does</h1>
+        <h1 id="about-title">About Name Forge</h1>
         <p>
-          Name Forge is a cast-aware name workbench. It creates names as a set, keeps cards focused on
-          the generated name itself, and reserves deeper sound, spelling, and fit details for selected-name inspection.
+          Name Forge is a multi-mode random-name workbench for generating names that are usable, tunable,
+          reproducible, and inspectable. Different naming tasks can build on the same generation foundation
+          without being forced into the same workflow.
         </p>
       </div>
 
       <div className="about-grid">
         <article>
-          <h2>Controls shape the search</h2>
-          <p>Basics set the cast, Fiction controls shape role metadata, and Rarity & scoring dials tune the search pressure.</p>
+          <h2>Fiction Cast</h2>
+          <p>Generate and review a coherent but distinct ensemble of fictional character identities.</p>
         </article>
         <article>
-          <h2>Cards adapt to the task</h2>
-          <p>Collapsed cards show the name only. The selected card can expand with a sound sketch, while full detail stays in Inspect.</p>
+          <h2>Game NPC</h2>
+          <p>Generate one inspectable name quickly for preparation or live play.</p>
         </article>
         <article>
           <h2>About the author</h2>
@@ -39,63 +30,30 @@ export function AboutView({ authorSiteUrl }: AboutViewProps) {
         </article>
       </div>
 
-      <section className="about-section" aria-labelledby="dial-title">
-        <h2 id="dial-title">What the dials mean</h2>
+      <section className="about-section" aria-labelledby="approach-title">
+        <h2 id="approach-title">How Name Forge approaches names</h2>
         <p>
-          The dials are creative pressure controls. They change what kinds of names Name Forge tries and which
-          finished names it prefers. The score components still describe the name itself; the hidden overall fit
-          score helps choose names that match your current settings.
+          Names are generated from explicit settings and deterministic randomness. Sound, spelling, alternatives,
+          and other generated evidence remain available for inspection.
         </p>
-        <ul className="dial-list">
-          <li>
-            <h3>Cast size</h3>
-            <p>How many names to generate together. Larger casts increase ensemble pressure so names do not all start, end, or sound alike.</p>
-            <small>Example: a cast of 4 can stay tight; a cast of 12 needs more variety.</small>
-          </li>
-          <li>
-            <h3>Style preset</h3>
-            <p>The source pack for sounds, endings, curated examples, rarity, and style labels.</p>
-            <small>Example: the British literary fantasy preset favors bookish, folktale-adjacent textures.</small>
-          </li>
-          <li>
-            <h3>Seed</h3>
-            <p>The repeat button for randomness. Reusing the same seed and settings should reproduce the same cast.</p>
-            <small>Example: save a seed when a cast is close, then adjust one dial at a time.</small>
-          </li>
-          <li>
-            <h3>Cast role mix</h3>
-            <p>A fiction-cast structure that labels slots as protagonist, rival, mentor, sidekick, and related roles.</p>
-            <small>Slot overrides can customize individual positions without changing the whole role mix.</small>
-          </li>
-          <li>
-            <h3>Rarity distribution</h3>
-            <p>A cast-level rarity plan, separate from novelty, for deciding how grounded or mythic the ensemble should feel.</p>
-            <small>Example: a mythic arc can deliberately move from common names toward legendary ones.</small>
-          </li>
-          <li>
-            <h3>Card surfaces</h3>
-            <p>Collapsed cards are name-only browsing surfaces. Expanded cards add quick evaluation cues without absorbing Inspect.</p>
-            <small>Changing selection expands presentation; it does not regenerate names.</small>
-          </li>
-          {scoreControls.map((control) => (
-            <li key={control.key}>
-              <h3>{control.label}</h3>
-              <p>{control.help}</p>
-              <small>{dialExamples[control.key]}</small>
-            </li>
-          ))}
-        </ul>
+        <p>
+          Each naming mode owns what it builds around those generated names. Fiction Cast can compose several
+          generated components into a character identity, while Game NPC keeps a singular generated name as its result.
+        </p>
       </section>
 
-      <section className="about-section" aria-labelledby="score-title">
-        <h2 id="score-title">What the diagnostic scores are for</h2>
+      <section className="about-section" aria-labelledby="evidence-title">
+        <h2 id="evidence-title">Generated evidence, not human claims</h2>
         <p>
-          Inspect uses diagnostics, not grades and not percentiles. They help compare close alternatives when you are tuning the dials.
+          Name Forge distinguishes generated or modeled evidence from claims about how people will perceive a name.
+          Readability observations, spelling relationships, and modeled sound relationships can support inspection;
+          memorability, cultural authenticity, beauty, and realism are not treated as objective facts.
         </p>
-        <p>
-          Since Name Forge already leaves out lower-scoring options, visible diagnostics often cluster together.
-          That is why collapsed cards stay name-only and let visual treatment carry lightweight state.
-        </p>
+      </section>
+
+      <section className="about-section" aria-labelledby="scope-title">
+        <h2 id="scope-title">Scope</h2>
+        <p>Name Forge is about naming. It is not a character generator, biography generator, or general writing assistant.</p>
       </section>
     </section>
   );
