@@ -37,7 +37,7 @@ function castSections(name: FictionCastGeneratedName) {
   const rarity = rarityPresentation[name.rarityBand];
   const roleLabel = name.role?.label ?? 'No role';
   const roleInfluenceLabel = name.roleInfluence ? `${name.roleInfluence.level} influence` : 'Role-neutral';
-  const textureLabel = `${labelFor(primaryName.silhouette.texture)} texture`;
+  const textureLabel = `${labelFor(primaryName.generationPlan.texture)} texture`;
   const formatLabel = identity.format.label;
   const contextualScores = name.contextualScores;
   const soundParts = name.identityAudition.parts.filter((part) => part.kind === 'sound');
@@ -52,7 +52,7 @@ function castSections(name: FictionCastGeneratedName) {
           <div><dt>Format</dt><dd>{formatLabel}</dd></div>
           <div><dt>Rarity</dt><dd>{rarity.label}</dd></div>
           <div><dt>Texture</dt><dd>{textureLabel}</dd></div>
-          <div><dt>Syllables</dt><dd>{primaryName.silhouette.syllableCount}</dd></div>
+          <div><dt>Syllables</dt><dd>{primaryName.generationPlan.syllableCount}</dd></div>
           <div><dt>Influence</dt><dd>{roleInfluenceLabel}</dd></div>
         </dl>
         {name.roleInfluence ? (
