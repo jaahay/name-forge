@@ -9,7 +9,7 @@ import type { FictionCastModeConfig } from './modes';
 import { NameInspector } from './NameInspector';
 import { NameSelectionSurface } from './NameSelectionSurface';
 import type { ControlKey } from './presentation';
-import { resolveNameSelection, sameNameSelection, selectedNameIdFromView, type NameSelectionView } from './workbenchSelection';
+import { resolveSelectedNameId } from './workbenchSelection';
 
 interface GeneratorViewProps {
   mode: FictionCastModeConfig;
@@ -35,15 +35,6 @@ function titleCaseLabel(value: string): string {
     .join(' ');
 }
 
-function EmptyInspector() {
-  return (
-    <aside className="inspector-empty-panel panel" aria-label="Name inspector">
-      <h2>Inspect</h2>
-      <p>Select a name to view its sound, spelling, cast context, usability, and export-ready details.</p>
-    </aside>
-  );
-}
-
 export function GeneratorView({
   mode,
   stylePacks,
@@ -60,7 +51,7 @@ export function GeneratorView({
   onToggleLockedName,
   onClearLockedNames,
 }: GeneratorViewProps) {
-  const [selection, setSelection] = useState<NameSelectionView>(() => ({ kind: 'name', nameId: '' }));
+  const [selectedNameId, setSelectedNameId] = useState('');
   const [isConfigureOpen, setIsConfigureOpen] = useState(() => ensemble.names.length === 0);
   const inspectorRegionRef = useRef<HTMLDivElement>(null);
   const jsonExport = serializeCastAsJson(ensemble);
@@ -68,42 +59,22 @@ export function GeneratorView({
   const modeTitle = titleCaseLabel(mode.label);
   const lockedCount = lockedNameIds.size;
   const hasLockedNames = lockedCount > 0;
-  const resolvedSelection = resolveNameSelection(selection, ensemble, lockedNameIds);
-  const selectedNameId = selectedNameIdFromView(resolvedSelection);
-  const selectedName = ensemble.names.find((name) => name.id === selectedNameId);
-  const selectedNameIndex = selectedName ? ensemble.names.findIndex((name) => name.id === selectedName.id) : -1;
-  const hasPreviousName = selectedNameIndex > 0;
-  const hasNextName = selectedNameIndex >= 0 && selectedNameIndex < ensemble.names.length - 1;
+  const resolvedSelectedNameId = resolveSelectedNameId(selectedNameId, ensemble, lockedNameIds);
+  const selectedName = ensemble.names.find((name) => name.id === resolvedSelectedNameId);
 
   useEffect(() => {
-    if (!sameNameSelection(selection, resolvedSelection)) {
-      setSelection(resolvedSelection);
+    if (selectedNameId !== resolvedSelectedNameId) {
+      setSelectedNameId(resolvedSelectedNameId);
     }
-  }, [resolvedSelection, selection]);
+  }, [resolvedSelectedNameId, selectedNameId]);
 
   function selectName(id: string) {
-    setSelection({ kind: 'name', nameId: id });
+    setSelectedNameId(id);
   }
 
   function selectRelationshipName(id: string) {
     selectName(id);
     inspectorRegionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-
-  function selectAllNames() {
-    setSelection({ kind: 'all-names' });
-  }
-
-  function selectPreviousName() {
-    const previousName = ensemble.names[selectedNameIndex - 1];
-    if (!previousName) return;
-    selectName(previousName.id);
-  }
-
-  function selectNextName() {
-    const nextName = ensemble.names[selectedNameIndex + 1];
-    if (!nextName) return;
-    selectName(nextName.id);
   }
 
   function submitGeneration(event?: FormEvent<HTMLFormElement>) {
@@ -129,7 +100,7 @@ export function GeneratorView({
       onRerollName={rerollSelectedName}
       onToggleLockedName={onToggleLockedName}
     />
-  ) : <EmptyInspector />;
+  ) : null;
 
   return (
     <>
@@ -169,15 +140,8 @@ export function GeneratorView({
               <NameSelectionSurface
                 ensemble={ensemble}
                 lockedNameIds={lockedNameIds}
-                selection={resolvedSelection}
-                selectedNameId={selectedNameId}
-                hasPreviousName={hasPreviousName}
-                hasNextName={hasNextName}
+                selectedNameId={resolvedSelectedNameId}
                 onSelectName={selectName}
-                onSelectAllNames={selectAllNames}
-                onSelectPreviousName={selectPreviousName}
-                onSelectNextName={selectNextName}
-                onToggleLockedName={onToggleLockedName}
               >
                 <div ref={inspectorRegionRef}>
                   {inspector}

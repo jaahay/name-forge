@@ -1,88 +1,109 @@
-import type { ReactNode } from 'react';
+import { useEffect, useRef, type KeyboardEvent, type ReactNode } from 'react';
 import type { FictionCastGeneratedEnsemble } from '../fictionCast/types';
-import { NameCard } from './NameCard';
-import { allNamesSelectorValue, selectedNameIdFromView, type NameSelectionView } from './workbenchSelection';
 
 interface NameSelectionSurfaceProps {
   ensemble: FictionCastGeneratedEnsemble;
   lockedNameIds: Set<string>;
-  selection: NameSelectionView;
   selectedNameId: string;
-  hasPreviousName: boolean;
-  hasNextName: boolean;
   children: ReactNode;
   onSelectName: (id: string) => void;
-  onSelectAllNames: () => void;
-  onSelectPreviousName: () => void;
-  onSelectNextName: () => void;
-  onToggleLockedName: (id: string) => void;
+}
+
+export function nameRailTargetIndex(key: string, currentIndex: number, count: number): number | undefined {
+  if (count <= 0 || currentIndex < 0 || currentIndex >= count) return undefined;
+
+  switch (key) {
+    case 'ArrowLeft':
+      return (currentIndex - 1 + count) % count;
+    case 'ArrowRight':
+      return (currentIndex + 1) % count;
+    case 'Home':
+      return 0;
+    case 'End':
+      return count - 1;
+    default:
+      return undefined;
+  }
 }
 
 export function NameSelectionSurface({
   ensemble,
   lockedNameIds,
-  selection,
   selectedNameId,
-  hasPreviousName,
-  hasNextName,
   children,
   onSelectName,
-  onSelectAllNames,
-  onSelectPreviousName,
-  onSelectNextName,
-  onToggleLockedName,
 }: NameSelectionSurfaceProps) {
-  const selectionClassName = selection.kind === 'all-names' ? 'selection-kind-all' : 'selection-kind-name';
-  const selectorValue = selectedNameIdFromView(selection) || allNamesSelectorValue;
+  const tabRefs = useRef(new Map<string, HTMLButtonElement>());
 
-  function selectValue(value: string) {
-    if (value === allNamesSelectorValue) {
-      onSelectAllNames();
-      return;
-    }
-    onSelectName(value);
+  useEffect(() => {
+    tabRefs.current.get(selectedNameId)?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }, [selectedNameId]);
+
+  function handleRailKeyDown(event: KeyboardEvent<HTMLButtonElement>, currentIndex: number) {
+    const targetIndex = nameRailTargetIndex(event.key, currentIndex, ensemble.names.length);
+    if (targetIndex === undefined) return;
+
+    const targetName = ensemble.names[targetIndex];
+    if (!targetName) return;
+
+    event.preventDefault();
+    onSelectName(targetName.id);
+    const targetTab = tabRefs.current.get(targetName.id);
+    targetTab?.focus({ preventScroll: true });
+    targetTab?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
   }
 
-  const nameRail = (
-    <section className="roster-panel name-rail" aria-label="Name roster">
-      <div className="rail-heading">
-        <h2>Names</h2>
-        <span>{ensemble.names.length} generated</span>
-      </div>
-      <div className="name-grid" aria-label="Name tiles">
-        {ensemble.names.map((name) => (
-          <NameCard
-            key={name.id}
-            name={name}
-            isSelected={name.id === selectedNameId}
-            isLocked={lockedNameIds.has(name.id)}
-            showExpandedSurface={false}
-            onSelect={onSelectName}
-            onToggleLocked={onToggleLockedName}
-          />
-        ))}
-      </div>
-    </section>
-  );
+  const activeTabId = selectedNameId ? `name-rail-tab-${selectedNameId}` : undefined;
 
   return (
-    <div className={`results-layout inspector-rail-layout ${selectionClassName}`}>
-      <section className="name-selector-panel panel" aria-label="Name selection">
-        <label>
-          <span>Name</span>
-          <select value={selectorValue} onChange={(event) => selectValue(event.target.value)} aria-label="Selected name">
-            <option value={allNamesSelectorValue}>All names</option>
-            {ensemble.names.map((name) => <option key={name.id} value={name.id}>{name.displayName}</option>)}
-          </select>
-        </label>
-        <div className="name-stepper" aria-label="Review names sequentially">
-          <button type="button" className="secondary" onClick={onSelectPreviousName} disabled={!hasPreviousName}>Previous</button>
-          <button type="button" className="secondary" onClick={onSelectNextName} disabled={!hasNextName}>Next</button>
-        </div>
-      </section>
+    <div className="results-layout inspector-rail-layout">
       <div className="cast-workbench-surface panel">
-        {nameRail}
-        <div className="cast-workbench-inspector">{children}</div>
+        <section className="adaptive-name-rail" aria-labelledby="adaptive-name-rail-title">
+          <div className="rail-heading adaptive-name-rail-heading">
+            <h2 id="adaptive-name-rail-title">Names</h2>
+            <span>{ensemble.names.length} generated</span>
+          </div>
+          <div className="adaptive-name-rail-scroll" role="tablist" aria-label="Generated cast" aria-orientation="horizontal">
+            {ensemble.names.map((name, index) => {
+              const isSelected = name.id === selectedNameId;
+              const isLocked = lockedNameIds.has(name.id);
+              const accessibleLabel = isLocked ? `${name.displayName}, locked` : name.displayName;
+
+              return (
+                <button
+                  key={name.id}
+                  ref={(element) => {
+                    if (element) tabRefs.current.set(name.id, element);
+                    else tabRefs.current.delete(name.id);
+                  }}
+                  id={`name-rail-tab-${name.id}`}
+                  type="button"
+                  role="tab"
+                  className="adaptive-name-tab"
+                  aria-selected={isSelected}
+                  aria-controls="active-name-workspace"
+                  aria-label={accessibleLabel}
+                  data-locked={isLocked ? 'true' : 'false'}
+                  tabIndex={isSelected ? 0 : -1}
+                  title={name.displayName}
+                  onClick={() => onSelectName(name.id)}
+                  onKeyDown={(event) => handleRailKeyDown(event, index)}
+                >
+                  <span className="adaptive-name-tab-label">{name.displayName}</span>
+                  {isLocked ? <span className="adaptive-name-lock-marker" aria-hidden="true" /> : null}
+                </button>
+              );
+            })}
+          </div>
+        </section>
+        <div
+          id="active-name-workspace"
+          className="cast-workbench-inspector"
+          role="tabpanel"
+          aria-labelledby={activeTabId}
+        >
+          {children}
+        </div>
       </div>
     </div>
   );

@@ -124,7 +124,7 @@ export function NameArtifactInspector({
       <header className="selected-name-heading">
         <div className="selected-name-title-block">
           <p className="eyebrow inspector-eyebrow">{eyebrow}</p>
-          <h2 id={`artifact-heading-${artifact.id}`} className="name-card-title" data-name-length={displayLength}>{displayName}</h2>
+          <h2 id={`artifact-heading-${artifact.id}`} className="selected-name-title" data-name-length={displayLength}>{displayName}</h2>
         </div>
         <div className="selected-name-heading-tools">
           <div className="selected-name-actions" aria-label={`${displayText} selected-name actions`}>

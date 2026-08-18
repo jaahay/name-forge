@@ -8,7 +8,7 @@ import { analyzeNameArtifactSoundRelationships } from './engine/nameArtifactAnal
 import { createDefaultRegistry } from './engine/registry';
 import { rerollSelectedCastName } from './fictionCastReroll';
 import { CastHealthPanel } from './ui/CastHealth';
-import { resolveNameSelection, selectedNameIdFromView } from './ui/workbenchSelection';
+import { resolveSelectedNameId } from './ui/workbenchSelection';
 
 const settings: FictionCastSettings = {
   castSize: 4,
@@ -149,13 +149,7 @@ describe('rerollSelectedCastName', () => {
     expect(result).toBeDefined();
     if (!result) throw new Error('Expected selected-name reroll to succeed.');
 
-    const selection = resolveNameSelection(
-      { kind: 'name', nameId: result.replacementId },
-      result.ensemble,
-      result.lockedNameIds,
-    );
-
-    expect(selectedNameIdFromView(selection)).toBe(result.replacementId);
+    expect(resolveSelectedNameId(result.replacementId, result.ensemble, result.lockedNameIds)).toBe(result.replacementId);
     expect(result.ensemble.names[2]?.id).toBe(result.replacementId);
   });
 

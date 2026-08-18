@@ -8,7 +8,7 @@ import { CastHealthPanel } from './CastHealth';
 import { NameInspector } from './NameInspector';
 import { NameSelectionSurface } from './NameSelectionSurface';
 import { SoundRelationshipsPanel } from './SoundRelationshipsPanel';
-import { resolveNameSelection, selectedNameIdFromView } from './workbenchSelection';
+import { resolveSelectedNameId } from './workbenchSelection';
 
 const settings: FictionCastSettings = {
   castSize: 2,
@@ -97,8 +97,7 @@ describe('sound relationship navigation integration', () => {
     targetButton?.props.onClick?.();
     expect(selectedId).toBe(right.id);
 
-    const selection = resolveNameSelection({ kind: 'name', nameId: selectedId }, ensemble, lockedNameIds);
-    const selectedNameId = selectedNameIdFromView(selection);
+    const selectedNameId = resolveSelectedNameId(selectedId, ensemble, lockedNameIds);
     const selectedName = ensemble.names.find((name) => name.id === selectedNameId);
 
     expect(selectedName?.id).toBe(right.id);
@@ -108,15 +107,8 @@ describe('sound relationship navigation integration', () => {
       <NameSelectionSurface
         ensemble={ensemble}
         lockedNameIds={lockedNameIds}
-        selection={selection}
         selectedNameId={selectedNameId}
-        hasPreviousName={true}
-        hasNextName={false}
         onSelectName={() => {}}
-        onSelectAllNames={() => {}}
-        onSelectPreviousName={() => {}}
-        onSelectNextName={() => {}}
-        onToggleLockedName={() => {}}
       >
         <NameInspector
           name={selectedName}
@@ -129,6 +121,8 @@ describe('sound relationship navigation integration', () => {
 
     expect(html).toContain(`artifact-heading-${right.id}`);
     expect(html).toContain(`${right.displayName} selected-name actions`);
+    expect(html).toContain(`id="name-rail-tab-${right.id}"`);
+    expect(html).toContain('aria-selected="true"');
     expect(html).toContain(`aria-label="Reroll ${right.displayName}"`);
     expect(html).toContain('>Reroll</button>');
   });

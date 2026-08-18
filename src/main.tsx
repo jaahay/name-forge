@@ -2,11 +2,12 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import './styles.css';
-import './card-locks.css';
 import './cast-mode.css';
 import './inspect-actions.css';
 import './recent-names.css';
 import './cast-workbench.css';
+import './cast-interactions.css';
+import './adaptive-name-rail.css';
 
 const root = document.getElementById('root');
 

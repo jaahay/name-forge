@@ -1,0 +1,172 @@
+/* Issue #213: horizontally scrollable Fiction Cast name navigation.
+   Keep the rail navigation-first; inspection and actions belong to the active workspace. */
+
+.cast-workbench-surface {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.adaptive-name-rail {
+  display: grid;
+  gap: 0.22rem;
+  min-width: 0;
+  padding: 0.58rem 0.62rem 0.18rem;
+  border-bottom: 1px solid rgba(240, 184, 95, 0.13);
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.adaptive-name-rail-heading {
+  padding: 0 0.28rem;
+}
+
+.adaptive-name-rail-heading h2 {
+  font-size: 0.68rem;
+}
+
+.adaptive-name-rail-heading span {
+  font-size: 0.66rem;
+}
+
+.adaptive-name-rail-scroll {
+  display: flex;
+  gap: 0.54rem;
+  align-items: stretch;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.08rem 0.18rem 0.46rem;
+  scroll-padding-inline: 0.18rem;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(240, 184, 95, 0.22) transparent;
+  -webkit-overflow-scrolling: touch;
+}
+
+.adaptive-name-rail-scroll::-webkit-scrollbar {
+  height: 0.36rem;
+}
+
+.adaptive-name-rail-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.adaptive-name-rail-scroll::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(240, 184, 95, 0.22);
+}
+
+.adaptive-name-tab {
+  position: relative;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 0.42rem;
+  align-items: center;
+  inline-size: max-content;
+  min-inline-size: 7rem;
+  max-inline-size: 14rem;
+  min-block-size: 3rem;
+  margin: 0;
+  border: 0;
+  border-radius: 0.38rem;
+  padding: 0.58rem 1rem 0.68rem;
+  color: #cfc2ae;
+  background: transparent;
+  box-shadow: none;
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 760;
+  line-height: 1.15;
+  text-align: left;
+  transform: none;
+}
+
+.adaptive-name-tab:not(:last-child)::after {
+  position: absolute;
+  top: 29%;
+  right: -0.28rem;
+  width: 1px;
+  height: 42%;
+  background: rgba(240, 184, 95, 0.16);
+  content: '';
+}
+
+.adaptive-name-tab[aria-selected='true']::before {
+  position: absolute;
+  right: 0.82rem;
+  bottom: 0.18rem;
+  left: 0.82rem;
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(240, 184, 95, 0.88);
+  content: '';
+}
+
+.adaptive-name-tab:hover:not(:disabled) {
+  color: #f5e7cd;
+  background: rgba(240, 184, 95, 0.055);
+  box-shadow: none;
+  transform: none;
+}
+
+.adaptive-name-tab[aria-selected='true'] {
+  color: #f8d99f;
+  background: rgba(240, 184, 95, 0.045);
+}
+
+.adaptive-name-tab:focus-visible {
+  outline: 2px solid rgba(240, 184, 95, 0.78);
+  outline-offset: -2px;
+  box-shadow: none;
+}
+
+.adaptive-name-tab-label {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.adaptive-name-lock-marker {
+  position: relative;
+  flex: 0 0 auto;
+  width: 0.68rem;
+  height: 0.54rem;
+  margin-top: 0.16rem;
+  border: 1px solid currentColor;
+  border-radius: 0.12rem;
+  opacity: 0.82;
+}
+
+.adaptive-name-lock-marker::before {
+  position: absolute;
+  top: -0.43rem;
+  left: 50%;
+  width: 0.4rem;
+  height: 0.43rem;
+  border: 1px solid currentColor;
+  border-bottom: 0;
+  border-radius: 0.35rem 0.35rem 0 0;
+  content: '';
+  transform: translateX(-50%);
+}
+
+.cast-workbench-inspector > div {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+}
+
+@media (max-width: 600px) {
+  .adaptive-name-rail {
+    padding-inline: 0.48rem;
+  }
+
+  .adaptive-name-tab {
+    min-inline-size: 6.5rem;
+    max-inline-size: 11.5rem;
+    min-block-size: 2.85rem;
+    padding-inline: 0.82rem;
+    font-size: 0.82rem;
+  }
+}

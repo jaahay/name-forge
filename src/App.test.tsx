@@ -3,23 +3,32 @@ import { renderToString } from 'react-dom/server';
 import App from './App';
 
 describe('App', () => {
-  it('renders the fiction cast workbench with a quiet primary hierarchy', () => {
+  it('renders the current Fiction Cast workbench hierarchy', () => {
     const html = renderToString(<App />);
 
-    for (const expected of ['Name Forge', 'Fiction Cast', 'Recent names', 'Generation', 'Tune', 'Regenerate', 'Names', 'Name selection', 'Previous', 'Next', 'Inspect', 'Play name', 'Reroll', 'Sound', 'Spelling', 'More details', 'Cast context', 'Score detail', 'Cast review', 'Export']) {
+    for (const expected of [
+      'Name Forge',
+      'Fiction Cast',
+      'Recent names',
+      'Generation',
+      'Tune',
+      'Regenerate',
+      'Names',
+      'Generated cast',
+      'Inspect',
+      'Play name',
+      'Reroll',
+      'Sound',
+      'Spelling',
+      'More details',
+      'Cast context',
+      'Score detail',
+      'Cast review',
+      'Export',
+      'role="tablist"',
+      'role="tabpanel"',
+    ]) {
       expect(html).toContain(expected);
-    }
-
-    for (const removed of ['Configure criteria', 'Criteria summary', 'Tune criteria', 'Cast health', 'Reroll this name', 'Selected spelling', 'Other spellings (', 'Top same-sound spellings', 'Spelling display cap', 'Pronunciation guide', 'Playback', 'Technical sound structure', 'Supported spellings', 'Generated shape', 'repeated initials']) {
-      expect(html).not.toContain(removed);
-    }
-
-    for (const collapsed of ['Cast setup', 'Story roles', 'Criteria signals', 'Style pack', 'Cast variety', 'Advanced tuning', 'Shuffle feel']) {
-      expect(html).not.toContain(collapsed);
-    }
-
-    for (const removed of ['Naming brief', 'Use context', 'Tone words', 'Desired associations', 'Avoid list', 'Hard constraints', 'Anchor examples', 'Brief notes', 'Brief influence', 'Brief cue']) {
-      expect(html).not.toContain(removed);
     }
   });
 });

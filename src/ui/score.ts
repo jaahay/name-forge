@@ -1,6 +1,5 @@
-import type { GenerationSettings, NameTexture } from '../engine/types';
-import type { FictionCastRarityBand } from '../fictionCast/rarity';
-import { rarityPresentation, scoreControls } from './presentation';
+import type { GenerationSettings } from '../engine/types';
+import { scoreControls } from './presentation';
 
 export function clampScore(value: number): number {
   if (!Number.isFinite(value)) return 0;
@@ -9,15 +8,6 @@ export function clampScore(value: number): number {
 
 export function formatScore(value: number): string {
   return Math.round(value * 100).toString();
-}
-
-export function scoreBand(value: number): string {
-  const score = clampScore(value);
-  if (score >= 0.86) return 'Excellent fit';
-  if (score >= 0.76) return 'Strong fit';
-  if (score >= 0.66) return 'Usable fit';
-  if (score >= 0.56) return 'Experimental fit';
-  return 'Weak fit';
 }
 
 export function scoreFromPercent(value: string): number {
@@ -33,12 +23,4 @@ export function randomizeScoreSettings<T extends GenerationSettings>(settings: T
     ...nextSettings,
     [control.key]: randomScore(),
   } as T), settings);
-}
-
-export function rarityClassName(rarity: FictionCastRarityBand): string {
-  return `rarity-pill ${rarityPresentation[rarity].className}`;
-}
-
-export function textureClassName(texture: NameTexture): string {
-  return `texture-${texture}`;
 }
