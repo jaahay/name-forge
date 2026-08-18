@@ -55,7 +55,7 @@ describe('generateGivenName', () => {
       },
     });
 
-    expect(generated.silhouette.syllableCount).toBe(2);
-    expect('rarityBand' in generated.silhouette).toBe(false);
+    expect(generated.generationPlan.syllableCount).toBe(2);
+    expect('rarityBand' in generated.generationPlan).toBe(false);
   });
 });
