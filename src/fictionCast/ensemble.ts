@@ -34,7 +34,7 @@ interface ContextualizedPrimaryName {
 type UncomposedFictionCastName = ContextualizedPrimaryName & Pick<FictionCastGeneratedName, 'role' | 'rarityBand'>;
 
 function endingKey(name: string): string { const normalized = name.toLowerCase(); return normalized.slice(Math.max(0, normalized.length - 2)); }
-function cadenceKey(name: FictionCastGeneratedName): string { return `${name.primaryName.silhouette.stressPattern}:${name.primaryName.silhouette.syllableCount}:${name.primaryName.silhouette.rhythm}`; }
+function cadenceKey(name: FictionCastGeneratedName): string { return `${name.primaryName.generationPlan.stressPattern}:${name.primaryName.generationPlan.syllableCount}:${name.primaryName.generationPlan.rhythm}`; }
 function countRepeated(values: string[]): number { const seen = new Set<string>(); let repeated = 0; for (const value of values) { if (seen.has(value)) repeated += 1; seen.add(value); } return repeated; }
 function roleSeedSegment(settings: FictionCastSettings, role?: CastRoleAssignment): string { return role && isRoleInfluenceActive(settings) ? `:role-${role.role}` : ''; }
 function ensembleFitScore(candidate: FictionCastGeneratedName, selected: FictionCastGeneratedName[]): number { const initials = new Set(selected.map((name) => name.displayName.charAt(0).toLowerCase())); const endings = new Set(selected.map((name) => endingKey(name.displayName))); const cadences = new Set(selected.map(cadenceKey)); const names = new Set(selected.map((name) => name.displayName.toLowerCase())); const penalty = (initials.has(candidate.displayName.charAt(0).toLowerCase()) ? 0.24 : 0) + (endings.has(endingKey(candidate.displayName)) ? 0.22 : 0) + (cadences.has(cadenceKey(candidate)) ? 0.16 : 0) + (names.has(candidate.displayName.toLowerCase()) ? 1 : 0); return clamp(1 - penalty); }
@@ -68,7 +68,7 @@ function semanticNamePreferencesForCandidate(settings: FictionCastSettings, role
 
 function withRoleInfluence(candidate: GeneratedName, settings: FictionCastSettings, role?: CastRoleAssignment): ContextualizedPrimaryName {
   const roleInfluence = resolveRoleInfluence(settings, role);
-  const roleFit = scoreFictionCastRoleFit(candidate.name, candidate.silhouette, roleInfluence);
+  const roleFit = scoreFictionCastRoleFit(candidate.name, candidate.generationPlan, roleInfluence);
   const contextualScores = {
     ensembleFit: 0.72,
     roleFit,
