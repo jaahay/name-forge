@@ -1,5 +1,5 @@
 /* Fiction Cast feature styles.
-   Keep this file limited to cast-mode layout, roster, inspector, and Cast Health polish. */
+   Keep this file limited to current cast-mode controls, inspector, and Cast Health polish. */
 
 /* Controls */
 .actions {
@@ -20,24 +20,6 @@
 .lock-status {
   margin: 0.08rem 0 0;
   line-height: 1.38;
-}
-
-.brief-controls textarea {
-  width: 100%;
-  min-height: 5rem;
-  resize: vertical;
-  border: 1px solid var(--border);
-  border-radius: 0.65rem;
-  padding: 0.7rem 0.78rem;
-  color: var(--text);
-  background: rgba(255, 255, 255, 0.05);
-  font: inherit;
-  line-height: 1.35;
-}
-
-.brief-controls input::placeholder,
-.brief-controls textarea::placeholder {
-  color: rgba(247, 240, 227, 0.42);
 }
 
 .workbench {
@@ -96,15 +78,7 @@
   min-height: 100%;
 }
 
-/* Roster and Cast Health */
-.roster-panel {
-  display: grid;
-  gap: 0.85rem;
-  padding: 0.75rem;
-  border-color: rgba(240, 184, 95, 0.16);
-  background: rgba(255, 255, 255, 0.04);
-}
-
+/* Adaptive rail heading and Cast Health */
 .rail-heading {
   display: flex;
   gap: 0.65rem;
@@ -124,26 +98,6 @@
   color: var(--muted);
   font-size: 0.74rem;
   font-weight: 800;
-}
-
-.name-selector-panel {
-  display: none;
-  gap: 0.7rem;
-  padding: 0.85rem;
-}
-
-.name-selector-panel label {
-  display: grid;
-  gap: 0.35rem;
-  color: #dacdb7;
-  font-size: 0.78rem;
-  font-weight: 850;
-}
-
-.name-stepper {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.55rem;
 }
 
 .cast-health {
@@ -375,143 +329,11 @@
   overflow-wrap: anywhere;
 }
 
-/* Name cards */
-.name-grid {
-  grid-template-columns: repeat(2, minmax(220px, 1fr));
-  gap: 0.78rem;
-}
-
-.name-rail .name-grid {
-  grid-template-columns: minmax(0, 1fr);
-}
-
-.name-card-button {
-  min-height: 6.9rem;
-  padding: 1rem 0.96rem 0.9rem;
-  overflow: visible;
-}
-
-.name-rail .name-card-button,
-.name-rail .name-card.selected .name-card-button {
-  min-height: 4.7rem;
-  padding: 0.86rem 0.9rem;
-}
-
-.name-card.selected .name-card-button {
-  min-height: 6.1rem;
-  padding-bottom: 0.65rem;
-}
-
-.name-card-title {
-  hyphens: none;
-  letter-spacing: -0.015em;
-  -webkit-line-clamp: 3;
-}
-
-.name-card-title[data-name-length='short'] {
-  font-size: 1.55rem;
-  line-height: 0.95;
-}
-
-.name-card-title[data-name-length='medium'] {
-  font-size: 1.38rem;
-  line-height: 1;
-}
-
-.name-card-title[data-name-length='long'] {
-  font-size: 1.18rem;
-  line-height: 1.05;
-}
-
-.name-card-title[data-name-length='very-long'] {
-  font-size: 1.02rem;
-  line-height: 1.08;
-  -webkit-line-clamp: 3;
-}
-
-.name-card[data-name-length='very-long'] .name-card-button {
-  min-height: 8.1rem;
-}
-
-.name-rail .name-card[data-name-length='very-long'] .name-card-button {
-  min-height: 5.6rem;
-}
-
-.name-card.locked:not(.selected) {
-  border-color: rgba(240, 184, 95, 0.34);
-  box-shadow: inset 0 0 0 1px rgba(240, 184, 95, 0.12);
-}
-
-.name-card.selected {
-  border-color: rgba(240, 184, 95, 0.82);
-  box-shadow:
-    0 20px 72px rgba(0, 0, 0, 0.22),
-    0 0 0 1px rgba(240, 184, 95, 0.72),
-    inset 0 0 0 1px rgba(240, 184, 95, 0.34);
-}
-
-.texture-hard::before {
-  background: linear-gradient(135deg, rgba(240, 184, 95, 0.28), transparent 62%);
-}
-
-.name-card-button:focus-visible {
-  outline: 3px solid rgba(240, 184, 95, 0.62);
-  outline-offset: 0.18rem;
-}
-
-.name-card-expanded {
-  display: grid;
-  gap: 0.52rem;
-  margin: 0 0.88rem 0.84rem;
-  padding: 0.68rem 0.72rem;
-  border: 1px solid rgba(240, 184, 95, 0.18);
-  border-radius: 0.86rem;
-  background: rgba(10, 9, 8, 0.24);
-}
-
-.name-card-sound-row {
-  display: grid;
-  grid-template-columns: 1fr auto auto;
-  gap: 0.52rem;
-  align-items: center;
-}
-
-.name-card-expanded-label,
-.name-card-read-status {
-  color: var(--muted);
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.name-card-sound-sketch {
-  color: #f8d99f;
-  font-size: 0.9rem;
-  font-variant-ligatures: none;
-  letter-spacing: 0.015em;
-}
-
-.sound-playback-placeholder {
-  display: inline-grid;
-  place-items: center;
-  width: 1.65rem;
-  height: 1.65rem;
-  border: 1px solid rgba(240, 184, 95, 0.28);
-  border-radius: 999px;
-  color: rgba(248, 217, 159, 0.72);
-  background: rgba(255, 255, 255, 0.04);
-  cursor: default;
-}
-
 /* Inspector */
-.inspector-empty-panel,
-.selected-name-panel {
-  padding: 1.35rem;
-  border-color: rgba(240, 184, 95, 0.22);
-}
-
 .selected-name-panel {
   gap: 1rem;
+  padding: 1.35rem;
+  border-color: rgba(240, 184, 95, 0.22);
 }
 
 .selected-name-title-block {
@@ -523,10 +345,31 @@
   margin-bottom: 0;
 }
 
-.selected-name-heading .name-card-title {
+.selected-name-title {
   display: block;
   overflow: visible;
-  -webkit-line-clamp: unset;
+  hyphens: none;
+  letter-spacing: -0.015em;
+}
+
+.selected-name-title[data-name-length='short'] {
+  font-size: 1.55rem;
+  line-height: 0.95;
+}
+
+.selected-name-title[data-name-length='medium'] {
+  font-size: 1.38rem;
+  line-height: 1;
+}
+
+.selected-name-title[data-name-length='long'] {
+  font-size: 1.18rem;
+  line-height: 1.05;
+}
+
+.selected-name-title[data-name-length='very-long'] {
+  font-size: 1.02rem;
+  line-height: 1.08;
 }
 
 .selected-name-heading h2 {
@@ -623,16 +466,6 @@
   opacity: 0.74;
 }
 
-.results-layout.inspector-rail-layout {
-  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
-}
-
-@media (min-width: 1181px) {
-  .results-layout.inspector-rail-layout {
-    grid-template-columns: minmax(230px, 280px) minmax(0, 1fr);
-  }
-}
-
 @media (max-width: 900px) {
   .configure-summary {
     grid-template-columns: 1fr;
@@ -644,27 +477,6 @@
 
   .configure-summary-actions button {
     flex: 1 1 10rem;
-  }
-
-  .name-grid {
-    grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
-  }
-
-  .results-layout.inspector-rail-layout {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .name-selector-panel {
-    display: grid;
-  }
-
-  .selection-kind-name .name-rail {
-    display: none;
-  }
-
-  .selection-kind-all .selected-name-panel,
-  .selection-kind-all .inspector-empty-panel {
-    display: none;
   }
 
   .sound-relationships-heading {
