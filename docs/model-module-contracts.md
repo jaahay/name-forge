@@ -51,6 +51,19 @@ type GenerateNameOptions = {
 
 `seed` is the immutable deterministic input for one invocation. `generateName(...)` derives its planning and generation random streams internally.
 
+### `StylePack.formBias`
+
+Owner: `src/engine/types.ts`; built-in values live in `src/data/stylePacks.ts`.
+
+```ts
+type FormBias = {
+  readonly syllableCounts: Array<WeightedValue<number>>;
+  readonly textures: Array<WeightedValue<NameTexture>>;
+};
+```
+
+`formBias` is a reusable causal prior for coarse name form before exact sounds or spellings exist. `createNameGenerationPlan(...)` combines it with generation settings, optional planning preferences, and seeded randomness to materialize a concrete plan.
+
 ### `GeneratedName`
 
 Owner: `src/engine/types.ts`, materialized by `src/naming/generator.ts`.
@@ -78,7 +91,7 @@ Contract:
 
 ### `NameGenerationPlan`
 
-Owner: `src/engine/types.ts`; materialized internally during `generateName(...)`.
+Owner: `src/engine/types.ts`; materialized by `src/engine/nameGenerationPlan.ts` during `generateName(...)`.
 
 The plan currently carries:
 
@@ -91,6 +104,22 @@ The plan currently carries:
 - length target.
 
 It is retained as generation evidence under `GeneratedName.generationPlan`.
+
+### `NameScores`
+
+Owner: `src/engine/types.ts`; calculated by `src/engine/scoring.ts`.
+
+Current generic intrinsic score dimensions are:
+
+- pronounceability;
+- memorability;
+- novelty;
+- cultural anchoring;
+- orthographic naturalness;
+- style fit;
+- overall fit derived from those intrinsic dimensions and generation settings.
+
+Generic scoring does not include a form/plan-conformance score. A surface can use generation-plan evidence in contextual scoring when its product semantics make that comparison meaningful.
 
 ## Semantic naming models
 
@@ -269,7 +298,7 @@ Owned by `src/fictionCast`:
 - component-generation context;
 - identity audition.
 
-These models describe Fiction Cast semantics above singular generation.
+These models describe Fiction Cast semantics above singular generation. `scoreFictionCastRoleFit(...)` may use `NameGenerationPlan` evidence such as target length, texture, rhythm, and syllable count because the role preference supplies the surface context that makes those comparisons meaningful.
 
 ### Primary-name analysis/addressability adapter
 
@@ -336,10 +365,12 @@ The shared artifact inspector presents singular generated evidence. Fiction Cast
 ```text
 GenerateNameOptions
   -> generateName(...)
+  -> createNameGenerationPlan(...)
+     <- StylePack.formBias
   -> GeneratedName
 ```
 
-Owner: `src/naming/generator.ts`.
+Owners: `src/naming/generator.ts` and `src/engine/nameGenerationPlan.ts`.
 
 ### Semantic generation
 
@@ -398,11 +429,14 @@ Owner: `src/engine/nameHistory.ts`.
 ## Durable invariants
 
 - `GeneratedName.name === GeneratedName.spelling.text`.
+- `StylePack.formBias` supplies coarse causal planning pressure rather than a completed-name score.
 - `GeneratedName.generationPlan` is the plan evidence for that singular generation.
+- generic `NameScores` contain intrinsic name scores and no form/plan-conformance metric.
 - `NameArtifact.spelling.text` is the artifact's generated text.
 - `NameArtifact.generationPlan` retains the singular generation plan evidence.
 - `generateName(...)` receives one seed and owns its internal RNG partitioning.
 - given, family, and place semantic callbacks delegate to `generateName(...)`.
 - Fiction Cast composition, roles, rarity, contextual scoring, audition, export, and future history remain surface-owned.
+- Fiction Cast role fit may use generation-plan evidence as surface-contextual evaluation.
 - generated components of a composed identity retain their own generation evidence.
 - shared artifact analysis consumes singular evidence; surface adapters preserve surface addressability where needed.
