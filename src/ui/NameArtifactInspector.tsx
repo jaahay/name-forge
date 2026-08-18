@@ -68,7 +68,7 @@ function playVoiceDraft(segments: readonly string[]) {
 }
 
 export function browserVoiceDraftText(artifact: NameArtifact, soundSpeechText?: string): string {
-  return soundSpeechText ?? artifact.displayText;
+  return soundSpeechText ?? artifact.spelling.text;
 }
 
 export function browserVoiceDraftSegments(artifact: NameArtifact, soundSpeechText?: string): readonly string[] {
@@ -77,13 +77,14 @@ export function browserVoiceDraftSegments(artifact: NameArtifact, soundSpeechTex
 
 function detailsText(artifact: NameArtifact, displayText: string, pronunciationGuide?: string): string {
   const analysis = analyzeNameArtifact(artifact);
+  const generatedText = artifact.spelling.text;
   const spellings = artifact.spellingCandidates
     .map((candidate) => `${candidate.text} (${sameSoundSpellingMetadataLabel(candidate, artifact.spelling)})`)
     .join(', ') || 'None';
 
   return [
     displayText,
-    displayText === artifact.displayText ? undefined : `Generated name evidence: ${artifact.displayText}`,
+    displayText === generatedText ? undefined : `Generated name evidence: ${generatedText}`,
     `Sound sketch: ${artifact.sound.transcription}`,
     pronunciationGuide ? `Pronunciation guide: ${pronunciationGuide}` : undefined,
     analysis.structure ? `Structure: ${analysis.structure.syllableCount} syllable(s); ${analysis.structure.segmentCount} segments; ${analysis.structure.syllableShapes.join('-')}` : undefined,
@@ -96,12 +97,13 @@ function detailsText(artifact: NameArtifact, displayText: string, pronunciationG
 
 export function NameArtifactInspector({
   artifact,
-  displayText = artifact.displayText,
+  displayText = artifact.spelling.text,
   voiceDraftText,
   eyebrow = 'Inspect',
   extraActions,
   extraSections,
 }: NameArtifactInspectorProps) {
+  const generatedText = artifact.spelling.text;
   const otherSpellings = artifact.spellingCandidates.filter((candidate) => !isSelectedSpelling(candidate, artifact.spelling));
   const readNotes = artifact.readabilityDiagnostics;
   const variants = artifact.variants;
@@ -115,7 +117,7 @@ export function NameArtifactInspector({
     ? `Play browser voice draft for ${displayText}`
     : `Browser voice draft unavailable for ${displayText}`;
   const hasMoreDetails = readNotes.length > 0 || variants.length > 0 || Boolean(extraSections);
-  const spellingLabel = displayText === artifact.displayText ? 'Spelling' : 'Generated spelling';
+  const spellingLabel = displayText === generatedText ? 'Spelling' : 'Generated spelling';
 
   return (
     <aside className="selected-name-panel panel" aria-labelledby={`artifact-heading-${artifact.id}`}>
@@ -153,7 +155,7 @@ export function NameArtifactInspector({
           {otherSpellings.length > 0 ? (
             <div className="inspector-alternates">
               <span>Alternates</span>
-              <ul aria-label={`${artifact.displayText} other spellings`}>
+              <ul aria-label={`${generatedText} other spellings`}>
                 {otherSpellings.map((candidate) => <li key={`${artifact.id}-${candidate.rank}-${candidate.text}`}>{candidate.text}</li>)}
               </ul>
             </div>
@@ -184,7 +186,7 @@ export function NameArtifactInspector({
             {variants.length > 0 ? (
               <section className="inspector-detail-group inspector-variants-group">
                 <h3>Variants</h3>
-                <ul className="variants detail-variants" aria-label={`${artifact.displayText} variants`}>
+                <ul className="variants detail-variants" aria-label={`${generatedText} variants`}>
                   {variants.map((variant) => <li key={`${artifact.id}-${variant.value}`}><span>{variant.value}</span><em>{variantMetadataLabel(variant)}</em></li>)}
                 </ul>
               </section>
