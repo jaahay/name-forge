@@ -43,7 +43,7 @@ export function RecentNamesView({ entries, onClear }: RecentNamesViewProps) {
                 className={entry.id === selectedEntry?.id ? 'recent-name-button active' : 'recent-name-button'}
                 onClick={() => setSelectedEntryId(entry.id)}
               >
-                <strong>{entry.artifact.displayText}</strong>
+                <strong>{entry.artifact.spelling.text}</strong>
                 <span>{modeLabel(entry.mode)}</span>
                 <small>Seed {entry.seed}</small>
               </button>
