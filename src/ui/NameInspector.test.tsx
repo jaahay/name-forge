@@ -52,8 +52,7 @@ describe('NameInspector', () => {
     expect(html).toContain(name.displayName);
     expect(html).toContain(name.primaryName.spelling.text);
     expect(html).toContain(name.primaryName.sound.transcription);
-    expect(html).not.toContain('modeled parts');
-    expect(html).not.toContain('inspector-sound-components');
+    expect(html).not.toContain('modeled parts</span>');
   });
 
   it('uses one disclosure for all secondary inspector information', () => {
@@ -62,6 +61,7 @@ describe('NameInspector', () => {
     expect(html).toContain('More details');
     expect(html).toContain('Cast context');
     expect(html).toContain('Composition');
+    expect(html).toContain('Component sound drafts');
     expect(html).toContain('Score detail');
     expect((html.match(/<summary/g) ?? [])).toHaveLength(1);
 
@@ -70,16 +70,26 @@ describe('NameInspector', () => {
     }
   });
 
-  it('keeps composed component provenance in the Cast-owned composition section', () => {
+  it('keeps composed component provenance and audition controls in the Cast-owned detail surface', () => {
     const name = fixtureName({ nameFormat: 'epithet-place', seed: 'name-inspector-composed-provenance' });
+    const soundParts = name.identityAudition.parts.filter((part) => part.kind === 'sound');
     const html = renderInspector(name);
 
     expect(name.identity.format.kind).toBe('epithet-place');
     expect(name.identity.parts.length).toBeGreaterThan(1);
+    expect(soundParts).toHaveLength(2);
     expect(html).toContain('Composition');
+    expect(html).toContain('Component sound drafts');
+    expect(html).toContain('inspector-sound-components');
+    expect((html.match(/inspector-component-play/g) ?? [])).toHaveLength(soundParts.length);
     for (const part of name.identity.parts) {
       expect(html).toContain(part.value);
       expect(html).toContain(part.role);
+    }
+    for (const part of soundParts) {
+      if (part.kind !== 'sound') continue;
+      expect(html).toContain(part.displayText);
+      expect(html).toContain(`Browser voice draft unavailable for ${part.value}`);
     }
     expect(html).toContain(name.primaryName.sound.transcription);
   });
