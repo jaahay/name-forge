@@ -34,7 +34,7 @@ describe('generateEnsemble role and rarity controls', () => {
     for (const name of ensemble.names) {
       expect('ensembleFit' in name.primaryName.scores).toBe(false);
       expect('roleFit' in name.primaryName.scores).toBe(false);
-      expect('roleInfluence' in name.primaryName.silhouette).toBe(false);
+      expect('roleInfluence' in name.primaryName.generationPlan).toBe(false);
       expect(name.roleInfluence?.level).toBe('light');
       expect(name.contextualScores.ensembleFit).toBeGreaterThanOrEqual(0);
       expect(name.contextualScores.ensembleFit).toBeLessThanOrEqual(1);
@@ -79,7 +79,7 @@ describe('generateEnsemble role and rarity controls', () => {
     expect(bandsFor('mythic-arc')).toEqual(['common', 'uncommon', 'rare', 'epic', 'legendary', 'rare', 'epic', 'legendary']);
   });
 
-  it('preserves the historical style-pack novelty shift in the surface rarity policy', () => {
+  it('applies the style-pack novelty shift in the surface rarity policy', () => {
     const settings = { ...baseSettings, novelty: 0.5, rarityDistribution: 'style-pack' as const };
     const rarityBands = Array.from({ length: 8 }, (_, index) => resolveFictionCastRarityBand(settings, index));
 
@@ -91,7 +91,7 @@ describe('generateEnsemble role and rarity controls', () => {
     const ensemble = generateEnsemble({ ...baseSettings, castSize: 5, rarityDistribution: 'mythic-arc' }, registry);
 
     expect(ensemble.names.map((name) => name.rarityBand)).toEqual(['common', 'uncommon', 'rare', 'epic', 'legendary']);
-    expect(ensemble.names.every((name) => !('rarityBand' in name.primaryName.silhouette))).toBe(true);
+    expect(ensemble.names.every((name) => !('rarityBand' in name.primaryName.generationPlan))).toBe(true);
   });
 
   it('changes rarity labels without changing generated primary names', () => {
@@ -111,7 +111,7 @@ describe('generateEnsemble role and rarity controls', () => {
     expect(name.displayName).toBe(name.identity.displayName);
     expect(name.primaryName.name).toBe(name.primaryName.spelling.text);
     expect(name.displayName).not.toBe(name.primaryName.name);
-    for (const primitiveField of ['name', 'sound', 'soundProfile', 'spelling', 'spellingCandidates', 'silhouette', 'scores', 'variants']) {
+    for (const primitiveField of ['name', 'sound', 'soundProfile', 'spelling', 'spellingCandidates', 'generationPlan', 'scores', 'variants']) {
       expect(primitiveField in name).toBe(false);
     }
   });
