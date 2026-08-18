@@ -12,6 +12,25 @@ interface NameInspectorProps {
   onToggleLockedName: (id: string) => void;
 }
 
+let componentSpeechPlaybackToken = 0;
+
+function canUseBrowserSpeech(): boolean {
+  return typeof window !== 'undefined' && 'speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined';
+}
+
+function playComponentVoiceDraft(speechText: string) {
+  if (!canUseBrowserSpeech() || !speechText.trim()) return;
+
+  componentSpeechPlaybackToken += 1;
+  const playbackToken = componentSpeechPlaybackToken;
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(speechText);
+  utterance.onend = () => {
+    if (playbackToken !== componentSpeechPlaybackToken) return;
+  };
+  window.speechSynthesis.speak(utterance);
+}
+
 function castSections(name: FictionCastGeneratedName) {
   const identity = name.identity;
   const primaryName = name.primaryName;
@@ -21,6 +40,8 @@ function castSections(name: FictionCastGeneratedName) {
   const textureLabel = `${labelFor(primaryName.silhouette.texture)} texture`;
   const formatLabel = identity.format.label;
   const contextualScores = name.contextualScores;
+  const soundParts = name.identityAudition.parts.filter((part) => part.kind === 'sound');
+  const browserSpeechAvailable = canUseBrowserSpeech();
 
   return (
     <>
@@ -48,6 +69,36 @@ function castSections(name: FictionCastGeneratedName) {
           {identity.parts.map((part) => <li key={part.id}><span>{part.value}</span><em>{part.role}</em></li>)}
         </ul>
       </section>
+
+      {soundParts.length > 0 ? (
+        <section className="inspector-detail-group" aria-label={`${name.displayName} modeled sound parts`}>
+          <h3>Component sound drafts</h3>
+          <ul className="inspector-sound-parts inspector-sound-components">
+            {soundParts.map((part) => {
+              const playLabel = browserSpeechAvailable
+                ? `Play sound draft for ${part.value}`
+                : `Browser voice draft unavailable for ${part.value}`;
+              return (
+                <li key={`${name.id}-${part.index}-${part.sourceNameId}`}>
+                  <div className="inspector-sound-component-copy">
+                    <strong>{part.value}</strong>
+                    <span>{part.displayText}</span>
+                  </div>
+                  <button
+                    type="button"
+                    className="inspector-component-play"
+                    aria-label={playLabel}
+                    disabled={!browserSpeechAvailable}
+                    onClick={() => playComponentVoiceDraft(part.cue.speechText)}
+                  >
+                    Play
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      ) : null}
 
       <section className="inspector-detail-group" aria-label={`${name.displayName} score breakdown`}>
         <h3>Score detail</h3>
