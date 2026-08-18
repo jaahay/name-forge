@@ -1,4 +1,4 @@
-import { toNameArtifact } from '../engine/nameArtifact';
+import { toFictionCastPrimaryNameArtifact } from '../fictionCast/nameArtifact';
 import type { FictionCastGeneratedName } from '../fictionCast/types';
 import { NameArtifactInspector } from './NameArtifactInspector';
 import { rarityPresentation, scorePresentation } from './presentation';
@@ -64,7 +64,7 @@ function castSections(name: FictionCastGeneratedName) {
 export function NameInspector({ name, isLocked, onRerollName, onToggleLockedName }: NameInspectorProps) {
   return (
     <NameArtifactInspector
-      artifact={toNameArtifact(name.primaryName)}
+      artifact={toFictionCastPrimaryNameArtifact(name)}
       displayText={name.displayName}
       voiceDraftText={name.identityAudition.speechText}
       extraActions={(
