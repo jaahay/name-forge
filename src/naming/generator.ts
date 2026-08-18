@@ -5,7 +5,7 @@ import { scoreName } from '../engine/scoring';
 import { generateSound, type SoundCandidate } from '../engine/soundGenerator';
 import type { SoundProfile } from '../engine/soundProfile';
 import { generateRankedSpellingCandidates, type RankedSpellingCandidate, type RankedSpellingCandidateList } from '../engine/spellingGenerator';
-import { createNameGenerationPlan } from '../engine/silhouettes';
+import { createNameGenerationPlan } from '../engine/nameGenerationPlan';
 import type { GeneratedName, NameGenerationPlan, NameGenerationPlanPreferences, NameGenerationSettings, StylePack } from '../engine/types';
 import { generateVariants } from '../engine/variants';
 import { compileStyle, type StyleInput } from '../styleCompilation/styleCompiler';
