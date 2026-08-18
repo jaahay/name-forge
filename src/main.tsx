@@ -7,6 +7,7 @@ import './cast-mode.css';
 import './inspect-actions.css';
 import './recent-names.css';
 import './cast-workbench.css';
+import './adaptive-name-rail.css';
 
 const root = document.getElementById('root');
 
