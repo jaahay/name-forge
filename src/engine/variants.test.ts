@@ -16,7 +16,6 @@ const scores: NameScores = {
   culturalAnchoring: 0.4,
   orthographicNaturalness: 0.9,
   styleFit: 0.8,
-  silhouetteFit: 0.7,
   overallFit: 0.72,
 };
 
