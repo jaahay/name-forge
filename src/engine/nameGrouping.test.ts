@@ -55,10 +55,10 @@ describe('shared exact quantity and grouping', () => {
       expect.stringMatching(/^name-4-/),
     ]);
     expect(response.names.map((artifact) => artifact.generationPlan.id)).toEqual([
-      'silhouette-1',
-      'silhouette-2',
-      'silhouette-3',
-      'silhouette-4',
+      'generation-plan-1',
+      'generation-plan-2',
+      'generation-plan-3',
+      'generation-plan-4',
     ]);
     expect(new Set(response.names.map((artifact) => artifact.id)).size).toBe(4);
   });
