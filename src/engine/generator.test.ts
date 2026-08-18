@@ -4,7 +4,6 @@ import { fictionCastEpithetLexemes, fictionCastTitleLexemes } from '../fictionCa
 import type { FictionCastRarityBand } from '../fictionCast/rarity';
 import type { FictionCastGeneratedName, FictionCastSettings } from '../fictionCast/types';
 import { generateName } from '../naming/generator';
-import { createSeededRandom } from './random';
 import { createDefaultRegistry } from './registry';
 
 const settings: FictionCastSettings = { castSize: 6, novelty: 0.5, pronounceability: 0.7, memorability: 0.6, culturalAnchoring: 0.65, orthographicWeirdness: 0.25, stylePackId: 'british-literary-fantasy', seed: 'deterministic-test-seed', nameFormat: 'given-only' };
@@ -50,8 +49,7 @@ describe('generateEnsemble', () => {
     const generated = generateName({
       settings,
       pack,
-      planningRandom: createSeededRandom('candidate:silhouette'),
-      generationRandom: createSeededRandom('candidate:sound'),
+      seed: 'candidate',
       index: 0,
     });
 
@@ -72,6 +70,19 @@ describe('generateEnsemble', () => {
     expect(generated.spelling).toBe(topSpelling);
     expect(generated.spelling.rank).toBe(1);
     expect(generated.spelling.text.length).toBeGreaterThan(0);
+  });
+
+  it('replays exactly from the same explicit generateName arguments', () => {
+    const registry = createDefaultRegistry();
+    const pack = registry.getStylePack(settings.stylePackId);
+    const options = {
+      settings,
+      pack,
+      seed: 'primitive-replay',
+      index: 2,
+    } as const;
+
+    expect(generateName(options)).toEqual(generateName(options));
   });
 
   it('returns intrinsic name scores plus Fiction Cast contextual fit signals', () => {
