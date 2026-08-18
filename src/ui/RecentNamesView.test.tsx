@@ -16,7 +16,6 @@ const entry: NameHistoryEntry = {
   id: 'saved-1',
   artifact: {
     id: 'artifact-1',
-    displayText: 'Aster',
     soundProfile: {
       targets: {
         length: 'short',
@@ -59,8 +58,8 @@ const entry: NameHistoryEntry = {
     },
     spelling,
     spellingCandidates: [spelling],
-    silhouette: {
-      id: 'silhouette-artifact-1',
+    generationPlan: {
+      id: 'generation-plan-artifact-1',
       syllableCount: 1,
       stressPattern: 'primary',
       rhythm: 'balanced',
@@ -89,6 +88,6 @@ describe('RecentNamesView', () => {
   it('renders an empty history state', () => {
     const html = renderToString(<RecentNamesView entries={[]} onClear={() => undefined} />);
 
-    expect(html).toContain('Generate a cast or NPC name to build local history.');
+    expect(html).toContain('Generate a name to build local history.');
   });
 });
