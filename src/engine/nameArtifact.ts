@@ -11,12 +11,11 @@ import type {
 /** Durable evidence for exactly one sound-backed generated name. */
 export interface NameArtifact {
   readonly id: string;
-  readonly displayText: string;
   readonly soundProfile: SoundProfile;
   readonly sound: SoundCandidate;
   readonly spelling: RankedSpellingCandidate;
   readonly spellingCandidates: readonly RankedSpellingCandidate[];
-  readonly silhouette: NameGenerationPlan;
+  readonly generationPlan: NameGenerationPlan;
   readonly variants: readonly NameVariant[];
   readonly readabilityDiagnostics: readonly ReadabilityDiagnostic[];
 }
@@ -156,17 +155,17 @@ export function isNameArtifact(value: unknown): value is NameArtifact {
     || value.kind !== undefined
     || value.identity !== undefined
     || value.identityAudition !== undefined
+    || value.displayText !== undefined
+    || value.silhouette !== undefined
     || !isNonEmptyString(value.id)
-    || !isNonEmptyString(value.displayText)
     || !isSoundProfile(value.soundProfile)
     || !isSoundCandidate(value.sound)
     || !isSpellingCandidate(value.spelling)
     || !spellingMatchesSound(value.spelling, value.sound)
-    || value.displayText !== value.spelling.text
     || !Array.isArray(value.spellingCandidates)
     || !value.spellingCandidates.every(isSpellingCandidate)
     || !value.spellingCandidates.some((candidate) => sameSpelling(candidate, value.spelling as RankedSpellingCandidate))
-    || !isRecord(value.silhouette)
+    || !isRecord(value.generationPlan)
     || !Array.isArray(value.variants)
     || !value.variants.every(isNameVariant)
     || !Array.isArray(value.readabilityDiagnostics)
@@ -180,12 +179,11 @@ export function isNameArtifact(value: unknown): value is NameArtifact {
 export function toNameArtifact(generatedName: GeneratedName): NameArtifact {
   return {
     id: generatedName.id,
-    displayText: generatedName.name,
     soundProfile: generatedName.soundProfile,
     sound: generatedName.sound,
     spelling: generatedName.spelling,
     spellingCandidates: generatedName.spellingCandidates,
-    silhouette: generatedName.silhouette,
+    generationPlan: generatedName.generationPlan,
     variants: generatedName.variants,
     readabilityDiagnostics: generatedName.readabilityDiagnostics,
   };
