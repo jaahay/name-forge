@@ -1,4 +1,4 @@
-/* Issue #176: make Fiction Cast read as one cast workbench rather than stacked dashboards. */
+/* Fiction Cast workbench density, Inspector behavior, and Cast Review styling. */
 
 .configure-tray.collapsed {
   gap: 0;
@@ -45,8 +45,6 @@
   font-size: 0.68rem;
 }
 
-/* Names and Inspect are two regions of one object. Their horizontal split stays
-   familiar; the desktop frame below keeps their vertical extent stable. */
 .results-layout.inspector-rail-layout {
   grid-template-columns: minmax(0, 1fr);
   gap: 0.7rem;
@@ -55,7 +53,6 @@
 .cast-workbench-surface {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: minmax(215px, 248px) minmax(0, 1fr);
   gap: 0;
   padding: 0;
   overflow: hidden;
@@ -63,54 +60,19 @@
   background: rgba(15, 12, 9, 0.24);
 }
 
-.cast-workbench-surface .name-rail {
-  align-self: stretch;
-  gap: 0.68rem;
-  padding: 0.72rem;
-  border: 0;
-  border-right: 1px solid rgba(240, 184, 95, 0.13);
-  border-radius: 0;
-  background: rgba(255, 255, 255, 0.018);
-}
-
-.cast-workbench-surface .name-grid {
-  gap: 0.56rem;
-}
-
-.cast-workbench-surface .name-rail .name-card-button,
-.cast-workbench-surface .name-rail .name-card.selected .name-card-button {
-  min-height: 4.75rem;
-  padding: 0.7rem 0.78rem 2.55rem;
-}
-
-.cast-workbench-surface .name-rail .name-card[data-name-length='very-long'] .name-card-button {
-  min-height: 5.65rem;
-}
-
-.cast-workbench-surface .name-card-actions {
-  right: 0;
-  left: auto;
-  justify-content: flex-end;
-}
-
 .cast-workbench-inspector {
   min-width: 0;
 }
 
-.cast-workbench-surface .selected-name-panel,
-.cast-workbench-surface .inspector-empty-panel {
+.cast-workbench-surface .selected-name-panel {
   min-height: 100%;
   border: 0;
   border-radius: 0;
+  padding: 1.05rem 1.15rem 1.15rem;
   background: transparent;
   box-shadow: none;
 }
 
-.cast-workbench-surface .selected-name-panel {
-  padding: 1.05rem 1.15rem 1.15rem;
-}
-
-/* Composed identities show only the parts that actually have modeled sound. */
 .inspector-sound-components {
   display: grid;
   gap: 0;
@@ -200,8 +162,6 @@
   color: #efc486;
 }
 
-/* Variants are semantic rows, not narrow pills. Keep the name readable and
-   let provenance wrap beneath it regardless of the detail-grid width. */
 .inspector-variants-group {
   min-width: 0;
 }
@@ -241,7 +201,6 @@
   overflow-wrap: anywhere;
 }
 
-/* Cast diagnostics stay available without becoming a second dashboard. */
 .cast-review {
   overflow: hidden;
   border: 1px solid rgba(240, 184, 95, 0.12);
@@ -326,27 +285,10 @@
   border-top-color: rgba(240, 184, 95, 0.1);
 }
 
-/* On desktop the workbench is a shared-height master/detail frame. The roster
-   and inspector keep the same vertical extent; opening secondary details uses
-   the inspector's remaining space instead of making that column arbitrarily
-   longer than the roster. */
 @media (min-width: 901px) {
   .cast-workbench-surface {
     height: clamp(34rem, 60vh, 46rem);
     min-height: 0;
-  }
-
-  .cast-workbench-surface .name-rail {
-    grid-template-rows: auto minmax(0, 1fr);
-    min-height: 0;
-    overflow: hidden;
-  }
-
-  .cast-workbench-surface .name-grid {
-    min-height: 0;
-    overflow-y: auto;
-    padding-right: 0.18rem;
-    scrollbar-gutter: stable;
   }
 
   .cast-workbench-inspector {
@@ -355,16 +297,12 @@
     overflow: hidden;
   }
 
-  .cast-workbench-surface .selected-name-panel,
-  .cast-workbench-surface .inspector-empty-panel {
-    flex: 1 1 auto;
-    height: auto;
-    min-height: 0;
-  }
-
   .cast-workbench-surface .selected-name-panel {
     display: flex;
+    flex: 1 1 auto;
     flex-direction: column;
+    height: auto;
+    min-height: 0;
     overflow: hidden;
   }
 
@@ -397,18 +335,6 @@
 
   .configure-tray.collapsed .configure-summary-copy strong {
     white-space: normal;
-  }
-
-  .cast-workbench-surface {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .cast-workbench-surface .name-rail {
-    border-right: 0;
-  }
-
-  .selection-kind-name .cast-workbench-surface .name-rail {
-    display: none;
   }
 
   .cast-review > summary {
