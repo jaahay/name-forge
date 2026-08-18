@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { generateEnsemble } from '../fictionCast/ensemble';
 import type { FictionCastSettings } from '../fictionCast/types';
 import { createDefaultRegistry } from '../engine/registry';
-import { resolveNameSelection, selectedNameIdFromView } from './workbenchSelection';
+import { resolveSelectedNameId } from './workbenchSelection';
 
 const settings: FictionCastSettings = {
   castSize: 3,
@@ -18,35 +18,38 @@ const settings: FictionCastSettings = {
   roleInfluence: 'light',
 };
 
-describe('workbench selection state', () => {
-  it('resolves an empty selection to one active generated identity', () => {
+describe('active Fiction Cast selection', () => {
+  it('uses the first generated identity when no active id is present', () => {
     const ensemble = generateEnsemble(settings, createDefaultRegistry());
     const firstName = ensemble.names[0];
 
     if (!firstName) throw new Error('Expected fixture ensemble to generate a first name.');
 
-    const selection = resolveNameSelection({ kind: 'name', nameId: '' }, ensemble, new Set());
-
-    expect(selection).toEqual({ kind: 'name', nameId: firstName.id });
-    expect(selectedNameIdFromView(selection)).toBe(firstName.id);
+    expect(resolveSelectedNameId('', ensemble, new Set())).toBe(firstName.id);
   });
 
-  it('falls back to a locked visible name when the selected name disappears', () => {
+  it('keeps an active id while that identity remains in the cast', () => {
     const ensemble = generateEnsemble(settings, createDefaultRegistry());
-    const [, lockedName] = ensemble.names;
+    const selectedName = ensemble.names[2];
+
+    if (!selectedName) throw new Error('Expected fixture ensemble to generate a third name.');
+
+    expect(resolveSelectedNameId(selectedName.id, ensemble, new Set())).toBe(selectedName.id);
+  });
+
+  it('falls back to a locked visible identity when the active identity disappears', () => {
+    const ensemble = generateEnsemble(settings, createDefaultRegistry());
+    const lockedName = ensemble.names[1];
 
     if (!lockedName) throw new Error('Expected fixture ensemble to generate a second name.');
 
-    const selection = resolveNameSelection({ kind: 'name', nameId: 'missing-name' }, ensemble, new Set([lockedName.id]));
-
-    expect(selection).toEqual({ kind: 'name', nameId: lockedName.id });
+    expect(resolveSelectedNameId('missing-name', ensemble, new Set([lockedName.id]))).toBe(lockedName.id);
   });
 
-  it('keeps an empty active-name id only when the ensemble itself is empty', () => {
+  it('returns no active id for an empty cast', () => {
     const ensemble = generateEnsemble(settings, createDefaultRegistry());
     const emptyEnsemble = { ...ensemble, names: [] };
-    const selection = resolveNameSelection({ kind: 'name', nameId: 'missing-name' }, emptyEnsemble, new Set());
 
-    expect(selection).toEqual({ kind: 'name', nameId: '' });
+    expect(resolveSelectedNameId('missing-name', emptyEnsemble, new Set())).toBe('');
   });
 });
