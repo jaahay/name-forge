@@ -12,17 +12,71 @@ import {
 } from './nameHistory';
 
 function artifact(id: string, displayText: string): NameArtifact {
-  const partId = `${id}:given`;
+  const spelling = {
+    contract: 'SpellingCandidate' as const,
+    version: 1 as const,
+    text: displayText,
+    mappings: [],
+    rank: 1,
+    score: 1,
+  };
+
   return {
-    kind: 'composed-identity',
     id,
     displayText,
-    identity: {
-      displayName: displayText,
-      format: { id: 'format:given-only', kind: 'given-only', label: 'Given name' },
-      parts: [{ id: partId, role: 'given', value: displayText, sourceNameId: id, sourceName: displayText }],
-      phraseParts: [{ kind: 'part', partId, role: 'given' }],
+    soundProfile: {
+      targets: {
+        length: 'short',
+        syllableCount: { min: 1, max: 1, preferred: 1 },
+        texture: 'balanced',
+        distinctiveness: 0.5,
+        cadences: ['balanced'],
+      },
+      phonotactics: {
+        preferredSyllableShapes: ['CV'],
+        onsetWeight: 0.7,
+        codaWeight: 0.4,
+        liquidWeight: 0.3,
+        glideWeight: 0.2,
+        clusterTolerance: 0.2,
+      },
     },
+    sound: {
+      contract: 'SoundCandidate',
+      version: 1,
+      cadence: 'balanced',
+      sequence: {
+        contract: 'SegmentSequence',
+        version: 1,
+        segments: ['m', 'a'],
+        syllables: [{
+          start: 0,
+          end: 2,
+          onset: [0],
+          nucleus: [1],
+          coda: [],
+          shape: 'CV',
+          weight: 'light',
+          sonorityProfile: 'rising',
+          stress: 'primary',
+          stressSource: 'sequence',
+        }],
+      },
+      transcription: '/ma/',
+    },
+    spelling,
+    spellingCandidates: [spelling],
+    silhouette: {
+      id: `silhouette-${id}`,
+      syllableCount: 1,
+      stressPattern: 'primary',
+      rhythm: 'balanced',
+      shape: ['CV'],
+      texture: 'balanced',
+      targetNovelty: 0.5,
+      targetLength: 'short',
+    },
+    variants: [],
     readabilityDiagnostics: [],
   };
 }
@@ -78,18 +132,16 @@ describe('nameHistory', () => {
     expect(loadNameHistory(storage)).toEqual(history);
   });
 
-  it('migrates legacy composed artifacts in the v1 envelope to the explicit composed kind', () => {
-    const currentArtifact = artifact('legacy', 'Aster Vale');
-    if (currentArtifact.kind !== 'composed-identity') throw new Error('Expected composed fixture.');
-    const { kind: _kind, ...legacyArtifact } = currentArtifact;
+  it('drops legacy composed records instead of migrating them into shared artifacts', () => {
     const parsed = parseNameHistory(JSON.stringify({
       version: 1,
       entries: [{
         id: 'saved-legacy',
         artifact: {
-          ...legacyArtifact,
-          sound: { legacy: 'ambiguous-primary-only-evidence' },
-          spelling: { text: 'Aster', mappings: [], rank: 1, score: 1 },
+          id: 'legacy-composed',
+          displayText: 'Aster Vale',
+          identity: { displayName: 'Aster Vale' },
+          readabilityDiagnostics: [],
         },
         mode: 'fiction-cast',
         seed: 'legacy-seed',
@@ -97,10 +149,7 @@ describe('nameHistory', () => {
       }],
     }));
 
-    expect(parsed.entries).toHaveLength(1);
-    expect(parsed.entries[0]?.artifact.kind).toBe('composed-identity');
-    expect('sound' in (parsed.entries[0]?.artifact ?? {})).toBe(false);
-    expect(parsed.entries[0]?.artifact.displayText).toBe('Aster Vale');
+    expect(parsed).toEqual({ version: 1, entries: [] });
   });
 
   it('returns an empty current envelope for malformed or unsupported data', () => {
@@ -109,7 +158,7 @@ describe('nameHistory', () => {
     expect(parseNameHistory(JSON.stringify({ version: 1, entries: [{ id: 'bad' }] }))).toEqual({ version: 1, entries: [] });
   });
 
-  it('filters artifacts whose durable composition fields are malformed', () => {
+  it('filters records that add composition fields to otherwise valid artifacts', () => {
     const validEntry = {
       id: 'saved-valid',
       artifact: artifact('valid', 'Aster'),
@@ -117,29 +166,20 @@ describe('nameHistory', () => {
       seed: 'seed-valid',
       savedAt: '2026-07-18T21:00:00.000Z',
     };
-    const malformedIdentityEntry = {
+    const composedEntry = {
       ...validEntry,
-      id: 'saved-malformed-identity',
-      artifact: {
-        kind: 'composed-identity',
-        id: 'malformed-identity',
-        displayText: 'Broken identity',
-        identity: {},
-        readabilityDiagnostics: [],
-      },
+      id: 'saved-composed',
+      artifact: { ...artifact('composed', 'Bryn'), identity: {} },
     };
-    const malformedAuditionEntry = {
+    const discriminatedEntry = {
       ...validEntry,
-      id: 'saved-malformed-audition',
-      artifact: {
-        ...artifact('malformed-audition', 'Broken audition'),
-        identityAudition: {},
-      },
+      id: 'saved-discriminated',
+      artifact: { ...artifact('discriminated', 'Cael'), kind: 'generated-name' },
     };
 
     expect(parseNameHistory(JSON.stringify({
       version: 1,
-      entries: [validEntry, malformedIdentityEntry, malformedAuditionEntry],
+      entries: [validEntry, composedEntry, discriminatedEntry],
     }))).toEqual({
       version: 1,
       entries: [validEntry],
