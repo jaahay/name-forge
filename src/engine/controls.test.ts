@@ -3,12 +3,12 @@ import { generateName } from '../naming/generator';
 import { createDefaultRegistry } from './registry';
 import type { SeededRandom } from './random';
 import { scoreName } from './scoring';
-import { createNameGenerationPlan } from './silhouettes';
+import { createNameGenerationPlan } from './nameGenerationPlan';
 import type { GenerationSettings, NameGenerationPlan, ScoreKey } from './types';
 import { generateVariants, variantLimitFor } from './variants';
 
 const settings: GenerationSettings = { novelty: 0.5, pronounceability: 0.7, memorability: 0.6, culturalAnchoring: 0.65, orthographicWeirdness: 0.25, stylePackId: 'british-literary-fantasy', seed: 'control-test-seed' };
-const componentKeys: ScoreKey[] = ['pronounceability', 'memorability', 'novelty', 'culturalAnchoring', 'orthographicNaturalness', 'styleFit', 'silhouetteFit'];
+const componentKeys: ScoreKey[] = ['pronounceability', 'memorability', 'novelty', 'culturalAnchoring', 'orthographicNaturalness', 'styleFit'];
 
 type WeightedChoice = string | number;
 
@@ -43,7 +43,7 @@ function highestWeightRandom(): SeededRandom {
 
 function testPlan(overrides: Partial<NameGenerationPlan> = {}): NameGenerationPlan {
   return {
-    id: 'silhouette-test',
+    id: 'generation-plan-test',
     syllableCount: 1,
     stressPattern: 'S',
     rhythm: 'balanced',
