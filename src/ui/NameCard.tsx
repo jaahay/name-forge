@@ -60,7 +60,7 @@ export function NameCard({ name, isSelected, isLocked, showExpandedSurface = tru
   const displayLength = getNameDisplayLength(name.displayName);
   const readNoteCount = name.readabilityDiagnostics.length;
   const rarityBand = name.rarityBand;
-  const cardClassName = `name-card panel ${textureClassName(name.primaryName.silhouette.texture)}${isSelected ? ' selected' : ''}${isLocked ? ' locked' : ''}`;
+  const cardClassName = `name-card panel ${textureClassName(name.primaryName.generationPlan.texture)}${isSelected ? ' selected' : ''}${isLocked ? ' locked' : ''}`;
   const isExpanded = isSelected && showExpandedSurface;
   const lockActionLabel = `${isLocked ? 'Unlock' : 'Lock'} ${name.displayName}`;
 
