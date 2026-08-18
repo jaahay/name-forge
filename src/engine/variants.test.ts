@@ -20,8 +20,8 @@ const scores: NameScores = {
   overallFit: 0.72,
 };
 
-const silhouette: NameGenerationPlan = {
-  id: 'test-silhouette',
+const generationPlan: NameGenerationPlan = {
+  id: 'test-generation-plan',
   syllableCount: 3,
   stressPattern: 'soft-middle',
   rhythm: 'lilting',
@@ -113,7 +113,7 @@ function fixtureName(): FictionCastGeneratedName {
     sound,
     spelling,
     spellingCandidates: [spelling],
-    silhouette,
+    generationPlan,
     scores,
     variants: generateVariants('Aveline', pack, { orthographicWeirdness: 0.5 }),
     readabilityDiagnostics: [],
