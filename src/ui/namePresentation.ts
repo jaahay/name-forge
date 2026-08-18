@@ -47,8 +47,8 @@ export function rarityCueFor(rarityBand: FictionCastRarityBand): string {
 export function constructionCueFor(name: GeneratedName): string {
   const opening = name.name.trim().split(/\s+/)[0] ?? name.name;
   const terminalCue = terminalCueFor(name);
-  const texture = labelFor(name.silhouette.texture).toLowerCase();
-  const rhythm = labelFor(name.silhouette.rhythm).toLowerCase();
+  const texture = labelFor(name.generationPlan.texture).toLowerCase();
+  const rhythm = labelFor(name.generationPlan.rhythm).toLowerCase();
 
   return `${texture} opening around ${opening}; ${rhythm} rhythm; terminal ${terminalCue} ending.`;
 }
