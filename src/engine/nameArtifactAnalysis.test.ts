@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { ComposedNameArtifact, GeneratedNameArtifact, NameArtifact } from './nameArtifact';
+import type { NameArtifact } from './nameArtifact';
 import {
   analyzeNameArtifact,
   analyzeNameArtifactSet,
@@ -8,7 +8,7 @@ import {
 import type { SoundProfileCadence } from './soundProfile';
 import type { SoundSegmentId } from './starterSoundInventory';
 
-type TestSyllable = GeneratedNameArtifact['sound']['sequence']['syllables'][number];
+type TestSyllable = NameArtifact['sound']['sequence']['syllables'][number];
 
 interface ArtifactOptions {
   readonly cadence?: SoundProfileCadence;
@@ -38,13 +38,12 @@ function syllable(
   };
 }
 
-function artifact(id: string, displayText: string, options: ArtifactOptions = {}): GeneratedNameArtifact {
+function artifact(id: string, displayText: string, options: ArtifactOptions = {}): NameArtifact {
   const cadence = options.cadence ?? 'balanced';
   const segments = options.segments ?? ['m', 'a', 'r'];
   const syllables = options.syllables ?? [syllable(0, segments.length, [0], [1], [segments.length - 1])];
 
   return {
-    kind: 'generated-name',
     id,
     displayText,
     soundProfile: {
@@ -122,28 +121,6 @@ function artifact(id: string, displayText: string, options: ArtifactOptions = {}
         detail: 'Fixture diagnostic.',
       },
     ],
-  };
-}
-
-function withoutSound(value: NameArtifact): ComposedNameArtifact {
-  const partId = `${value.id}:literal`;
-  return {
-    kind: 'composed-identity',
-    id: value.id,
-    displayText: value.displayText,
-    identity: {
-      displayName: value.displayText,
-      format: { id: 'format:given-only', kind: 'given-only', label: 'Given name' },
-      parts: [{
-        id: partId,
-        role: 'given',
-        value: value.displayText,
-        sourceNameId: value.id,
-        sourceName: value.displayText,
-      }],
-      phraseParts: [{ kind: 'part', partId, role: 'given' }],
-    },
-    readabilityDiagnostics: value.readabilityDiagnostics,
   };
 }
 
@@ -363,13 +340,6 @@ describe('analyzeNameArtifactSoundRelationships', () => {
         segments: ['t', 'o', 'v', 'i', 'n'],
         syllables: [syllable(0, 2, [0], [1], []), syllable(2, 5, [2], [3], [4], 'secondary')],
       }),
-    ])).toEqual([]);
-  });
-
-  it('ignores pairs when either artifact lacks modeled sound', () => {
-    expect(analyzeNameArtifactSoundRelationships([
-      withoutSound(artifact('unsounded', 'Unsounded')),
-      artifact('mar', 'Mar'),
     ])).toEqual([]);
   });
 
