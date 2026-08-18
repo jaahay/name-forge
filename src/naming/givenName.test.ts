@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { createSeededRandom } from '../engine/random';
 import { createDefaultRegistry } from '../engine/registry';
 import type { GenerationSettings } from '../engine/types';
 import { generateName } from './generator';
@@ -23,16 +22,14 @@ describe('generateGivenName', () => {
     const direct = generateName({
       settings: toNameGenerationSettings(settings),
       pack,
-      planningRandom: createSeededRandom('given-name:plan'),
-      generationRandom: createSeededRandom('given-name:sound'),
+      seed: 'given-name',
       index: 2,
     });
     const semantic = generateGivenName({
       settings,
       registry,
       determinism: {
-        planningSeed: 'given-name:plan',
-        generationSeed: 'given-name:sound',
+        seed: 'given-name',
         resultIndex: 2,
       },
     });
@@ -45,8 +42,7 @@ describe('generateGivenName', () => {
       settings,
       registry,
       determinism: {
-        planningSeed: 'given-name:preferred-plan',
-        generationSeed: 'given-name:preferred-sound',
+        seed: 'given-name:preferred',
         resultIndex: 0,
       },
       preferences: {
@@ -59,7 +55,7 @@ describe('generateGivenName', () => {
       },
     });
 
-    expect(generated.silhouette.syllableCount).toBe(2);
-    expect('rarityBand' in generated.silhouette).toBe(false);
+    expect(generated.generationPlan.syllableCount).toBe(2);
+    expect('rarityBand' in generated.generationPlan).toBe(false);
   });
 });

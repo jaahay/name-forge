@@ -1,4 +1,4 @@
-import { clamp, createSeededRandom } from '../engine/random';
+import { clamp } from '../engine/random';
 import type { SourceRegistry } from '../engine/registry';
 import type {
   GeneratedName,
@@ -11,8 +11,7 @@ import { generateName } from './generator';
 import { toNameGenerationSettings } from './settings';
 
 export interface SemanticNameDeterminism {
-  readonly planningSeed: string;
-  readonly generationSeed: string;
+  readonly seed: string;
   readonly resultIndex: number;
 }
 
@@ -52,9 +51,9 @@ function planningSettingsFor(options: SemanticNameOptions): ReturnType<typeof to
 /**
  * Executes one sound-backed semantic name through the shared singular generator.
  *
- * Callers provide stable source/settings context and deterministic seed material;
- * naming-layer internals own source resolution, random-stream construction, and
- * translation from semantic preferences into generic planning inputs.
+ * Callers provide stable source/settings context and one deterministic seed;
+ * generateName owns random-stream construction while this layer owns source
+ * resolution and translation from semantic preferences into generic planning inputs.
  */
 export function generateSemanticName<TPreferences extends SemanticNamePreferences>(
   options: SemanticNameOptions<TPreferences>,
@@ -67,8 +66,7 @@ export function generateSemanticName<TPreferences extends SemanticNamePreference
   return generateName({
     settings,
     pack,
-    planningRandom: createSeededRandom(options.determinism.planningSeed),
-    generationRandom: createSeededRandom(options.determinism.generationSeed),
+    seed: options.determinism.seed,
     index: options.determinism.resultIndex,
     ...(planningSettings === undefined ? {} : { planningSettings }),
     ...(planningPreferences === undefined ? {} : { planningPreferences }),

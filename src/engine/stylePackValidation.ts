@@ -140,8 +140,8 @@ export function validateStylePack(pack: StylePack): StylePackValidationResult {
     ...validateWeightedValues('phonotactics.preferredEndings', pack.phonotactics.preferredEndings),
     ...validateStringArray('phonotactics.rareGraphemes', pack.phonotactics.rareGraphemes),
     ...validateStringArray('phonotactics.forbiddenFragments', pack.phonotactics.forbiddenFragments),
-    ...validateWeightedValues('silhouetteBias.syllableCounts', pack.silhouetteBias.syllableCounts),
-    ...validateWeightedValues('silhouetteBias.textures', pack.silhouetteBias.textures),
+    ...validateWeightedValues('formBias.syllableCounts', pack.formBias.syllableCounts),
+    ...validateWeightedValues('formBias.textures', pack.formBias.textures),
     ...validateListedVariants(pack),
     ...validateVariantRules(pack),
   ];

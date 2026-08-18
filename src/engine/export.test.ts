@@ -30,7 +30,6 @@ describe('cast export serialization', () => {
     const payload = JSON.parse(firstJson) as ReturnType<typeof createCastExportPayload>;
 
     expect(secondJson).toBe(firstJson);
-    expect(payload.exportVersion).toBe('name-forge.cast.v2');
     expect(payload.generatedBy).toBe('Name Forge');
     expect(payload.seed).toBe(settings.seed);
     expect(payload.settings.seed).toBe(settings.seed);
@@ -43,7 +42,8 @@ describe('cast export serialization', () => {
     expect(firstName).toBeDefined();
     expect(sourceName).toBeDefined();
     if (!firstName || !sourceName) throw new Error('Expected at least one exported name.');
-    expect(firstName.name).toBe(sourceName.name);
+    const primaryName = sourceName.primaryName;
+    expect(firstName.name).toBe(sourceName.displayName);
     expect(firstName.seed).toBe(settings.seed);
     expect(firstName.role).toBe('Protagonist');
     expect(firstName.roleInfluence?.level).toBe('light');
@@ -52,19 +52,19 @@ describe('cast export serialization', () => {
     expect(firstName.scores.overallFit).toBe(sourceName.contextualScores.overallFit);
     expect(firstName.scores.ensembleFit).toBe(sourceName.contextualScores.ensembleFit);
     expect(firstName.scores.roleFit).toBe(sourceName.contextualScores.roleFit);
-    expect(firstName.scores.pronounceability).toBe(sourceName.scores.pronounceability);
-    expect(firstName.sound.profile).toEqual(sourceName.soundProfile);
-    expect(firstName.sound.transcription).toBe(sourceName.sound.transcription);
-    expect(firstName.sound.selectedSpelling.text).toBe(sourceName.spelling.text);
+    expect(firstName.scores.pronounceability).toBe(primaryName.scores.pronounceability);
+    expect(firstName.sound.profile).toEqual(primaryName.soundProfile);
+    expect(firstName.sound.transcription).toBe(primaryName.sound.transcription);
+    expect(firstName.sound.selectedSpelling.text).toBe(primaryName.spelling.text);
     expect(firstName.sound.selectedSpelling.rank).toBe(1);
-    expect(firstName.sound.selectedSpelling.score).toBe(sourceName.spelling.score);
+    expect(firstName.sound.selectedSpelling.score).toBe(primaryName.spelling.score);
     expect(firstName.sound.selectedSpelling.selected).toBe(true);
-    expect(firstName.sound.spellingCandidates).toHaveLength(sourceName.spellingCandidates.length);
-    expect(firstName.sound.spellingCandidates.map((candidate) => candidate.text)).toEqual(sourceName.spellingCandidates.map((candidate) => candidate.text));
-    expect(firstName.sound.spellingCandidates.map((candidate) => candidate.rank)).toEqual(sourceName.spellingCandidates.map((candidate) => candidate.rank));
+    expect(firstName.sound.spellingCandidates).toHaveLength(primaryName.spellingCandidates.length);
+    expect(firstName.sound.spellingCandidates.map((candidate) => candidate.text)).toEqual(primaryName.spellingCandidates.map((candidate) => candidate.text));
+    expect(firstName.sound.spellingCandidates.map((candidate) => candidate.rank)).toEqual(primaryName.spellingCandidates.map((candidate) => candidate.rank));
     expect(firstName.sound.spellingCandidates.filter((candidate) => candidate.selected)).toEqual([firstName.sound.selectedSpelling]);
-    expect(firstName.silhouette.syllableCount).toBeGreaterThan(0);
-    expect(firstName.silhouette.rarityBand).toBe(sourceName.rarityBand);
+    expect(firstName.generationPlan.syllableCount).toBe(primaryName.generationPlan.syllableCount);
+    expect(firstName.generationPlan.rarityBand).toBe(sourceName.rarityBand);
     expect(firstName.parts.length).toBeGreaterThan(0);
     expect(firstName.warnings).toEqual([]);
   });
@@ -75,7 +75,7 @@ describe('cast export serialization', () => {
     const [sourceName] = ensemble.names;
     expect(sourceName).toBeDefined();
     if (!sourceName) throw new Error('Expected at least one exported name.');
-    const [selectedCandidate] = sourceName.spellingCandidates;
+    const [selectedCandidate] = sourceName.primaryName.spellingCandidates;
     expect(selectedCandidate).toBeDefined();
     if (!selectedCandidate) throw new Error('Expected at least one retained spelling candidate.');
 
@@ -94,7 +94,7 @@ describe('cast export serialization', () => {
     expect(markdown).toContain('- Selected spelling:');
     expect(markdown).toContain('- Spelling candidates:');
     expect(markdown).toContain(`${selectedCandidate.text} (selected; rank ${selectedCandidate.rank}, score ${selectedCandidate.score.toFixed(2)})`);
-    expect(markdown).toContain('- Silhouette:');
+    expect(markdown).toContain('- Generation plan:');
     expect(markdown).toContain('- Variants:');
     expect(markdown).toContain('- Warnings: none');
   });

@@ -8,7 +8,7 @@ import {
   saveNameHistory,
   type NameHistoryStorage,
 } from './engine/nameHistory';
-import { toNameArtifact, type NameArtifact } from './engine/nameArtifact';
+import type { NameArtifact } from './engine/nameArtifact';
 import { createDefaultRegistry } from './engine/registry';
 import { rerollSelectedCastName } from './fictionCastReroll';
 import { AboutView } from './ui/AboutView';
@@ -90,7 +90,6 @@ export default function App() {
     setCommittedSettings(nextSettings);
     setEnsemble(nextEnsemble);
     setLockedNameIds(retainedLockIds(nextEnsemble, nextLockedNameIds));
-    recordArtifacts(nextEnsemble.names.map(toNameArtifact), { mode: 'fiction-cast', seed: nextSettings.seed });
   }
 
   function generate(event?: FormEvent<HTMLFormElement>) {
@@ -131,10 +130,6 @@ export default function App() {
     setCommittedSettings(result.committedSettings);
     setEnsemble(result.ensemble);
     setLockedNameIds(result.lockedNameIds);
-    recordArtifacts(result.historyArtifacts, {
-      mode: 'fiction-cast',
-      seed: result.committedSettings.seed,
-    });
     return result.replacementId;
   }
 

@@ -1,27 +1,23 @@
-import { isIdentityAuditionPhrase, type IdentityAuditionPhrase } from './identityAudition';
 import type { SoundCandidate } from './soundGenerator';
 import type { SoundProfile } from './soundProfile';
 import type { RankedSpellingCandidate } from './spellingGenerator';
 import type {
   GeneratedName,
   NameGenerationPlan,
-  NameIdentity,
   NameVariant,
   ReadabilityDiagnostic,
 } from './types';
 
+/** Durable evidence for exactly one sound-backed generated name. */
 export interface NameArtifact {
   readonly id: string;
-  readonly displayText: string;
-  readonly soundProfile?: SoundProfile;
-  readonly sound?: SoundCandidate;
-  readonly spelling?: RankedSpellingCandidate;
-  readonly spellingCandidates?: readonly RankedSpellingCandidate[];
-  readonly silhouette?: NameGenerationPlan;
-  readonly variants?: readonly NameVariant[];
-  readonly readabilityDiagnostics?: readonly ReadabilityDiagnostic[];
-  readonly identity?: NameIdentity;
-  readonly identityAudition?: IdentityAuditionPhrase;
+  readonly soundProfile: SoundProfile;
+  readonly sound: SoundCandidate;
+  readonly spelling: RankedSpellingCandidate;
+  readonly spellingCandidates: readonly RankedSpellingCandidate[];
+  readonly generationPlan: NameGenerationPlan;
+  readonly variants: readonly NameVariant[];
+  readonly readabilityDiagnostics: readonly ReadabilityDiagnostic[];
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -56,20 +52,15 @@ function isSpellingMapping(value: unknown): boolean {
     && (value.end as number) >= (value.start as number);
 }
 
-function isSpellingCandidate(value: unknown): boolean {
+function isSpellingCandidate(value: unknown): value is RankedSpellingCandidate {
   return isRecord(value)
+    && value.contract === 'SpellingCandidate'
+    && value.version === 1
     && isNonEmptyString(value.text)
     && Array.isArray(value.mappings)
     && value.mappings.every(isSpellingMapping)
     && isFiniteNumber(value.rank)
     && isFiniteNumber(value.score);
-}
-
-function isGeneratedSpellingCandidate(value: unknown): value is RankedSpellingCandidate {
-  return isSpellingCandidate(value)
-    && isRecord(value)
-    && value.contract === 'SpellingCandidate'
-    && value.version === 1;
 }
 
 function isReadabilityDiagnostic(value: unknown): boolean {
@@ -155,75 +146,45 @@ function spellingMatchesSound(spelling: RankedSpellingCandidate, sound: SoundCan
   });
 }
 
-function isGeneratedNamePartGeneration(value: unknown): boolean {
-  if (!isRecord(value)) return false;
-  if (!isSoundProfile(value.soundProfile) || !isSoundCandidate(value.sound) || !isGeneratedSpellingCandidate(value.spelling)) return false;
-
-  return spellingMatchesSound(value.spelling, value.sound);
-}
-
-const namePartRoles = new Set(['given', 'family', 'initial', 'title', 'epithet', 'place']);
-const materializedFormatKinds = new Set(['given-only', 'given-family', 'initials-family', 'title-name', 'epithet-place']);
-
-function isNameIdentity(value: unknown): value is NameIdentity {
-  if (!isRecord(value) || !isRecord(value.format)) return false;
-  if (!isNonEmptyString(value.displayName) || !isNonEmptyString(value.format.id) || !isNonEmptyString(value.format.kind) || !isNonEmptyString(value.format.label)) return false;
-  if (!materializedFormatKinds.has(value.format.kind)) return false;
-  if (!Array.isArray(value.parts) || !Array.isArray(value.phraseParts)) return false;
-
-  const partsById = new Map<string, string>();
-  for (const part of value.parts) {
-    if (!isRecord(part)
-      || !isNonEmptyString(part.id)
-      || !isNonEmptyString(part.role)
-      || !namePartRoles.has(part.role)
-      || !isNonEmptyString(part.value)
-      || !isNonEmptyString(part.sourceNameId)
-      || !isNonEmptyString(part.sourceName)
-      || (part.generation !== undefined && !isGeneratedNamePartGeneration(part.generation))) {
-      return false;
-    }
-    partsById.set(part.id, part.role);
-  }
-
-  return value.phraseParts.every((part) => {
-    if (!isRecord(part) || !isNonEmptyString(part.kind)) return false;
-    if (part.kind === 'literal') return isNonEmptyString(part.value);
-    if (part.kind !== 'part' || !isNonEmptyString(part.partId) || !isNonEmptyString(part.role)) return false;
-    return namePartRoles.has(part.role) && partsById.get(part.partId) === part.role;
-  });
+function sameSpelling(left: RankedSpellingCandidate, right: RankedSpellingCandidate): boolean {
+  return left.text === right.text && left.rank === right.rank && left.score === right.score;
 }
 
 export function isNameArtifact(value: unknown): value is NameArtifact {
-  return isRecord(value)
-    && isNonEmptyString(value.id)
-    && isNonEmptyString(value.displayText)
-    && (value.sound === undefined || isSoundCandidate(value.sound))
-    && (value.spelling === undefined || isSpellingCandidate(value.spelling))
-    && (value.spellingCandidates === undefined
-      || (Array.isArray(value.spellingCandidates) && value.spellingCandidates.every(isSpellingCandidate)))
-    && (value.variants === undefined
-      || (Array.isArray(value.variants) && value.variants.every(isNameVariant)))
-    && (value.readabilityDiagnostics === undefined
-      || (Array.isArray(value.readabilityDiagnostics) && value.readabilityDiagnostics.every(isReadabilityDiagnostic)))
-    && (value.soundProfile === undefined || isSoundProfile(value.soundProfile))
-    && (value.silhouette === undefined || isRecord(value.silhouette))
-    && (value.identity === undefined || isNameIdentity(value.identity))
-    && (value.identityAudition === undefined || isIdentityAuditionPhrase(value.identityAudition));
+  if (!isRecord(value)
+    || value.kind !== undefined
+    || value.identity !== undefined
+    || value.identityAudition !== undefined
+    || value.displayText !== undefined
+    || value.silhouette !== undefined
+    || !isNonEmptyString(value.id)
+    || !isSoundProfile(value.soundProfile)
+    || !isSoundCandidate(value.sound)
+    || !isSpellingCandidate(value.spelling)
+    || !spellingMatchesSound(value.spelling, value.sound)
+    || !Array.isArray(value.spellingCandidates)
+    || !value.spellingCandidates.every(isSpellingCandidate)
+    || !value.spellingCandidates.some((candidate) => sameSpelling(candidate, value.spelling as RankedSpellingCandidate))
+    || !isRecord(value.generationPlan)
+    || !Array.isArray(value.variants)
+    || !value.variants.every(isNameVariant)
+    || !Array.isArray(value.readabilityDiagnostics)
+    || !value.readabilityDiagnostics.every(isReadabilityDiagnostic)) {
+    return false;
+  }
+
+  return value.spellingCandidates.every((candidate) => spellingMatchesSound(candidate, value.sound as SoundCandidate));
 }
 
 export function toNameArtifact(generatedName: GeneratedName): NameArtifact {
   return {
     id: generatedName.id,
-    displayText: generatedName.identity?.displayName ?? generatedName.name,
     soundProfile: generatedName.soundProfile,
     sound: generatedName.sound,
     spelling: generatedName.spelling,
     spellingCandidates: generatedName.spellingCandidates,
-    silhouette: generatedName.silhouette,
+    generationPlan: generatedName.generationPlan,
     variants: generatedName.variants,
     readabilityDiagnostics: generatedName.readabilityDiagnostics,
-    ...(generatedName.identity === undefined ? {} : { identity: generatedName.identity }),
-    ...(generatedName.identityAudition === undefined ? {} : { identityAudition: generatedName.identityAudition }),
   };
 }

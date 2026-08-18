@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { createSeededRandom } from './random';
 import { createDefaultRegistry } from './registry';
-import { createNameGenerationPlan } from './silhouettes';
+import { createNameGenerationPlan } from './nameGenerationPlan';
 import type { GenerationSettings } from './types';
 
-const settings: GenerationSettings = { novelty: 0.5, pronounceability: 0.7, memorability: 0.6, culturalAnchoring: 0.65, orthographicWeirdness: 0.25, stylePackId: 'british-literary-fantasy', seed: 'silhouette-test-seed' };
+const settings: GenerationSettings = { novelty: 0.5, pronounceability: 0.7, memorability: 0.6, culturalAnchoring: 0.65, orthographicWeirdness: 0.25, stylePackId: 'british-literary-fantasy', seed: 'generation-plan-test-seed' };
 
 describe('createNameGenerationPlan', () => {
   it('materializes deterministic planning evidence before exact name letters exist', () => {
@@ -14,7 +14,7 @@ describe('createNameGenerationPlan', () => {
     const second = createNameGenerationPlan(settings, pack, createSeededRandom(settings.seed), 0);
 
     expect(second).toEqual(first);
-    expect(first.id).toBe('silhouette-1');
+    expect(first.id).toBe('generation-plan-1');
     expect(first.shape).toHaveLength(first.syllableCount);
     expect(first.stressPattern.length).toBeGreaterThan(0);
     expect(first.rhythm.length).toBeGreaterThan(0);
@@ -24,7 +24,7 @@ describe('createNameGenerationPlan', () => {
     expect('rarityBand' in first).toBe(false);
   });
 
-  it('keeps generic planning preferences limited to causal name-shape pressure', () => {
+  it('keeps generic planning preferences limited to causal name-form pressure', () => {
     const registry = createDefaultRegistry();
     const pack = registry.getStylePack(settings.stylePackId);
     const preferred = createNameGenerationPlan(

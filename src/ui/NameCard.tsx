@@ -24,8 +24,8 @@ function readNoteLabel(name: FictionCastGeneratedName): string {
 
 function NameCardHeader({ name }: NameCardHeaderProps) {
   const rarity = rarityPresentation[name.rarityBand];
-  const displayName = protectInitialBreaks(name.name);
-  const displayLength = getNameDisplayLength(name.name);
+  const displayName = protectInitialBreaks(name.displayName);
+  const displayLength = getNameDisplayLength(name.displayName);
 
   return (
     <div className="name-card-header">
@@ -38,10 +38,10 @@ function NameCardHeader({ name }: NameCardHeaderProps) {
 
 function ExpandedCardSurface({ name }: NameCardHeaderProps) {
   return (
-    <div className="name-card-expanded" aria-label={`${name.name} quick details`}>
+    <div className="name-card-expanded" aria-label={`${name.displayName} quick details`}>
       <div className="name-card-sound-row">
         <span className="name-card-expanded-label">Sound sketch</span>
-        <span className="name-card-sound-sketch">{name.sound.transcription}</span>
+        <span className="name-card-sound-sketch">{name.primaryName.sound.transcription}</span>
         <span
           className="sound-playback-placeholder"
           role="img"
@@ -57,12 +57,12 @@ function ExpandedCardSurface({ name }: NameCardHeaderProps) {
 }
 
 export function NameCard({ name, isSelected, isLocked, showExpandedSurface = true, onSelect, onToggleLocked }: NameCardProps) {
-  const displayLength = getNameDisplayLength(name.name);
+  const displayLength = getNameDisplayLength(name.displayName);
   const readNoteCount = name.readabilityDiagnostics.length;
   const rarityBand = name.rarityBand;
-  const cardClassName = `name-card panel ${textureClassName(name.silhouette.texture)}${isSelected ? ' selected' : ''}${isLocked ? ' locked' : ''}`;
+  const cardClassName = `name-card panel ${textureClassName(name.primaryName.generationPlan.texture)}${isSelected ? ' selected' : ''}${isLocked ? ' locked' : ''}`;
   const isExpanded = isSelected && showExpandedSurface;
-  const lockActionLabel = `${isLocked ? 'Unlock' : 'Lock'} ${name.name}`;
+  const lockActionLabel = `${isLocked ? 'Unlock' : 'Lock'} ${name.displayName}`;
 
   return (
     <article
@@ -73,19 +73,19 @@ export function NameCard({ name, isSelected, isLocked, showExpandedSurface = tru
       data-role={name.role?.role ?? 'none'}
       data-read-notes={readNoteCount}
       aria-current={isSelected ? 'true' : undefined}
-      aria-label={`${isExpanded ? 'Expanded' : 'Collapsed'} name card for ${name.name}`}
+      aria-label={`${isExpanded ? 'Expanded' : 'Collapsed'} name card for ${name.displayName}`}
     >
       <button
         type="button"
         className="name-card-button name-card-select-control"
         aria-pressed={isSelected}
-        aria-label={`Inspect ${name.name}`}
+        aria-label={`Inspect ${name.displayName}`}
         onClick={() => onSelect(name.id)}
       >
         <NameCardHeader name={name} />
       </button>
       {isExpanded ? <ExpandedCardSurface name={name} /> : null}
-      <div className="name-card-actions" aria-label={`${name.name} card actions`}>
+      <div className="name-card-actions" aria-label={`${name.displayName} card actions`}>
         <button
           type="button"
           className="anchor-button lock-toggle name-card-lock-control"

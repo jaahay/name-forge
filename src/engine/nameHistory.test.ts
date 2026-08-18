@@ -11,8 +11,73 @@ import {
   type NameHistoryStorage,
 } from './nameHistory';
 
-function artifact(id: string, displayText: string): NameArtifact {
-  return { id, displayText };
+function artifact(id: string, spellingText: string): NameArtifact {
+  const spelling = {
+    contract: 'SpellingCandidate' as const,
+    version: 1 as const,
+    text: spellingText,
+    mappings: [],
+    rank: 1,
+    score: 1,
+  };
+
+  return {
+    id,
+    soundProfile: {
+      targets: {
+        length: 'short',
+        syllableCount: { min: 1, max: 1, preferred: 1 },
+        texture: 'balanced',
+        distinctiveness: 0.5,
+        cadences: ['balanced'],
+      },
+      phonotactics: {
+        preferredSyllableShapes: ['CV'],
+        onsetWeight: 0.7,
+        codaWeight: 0.4,
+        liquidWeight: 0.3,
+        glideWeight: 0.2,
+        clusterTolerance: 0.2,
+      },
+    },
+    sound: {
+      contract: 'SoundCandidate',
+      version: 1,
+      cadence: 'balanced',
+      sequence: {
+        contract: 'SegmentSequence',
+        version: 1,
+        segments: ['m', 'a'],
+        syllables: [{
+          start: 0,
+          end: 2,
+          onset: [0],
+          nucleus: [1],
+          coda: [],
+          shape: 'CV',
+          weight: 'light',
+          sonorityProfile: 'rising',
+          stress: 'primary',
+          stressSource: 'sequence',
+        }],
+      },
+      transcription: '/ma/',
+    },
+    spelling,
+    spellingCandidates: [spelling],
+    generationPlan: {
+      id: `generation-plan-${id}`,
+      syllableCount: 1,
+      stressPattern: 'primary',
+      rhythm: 'balanced',
+      shape: ['CV'],
+      texture: 'balanced',
+      targetNovelty: 0.5,
+      targetLength: 'short',
+    },
+    variants: [],
+    readabilityDiagnostics: [],
+  };
 }
 
 function memoryStorage(): NameHistoryStorage & { values: Map<string, string> } {
@@ -26,17 +91,9 @@ function memoryStorage(): NameHistoryStorage & { values: Map<string, string> } {
 }
 
 class FailingStorage implements NameHistoryStorage {
-  getItem(): string | null {
-    throw new Error('read blocked');
-  }
-
-  setItem(): void {
-    throw new Error('write blocked');
-  }
-
-  removeItem(): void {
-    throw new Error('remove blocked');
-  }
+  getItem(): string | null { throw new Error('read blocked'); }
+  setItem(): void { throw new Error('write blocked'); }
+  removeItem(): void { throw new Error('remove blocked'); }
 }
 
 describe('nameHistory', () => {
@@ -44,20 +101,20 @@ describe('nameHistory', () => {
     const initial = addNameHistoryEntries(
       { version: 1, entries: [] },
       [artifact('a', 'Aster'), artifact('b', 'Bryn')],
-      { mode: 'fiction-cast', seed: 'cast-seed', savedAt: '2026-07-18T20:00:00.000Z' },
+      { mode: 'test-surface-a', seed: 'first-seed', savedAt: '2026-07-18T20:00:00.000Z' },
       3,
     );
     const updated = addNameHistoryEntries(
       initial,
       [artifact('c', 'Cael'), artifact('d', 'Dara')],
-      { mode: 'game-npc', seed: 'npc-seed', savedAt: '2026-07-18T21:00:00.000Z' },
+      { mode: 'test-surface-b', seed: 'second-seed', savedAt: '2026-07-18T21:00:00.000Z' },
       3,
     );
 
     expect(updated.version).toBe(1);
     expect(updated.entries).toHaveLength(3);
-    expect(updated.entries.map((entry) => entry.artifact.displayText)).toEqual(['Cael', 'Dara', 'Aster']);
-    expect(updated.entries.map((entry) => entry.mode)).toEqual(['game-npc', 'game-npc', 'fiction-cast']);
+    expect(updated.entries.map((entry) => entry.artifact.spelling.text)).toEqual(['Cael', 'Dara', 'Aster']);
+    expect(updated.entries.map((entry) => entry.mode)).toEqual(['test-surface-b', 'test-surface-b', 'test-surface-a']);
   });
 
   it('round-trips the versioned envelope through storage', () => {
@@ -74,13 +131,33 @@ describe('nameHistory', () => {
     expect(loadNameHistory(storage)).toEqual(history);
   });
 
+  it('drops composition-shaped records instead of treating them as shared artifacts', () => {
+    const parsed = parseNameHistory(JSON.stringify({
+      version: 1,
+      entries: [{
+        id: 'saved-composed',
+        artifact: {
+          id: 'composed',
+          displayText: 'Aster Vale',
+          identity: { displayName: 'Aster Vale' },
+          readabilityDiagnostics: [],
+        },
+        mode: 'test-surface',
+        seed: 'seed',
+        savedAt: '2026-07-18T21:00:00.000Z',
+      }],
+    }));
+
+    expect(parsed).toEqual({ version: 1, entries: [] });
+  });
+
   it('returns an empty current envelope for malformed or unsupported data', () => {
     expect(parseNameHistory('{bad json')).toEqual({ version: 1, entries: [] });
     expect(parseNameHistory(JSON.stringify({ version: 2, entries: [] }))).toEqual({ version: 1, entries: [] });
     expect(parseNameHistory(JSON.stringify({ version: 1, entries: [{ id: 'bad' }] }))).toEqual({ version: 1, entries: [] });
   });
 
-  it('filters artifacts whose inspector-facing fields are malformed', () => {
+  it('filters records that add composition fields to otherwise valid artifacts', () => {
     const validEntry = {
       id: 'saved-valid',
       artifact: artifact('valid', 'Aster'),
@@ -88,28 +165,20 @@ describe('nameHistory', () => {
       seed: 'seed-valid',
       savedAt: '2026-07-18T21:00:00.000Z',
     };
-    const malformedVariantEntry = {
+    const composedEntry = {
       ...validEntry,
-      id: 'saved-malformed-variant',
-      artifact: {
-        id: 'malformed-variant',
-        displayText: 'Broken variant',
-        variants: [{ relationship: 3, source: null }],
-      },
+      id: 'saved-composed',
+      artifact: { ...artifact('composed', 'Bryn'), identity: {} },
     };
-    const malformedAuditionEntry = {
+    const discriminatedEntry = {
       ...validEntry,
-      id: 'saved-malformed-audition',
-      artifact: {
-        id: 'malformed-audition',
-        displayText: 'Broken audition',
-        identityAudition: {},
-      },
+      id: 'saved-discriminated',
+      artifact: { ...artifact('discriminated', 'Cael'), kind: 'generated-name' },
     };
 
     expect(parseNameHistory(JSON.stringify({
       version: 1,
-      entries: [validEntry, malformedVariantEntry, malformedAuditionEntry],
+      entries: [validEntry, composedEntry, discriminatedEntry],
     }))).toEqual({
       version: 1,
       entries: [validEntry],

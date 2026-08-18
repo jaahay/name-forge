@@ -136,14 +136,14 @@ describe('generateNameResponse', () => {
     expect(response.version).toBe(1);
     expect(response.names).toHaveLength(1);
     expect(response.random.seed).toBe('single-artifact-seed');
-    expect(artifact.displayText.length).toBeGreaterThan(0);
+    expect(artifact.spelling.text.length).toBeGreaterThan(0);
     expect(artifact.sound).toBeDefined();
     expect(artifact.spelling).toBeDefined();
     expect(spellingCandidates.length).toBeGreaterThan(0);
     expect('role' in artifact).toBe(false);
   });
 
-  it('maps supported sound criteria into current silhouette and sound profile texture', () => {
+  it('maps supported sound criteria into the current generation plan and sound profile texture', () => {
     const softArtifact = firstArtifact(generateNameResponse({
       version: 1,
       criteria: soundCriteria,
@@ -160,12 +160,12 @@ describe('generateNameResponse', () => {
       random: { seed: 'sound-texture-seed' },
     }));
 
-    expect(requireValue(softArtifact.silhouette, 'soft silhouette').texture).toBe('soft');
-    expect(requireValue(softArtifact.soundProfile, 'soft sound profile').targets.texture).toBe('soft');
-    expect(requireValue(crispArtifact.silhouette, 'crisp silhouette').texture).toBe('hard');
-    expect(requireValue(crispArtifact.soundProfile, 'crisp sound profile').targets.texture).toBe('crisp');
-    expect(requireValue(flowingArtifact.silhouette, 'flowing silhouette').texture).toBe('liquid');
-    expect(requireValue(flowingArtifact.soundProfile, 'flowing sound profile').targets.texture).toBe('fluid');
+    expect(softArtifact.generationPlan.texture).toBe('soft');
+    expect(softArtifact.soundProfile.targets.texture).toBe('soft');
+    expect(crispArtifact.generationPlan.texture).toBe('hard');
+    expect(crispArtifact.soundProfile.targets.texture).toBe('crisp');
+    expect(flowingArtifact.generationPlan.texture).toBe('liquid');
+    expect(flowingArtifact.soundProfile.targets.texture).toBe('fluid');
   });
 
   it('maps supported spelling criteria into current sound profile distinctiveness', () => {
@@ -300,6 +300,6 @@ describe('generateNameResponse', () => {
     });
 
     expect(response.names).toHaveLength(1);
-    expect(firstArtifact(response).displayText.length).toBeGreaterThan(0);
+    expect(firstArtifact(response).spelling.text.length).toBeGreaterThan(0);
   });
 });

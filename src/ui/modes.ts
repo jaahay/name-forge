@@ -27,7 +27,7 @@ export const fictionCastMode: FictionCastModeConfig = {
   shortLabel: 'Cast',
   description: 'Build a coherent-but-distinct ensemble of fictional character names.',
   heroTitle: 'Names that are random, usable, and cast-aware.',
-  heroCopy: 'Generate a balanced ensemble by shaping name silhouettes first, scoring overall fit, suggesting spelling variants, and preserving source traces for every result.',
+  heroCopy: 'Generate a balanced ensemble from explicit name-generation settings, contextual cast scoring, spelling variants, and source evidence for every result.',
   outputHeading: 'Ensemble balance',
   exportHeading: 'Export cast',
   generateLabel: 'Generate cast',

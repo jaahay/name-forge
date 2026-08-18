@@ -8,7 +8,6 @@ interface RecentNamesViewProps {
 }
 
 function modeLabel(mode: string): string {
-  if (mode === 'fiction-cast') return 'Fiction Cast';
   if (mode === 'game-npc') return 'Game NPC';
   return mode;
 }
@@ -32,7 +31,7 @@ export function RecentNamesView({ entries, onClear }: RecentNamesViewProps) {
       </header>
 
       {entries.length === 0 ? (
-        <div className="empty-state panel">Generate a cast or NPC name to build local history.</div>
+        <div className="empty-state panel">Generate a name to build local history.</div>
       ) : (
         <section className="recent-names-layout">
           <aside className="recent-names-list panel" aria-label="Recent generated names">
@@ -43,7 +42,7 @@ export function RecentNamesView({ entries, onClear }: RecentNamesViewProps) {
                 className={entry.id === selectedEntry?.id ? 'recent-name-button active' : 'recent-name-button'}
                 onClick={() => setSelectedEntryId(entry.id)}
               >
-                <strong>{entry.artifact.displayText}</strong>
+                <strong>{entry.artifact.spelling.text}</strong>
                 <span>{modeLabel(entry.mode)}</span>
                 <small>Seed {entry.seed}</small>
               </button>

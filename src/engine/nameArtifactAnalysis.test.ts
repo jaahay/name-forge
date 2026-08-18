@@ -8,7 +8,7 @@ import {
 import type { SoundProfileCadence } from './soundProfile';
 import type { SoundSegmentId } from './starterSoundInventory';
 
-type TestSyllable = NonNullable<NameArtifact['sound']>['sequence']['syllables'][number];
+type TestSyllable = NameArtifact['sound']['sequence']['syllables'][number];
 
 interface ArtifactOptions {
   readonly cadence?: SoundProfileCadence;
@@ -45,7 +45,23 @@ function artifact(id: string, displayText: string, options: ArtifactOptions = {}
 
   return {
     id,
-    displayText,
+    soundProfile: {
+      targets: {
+        length: 'short',
+        syllableCount: { min: syllables.length, max: syllables.length, preferred: syllables.length },
+        texture: 'balanced',
+        distinctiveness: 0.5,
+        cadences: [cadence],
+      },
+      phonotactics: {
+        preferredSyllableShapes: syllables.map((entry) => entry.shape),
+        onsetWeight: 0.7,
+        codaWeight: 0.4,
+        liquidWeight: 0.3,
+        glideWeight: 0.2,
+        clusterTolerance: 0.2,
+      },
+    },
     sound: {
       contract: 'SoundCandidate',
       version: 1,
@@ -84,8 +100,8 @@ function artifact(id: string, displayText: string, options: ArtifactOptions = {}
         score: 2.1,
       },
     ],
-    silhouette: {
-      id: `silhouette-${id}`,
+    generationPlan: {
+      id: `generation-plan-${id}`,
       syllableCount: syllables.length,
       stressPattern: syllables.map((entry) => entry.stress).join('-'),
       rhythm: cadence,
@@ -94,6 +110,7 @@ function artifact(id: string, displayText: string, options: ArtifactOptions = {}
       targetNovelty: 0.5,
       targetLength: 'short',
     },
+    variants: [],
     readabilityDiagnostics: [
       {
         id: `diagnostic-${id}`,
@@ -104,11 +121,6 @@ function artifact(id: string, displayText: string, options: ArtifactOptions = {}
       },
     ],
   };
-}
-
-function withoutSound(value: NameArtifact): NameArtifact {
-  const { sound: _sound, ...rest } = value;
-  return rest;
 }
 
 describe('analyzeNameArtifact', () => {
@@ -327,13 +339,6 @@ describe('analyzeNameArtifactSoundRelationships', () => {
         segments: ['t', 'o', 'v', 'i', 'n'],
         syllables: [syllable(0, 2, [0], [1], []), syllable(2, 5, [2], [3], [4], 'secondary')],
       }),
-    ])).toEqual([]);
-  });
-
-  it('ignores pairs when either artifact lacks modeled sound', () => {
-    expect(analyzeNameArtifactSoundRelationships([
-      withoutSound(artifact('unsounded', 'Unsounded')),
-      artifact('mar', 'Mar'),
     ])).toEqual([]);
   });
 

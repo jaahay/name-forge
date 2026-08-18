@@ -19,8 +19,6 @@ const settings: FictionCastSettings = {
   nameFormat: 'given-only',
 };
 
-type SpellingCandidate = FictionCastGeneratedName['spellingCandidates'][number];
-
 function fixtureName(overrides: Partial<FictionCastSettings> = {}): FictionCastGeneratedName {
   const ensemble = generateEnsemble({ ...settings, ...overrides }, createDefaultRegistry());
   const [name] = ensemble.names;
@@ -29,31 +27,6 @@ function fixtureName(overrides: Partial<FictionCastSettings> = {}): FictionCastG
   if (!name) throw new Error('Expected fixture ensemble to generate a name.');
 
   return name;
-}
-
-function firstSpellingCandidate(name: FictionCastGeneratedName): SpellingCandidate {
-  const [candidate] = name.spellingCandidates;
-
-  expect(candidate).toBeDefined();
-  if (!candidate) throw new Error('Expected retained selected spelling candidate.');
-
-  return candidate;
-}
-
-function withSpellingCandidateCount(name: FictionCastGeneratedName, candidateCount: number): FictionCastGeneratedName {
-  const baseCandidate = firstSpellingCandidate(name);
-  const spellingCandidates = Array.from({ length: candidateCount }, (_, index): SpellingCandidate => ({
-    ...baseCandidate,
-    text: `SameSound${index + 1}`,
-    rank: index + 1,
-    score: Math.max(0, baseCandidate.score - index * 0.01),
-  }));
-  const [selectedSpelling] = spellingCandidates;
-
-  expect(selectedSpelling).toBeDefined();
-  if (!selectedSpelling) throw new Error('Expected same-sound fixture to include a selected spelling.');
-
-  return { ...name, spelling: selectedSpelling, spellingCandidates };
 }
 
 function renderInspector(name: FictionCastGeneratedName, isLocked = false): string {
@@ -68,20 +41,18 @@ function renderInspector(name: FictionCastGeneratedName, isLocked = false): stri
 }
 
 describe('NameInspector', () => {
-  it('keeps the primary inspector focused on sound and spelling', () => {
-    const name = withSpellingCandidateCount(fixtureName(), 4);
+  it('renders the composed Cast display above primary singular name evidence', () => {
+    const name = fixtureName({ nameFormat: 'given-family', seed: 'name-inspector-composed-display' });
     const html = renderInspector(name);
 
+    expect(name.displayName).not.toBe(name.primaryName.name);
     expect(html).toContain('inspector-primary');
     expect(html).toContain('Sound');
-    expect(html).toContain('Spelling');
-    expect(html).toContain('SameSound2');
-    expect(html).toContain('SameSound4');
-    expect(html).toContain('Alternates');
-
-    for (const removed of ['Other spellings (', 'Pronunciation guide', 'Playback', 'Technical sound structure', 'Preference rank', 'Supported spellings', 'Next option', 'Spelling display cap']) {
-      expect(html).not.toContain(removed);
-    }
+    expect(html).toContain('Generated spelling');
+    expect(html).toContain(name.displayName);
+    expect(html).toContain(name.primaryName.spelling.text);
+    expect(html).toContain(name.primaryName.sound.transcription);
+    expect(html).not.toContain('modeled parts</span>');
   });
 
   it('uses one disclosure for all secondary inspector information', () => {
@@ -90,6 +61,7 @@ describe('NameInspector', () => {
     expect(html).toContain('More details');
     expect(html).toContain('Cast context');
     expect(html).toContain('Composition');
+    expect(html).toContain('Component sound drafts');
     expect(html).toContain('Score detail');
     expect((html.match(/<summary/g) ?? [])).toHaveLength(1);
 
@@ -98,47 +70,55 @@ describe('NameInspector', () => {
     }
   });
 
-  it('shows only modeled generated sound parts with an audition action for each component', () => {
-    const name = fixtureName({ nameFormat: 'epithet-place', seed: 'name-inspector-composed-sound' });
-    const soundParts = name.identityAudition?.parts.filter((part) => part.kind === 'sound') ?? [];
+  it('keeps composed component provenance and audition controls in the Cast-owned detail surface', () => {
+    const name = fixtureName({ nameFormat: 'epithet-place', seed: 'name-inspector-composed-provenance' });
+    const soundParts = name.identityAudition.parts.filter((part) => part.kind === 'sound');
     const html = renderInspector(name);
 
-    expect(name.identity?.format.kind).toBe('epithet-place');
-    expect(name.identityAudition).toBeDefined();
+    expect(name.identity.format.kind).toBe('epithet-place');
+    expect(name.identity.parts.length).toBeGreaterThan(1);
     expect(soundParts).toHaveLength(2);
-    expect(html).toContain('modeled parts');
+    expect(html).toContain('Composition');
+    expect(html).toContain('Component sound drafts');
     expect(html).toContain('inspector-sound-components');
-    expect(html).not.toContain(name.identityAudition?.displayText ?? 'missing audition display');
     expect((html.match(/inspector-component-play/g) ?? [])).toHaveLength(soundParts.length);
-
+    for (const part of name.identity.parts) {
+      expect(html).toContain(part.value);
+      expect(html).toContain(part.role);
+    }
     for (const part of soundParts) {
       if (part.kind !== 'sound') continue;
-      expect(html).toContain(part.value);
       expect(html).toContain(part.displayText);
       expect(html).toContain(`Browser voice draft unavailable for ${part.value}`);
     }
+    expect(html).toContain(name.primaryName.sound.transcription);
   });
 
-  it('keeps readability notes inside More details', () => {
-    const cleanName = { ...fixtureName(), readabilityDiagnostics: [] };
+  it('keeps primitive readability notes inside More details', () => {
+    const cleanName = {
+      ...fixtureName(),
+      primaryName: { ...fixtureName().primaryName, readabilityDiagnostics: [] },
+    };
     const notedName = {
       ...cleanName,
-      readabilityDiagnostics: [{
-        id: 'test-read-note',
-        scope: 'name' as const,
-        severity: 'notice' as const,
-        label: 'Long read',
-        detail: 'This display name may take a second pass.',
-      }],
+      primaryName: {
+        ...cleanName.primaryName,
+        readabilityDiagnostics: [{
+          id: 'test-read-note',
+          scope: 'name' as const,
+          severity: 'notice' as const,
+          label: 'Long read',
+          detail: 'This generated name may take a second pass.',
+        }],
+      },
     };
 
     expect(renderInspector(cleanName)).not.toContain('Read notes</h3>');
     const notedHtml = renderInspector(notedName);
-    expect(notedHtml).not.toContain('class="inspector-read-note"');
     expect(notedHtml).toContain('inspector-read-details');
     expect(notedHtml).toContain('Read notes</h3>');
     expect(notedHtml).toContain('Long read');
-    expect(notedHtml).toContain('This display name may take a second pass.');
+    expect(notedHtml).toContain('This generated name may take a second pass.');
   });
 
   it('renders selected-name actions with copy utilities visually separated', () => {
@@ -147,31 +127,25 @@ describe('NameInspector', () => {
 
     expect(html).toContain('selected-name-actions');
     expect(html).toContain('selected-name-utilities');
-    expect(html).toContain(`aria-label="Copy name ${name.name}"`);
-    expect(html).toContain(`aria-label="Copy details ${name.name}"`);
+    expect(html).toContain(`aria-label="Copy name ${name.displayName}"`);
+    expect(html).toContain(`aria-label="Copy details ${name.displayName}"`);
     expect(html).toContain('selected-name-reroll-action');
-    expect(html).toContain(`aria-label="Reroll ${name.name}"`);
+    expect(html).toContain(`aria-label="Reroll ${name.displayName}"`);
     expect(html).toContain('>Reroll</button>');
-    expect(html).toContain(`aria-label="Lock ${name.name}"`);
+    expect(html).toContain(`aria-label="Lock ${name.displayName}"`);
     expect(html).toContain('aria-pressed="false"');
-    expect(html).toContain(`aria-label="Browser voice draft unavailable for ${name.name}"`);
+    expect(html).toContain(`aria-label="Browser voice draft unavailable for ${name.displayName}"`);
     expect(html).toContain('Play name');
   });
 
-  it('uses semantic phrase chunks for paced full-identity voice drafts', () => {
+  it('keeps shared voice helpers primitive while Fiction Cast owns the whole-identity speech text', () => {
     const composed = fixtureName({ nameFormat: 'epithet-place', seed: 'name-inspector-voice-phrase' });
-    const artifact = toNameArtifact(composed);
-    const soundParts = artifact.identityAudition?.parts.filter((part) => part.kind === 'sound') ?? [];
-    const segments = browserVoiceDraftSegments(artifact, 'fallback');
+    const primitiveArtifact = toNameArtifact(composed.primaryName);
 
-    expect(artifact.identityAudition).toBeDefined();
-    expect(browserVoiceDraftText(artifact, 'fallback')).toBe(artifact.identityAudition?.speechText);
-    expect(soundParts).toHaveLength(2);
-    expect(segments).toHaveLength(3);
-    expect(segments[0]).toBe(soundParts[0]?.speechText);
-    expect(segments[1]).toContain('of');
-    expect(segments[2]).toBe(soundParts[1]?.speechText);
-    expect(browserVoiceDraftSegments({ id: 'simple', displayText: 'Na' }, 'nah')).toEqual(['nah']);
+    expect(browserVoiceDraftText(primitiveArtifact, 'fallback')).toBe('fallback');
+    expect(browserVoiceDraftSegments(primitiveArtifact, 'fallback')).toEqual(['fallback']);
+    expect(composed.identityAudition.speechText.length).toBeGreaterThan(0);
+    expect(composed.identityAudition.identityText).toBe(composed.displayName);
   });
 
   it('reflects the locked state and disables selected-name reroll', () => {
@@ -179,11 +153,11 @@ describe('NameInspector', () => {
     const html = renderInspector(name, true);
 
     expect(html).toContain('selected-name-reroll-action');
-    expect(html).toContain(`aria-label="Reroll ${name.name}"`);
+    expect(html).toContain(`aria-label="Reroll ${name.displayName}"`);
     expect(html).toContain('disabled=""');
     expect(html).toContain('title="Unlock this name to reroll it."');
     expect(html).toContain('selected-name-lock-action');
-    expect(html).toContain(`aria-label="Unlock ${name.name}"`);
+    expect(html).toContain(`aria-label="Unlock ${name.displayName}"`);
     expect(html).toContain('aria-pressed="true"');
   });
 });

@@ -2,76 +2,92 @@
 
 ## Status
 
-Accepted and refined through the current migration slices. Decision 0006 defines the naming capability hierarchy above this sound/style boundary.
+Accepted.
 
-The sound/profile/containment decisions here remain authoritative. The earlier statement that reusable semantic name generators were merely deferred is refined: reusable typed semantic callbacks are now an accepted architectural layer. Given, family, and place are current first-class semantic generated-name categories; `generateGivenName(...)` is implemented, while `generateFamilyName(...)` and `generatePlaceName(...)` are accepted pending #202. Their exact stable TypeScript invocation contract remains implementation work.
-
-Issue #186 has implemented the singular `generateName(...)` boundary anticipated by this decision. References below to the old silhouette-shaped bridge describe the pre-#186 context unless explicitly stated otherwise.
+Decision 0006 defines the semantic naming capability hierarchy above this sound/style boundary.
 
 ## Context
 
-Fiction Cast can display identities containing semantically different parts: given names, family names, place names, titles, epithets, initials, and literals. The low-level sound generator operates on a much smaller contract: one `SoundProfile` plus seeded randomness produces one `SoundCandidate`, which can then project to spelling candidates.
+Name Forge needs reusable sound and spelling mechanics while product surfaces express richer naming semantics.
 
-Earlier composition code allowed Fiction Cast meaning to leak into that contract. `SoundProfile` carried product tags and lexical material even though `generateSound()` did not need them. Component labels such as `given`, `family`, and `place` also lived too low even though they describe naming-domain or product meaning rather than phonological behavior.
+A Fiction Cast identity may contain given names, family names, place names, titles, epithets, initials, and literals. The low-level sound generator needs a much smaller input: a resolved `SoundProfile` plus deterministic randomness.
 
-The first boundary extraction separated Fiction Cast semantics and grammar from sound generation and established `StyleCompiler<Style>` as a complementary abstraction. A further refinement showed that profile identity and compiler provenance were unnecessary for sound mechanics: the exact resolved `SoundProfile` value can be retained directly as provenance. The same reasoning applies to nested sound, sequence, and spelling values: they do not need identities merely so adjacent values can point back at them.
+The architecture therefore separates:
 
-Name orchestration also compiles style, selects spelling, scores names, and generates variants. That orchestration belongs above the low-level sound engine. Decision 0006 clarified that the silhouette-shaped orchestration then in use was transitional and should converge on one generic singular `generateName(...)` primitive; issue #186 has now completed that boundary move.
+- product and naming semantics;
+- singular name orchestration;
+- generation planning;
+- style compilation;
+- resolved sound mechanics;
+- sound and spelling generation.
 
 ## Decision
 
-### 1. Semantics belong above the sound engine
+### Semantic meaning lives above sound mechanics
 
-`given`, `family`, `place`, `epithet`, `title`, `initial`, and literal roles describe naming-domain or product-level meaning. They are not primitives of generic sound generation.
+Given, family, place, title, epithet, initial, and literal are naming or product concepts.
 
-Reusable naming capabilities expose typed operations such as `generateGivenName(...)`, `generateFamilyName(...)`, or `generatePlaceName(...)` without requiring those meanings to become sound-engine concepts. Distinct sound mechanics are not required merely for those stable semantic roles to have first-class callbacks.
+Reusable semantic capabilities currently expose:
 
-A product surface composes one or more such capabilities and injects configuration derived from its UX. Fiction Cast may consume them while continuing to own cast-specific identity and aggregate behavior.
+```text
+generateGivenName(...)
+generateFamilyName(...)
+generatePlaceName(...)
+```
 
-### 2. One generic singular naming primitive sits above mechanics
+Each semantic capability translates its typed preferences and delegates lexical-name synthesis to the singular `generateName(...)` primitive.
 
-The naming layer owns one generic singular operation conceptually named:
+A product surface composes these capabilities according to the grammar and workflow it owns.
 
-```ts
+### generateName is the singular generation boundary
+
+The naming layer owns one generic sound-backed lexical-name operation:
+
+```text
 generateName(...)
 ```
 
-Reusable semantic callbacks delegate to that singular primitive. They are not parallel implementations of sound generation.
-
-The ordered dependency is:
+The dependency direction is:
 
 ```text
-surface-specific aggregate orchestration, when needed
-        -> reusable semantic callback(s)
-        -> generic singular generateName(...)
-        -> typed style compilation
-        -> SoundProfile
-        -> sound + spelling mechanics
+product surface
+  -> semantic naming capability
+  -> generateName(...)
+  -> generation planning
+  -> style compilation
+  -> SoundProfile
+  -> sound generation
+  -> spelling generation and selection
+  -> GeneratedName
 ```
 
-This decision did not prescribe the exact input/output types. Issue #186 provides the current implementation contract while preserving the architectural dependency above.
+`generateName(...)` receives one deterministic seed and owns its internal random-stream partitioning. It also materializes the `NameGenerationPlan` used by the generation process.
 
-### 3. Grammars belong to product or semantic composition
+Callers provide generation settings and preferences rather than constructing internal RNG objects or generation plans.
 
-A grammar decides which semantic parts make up an identity and how those parts are arranged.
+### Style packs provide coarse form priors
 
-The current Fiction Cast grammars remain examples such as:
+A `StylePack` may influence generation planning through `formBias`.
+
+`formBias` is causal input to plan materialization, not a score or a completed-name model. It currently contains weighted preferences for coarse form dimensions that are useful before exact sounds or spellings exist:
 
 ```text
-given-only      := given
-given-family    := given family
-initials-family := initials family
-title-name      := title given
-epithet-place   := given epithet "of" place
+StylePack.formBias
+  syllableCounts
+  textures
+        |
+        v
+createNameGenerationPlan(...)
+        |
+        v
+NameGenerationPlan
 ```
 
-Fiction Cast owns those current grammars. This decision does **not** introduce a reusable `generateCompoundName` API. Compound-name generation may later become reusable if multiple consumers create real pressure for that contract.
+Caller settings and semantic planning preferences can modify that pressure for a particular invocation. The materialized plan records the concrete choices used by that invocation.
 
-### 4. Style compilation is complementary to naming and sound generation
+### Style compilation resolves mechanics intent
 
-Style expresses resolved aesthetic/mechanical intent for one naming capability. A style compiler translates one strongly typed style language into a fully resolved `SoundProfile`.
-
-The generic seam remains intentionally small:
+A style compiler translates a typed style language into `SoundProfile`:
 
 ```ts
 interface StyleCompiler<Style> {
@@ -79,133 +95,73 @@ interface StyleCompiler<Style> {
 }
 ```
 
-The input type is generic. There is no universal union of every future given-name, place-name, baby-name, pen-name, faction-name, or other semantic style.
+The current naming orchestration derives this style input from the materialized generation plan plus generic generation settings.
 
-A reusable semantic callback may own the typed configuration and style language useful to its domain while sharing the same `generateName(...)` primitive and `SoundProfile` output mechanics below it.
+Semantic capabilities may evolve distinct typed style or preference languages while sharing the same `SoundProfile` mechanics below them.
 
-The existing `StyleInput` plus `compileStyle()` implementation is the first basic compiler. It is not the canonical style language for every future semantic capability.
+### SoundProfile is a pure mechanics value
 
-### 5. The silhouette bridge is not architectural API
+`SoundProfile` contains the resolved targets and phonotactic preferences required for sound generation.
 
-The pre-#186 `GenerationSettings + NameSilhouette -> StyleInput` bridge was implementation structure rather than a reusable naming contract.
-
-`NameSilhouette`, `createNameSilhouette(...)`, and `generateNameFromSilhouette(...)`-shaped entry points are **not** accepted flavours of the reusable naming API. Callers must not be required to manufacture a silhouette before they can generate a name.
-
-Issue #186 establishes `generateName(...)` and moves planning behind that boundary. The retained internal value is `NameGenerationPlan`; the legacy `silhouette` result/artifact property and `silhouette-*` evidence IDs remain for compatibility, scoring, inspection, and export rather than as caller-facing generation abstractions.
-
-Further reduction or renaming of that evidence should be driven by concrete consumer or persistence needs, not by preserving or eliminating a historical noun for its own sake.
-
-### 6. No first-class Policy abstraction is required yet
-
-Request defaults, constraints, variation, compiler choice, ranking, and similar behavior may be policy-like, but that does not require a `Policy` object or universal policy schema.
-
-A reusable semantic capability may encapsulate its domain defaults and typed configuration directly. Extract a policy abstraction only if multiple callers later need to configure or replace that behavior independently.
-
-### 7. SoundProfile is a pure resolved mechanics value
-
-A `SoundProfile` contains only the resolved sound targets and phonotactic preferences needed by generic sound and spelling generation. It is a value, not an entity or serialization envelope.
-
-A `SoundProfile` therefore has no:
-
-- profile id;
-- contract/version tags required by generation;
-- compiler/source provenance;
-- product job/type identifier;
-- `given`, `family`, `place`, or other semantic label;
-- title or epithet lexicon;
-- composition grammar;
-- UI state, callbacks, caches, or runtime handles.
-
-`generateSound(profile, rng)` consumes this value directly. Different compilers may produce structurally equal profiles without requiring shared identity infrastructure.
-
-### 8. Generation provenance is containment, not relational identity
-
-Every sound-backed generated component retains the exact `SoundProfile`, `SoundCandidate`, and selected spelling used for that component.
-
-The containing generation result establishes their relationship. `SoundCandidate`, `SegmentSequence`, and spelling candidates do not need ids or cross-link fields merely to reconstruct that relationship. Validation checks their contained structure where consistency matters.
-
-This does not prohibit identity at product or artifact boundaries. A generated result, artifact, cast slot, lock, identity part, or persisted product record may have an id because callers need to address that thing independently. Internal generation values do not acquire identity solely for bookkeeping.
-
-A compound identity does not have one authoritative aggregate profile merely because it has one displayed string. If a phrase contains two independently generated sound-backed parts, it retains two independently resolved profile values.
-
-The current top-level `GeneratedName.soundProfile` field may continue to describe the primary generated component until the app-facing result model is simplified, but it must not be interpreted as describing the full compound identity.
-
-### 9. Name orchestration belongs above the low-level engine
-
-The low-level engine owns sound and spelling mechanics. It does not decide how surface UX, semantic configuration, or product roles become naming/style input.
-
-Current name orchestration lives under `src/naming` and exposes the generic singular `generateName(...)` boundary. It may:
-
-- materialize internal `NameGenerationPlan` evidence from generic planning inputs;
-- translate that plan plus current lower-level settings into the basic typed style language;
-- invoke style compilation;
-- call `generateSound(profile, rng)`;
-- project and rank spelling candidates;
-- select a spelling;
-- score the selected name and generate app-facing variants/diagnostics.
-
-Product/domain semantics stay above this boundary. Fiction Cast, for example, resolves role-specific behavior into generic planning preferences before calling `generateName(...)`, then attaches role evidence and role-fit scoring in its own orchestration layer.
-
-### 10. Ownership moves are direct while contracts are unstable
-
-The current codebase does not need compatibility aliases for internal module moves. When ownership changes, callers move to the owning module and the obsolete path is removed.
-
-Compatibility facades should be introduced only when a stable or externally consumed contract creates an actual compatibility requirement.
-
-## Directional architecture
+It is passed by value into sound mechanics:
 
 ```text
-PRODUCT SURFACE
-  owns UX, defaults, presets, state,
-  and surface-specific aggregate behavior
-            |
-            v
-REUSABLE SEMANTIC NAMING CAPABILITY
-  e.g. given / family / place
-            |
-            v
-GENERIC SINGULAR generateName(...)
-            |
-            v
-STRONGLY TYPED STYLE
-            |
-            v
-StyleCompiler<Style>
-            |
-            v
-PURE SoundProfile VALUE
-            |
-            v
-generateSound(profile, rng)
-            |
-            v
-SoundCandidate -> spelling mechanics
+SoundProfile
+  -> generateSound(...)
+  -> SoundCandidate
 ```
 
-`NameRequest -> NameResponse` remains alongside this as shared criteria/replay/independent-set platform infrastructure. It is not a substitute for the semantic callback hierarchy.
+Product roles, composition grammar, lexical inventories, UI state, and surface metadata remain outside `SoundProfile`.
+
+### Generated evidence is related by containment
+
+A singular `GeneratedName` contains the exact generation evidence for its selected spelling:
+
+```text
+GeneratedName
+  soundProfile
+  sound
+  spelling
+  spellingCandidates
+  generationPlan
+```
+
+The containing result establishes the relationship between those values. `SoundProfile`, `SoundCandidate`, `SegmentSequence`, and spelling candidates remain values rather than independently addressable entities.
+
+A composed surface identity retains generation evidence on each generated component that owns it.
+
+### Product composition remains surface-owned
+
+Fiction Cast owns its identity grammar and aggregate generation behavior. It may compose several independently generated names with lexical or literal material while keeping each generated component's evidence intact.
+
+`FictionCastGeneratedName` therefore contains an unchanged singular `primaryName` plus its surface identity, supporting components, roles, rarity, contextual scoring, and audition data.
+
+### Generation plans are generation evidence
+
+`NameGenerationPlan` is the per-invocation plan materialized during `generateName(...)` by `src/engine/nameGenerationPlan.ts` and retained as result evidence under the `generationPlan` property.
+
+It captures current planning dimensions such as syllable count, stress/rhythm, shape, texture, novelty target, and length target.
+
+It is an output/evidence model of the singular generation process, not a caller-facing alternative generation API.
+
+Generic `NameScores` describe intrinsic scoring dimensions of the generated name. Plan-form conformance is not a generic score. A product surface may use plan evidence in its own contextual evaluation when the product semantics give that comparison meaning; Fiction Cast role fit is one such surface-owned use.
+
+### Surface lifecycle remains above generation
+
+Product surfaces own lifecycle concerns around their results, including persistence, history, export, selection, navigation, and presentation.
+
+Fiction Cast export serializes Fiction Cast results at the surface boundary. Fiction Cast history, when implemented, belongs to that same surface boundary.
 
 ## Consequences
 
-- `generateSound(profile, rng)` remains generic and does not branch on product semantics.
-- `generateName(...)` is the implemented singular naming primitive above mechanics.
-- Reusable semantic callbacks represent domain semantics and delegate to `generateName(...)`.
-- Given, family, and place are first-class semantic generated-name categories; given is implemented, and family/place wrappers are accepted pending #202.
-- Product surfaces compose semantic callbacks and inject their own configuration rather than teaching generic mechanics about the surface.
-- Surface-specific aggregate callbacks may remain product-specific when their cross-name semantics are not reusable.
-- Style compilation, naming orchestration, and sound generation have separate responsibilities and may evolve independently.
-- `SoundProfile` can be compared, retained, and passed by value without identity infrastructure.
-- Nested sound/sequence/spelling values are related through containment rather than synthetic ids and joins.
-- Different semantic capabilities may use distinct typed style languages while compiling to the same `SoundProfile` type.
-- Fiction Cast can consume given/family/place semantic callbacks without changing the sound engine and while retaining its own cast orchestration.
-- Lexical epithets and titles remain valid product grammar parts without pretending to be generated sounds.
-- Legacy silhouette evidence remains compatibility data, not a naming API boundary.
-
-## Deferred decisions
-
-- Whether concrete style languages, defaults, or typed configuration later distinguish given, family, place, and other semantic capabilities beyond their stable caller boundaries.
-- Which additional semantic callbacks earn reusable API status from real product use.
-- Whether epithets remain lexical, become generated, or support both realizations.
-- Whether request-resolution behavior ever warrants a first-class policy abstraction.
-- Whether the generic system should later expose a reusable compound-name or grammar/composition extension.
-- Whether the current app-facing `GeneratedName` type should split into a primitive generated one-name result and a composed product identity result.
-- Whether and when the legacy `silhouette` property or `silhouette-*` evidence IDs should be migrated or removed after concrete consumers no longer require them.
+- Sound generation remains reusable across product surfaces.
+- `generateName(...)` is the single sound-backed lexical-name primitive.
+- `StylePack.formBias` supplies reusable causal pressure for coarse generation form.
+- `NameGenerationPlan` records the concrete per-invocation plan produced from those priors, settings, preferences, and randomness.
+- Generic scoring does not expose a form/plan-conformance score merely because generation has a plan.
+- Semantic naming callbacks express domain meaning without duplicating mechanics.
+- `SoundProfile` remains a compact resolved mechanics value.
+- `GeneratedName` contains coherent singular generation evidence.
+- `generationPlan` names the retained plan evidence directly.
+- Product composition and lifecycle concerns remain with the product surface that owns them.
+- Fiction Cast can evolve its grammar, contextual scoring, history, export, and presentation independently of the generic sound engine.

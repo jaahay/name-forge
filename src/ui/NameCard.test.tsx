@@ -53,14 +53,14 @@ describe('NameCard', () => {
     const html = renderCard(name, false);
     const rarity = rarityPresentation[name.rarityBand];
 
-    expect(html).toContain(name.name);
+    expect(html).toContain(name.displayName);
     expect(html).toContain('data-expanded="false"');
     expect(html).toContain(`data-rarity="${name.rarityBand}"`);
     expect(html).toContain(`data-role="${name.role?.role ?? 'none'}"`);
     expect(html).not.toContain(rarity.label);
-    expect(html).not.toContain(`${name.silhouette.syllableCount} syllables`);
+    expect(html).not.toContain(`${name.primaryName.generationPlan.syllableCount} syllables`);
     expect(html).not.toContain('Sound sketch');
-    expect(html).not.toContain(name.sound.transcription);
+    expect(html).not.toContain(name.primaryName.sound.transcription);
     expect(html).not.toContain(readStatusFor(name));
     expect(html).not.toContain('name-card-expanded');
   });
@@ -69,15 +69,15 @@ describe('NameCard', () => {
     const name = fixtureName();
     const html = renderCard(name, true);
 
-    expect(html).toContain(name.name);
+    expect(html).toContain(name.displayName);
     expect(html).toContain('data-expanded="true"');
     expect(html).toContain('name-card-expanded');
     expect(html).toContain('Sound sketch');
-    expect(html).toContain(name.sound.transcription);
+    expect(html).toContain(name.primaryName.sound.transcription);
     expect(html).toContain(readStatusFor(name));
     expect(html).toContain('Sound playback planned');
-    expect(html).not.toContain(`Play sound sketch for ${name.name} (coming soon)`);
-    expect(html).not.toContain(`${name.silhouette.syllableCount} syllables`);
+    expect(html).not.toContain(`Play sound sketch for ${name.displayName} (coming soon)`);
+    expect(html).not.toContain(`${name.primaryName.generationPlan.syllableCount} syllables`);
   });
 
   it('renders name selection and lock as separate accessible controls', () => {
@@ -85,11 +85,11 @@ describe('NameCard', () => {
     const html = renderCard(name, false);
 
     expect(html).toContain('name-card-select-control');
-    expect(html).toContain(`aria-label="Inspect ${name.name}"`);
+    expect(html).toContain(`aria-label="Inspect ${name.displayName}"`);
     expect(html).toContain('name-card-actions');
-    expect(html).toContain(`aria-label="${name.name} card actions"`);
+    expect(html).toContain(`aria-label="${name.displayName} card actions"`);
     expect(html).toContain('name-card-lock-control');
-    expect(html).toContain(`aria-label="Lock ${name.name}"`);
+    expect(html).toContain(`aria-label="Lock ${name.displayName}"`);
     expect(html).toContain('aria-pressed="false"');
     expect(html).toContain('</button><div class="name-card-actions"');
   });
@@ -99,7 +99,7 @@ describe('NameCard', () => {
     const html = renderCard(name, false, true);
 
     expect(html).toContain('name-card-lock-control');
-    expect(html).toContain(`aria-label="Unlock ${name.name}"`);
+    expect(html).toContain(`aria-label="Unlock ${name.displayName}"`);
     expect(html).toContain('aria-pressed="true"');
   });
 });

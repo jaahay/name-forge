@@ -39,7 +39,6 @@ export const scorePresentation: Array<{ key: ScoreKey; label: string }> = [
   { key: 'culturalAnchoring', label: 'Anchored' },
   { key: 'orthographicNaturalness', label: 'Natural' },
   { key: 'styleFit', label: 'Style fit' },
-  { key: 'silhouetteFit', label: 'Shape fit' },
 ];
 
 export const rarityPresentation: Record<FictionCastRarityBand, { label: string; className: string }> = {
@@ -102,7 +101,7 @@ export const changelogEntries = [
     summary: 'Introduced the first deterministic, cast-aware Name Forge interface for shaping name ensembles.',
     changes: [
       'Added controls for cast size, style preset, seed, novelty, pronounceability, memorability, cultural anchoring, and spelling weirdness.',
-      'Rendered generated names with fit scores, rarity, silhouette texture, variants, and source trace data.',
+      'Rendered generated names with fit scores, rarity, name texture, variants, and source trace data.',
       'Added collapsible result cards and texture-aware visual styling for generated names.',
     ],
   },

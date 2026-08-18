@@ -5,7 +5,6 @@ import { toNameGenerationSettings } from '../naming/settings';
 import { toNameArtifact } from './nameArtifact';
 import { deriveNameChildSeed, resolveNameRequest } from './nameRequest';
 import type { NameRequest, NameResponse } from './nameRequest';
-import { createSeededRandom } from './random';
 import { createDefaultRegistry, type SourceRegistry } from './registry';
 
 const DEFAULT_STYLE_PACK_ID = 'british-literary-fantasy';
@@ -40,8 +39,7 @@ export function generateNameResponse(request: NameRequest, options: NameResponse
     const generatedName = generateName({
       settings: nameSettings,
       pack,
-      planningRandom: createSeededRandom(`${childSeed}:name-request-v1:silhouette:0`),
-      generationRandom: createSeededRandom(`${childSeed}:name-request-v1:name:0`),
+      seed: childSeed,
       index: artifactIndex,
     });
 

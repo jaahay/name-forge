@@ -1,5 +1,5 @@
 import { analyzeNameArtifactSoundRelationships } from '../engine/nameArtifactAnalysis';
-import { toNameArtifact } from '../engine/nameArtifact';
+import { toFictionCastPrimaryNameArtifact } from '../fictionCast/nameArtifact';
 import type { FictionCastGeneratedEnsemble } from '../fictionCast/types';
 import type { FictionCastRarityBand } from '../fictionCast/rarity';
 import { SoundRelationshipsPanel } from './SoundRelationshipsPanel';
@@ -72,8 +72,8 @@ function relationshipPairCount(relationships: ReturnType<typeof analyzeNameArtif
 
 export function CastHealthPanel({ ensemble, lockedNameIds, onSelectName }: CastHealthPanelProps) {
   const warningItems = castHealthFor(ensemble, lockedNameIds).filter((item) => item.tone === 'warn');
-  // The current FictionCastGeneratedEnsemble is the explicit active-roster snapshot for this presentation.
-  const soundRelationships = analyzeNameArtifactSoundRelationships(ensemble.names.map(toNameArtifact));
+  // Compare the explicit primary sound-backed names while retaining Cast ids for relationship navigation.
+  const soundRelationships = analyzeNameArtifactSoundRelationships(ensemble.names.map(toFictionCastPrimaryNameArtifact));
   const pairCount = relationshipPairCount(soundRelationships);
 
   return (

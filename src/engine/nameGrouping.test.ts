@@ -7,7 +7,6 @@ import {
   resolveNameRequest,
 } from './nameRequest';
 import { generateNameResponse } from './nameResponse';
-import { createSeededRandom } from './random';
 import { createDefaultRegistry } from './registry';
 
 const emptyCriteria = { clauses: [] } as const;
@@ -48,23 +47,23 @@ describe('shared exact quantity and grouping', () => {
     expect(response.names).toHaveLength(4);
     expect(response.grouping.quantity).toBe(4);
     expect(response.grouping.childSeeds).toHaveLength(4);
-    expect(response.names.every((artifact) => artifact.displayText.length > 0)).toBe(true);
+    expect(response.names.every((artifact) => artifact.spelling.text.length > 0)).toBe(true);
     expect(response.names.map((artifact) => artifact.id)).toEqual([
       expect.stringMatching(/^name-1-/),
       expect.stringMatching(/^name-2-/),
       expect.stringMatching(/^name-3-/),
       expect.stringMatching(/^name-4-/),
     ]);
-    expect(response.names.map((artifact) => artifact.silhouette?.id)).toEqual([
-      'silhouette-1',
-      'silhouette-2',
-      'silhouette-3',
-      'silhouette-4',
+    expect(response.names.map((artifact) => artifact.generationPlan.id)).toEqual([
+      'generation-plan-1',
+      'generation-plan-2',
+      'generation-plan-3',
+      'generation-plan-4',
     ]);
     expect(new Set(response.names.map((artifact) => artifact.id)).size).toBe(4);
   });
 
-  it('keeps artifact ids distinct when generated display values collide', () => {
+  it('keeps artifact ids distinct when generated spelling values collide', () => {
     const registry = createDefaultRegistry();
     const stylePackId = registry.listStylePacks()[0]?.id;
     if (!stylePackId) throw new Error('Expected a default style pack.');
@@ -77,15 +76,13 @@ describe('shared exact quantity and grouping', () => {
     const first = generateName({
       settings,
       pack,
-      planningRandom: createSeededRandom('duplicate-display-silhouette'),
-      generationRandom: createSeededRandom('duplicate-display-name'),
+      seed: 'duplicate-display',
       index: 0,
     });
     const second = generateName({
       settings,
       pack,
-      planningRandom: createSeededRandom('duplicate-display-silhouette'),
-      generationRandom: createSeededRandom('duplicate-display-name'),
+      seed: 'duplicate-display',
       index: 1,
     });
 

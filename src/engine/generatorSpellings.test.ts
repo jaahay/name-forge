@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { generateName } from '../naming/generator';
-import { createSeededRandom } from './random';
 import { createDefaultRegistry } from './registry';
 import { generateSpellingCandidatePool } from './spellingGenerator';
 import type { GenerationSettings } from './types';
@@ -26,8 +25,7 @@ describe('same-sound spelling retention', () => {
     const name = generateName({
       settings,
       pack,
-      planningRandom: createSeededRandom('same-sound:silhouette'),
-      generationRandom: createSeededRandom('same-sound:sound'),
+      seed: 'same-sound',
       index: 0,
     });
     const exhaustivePool = generateSpellingCandidatePool(name.sound);

@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { stylePacks } from '../data/stylePacks';
+import { renderIdentityAuditionPhrase } from './identityAudition';
 import { createCastExportPayload, serializeCastAsMarkdown } from '../fictionCast/export';
+import { createNameIdentity } from '../fictionCast/identity';
 import type { FictionCastGeneratedEnsemble, FictionCastGeneratedName } from '../fictionCast/types';
-import type { NameGenerationPlan, NameScores } from './types';
+import type { GeneratedName, NameGenerationPlan, NameScores } from './types';
 import { generateVariants } from './variants';
 
 const pack = stylePacks[0];
@@ -14,12 +16,11 @@ const scores: NameScores = {
   culturalAnchoring: 0.4,
   orthographicNaturalness: 0.9,
   styleFit: 0.8,
-  silhouetteFit: 0.7,
   overallFit: 0.72,
 };
 
-const silhouette: NameGenerationPlan = {
-  id: 'test-silhouette',
+const generationPlan: NameGenerationPlan = {
+  id: 'test-generation-plan',
   syllableCount: 3,
   stressPattern: 'soft-middle',
   rhythm: 'lilting',
@@ -104,23 +105,32 @@ function fixtureName(): FictionCastGeneratedName {
     rank: 1,
     score: 1,
   };
-
-  return {
-    id: 'name-1',
+  const primaryName: GeneratedName = {
+    id: 'generated-name-1',
     name: 'Aveline',
     soundProfile,
     sound,
     spelling,
     spellingCandidates: [spelling],
-    silhouette,
+    generationPlan,
     scores,
+    variants: generateVariants('Aveline', pack, { orthographicWeirdness: 0.5 }),
+    readabilityDiagnostics: [],
+  };
+  const identity = createNameIdentity(primaryName, undefined, 'given-only');
+
+  return {
+    id: 'name-1',
+    displayName: identity.displayName,
+    primaryName,
+    identity,
+    identityAudition: renderIdentityAuditionPhrase(identity),
     contextualScores: {
       ensembleFit: 0.6,
       roleFit: 0.5,
       overallFit: 0.72,
     },
     rarityBand: 'uncommon',
-    variants: generateVariants('Aveline', pack, { orthographicWeirdness: 0.5 }),
     readabilityDiagnostics: [],
   };
 }

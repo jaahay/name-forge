@@ -1,53 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { isNameArtifact } from './nameArtifact';
 
-const validIdentityAudition = {
-  contract: 'IdentityAuditionPhrase',
-  version: 1,
-  source: 'name-identity',
-  formatId: 'format:given-family',
-  formatKind: 'given-family',
-  identityText: 'Aster Vale',
-  speechText: 'as ter vayl',
-  displayText: 'AS · ter VAYL',
-  parts: [{
-    index: 0,
-    kind: 'sound',
-    role: 'given',
-    value: 'Aster',
-    speechText: 'as ter',
-    displayText: 'AS · ter',
-    speechSource: 'generated-sound',
-    displaySource: 'generated-sound',
-    sourceNameId: 'source-aster',
-    sourceName: 'Aster',
-    transcription: 'as.ter',
-    cue: {
-      contract: 'NameAuditionCue',
-      speechText: 'as ter',
-      displayText: 'AS · ter',
-    },
-  }, {
-    index: 1,
-    kind: 'sound',
-    role: 'family',
-    value: 'Vale',
-    speechText: 'vayl',
-    displayText: 'VAYL',
-    speechSource: 'generated-sound',
-    displaySource: 'generated-sound',
-    sourceNameId: 'source-vale',
-    sourceName: 'Vale',
-    transcription: 'veɪl',
-    cue: {
-      contract: 'NameAuditionCue',
-      speechText: 'vayl',
-      displayText: 'VAYL',
-    },
-  }],
-};
-
-const validSoundProfile = {
+const soundProfile = {
   targets: {
     length: 'medium',
     syllableCount: { min: 2, max: 3, preferred: 2 },
@@ -65,7 +19,7 @@ const validSoundProfile = {
   },
 };
 
-const validSound = {
+const sound = {
   contract: 'SoundCandidate',
   version: 1,
   cadence: 'balanced',
@@ -89,7 +43,7 @@ const validSound = {
   transcription: 'lar',
 };
 
-const validLinkedSpelling = {
+const spelling = {
   contract: 'SpellingCandidate',
   version: 1,
   text: 'Aster',
@@ -122,44 +76,23 @@ const validLinkedSpelling = {
   score: 1,
 };
 
-const validIdentity = {
-  displayName: 'Aster Vale',
-  format: {
-    id: 'format:given-family',
-    kind: 'given-family',
-    label: 'Given + family name',
+const artifact = {
+  id: 'artifact-generated',
+  soundProfile,
+  sound,
+  spelling,
+  spellingCandidates: [spelling],
+  generationPlan: {
+    id: 'generation-plan-1',
+    syllableCount: 1,
+    stressPattern: 'primary',
+    rhythm: 'balanced',
+    shape: ['CVC'],
+    texture: 'balanced',
+    targetNovelty: 0.5,
+    targetLength: 'medium',
   },
-  parts: [{
-    id: 'source-aster:given',
-    role: 'given',
-    value: 'Aster',
-    sourceNameId: 'source-aster',
-    sourceName: 'Aster',
-    generation: {
-      soundProfile: validSoundProfile,
-      sound: validSound,
-      spelling: validLinkedSpelling,
-    },
-  }, {
-    id: 'source-vale:family',
-    role: 'family',
-    value: 'Vale',
-    sourceNameId: 'source-vale',
-    sourceName: 'Vale',
-  }],
-  phraseParts: [{ kind: 'part', partId: 'source-aster:given', role: 'given' }, { kind: 'part', partId: 'source-vale:family', role: 'family' }],
-};
-
-const validArtifact = {
-  id: 'artifact-1',
-  displayText: 'Aster Vale',
-  sound: validSound,
-  spelling: {
-    text: 'Aster Vale',
-    mappings: [],
-    rank: 1,
-    score: 1,
-  },
+  variants: [],
   readabilityDiagnostics: [{
     id: 'read-1',
     scope: 'name',
@@ -167,126 +100,38 @@ const validArtifact = {
     label: 'Long name',
     detail: 'The display form is relatively long.',
   }],
-  identityAudition: validIdentityAudition,
 };
 
 describe('isNameArtifact', () => {
-  it('accepts the minimal durable artifact contract', () => {
-    expect(isNameArtifact({ id: 'artifact-1', displayText: 'Aster Vale' })).toBe(true);
+  it('accepts a coherent singular generated-name artifact', () => {
+    expect(isNameArtifact(artifact)).toBe(true);
   });
 
-  it('accepts valid inspector-facing nested data', () => {
-    expect(isNameArtifact(validArtifact)).toBe(true);
+  it('rejects ambiguous or incomplete records', () => {
+    expect(isNameArtifact({ id: 'artifact-1' })).toBe(false);
+    expect(isNameArtifact({ ...artifact, sound: undefined })).toBe(false);
   });
 
-  it('accepts persisted identity parts with contained generation provenance', () => {
-    expect(isNameArtifact({
-      ...validArtifact,
-      identity: validIdentity,
-    })).toBe(true);
+  it('rejects composition and discriminator fields', () => {
+    expect(isNameArtifact({ ...artifact, kind: 'generated-name' })).toBe(false);
+    expect(isNameArtifact({ ...artifact, identity: {} })).toBe(false);
+    expect(isNameArtifact({ ...artifact, identityAudition: {} })).toBe(false);
   });
 
-  it('accepts structurally distinct pure SoundProfile provenance', () => {
-    expect(isNameArtifact({
-      ...validArtifact,
-      identity: {
-        ...validIdentity,
-        parts: [{
-          ...validIdentity.parts[0],
-          generation: {
-            ...validIdentity.parts[0].generation,
-            soundProfile: {
-              ...validSoundProfile,
-              targets: {
-                ...validSoundProfile.targets,
-                texture: 'fluid',
-                distinctiveness: 0.72,
-              },
-            },
-          },
-        }, validIdentity.parts[1]],
-      },
-    })).toBe(true);
+  it('rejects a duplicate display-text field', () => {
+    expect(isNameArtifact({ ...artifact, displayText: 'Aster' })).toBe(false);
   });
 
-  it('rejects malformed inspector-facing nested data', () => {
-    expect(isNameArtifact({
-      ...validArtifact,
-      variants: [{ relationship: 3, source: null }],
-    })).toBe(false);
-  });
-
-  it('rejects malformed persisted identity audition data', () => {
-    expect(isNameArtifact({
-      ...validArtifact,
-      identityAudition: {},
-    })).toBe(false);
+  it('rejects spelling evidence that does not match the generated sound', () => {
+    const invalidSpelling = {
+      ...spelling,
+      mappings: [{ ...spelling.mappings[0], segmentId: 'm' }],
+    };
 
     expect(isNameArtifact({
-      ...validArtifact,
-      identityAudition: {
-        ...validIdentityAudition,
-        parts: [{
-          ...validIdentityAudition.parts[0],
-          transcription: null,
-        }],
-      },
-    })).toBe(false);
-  });
-
-  it('rejects malformed or structurally inconsistent identity generation provenance', () => {
-    expect(isNameArtifact({
-      ...validArtifact,
-      identity: {
-        ...validIdentity,
-        parts: [{
-          ...validIdentity.parts[0],
-          generation: {
-            ...validIdentity.parts[0].generation,
-            soundProfile: { targets: validSoundProfile.targets },
-          },
-        }],
-      },
-    })).toBe(false);
-
-    expect(isNameArtifact({
-      ...validArtifact,
-      identity: {
-        ...validIdentity,
-        parts: [{
-          ...validIdentity.parts[0],
-          generation: {
-            ...validIdentity.parts[0].generation,
-            spelling: {
-              ...validLinkedSpelling,
-              mappings: [{
-                ...validLinkedSpelling.mappings[0],
-                segmentId: 'm',
-              }],
-            },
-          },
-        }],
-      },
-    })).toBe(false);
-
-    expect(isNameArtifact({
-      ...validArtifact,
-      identity: {
-        ...validIdentity,
-        parts: [{
-          ...validIdentity.parts[0],
-          generation: {
-            ...validIdentity.parts[0].generation,
-            spelling: {
-              ...validLinkedSpelling,
-              mappings: [{
-                ...validLinkedSpelling.mappings[0],
-                syllableIndex: 4,
-              }],
-            },
-          },
-        }],
-      },
+      ...artifact,
+      spelling: invalidSpelling,
+      spellingCandidates: [invalidSpelling],
     })).toBe(false);
   });
 });

@@ -12,8 +12,8 @@ function blendWeightedValues<T>(baseValues: Array<WeightedValue<T>>, preferredVa
 function selectSyllableCount(settings: NameGenerationSettings, pack: StylePack, random: SeededRandom, preferences?: NameGenerationPlanPreferences): number {
   const memorability = clamp(settings.memorability);
   const baseCounts = preferences?.syllableCounts
-    ? blendWeightedValues(pack.silhouetteBias.syllableCounts, preferences.syllableCounts, preferences.strength)
-    : pack.silhouetteBias.syllableCounts;
+    ? blendWeightedValues(pack.formBias.syllableCounts, preferences.syllableCounts, preferences.strength)
+    : pack.formBias.syllableCounts;
   const weightedCounts: Array<WeightedValue<number>> = baseCounts.map(({ value, weight }) => {
     const compactBoost = value <= 2 ? lerp(0.72, 1.72, memorability) : value === 3 ? lerp(1.1, 0.92, memorability) : lerp(1.28, 0.5, memorability);
     return { value, weight: weight * compactBoost };
@@ -38,21 +38,14 @@ function rhythmFor(stressPattern: string): string {
 
 function selectTexture(settings: NameGenerationSettings, pack: StylePack, random: SeededRandom, preferences?: NameGenerationPlanPreferences): NameTexture {
   if (settings.preferredTexture !== undefined) return settings.preferredTexture;
-  if (!preferences?.textures) return random.pickWeighted(pack.silhouetteBias.textures);
-  return random.pickWeighted(blendWeightedValues(pack.silhouetteBias.textures, preferences.textures, preferences.strength));
+  if (!preferences?.textures) return random.pickWeighted(pack.formBias.textures);
+  return random.pickWeighted(blendWeightedValues(pack.formBias.textures, preferences.textures, preferences.strength));
 }
 
-/**
- * Materializes the internal pre-generation plan retained as scoring and inspection evidence.
- * Product, request, and surface callers should enter through the naming-layer generateName API.
- * @internal
- */
+/** Materializes the generation plan used by `generateName(...)`. */
 export function createNameGenerationPlan(settings: NameGenerationSettings, pack: StylePack, random: SeededRandom, index: number, preferences?: NameGenerationPlanPreferences): NameGenerationPlan {
   const syllableCount = selectSyllableCount(settings, pack, random, preferences);
   const stressPattern = stressPatternFor(syllableCount, settings, random);
-  // Before issue #196, generic rarity selection consumed one planning draw here. Rarity is now
-  // surface-owned, but retaining the draw prevents unrelated fixed-seed texture/shape drift.
-  random.next();
   const texture = selectTexture(settings, pack, random, preferences);
   const targetLength = syllableCount <= 2 ? 'short' : syllableCount === 3 ? 'medium' : 'long';
   const openSyllableBias = lerp(0.24, 0.76, settings.pronounceability);
@@ -65,7 +58,7 @@ export function createNameGenerationPlan(settings: NameGenerationSettings, pack:
     return random.chance(openSyllableBias) ? 'CV' : 'CVC';
   });
   return {
-    id: `silhouette-${index + 1}`,
+    id: `generation-plan-${index + 1}`,
     syllableCount,
     stressPattern,
     rhythm: rhythmFor(stressPattern),
