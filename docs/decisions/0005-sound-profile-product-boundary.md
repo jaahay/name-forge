@@ -16,6 +16,7 @@ The architecture therefore separates:
 
 - product and naming semantics;
 - singular name orchestration;
+- generation planning;
 - style compilation;
 - resolved sound mechanics;
 - sound and spelling generation.
@@ -52,6 +53,7 @@ The dependency direction is:
 product surface
   -> semantic naming capability
   -> generateName(...)
+  -> generation planning
   -> style compilation
   -> SoundProfile
   -> sound generation
@@ -63,6 +65,26 @@ product surface
 
 Callers provide generation settings and preferences rather than constructing internal RNG objects or generation plans.
 
+### Style packs provide coarse form priors
+
+A `StylePack` may influence generation planning through `formBias`.
+
+`formBias` is causal input to plan materialization, not a score or a completed-name model. It currently contains weighted preferences for coarse form dimensions that are useful before exact sounds or spellings exist:
+
+```text
+StylePack.formBias
+  syllableCounts
+  textures
+        |
+        v
+createNameGenerationPlan(...)
+        |
+        v
+NameGenerationPlan
+```
+
+Caller settings and semantic planning preferences can modify that pressure for a particular invocation. The materialized plan records the concrete choices used by that invocation.
+
 ### Style compilation resolves mechanics intent
 
 A style compiler translates a typed style language into `SoundProfile`:
@@ -72,6 +94,8 @@ interface StyleCompiler<Style> {
   compile(style: Style): SoundProfile;
 }
 ```
+
+The current naming orchestration derives this style input from the materialized generation plan plus generic generation settings.
 
 Semantic capabilities may evolve distinct typed style or preference languages while sharing the same `SoundProfile` mechanics below them.
 
@@ -114,11 +138,13 @@ Fiction Cast owns its identity grammar and aggregate generation behavior. It may
 
 ### Generation plans are generation evidence
 
-`NameGenerationPlan` is the internal plan materialized during `generateName(...)` and retained as result evidence under the `generationPlan` property.
+`NameGenerationPlan` is the per-invocation plan materialized during `generateName(...)` by `src/engine/nameGenerationPlan.ts` and retained as result evidence under the `generationPlan` property.
 
 It captures current planning dimensions such as syllable count, stress/rhythm, shape, texture, novelty target, and length target.
 
 It is an output/evidence model of the singular generation process, not a caller-facing alternative generation API.
+
+Generic `NameScores` describe intrinsic scoring dimensions of the generated name. Plan-form conformance is not a generic score. A product surface may use plan evidence in its own contextual evaluation when the product semantics give that comparison meaning; Fiction Cast role fit is one such surface-owned use.
 
 ### Surface lifecycle remains above generation
 
@@ -130,9 +156,12 @@ Fiction Cast export serializes Fiction Cast results at the surface boundary. Fic
 
 - Sound generation remains reusable across product surfaces.
 - `generateName(...)` is the single sound-backed lexical-name primitive.
+- `StylePack.formBias` supplies reusable causal pressure for coarse generation form.
+- `NameGenerationPlan` records the concrete per-invocation plan produced from those priors, settings, preferences, and randomness.
+- Generic scoring does not expose a form/plan-conformance score merely because generation has a plan.
 - Semantic naming callbacks express domain meaning without duplicating mechanics.
 - `SoundProfile` remains a compact resolved mechanics value.
 - `GeneratedName` contains coherent singular generation evidence.
 - `generationPlan` names the retained plan evidence directly.
 - Product composition and lifecycle concerns remain with the product surface that owns them.
-- Fiction Cast can evolve its grammar, scoring, history, export, and presentation independently of the generic sound engine.
+- Fiction Cast can evolve its grammar, contextual scoring, history, export, and presentation independently of the generic sound engine.
