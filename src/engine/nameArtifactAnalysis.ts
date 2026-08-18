@@ -137,9 +137,9 @@ function endingKey(value: string): string {
 }
 
 function cadenceKey(artifact: NameArtifact): string | undefined {
-  const silhouette = artifact.silhouette;
-  if (!silhouette) return undefined;
-  return `${silhouette.stressPattern}:${silhouette.syllableCount}:${silhouette.rhythm}`;
+  const plan = artifact.generationPlan;
+  if (!plan) return undefined;
+  return `${plan.stressPattern}:${plan.syllableCount}:${plan.rhythm}`;
 }
 
 function countRepeated(values: readonly string[]): number {
@@ -268,7 +268,7 @@ function pairIdentity(left: NameArtifact, right: NameArtifact): {
 } {
   return {
     artifactIds: [left.id, right.id],
-    displayTexts: [left.displayText, right.displayText],
+    displayTexts: [left.spelling.text, right.spelling.text],
   };
 }
 
@@ -428,9 +428,9 @@ export function analyzeNameArtifactSet(artifacts: readonly NameArtifact[]): Name
     for (let rightIndex = leftIndex + 1; rightIndex < artifacts.length; rightIndex += 1) {
       const right = artifacts[rightIndex];
       const ids: readonly [string, string] = [left.id, right.id];
-      const displayTexts: readonly [string, string] = [left.displayText, right.displayText];
-      const leftText = normalizeText(left.displayText);
-      const rightText = normalizeText(right.displayText);
+      const displayTexts: readonly [string, string] = [left.spelling.text, right.spelling.text];
+      const leftText = normalizeText(left.spelling.text);
+      const rightText = normalizeText(right.spelling.text);
 
       if (leftText && leftText === rightText) {
         collisions.push({ kind: 'exact-text', artifactIds: ids, displayTexts, evidence: 'Normalized display text is identical.' });
@@ -438,14 +438,14 @@ export function analyzeNameArtifactSet(artifacts: readonly NameArtifact[]): Name
         collisions.push({ kind: 'near-spelling', artifactIds: ids, displayTexts, evidence: 'Normalized display text differs by one insertion, deletion, or substitution.' });
       }
 
-      const leftInitial = initialKey(left.displayText);
-      const rightInitial = initialKey(right.displayText);
+      const leftInitial = initialKey(left.spelling.text);
+      const rightInitial = initialKey(right.spelling.text);
       if (leftInitial && leftInitial === rightInitial) {
         collisions.push({ kind: 'shared-initial', artifactIds: ids, displayTexts, evidence: `Both names begin with ${leftInitial.toUpperCase()}.` });
       }
 
-      const leftEnding = endingKey(left.displayText);
-      const rightEnding = endingKey(right.displayText);
+      const leftEnding = endingKey(left.spelling.text);
+      const rightEnding = endingKey(right.spelling.text);
       if (leftEnding && leftEnding === rightEnding) {
         collisions.push({ kind: 'shared-ending', artifactIds: ids, displayTexts, evidence: `Both normalized names end in "${leftEnding}".` });
       }
@@ -460,8 +460,8 @@ export function analyzeNameArtifactSet(artifacts: readonly NameArtifact[]): Name
 
   return {
     artifactCount: artifacts.length,
-    repeatedInitials: countRepeated(artifacts.map((artifact) => initialKey(artifact.displayText))),
-    repeatedEndings: countRepeated(artifacts.map((artifact) => endingKey(artifact.displayText))),
+    repeatedInitials: countRepeated(artifacts.map((artifact) => initialKey(artifact.spelling.text))),
+    repeatedEndings: countRepeated(artifacts.map((artifact) => endingKey(artifact.spelling.text))),
     repeatedCadences: countRepeated(artifacts.map((artifact) => cadenceKey(artifact) ?? '')),
     exactDuplicateCount: collisions.filter((collision) => collision.kind === 'exact-text').length,
     nearSpellingPairCount: collisions.filter((collision) => collision.kind === 'near-spelling').length,
