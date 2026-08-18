@@ -78,12 +78,20 @@ const spelling = {
 
 const artifact = {
   id: 'artifact-generated',
-  displayText: 'Aster',
   soundProfile,
   sound,
   spelling,
   spellingCandidates: [spelling],
-  silhouette: { id: 'plan-1' },
+  generationPlan: {
+    id: 'generation-plan-1',
+    syllableCount: 1,
+    stressPattern: 'primary',
+    rhythm: 'balanced',
+    shape: ['CVC'],
+    texture: 'balanced',
+    targetNovelty: 0.5,
+    targetLength: 'medium',
+  },
   variants: [],
   readabilityDiagnostics: [{
     id: 'read-1',
@@ -100,7 +108,7 @@ describe('isNameArtifact', () => {
   });
 
   it('rejects ambiguous or incomplete records', () => {
-    expect(isNameArtifact({ id: 'artifact-1', displayText: 'Aster' })).toBe(false);
+    expect(isNameArtifact({ id: 'artifact-1' })).toBe(false);
     expect(isNameArtifact({ ...artifact, sound: undefined })).toBe(false);
   });
 
@@ -110,8 +118,8 @@ describe('isNameArtifact', () => {
     expect(isNameArtifact({ ...artifact, identityAudition: {} })).toBe(false);
   });
 
-  it('rejects display text that does not match the selected spelling', () => {
-    expect(isNameArtifact({ ...artifact, displayText: 'Aster Vale' })).toBe(false);
+  it('rejects a duplicate display-text field', () => {
+    expect(isNameArtifact({ ...artifact, displayText: 'Aster' })).toBe(false);
   });
 
   it('rejects spelling evidence that does not match the generated sound', () => {
