@@ -75,7 +75,7 @@ function materializeGeneratedName(plan: NameGenerationPlan, pack: StylePack, set
     sound: candidate.sound,
     spelling: candidate.selectedSpelling,
     spellingCandidates: candidate.rankedSpellings.candidates,
-    silhouette: plan,
+    generationPlan: plan,
     scores,
     variants,
     readabilityDiagnostics: diagnoseNameReadability(baseName),
