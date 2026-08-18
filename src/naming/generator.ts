@@ -1,24 +1,19 @@
 import { selectRankedSpellingCandidate } from '../engine/candidateSelection';
-import type { SoundCandidate } from '../engine/soundGenerator';
-import type { SoundProfile } from '../engine/soundProfile';
-import type { RankedSpellingCandidate, RankedSpellingCandidateList } from '../engine/spellingGenerator';
-import type { GeneratedName, NameGenerationPlan, NameGenerationPlanPreferences, NameGenerationSettings, StylePack } from '../engine/types';
-import type { SeededRandom } from '../engine/random';
 import { diagnoseNameReadability } from '../engine/diagnostics';
-import { clamp } from '../engine/random';
+import { clamp, createSeededRandom, type SeededRandom } from '../engine/random';
 import { scoreName } from '../engine/scoring';
-import { generateSound } from '../engine/soundGenerator';
+import { generateSound, type SoundCandidate } from '../engine/soundGenerator';
+import type { SoundProfile } from '../engine/soundProfile';
+import { generateRankedSpellingCandidates, type RankedSpellingCandidate, type RankedSpellingCandidateList } from '../engine/spellingGenerator';
 import { createNameGenerationPlan } from '../engine/silhouettes';
-import type { StyleInput } from '../styleCompilation/styleCompiler';
-import { compileStyle } from '../styleCompilation/styleCompiler';
-import { generateRankedSpellingCandidates } from '../engine/spellingGenerator';
+import type { GeneratedName, NameGenerationPlan, NameGenerationPlanPreferences, NameGenerationSettings, StylePack } from '../engine/types';
 import { generateVariants } from '../engine/variants';
+import { compileStyle, type StyleInput } from '../styleCompilation/styleCompiler';
 
 export interface GenerateNameOptions {
   readonly settings: NameGenerationSettings;
   readonly pack: StylePack;
-  readonly planningRandom: SeededRandom;
-  readonly generationRandom: SeededRandom;
+  readonly seed: string;
   readonly index: number;
   readonly planningSettings?: NameGenerationSettings;
   readonly planningPreferences?: NameGenerationPlanPreferences;
@@ -89,10 +84,12 @@ function materializeGeneratedName(plan: NameGenerationPlan, pack: StylePack, set
 
 export function generateName(options: GenerateNameOptions): GeneratedName {
   const planningSettings = options.planningSettings ?? options.settings;
+  const planningRandom = createSeededRandom(`${options.seed}:planning`);
+  const generationRandom = createSeededRandom(`${options.seed}:generation`);
   const plan = createNameGenerationPlan(
     planningSettings,
     options.pack,
-    options.planningRandom,
+    planningRandom,
     options.index,
     options.planningPreferences,
   );
@@ -101,7 +98,7 @@ export function generateName(options: GenerateNameOptions): GeneratedName {
     plan,
     options.pack,
     options.settings,
-    options.generationRandom,
+    generationRandom,
     options.index,
   );
 }
