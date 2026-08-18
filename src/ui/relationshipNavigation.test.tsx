@@ -108,15 +108,8 @@ describe('sound relationship navigation integration', () => {
       <NameSelectionSurface
         ensemble={ensemble}
         lockedNameIds={lockedNameIds}
-        selection={selection}
         selectedNameId={selectedNameId}
-        hasPreviousName={true}
-        hasNextName={false}
         onSelectName={() => {}}
-        onSelectAllNames={() => {}}
-        onSelectPreviousName={() => {}}
-        onSelectNextName={() => {}}
-        onToggleLockedName={() => {}}
       >
         <NameInspector
           name={selectedName}
@@ -129,6 +122,8 @@ describe('sound relationship navigation integration', () => {
 
     expect(html).toContain(`artifact-heading-${right.id}`);
     expect(html).toContain(`${right.displayName} selected-name actions`);
+    expect(html).toContain(`id="name-rail-tab-${right.id}"`);
+    expect(html).toContain('aria-selected="true"');
     expect(html).toContain(`aria-label="Reroll ${right.displayName}"`);
     expect(html).toContain('>Reroll</button>');
   });
