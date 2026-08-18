@@ -74,7 +74,6 @@ const generatedName: GeneratedName = {
     culturalAnchoring: 0.5,
     orthographicNaturalness: 0.88,
     styleFit: 0.79,
-    silhouetteFit: 0.84,
     overallFit: 0.81,
   },
   variants: [{
