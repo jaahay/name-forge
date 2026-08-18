@@ -61,7 +61,6 @@ describe('NameRequest v1 contracts', () => {
     };
     const artifact: NameArtifact = {
       id: 'name-artifact-1',
-      displayText: 'Aurel',
       soundProfile: {
         targets: {
           length: 'short',
@@ -104,8 +103,8 @@ describe('NameRequest v1 contracts', () => {
       },
       spelling,
       spellingCandidates: [spelling],
-      silhouette: {
-        id: 'silhouette-name-artifact-1',
+      generationPlan: {
+        id: 'generation-plan-name-artifact-1',
         syllableCount: 1,
         stressPattern: 'primary',
         rhythm: 'balanced',
@@ -166,7 +165,7 @@ describe('NameRequest v1 contracts', () => {
 
     const firstArtifact = requireValue(response.names[0], 'first name artifact');
     expect(firstArtifact).toBe(artifact);
-    expect(firstArtifact.displayText).toBe('Aurel');
+    expect(firstArtifact.spelling.text).toBe('Aurel');
     expect(response.random.seed).toBe('resolved-seed');
     expect(response.request.random.seed).toBe('resolved-seed');
 
