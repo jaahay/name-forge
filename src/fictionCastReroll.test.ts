@@ -4,7 +4,6 @@ import { describe, expect, it } from 'vitest';
 import { generateEnsemble } from './fictionCast/ensemble';
 import { toFictionCastPrimaryNameArtifact } from './fictionCast/nameArtifact';
 import type { FictionCastSettings } from './fictionCast/types';
-import { toNameArtifact } from './engine/nameArtifact';
 import { analyzeNameArtifactSoundRelationships } from './engine/nameArtifactAnalysis';
 import { createDefaultRegistry } from './engine/registry';
 import { rerollSelectedCastName } from './fictionCastReroll';
@@ -64,9 +63,7 @@ describe('rerollSelectedCastName', () => {
     expect(result.committedSettings.seed).toBe('selected-reroll-after');
     expect(result.lockedNameIds).toEqual(lockedNameIds);
     expect(result.lockedNameIds.has(result.replacementId)).toBe(false);
-    expect(result.historyArtifacts).toEqual([toNameArtifact(replacement.primaryName)]);
-    expect(result.historyArtifacts[0]?.displayText).toBe(replacement.primaryName.name);
-    expect('identity' in (result.historyArtifacts[0] ?? {})).toBe(false);
+    expect('historyArtifacts' in result).toBe(false);
     expect(result.ensemble.diagnostics).not.toBe(before.diagnostics);
   });
 
