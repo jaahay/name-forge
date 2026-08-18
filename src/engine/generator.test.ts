@@ -62,8 +62,8 @@ describe('generateEnsemble', () => {
     expect(generated.sound.sequence.contract).toBe('SegmentSequence');
     expect(generated.sound.transcription).toMatch(/^\/.+\/$/);
     expect(generated.spellingCandidates.length).toBeGreaterThan(0);
-    expect('rarityBand' in generated.silhouette).toBe(false);
-    expect('roleInfluence' in generated.silhouette).toBe(false);
+    expect('rarityBand' in generated.generationPlan).toBe(false);
+    expect('roleInfluence' in generated.generationPlan).toBe(false);
     const [topSpelling] = generated.spellingCandidates;
     expect(topSpelling).toBeDefined();
     if (!topSpelling) throw new Error('Expected top ranked spelling.');
@@ -104,7 +104,7 @@ describe('generateEnsemble', () => {
       expect(selectedCandidate).toEqual(primaryName.spelling);
       expect(primaryName.spellingCandidates.map((candidate) => candidate.rank)).toEqual(primaryName.spellingCandidates.map((candidate) => candidate.rank).sort((left, right) => left - right));
       expect(new Set(primaryName.spellingCandidates.map((candidate) => candidate.text)).has(primaryName.spelling.text)).toBe(true);
-      expect(primaryName.silhouette.syllableCount).toBeGreaterThan(0);
+      expect(primaryName.generationPlan.syllableCount).toBeGreaterThan(0);
       expect(primaryName.variants.length).toBeGreaterThan(0);
       expect(primaryName.scores.overallFit).toBeGreaterThan(0);
       expect(primaryName.scores.styleFit).toBeGreaterThan(0);
@@ -137,7 +137,7 @@ describe('generateEnsemble', () => {
     if (!firstName) throw new Error('Expected first role-labeled name.');
     expect(firstName.role?.role).toBe('protagonist');
     expect(firstName.roleInfluence).toBeUndefined();
-    expect('roleInfluence' in firstName.primaryName.silhouette).toBe(false);
+    expect('roleInfluence' in firstName.primaryName.generationPlan).toBe(false);
     expect(firstName.contextualScores.roleFit).toBe(0.72);
   });
 
@@ -159,7 +159,7 @@ describe('generateEnsemble', () => {
     expect(lightName.roleInfluence?.level).toBe('light');
     expect(lightName.roleInfluence?.profileId).toBe('role-profile:protagonist');
     expect(lightName.roleInfluence?.label).toBe('Protagonist clarity');
-    expect('roleInfluence' in lightName.primaryName.silhouette).toBe(false);
+    expect('roleInfluence' in lightName.primaryName.generationPlan).toBe(false);
     expect(lightName.contextualScores.roleFit).toBeGreaterThan(0);
     expect(strongName.roleInfluence?.level).toBe('strong');
     expect(strongName.contextualScores.roleFit).toBeGreaterThan(0);
