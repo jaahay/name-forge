@@ -48,7 +48,7 @@ export const stylePacks: StylePack[] = [{
     rareGraphemes: ['ae', 'gw', 'th', 'wyn', 'y'],
     forbiddenFragments: ['qq', 'xx', 'jj', 'vvv', 'yyi', 'uuu', 'hh'],
   },
-  silhouetteBias: {
+  formBias: {
     syllableCounts: [{ value: 2, weight: 7 }, { value: 3, weight: 9 }, { value: 4, weight: 3 }],
     textures: [{ value: 'soft', weight: 5 }, { value: 'balanced', weight: 6 }, { value: 'hard', weight: 2 }, { value: 'liquid', weight: 4 }],
   },
