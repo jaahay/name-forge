@@ -19,12 +19,16 @@ const settings: FictionCastSettings = {
 };
 
 describe('workbench selection state', () => {
-  it('treats all names as navigation state rather than a selected name id', () => {
+  it('resolves an empty selection to one active generated identity', () => {
     const ensemble = generateEnsemble(settings, createDefaultRegistry());
-    const selection = resolveNameSelection({ kind: 'all-names' }, ensemble, new Set());
+    const firstName = ensemble.names[0];
 
-    expect(selection).toEqual({ kind: 'all-names' });
-    expect(selectedNameIdFromView(selection)).toBe('');
+    if (!firstName) throw new Error('Expected fixture ensemble to generate a first name.');
+
+    const selection = resolveNameSelection({ kind: 'name', nameId: '' }, ensemble, new Set());
+
+    expect(selection).toEqual({ kind: 'name', nameId: firstName.id });
+    expect(selectedNameIdFromView(selection)).toBe(firstName.id);
   });
 
   it('falls back to a locked visible name when the selected name disappears', () => {
@@ -36,5 +40,13 @@ describe('workbench selection state', () => {
     const selection = resolveNameSelection({ kind: 'name', nameId: 'missing-name' }, ensemble, new Set([lockedName.id]));
 
     expect(selection).toEqual({ kind: 'name', nameId: lockedName.id });
+  });
+
+  it('keeps an empty active-name id only when the ensemble itself is empty', () => {
+    const ensemble = generateEnsemble(settings, createDefaultRegistry());
+    const emptyEnsemble = { ...ensemble, names: [] };
+    const selection = resolveNameSelection({ kind: 'name', nameId: 'missing-name' }, emptyEnsemble, new Set());
+
+    expect(selection).toEqual({ kind: 'name', nameId: '' });
   });
 });
