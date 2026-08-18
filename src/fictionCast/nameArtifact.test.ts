@@ -24,11 +24,13 @@ describe('Fiction Cast artifact projection', () => {
     const artifact = toFictionCastPrimaryNameArtifact(name);
 
     expect(artifact.id).toBe(name.id);
-    expect(artifact.displayText).toBe(name.primaryName.name);
-    expect(artifact.displayText).toBe(name.primaryName.spelling.text);
+    expect(artifact.spelling.text).toBe(name.primaryName.name);
+    expect(artifact.spelling.text).toBe(name.primaryName.spelling.text);
     expect(artifact.soundProfile).toBe(name.primaryName.soundProfile);
     expect(artifact.sound).toBe(name.primaryName.sound);
     expect(artifact.spelling).toBe(name.primaryName.spelling);
+    expect(artifact.generationPlan).toBe(name.primaryName.generationPlan);
+    expect('displayText' in artifact).toBe(false);
     expect('kind' in artifact).toBe(false);
     expect('identity' in artifact).toBe(false);
     expect('identityAudition' in artifact).toBe(false);
