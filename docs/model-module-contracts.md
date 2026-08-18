@@ -45,11 +45,11 @@ surface-specific aggregate orchestration, when needed
   -> typed style / sound / spelling mechanics
 ```
 
-`NameRequest` provides shared criteria, deterministic replay, exact independent quantity, and artifact transport. Semantic `-Name` callbacks provide reusable domain meaning. A surface composes semantic callbacks and injects configuration derived from its UX. Surface-specific multi-name orchestration may remain surface-owned when its cross-name semantics are not reusable.
+`NameRequest` provides shared criteria, deterministic replay, exact independent quantity, and singular artifact transport. Semantic `-Name` callbacks provide reusable domain meaning. A surface composes semantic callbacks and injects configuration derived from its UX. Surface-specific multi-name orchestration may remain surface-owned when its cross-name semantics are not reusable.
 
 Every semantic `-Name` callback delegates lexical-name generation to the one `generateName(...)` primitive. Distinct sound-generation mechanics are not required for first-class semantic treatment: family/place currently remain behavior-equivalent where no supported heuristic distinguishes them while still providing typed semantic boundaries and future specialization points.
 
-`NameSilhouette` and silhouette-shaped generator entry points are no longer part of the naming API. The legacy `silhouette` property remains compatibility evidence on singular generated names and generated-name artifacts.
+`NameSilhouette` and silhouette-shaped generator entry points are no longer part of the naming API. The legacy `silhouette` property remains compatibility evidence on singular generated names and `NameArtifact` values.
 
 Finite lexical values follow a separate accepted capability direction:
 
@@ -59,7 +59,7 @@ NamingLexicon / LexicalInventory
   -> selectFromOptions(...)
 ```
 
-That direction is not yet a shared runtime module contract. Heterogeneous identity composition likewise does not establish a universal `NameSegment` contract or omnibus `generatePersonName(...)` API.
+That direction is not yet a shared runtime module contract. Heterogeneous identity composition likewise does not establish a universal `NameSegment` contract, universal compound artifact, or omnibus `generatePersonName(...)` API.
 
 ## Implemented shared request contract
 
@@ -130,7 +130,7 @@ type NameResponse = {
 
 Contract:
 
-- `names` is a flat artifact array in deterministic generation order;
+- `names` is a flat singular-artifact array in deterministic generation order;
 - `names.length` equals resolved exact quantity;
 - `grouping.childSeeds.length` equals `names.length`;
 - `grouping.childSeeds[index]` generated `names[index]`;
@@ -139,25 +139,39 @@ Contract:
 - increasing quantity preserves the existing result prefix;
 - diagnostics report support/fallback truthfully and are not public fit scores.
 
-The generic request adapter currently emits `GeneratedNameArtifact` values because the shared request does not assert a product composition grammar or semantic name kind.
+The generic request adapter emits singular `NameArtifact` values because the shared request does not assert a product composition grammar or semantic name kind.
 
 ### `NameArtifact`
 
-`NameArtifact` is the durable result unit shared by product surfaces. It is explicitly discriminated:
+`NameArtifact` is the durable shared evidence record for exactly one sound-backed generated name:
 
 ```ts
-type NameArtifact = GeneratedNameArtifact | ComposedNameArtifact;
+type NameArtifact = {
+  readonly id: string;
+  readonly displayText: string;
+  readonly soundProfile: SoundProfile;
+  readonly sound: SoundCandidate;
+  readonly spelling: RankedSpellingCandidate;
+  readonly spellingCandidates: readonly RankedSpellingCandidate[];
+  readonly silhouette: NameGenerationPlan;
+  readonly variants: readonly NameVariant[];
+  readonly readabilityDiagnostics: readonly ReadabilityDiagnostic[];
+};
 ```
 
-`GeneratedNameArtifact` has `kind: "generated-name"`. It carries one singular result's exact sound profile, sound candidate, selected spelling, retained spelling candidates, generation-plan evidence, variants, and readability diagnostics. Its `displayText` is the selected spelling described by that evidence.
+Contract:
 
-`ComposedNameArtifact` has `kind: "composed-identity"`. It carries a materialized `NameIdentity`, optional `IdentityAuditionPhrase`, and readability diagnostics. It does **not** carry one aggregate `soundProfile`, `sound`, `spelling`, `spellingCandidates`, `silhouette`, or `variants` bundle. Generated component provenance remains on the generated identity part that owns it.
+- `displayText` is exactly the selected spelling represented by `spelling`;
+- contained sound/spelling evidence must be structurally coherent;
+- the selected spelling must be present among retained spelling candidates;
+- the artifact has no composition discriminator, `NameIdentity`, identity audition, Fiction Cast role/influence, contextual scoring, or rarity fields;
+- runtime validation rejects composition fields rather than interpreting them as extensions.
 
-An independent-set response remains a collection of individually addressable artifacts. Grouping does not replace artifacts with one aggregate name-set entity.
+An independent-set response remains a collection of individually addressable singular artifacts. Grouping does not replace artifacts with one aggregate name-set entity.
 
-Fiction Cast role/influence, contextual scoring, and rarity are surface result metadata rather than durable shared artifact fields.
+A surface-composed identity is a separate result. Shared persistence, analysis, or inspection may project one generated component into `NameArtifact`, but that projection does not become aggregate evidence for the entire composed display.
 
-Legacy browser-history v1 records are normalized on read. Coherent singular records become explicit generated-name artifacts. Valid legacy composed records become composed-identity artifacts while ambiguous aggregate primitive evidence is discarded; existing per-component identity provenance is retained.
+Browser history validates the current singular artifact shape. Older malformed, unsupported, or composition-shaped records are dropped rather than migrated into a broader shared artifact type.
 
 ### `NameCriteria`
 
@@ -215,15 +229,15 @@ Fiction Cast ensemble behavior is surface-specific and does not imply those capa
 | --- | --- | --- |
 | `NameRequest` | `src/engine/nameRequest.ts` | Shared request/transport input with optional exact quantity/grouping; not the semantic callback hierarchy. |
 | `ResolvedNameRequest` | `src/engine/nameRequest.ts` | Normalized request with explicit quantity/grouping and parent seed. |
-| `NameResponse` | `src/engine/nameRequest.ts` | Flat ordered artifacts plus grouping/randomization metadata. |
+| `NameResponse` | `src/engine/nameRequest.ts` | Flat ordered singular artifacts plus grouping/randomization metadata. |
 | `NameGroupMetadata` | `src/engine/nameRequest.ts` | Parent/child seed metadata for the current independent set. |
 | `NameCriteria` | `src/engine/nameCriteria.ts` | Shared structured request-intent model. |
 | `NameGenerationSettings` | `src/engine/types.ts` | Narrow generic one-name settings consumed by `generateName(...)`; excludes surface-only metadata. |
 | `GenerationSettings` | `src/engine/types.ts` | Shared generic orchestration settings: `NameGenerationSettings` plus `stylePackId` and `seed`; contains no Fiction Cast-only settings. |
 | `NameGenerationPlanPreferences` | `src/engine/types.ts` | Generic resolved causal planning pressure for syllable/texture preferences without product roles, rarity labels, or semantic name-kind labels. |
 | `NameGenerationPlan` | `src/engine/types.ts` | Internal pre-generation planning/scoring evidence materialized behind `generateName(...)`. |
-| `SemanticNameOptions` | `src/naming/semanticName.ts` | Shared semantic-callback facade: `GenerationSettings`, registry, deterministic seed material/result index, and typed semantic preferences. |
-| `SemanticNameDeterminism` | `src/naming/semanticName.ts` | Reusable planning/generation seed material plus result addressability; callers do not construct naming-layer RNG objects. |
+| `SemanticNameOptions` | `src/naming/semanticName.ts` | Shared semantic-callback facade: `GenerationSettings`, registry, one deterministic seed/result index, and typed semantic preferences. |
+| `SemanticNameDeterminism` | `src/naming/semanticName.ts` | `{ seed, resultIndex }`; stable causal seed material plus result addressability. |
 | `SemanticNamePreferences` | `src/naming/semanticName.ts` | Shared semantic preference vocabulary translated internally into generic planning representation, including optional novelty offset. |
 | `GenerateGivenNameOptions` / `GivenNamePreferences` | `src/naming/givenName.ts` | Given-name semantic aliases over the shared semantic invocation boundary. |
 | `GenerateFamilyNameOptions` / `FamilyNamePreferences` | `src/naming/familyName.ts` | Family-name semantic aliases over the shared semantic invocation boundary. |
@@ -259,18 +273,18 @@ The exact TypeScript names/shapes for those lexical contracts remain future boun
 
 | Model | Owner | Meaning |
 | --- | --- | --- |
-| `GenerateNameOptions` | `src/naming/generator.ts` | Generic singular orchestration input: settings, pack, planning/generation randomness, index, and optional generic planning settings/preferences. |
+| `GenerateNameOptions` | `src/naming/generator.ts` | Generic singular orchestration input: settings, pack, one deterministic seed, index, and optional generic planning settings/preferences. |
 | `NameGenerationCandidate` | `src/naming/generator.ts` | Private pre-materialization result containing exact profile, sound, ranked spellings, and selected spelling. |
 | `GeneratedName` | `src/engine/types.ts` + `src/naming/generator.ts` | One singular sound-backed generated name. `name` is exactly its selected spelling; its sound/spelling/plan/variant evidence describes that same singular name. It contains no compound identity. |
-| `GeneratedNameArtifact` | `src/engine/nameArtifact.ts` | Durable explicit singular artifact with `kind: "generated-name"` and primitive evidence. |
-| `ComposedNameArtifact` | `src/engine/nameArtifact.ts` | Durable explicit composed artifact with `kind: "composed-identity"`, identity/audition/readability, and no aggregate primitive evidence. |
-| `NameArtifact` | `src/engine/nameArtifact.ts` | Discriminated union of the two durable artifact kinds. |
+| `NameArtifact` | `src/engine/nameArtifact.ts` | Durable singular generated-name evidence. It contains no product-composition discriminator or identity fields. |
 
 Implemented contract direction:
 
 - `src/naming` exposes one generic singular `generateName(...)` lexical-name primitive;
+- `generateName(...)` accepts one seed and derives its planning/generation RNG streams internally;
 - `generateName(...)` internally materializes `NameGenerationPlan` rather than accepting one from the caller;
-- `GenerateNameOptions` contains no product mode, Fiction Cast role, rarity category, or semantic name-kind label;
+- `GenerateNameOptions` contains no RNG objects, product mode, Fiction Cast role, rarity category, or semantic name-kind label;
+- identical explicit `generateName(...)` arguments replay the same full `GeneratedName`;
 - `generateGivenName(...)`, `generateFamilyName(...)`, and `generatePlaceName(...)` are implemented semantic callbacks over one shared invocation facade;
 - every semantic `-Name` callback delegates lexical-name generation to `generateName(...)`;
 - family/place remain mechanically behavior-equivalent where no supported semantic heuristic distinguishes them;
@@ -288,7 +302,7 @@ Implemented contract direction:
 | `FictionCastGeneratedEnsemble` | `src/fictionCast/types.ts` + `src/fictionCast/ensemble.ts` | Fiction Cast roster result with surface settings, composed names, and cast diagnostics; separate from shared independent-set grouping. |
 | `FictionCastRarityBand` / rarity distribution | `src/fictionCast/rarity.ts` | User/surface classification and deterministic distribution policy; not generic planning or semantic generated-name input. |
 | component generation context | `src/fictionCast/componentGenerationContext.ts` | Surface-owned semantic settings context for generated given/family/place components. |
-| Cast artifact projections | `src/fictionCast/nameArtifact.ts` | Explicit composed persistence/inspection projection and primary generated-name sound-analysis projection. |
+| `toFictionCastPrimaryNameArtifact(...)` | `src/fictionCast/nameArtifact.ts` | Projects only `primaryName` evidence while retaining the Cast result ID for inspector/relationship addressability. |
 
 Titles, epithets, given/family/place roles, and Fiction Cast grammar are naming/product semantics. They are not fields of `SoundProfile` and do not enter `GenerateNameOptions` as semantic labels.
 
@@ -296,7 +310,7 @@ Fiction Cast converts role-specific profile preferences into semantic naming pre
 
 A composed Cast result never redefines `primaryName.name`. `displayName` belongs to the product identity. Intrinsic sound, spelling, plan, variants, and intrinsic scores are read from `primaryName`; a generated supporting component's generation evidence is read from its identity part.
 
-`toFictionCastNameArtifact(...)` persists/inspects the composed identity without aggregate primitive evidence. `toFictionCastPrimaryNameArtifact(...)` explicitly projects the singular primary name for same-roster sound relationship analysis while retaining the Cast result ID so relationship navigation addresses the Cast slot.
+Shared history records `toNameArtifact(primaryName)` for normal Cast generation and targeted reroll. `toFictionCastPrimaryNameArtifact(...)` is not a composed persistence format: it preserves the Cast result ID while exposing only primary singular evidence for relationship navigation and selected-name inspector addressability.
 
 Cast JSON/Markdown export remains `name-forge.cast.v2`: exported `name` is the composed display identity, while existing sound/silhouette/variant/intrinsic-score fields are compatibility projections from `primaryName`.
 
@@ -339,13 +353,12 @@ Owns:
 - running criteria diagnostics once;
 - compiling shared criteria once through the current bridge;
 - deriving deterministic child seeds;
-- creating child-local settings;
-- deriving separate deterministic planning and generation random streams;
-- generating one singular result per child seed through `generateName(...)`;
-- mapping each result through `toNameArtifact(...)` to a generated-name artifact;
-- returning flat artifacts and positional independent-set metadata.
+- passing each child seed directly to `generateName(...)`;
+- generating one singular result per child seed;
+- mapping each result through `toNameArtifact(...)`;
+- returning flat singular artifacts and positional independent-set metadata.
 
-It does not own semantic callback definitions, richer group optimization, product-specific roster UX, mode semantics, or finite lexical vocabulary selection. It consumes the singular naming primitive directly because the generic request does not assert a semantic name kind.
+It does not construct planning/generation RNG objects; `generateName(...)` owns deterministic partitioning of the child seed. It also does not own semantic callback definitions, richer group optimization, product-specific roster UX, mode semantics, or finite lexical vocabulary selection. It consumes the singular naming primitive directly because the generic request does not assert a semantic name kind.
 
 ### Criteria diagnostics and compiler
 
@@ -363,8 +376,9 @@ Supported-target knowledge remains duplicated between the two modules and should
 ### Naming orchestration — singular primitive
 
 ```text
-GenerateNameOptions
+GenerateNameOptions { settings, pack, seed, index, ... }
   -> generateName(...)
+  -> seed -> internal planning/generation RNG streams
   -> internal NameGenerationPlan
   -> StyleInput
   -> SoundProfile
@@ -375,17 +389,17 @@ GenerateNameOptions
 
 Owner: `src/naming/generator.ts`.
 
-Owns generic one-name orchestration: internal generation-plan materialization, style compilation, sound generation, spelling pool/ranking/selection, scoring, variants, and readability diagnostics.
+Owns generic one-name orchestration: deterministic stream partitioning, internal generation-plan materialization, style compilation, sound generation, spelling pool/ranking/selection, scoring, variants, and readability diagnostics.
 
 It does **not** own Fiction Cast identity grammar, titles/epithets, cast roles, rarity categories/distribution, ensemble behavior, request quantity/grouping semantics, product modes, semantic name-kind labels, naming lexicons, or low-level sound rules.
 
-Planning and generation RNGs remain explicit at this lower primitive. Ordinary semantic callers do not construct them directly; the semantic invocation layer owns that translation from stable deterministic seed material.
+Callers provide one immutable seed. Planning and generation RNG objects are internal implementation details of this boundary rather than caller-supplied causal arguments.
 
 ### Semantic naming callbacks — implemented layer
 
 ```text
 GenerationSettings + SourceRegistry
-+ SemanticNameDeterminism
++ SemanticNameDeterminism { seed, resultIndex }
 + semantic preferences
   -> semantic `-Name` callback
   -> generateSemanticName(...)
@@ -395,7 +409,7 @@ GenerationSettings + SourceRegistry
 
 Owners: `src/naming/semanticName.ts`, `src/naming/givenName.ts`, `src/naming/familyName.ts`, and `src/naming/placeName.ts`.
 
-The shared semantic layer owns style-pack lookup, `GenerationSettings -> NameGenerationSettings` narrowing, seeded RNG construction, novelty-offset translation, and semantic-preference translation into generic planning preferences.
+The shared semantic layer owns style-pack lookup, `GenerationSettings -> NameGenerationSettings` narrowing, novelty-offset translation, and semantic-preference translation into generic planning preferences. It passes one seed and result index to `generateName(...)`; it does not construct the primitive's RNG objects.
 
 Current callbacks:
 
@@ -467,27 +481,28 @@ Collection semantics:
 - ranked candidates are rank-order with explicit rank;
 - bounded presentation is applied only after full-pool ranking.
 
-### Name artifact mapping and migration
+### Name artifact mapping
 
 ```text
-GeneratedName -> toNameArtifact -> GeneratedNameArtifact
-legacy persisted artifact -> migrateLegacyNameArtifact -> NameArtifact | undefined
+GeneratedName -> toNameArtifact -> NameArtifact
+unknown persisted value -> isNameArtifact -> NameArtifact | false
 ```
 
 Owner: `src/engine/nameArtifact.ts`.
 
-`toNameArtifact(...)` preserves singular generated facts and cannot create a composed identity. `migrateLegacyNameArtifact(...)` is the explicit compatibility boundary for older durable records; it does not add identity fields back to `GeneratedName`.
+`toNameArtifact(...)` preserves one singular generated name's exact facts. `isNameArtifact(...)` validates that singular shape and explicitly rejects composition/discriminator fields. There is no shared composed-artifact constructor or legacy composition migration.
 
-### Fiction Cast identity, artifacts, and ensemble
+### Fiction Cast identity, artifact projection, and ensemble
 
 `src/fictionCast/identity.ts` owns the Fiction Cast identity grammar and materialization. Sound-backed given/family/place parts retain the exact `SoundProfile`, `SoundCandidate`, and selected spelling used for that component. Titles, epithets, initials, and literals remain explicit product semantics.
 
 `src/fictionCast/ensemble.ts` owns surface-specific ensemble selection and roster behavior. It resolves Cast role preferences above semantic naming callbacks, composes generated/lexical/literal parts into `FictionCastGeneratedName`, attaches contextual scoring and rarity, and never overwrites the contained primitive `primaryName`.
 
-`src/fictionCast/nameArtifact.ts` owns the two explicit Cast projections:
+`src/fictionCast/nameArtifact.ts` owns one narrow projection:
 
-- composed identity -> `ComposedNameArtifact` for history and inspection;
-- primary singular name -> `GeneratedNameArtifact` with the Cast result ID for sound-relationship navigation.
+- `FictionCastGeneratedName` -> primary singular `NameArtifact` with the Cast result ID for relationship/inspector navigation.
+
+Normal Cast history persistence does not use that addressability projection; it records `toNameArtifact(primaryName)`. Full composition remains in the Fiction Cast result and export contract.
 
 `src/fictionCast/export.ts` owns Cast JSON/Markdown serialization and its `name-forge.cast.v2` compatibility projection.
 
@@ -496,13 +511,13 @@ Owner: `src/engine/nameArtifact.ts`.
 ```text
 serialized history v1
   -> parseNameHistory
-  -> migrateLegacyNameArtifact per entry
+  -> validate each singular NameArtifact
   -> current NameHistoryEnvelopeV1
 ```
 
 Owner: `src/engine/nameHistory.ts`.
 
-The storage key and envelope version remain stable. Persistence is best-effort. Malformed or unsupported records are rejected, and legacy ambiguous composed records are normalized rather than treated as current coherent primitive artifacts.
+The storage key and envelope version remain stable. Persistence is best-effort. Malformed, unsupported, or composition-shaped records are rejected. The history parser does not reinterpret those records into a broader artifact type.
 
 ### Audition and inspection
 
@@ -510,8 +525,8 @@ The storage key and envelope version remain stable. Persistence is best-effort. 
 - `src/engine/browserAuditionProjection.ts` derives browser voice-draft cues.
 - `src/engine/audition.ts` composes the singular sound-backed UI cue.
 - `src/engine/identityAudition.ts` projects materialized identity phrase parts while preserving contained generation evidence.
-- `src/ui/NameArtifactInspector.tsx` branches on artifact kind: singular artifacts expose primitive sound/spelling evidence; composed artifacts expose component-owned modeled sound and the composed display identity.
-- `src/ui/NameInspector.tsx` adapts the composed Cast result into the shared artifact inspector while keeping Cast context/scoring as surface-owned detail.
+- `src/ui/NameArtifactInspector.tsx` renders singular artifact evidence only. A caller may supply its own display text, whole-name voice draft, actions, and secondary surface sections without adding composition semantics to `NameArtifact`.
+- `src/ui/NameInspector.tsx` owns Fiction Cast adaptation: composed display, whole-identity voice text, composition/context/scoring, and per-generated-component audition controls remain Cast-owned while primitive sound/spelling evidence comes from the primary-name artifact projection.
 
 Browser pause/chunking policy is presentation behavior, not durable phonology or a provider-neutral audio contract.
 
@@ -519,11 +534,15 @@ Browser pause/chunking policy is presentation behavior, not durable phonology or
 
 - `GeneratedName.name === GeneratedName.spelling.text` for the singular result it describes.
 - `GeneratedName` carries no compound identity or Cast metadata.
+- Identical explicit `generateName(...)` arguments, including seed, reproduce the same full `GeneratedName` under the same engine data/version.
+- `generateName(...)` owns its internal planning/generation RNG partitioning; callers do not inject RNG objects through the public singular boundary.
+- `NameArtifact.displayText === NameArtifact.spelling.text` and the artifact contains the singular evidence for that same selected spelling.
+- `NameArtifact` carries no product-composition discriminator, identity, identity audition, Cast role, rarity, or contextual scoring.
 - A composed product display is not allowed to imply one aggregate `SoundProfile`, spelling, generation plan, variant set, or intrinsic score bundle.
 - Generated identity parts retain their own exact generation evidence through containment.
-- `NameArtifact.kind` determines whether primitive evidence or composition evidence is valid; the two shapes are mutually exclusive at the durable boundary.
-- `generateGivenName(...)`, `generateFamilyName(...)`, and `generatePlaceName(...)` all delegate lexical-name generation to `generateName(...)`.
-- Fiction Cast role, rarity, contextual score, identity grammar, and ensemble behavior remain above generic naming mechanics.
+- `generateGivenName(...)`, `generateFamilyName(...)`, and `generatePlaceName(...)` all delegate lexical-name generation to `generateName(...)` using one seed plus result addressability.
+- Fiction Cast role, rarity, contextual score, identity grammar, component audition, and ensemble behavior remain above generic naming mechanics.
+- Fiction Cast history may persist `primaryName` as singular evidence without making the composed result a shared artifact.
 - The shared request adapter may call `generateName(...)` directly because `NameRequest` does not assert a semantic name kind.
 - Generic `independent-set` grouping does not subsume surface-specific aggregate orchestration.
-- No universal `NameSegment`, universal compound grammar, or omnibus `generatePersonName(...)` contract is implied by the current composed identity model.
+- No universal `NameSegment`, universal compound grammar/artifact, or omnibus `generatePersonName(...)` contract is implied by the current composed identity model.
