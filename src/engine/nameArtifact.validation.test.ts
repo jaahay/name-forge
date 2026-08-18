@@ -1,45 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { isNameArtifact, migrateLegacyNameArtifact } from './nameArtifact';
+import { isNameArtifact } from './nameArtifact';
 
-const validIdentityAudition = {
-  contract: 'IdentityAuditionPhrase',
-  version: 1,
-  source: 'name-identity',
-  formatId: 'format:given-family',
-  formatKind: 'given-family',
-  identityText: 'Aster Vale',
-  speechText: 'as ter vayl',
-  displayText: 'AS · ter VAYL',
-  parts: [{
-    index: 0,
-    kind: 'sound',
-    role: 'given',
-    value: 'Aster',
-    speechText: 'as ter',
-    displayText: 'AS · ter',
-    speechSource: 'generated-sound',
-    displaySource: 'generated-sound',
-    sourceNameId: 'source-aster',
-    sourceName: 'Aster',
-    transcription: 'as.ter',
-    cue: { contract: 'NameAuditionCue', speechText: 'as ter', displayText: 'AS · ter' },
-  }, {
-    index: 1,
-    kind: 'sound',
-    role: 'family',
-    value: 'Vale',
-    speechText: 'vayl',
-    displayText: 'VAYL',
-    speechSource: 'generated-sound',
-    displaySource: 'generated-sound',
-    sourceNameId: 'source-vale',
-    sourceName: 'Vale',
-    transcription: 'veɪl',
-    cue: { contract: 'NameAuditionCue', speechText: 'vayl', displayText: 'VAYL' },
-  }],
-};
-
-const validSoundProfile = {
+const soundProfile = {
   targets: {
     length: 'medium',
     syllableCount: { min: 2, max: 3, preferred: 2 },
@@ -57,7 +19,7 @@ const validSoundProfile = {
   },
 };
 
-const validSound = {
+const sound = {
   contract: 'SoundCandidate',
   version: 1,
   cadence: 'balanced',
@@ -81,7 +43,7 @@ const validSound = {
   transcription: 'lar',
 };
 
-const validLinkedSpelling = {
+const spelling = {
   contract: 'SpellingCandidate',
   version: 1,
   text: 'Aster',
@@ -114,157 +76,54 @@ const validLinkedSpelling = {
   score: 1,
 };
 
-const validIdentity = {
-  displayName: 'Aster Vale',
-  format: { id: 'format:given-family', kind: 'given-family', label: 'Given + family name' },
-  parts: [{
-    id: 'source-aster:given',
-    role: 'given',
-    value: 'Aster',
-    sourceNameId: 'source-aster',
-    sourceName: 'Aster',
-    generation: { soundProfile: validSoundProfile, sound: validSound, spelling: validLinkedSpelling },
-  }, {
-    id: 'source-vale:family',
-    role: 'family',
-    value: 'Vale',
-    sourceNameId: 'source-vale',
-    sourceName: 'Vale',
-  }],
-  phraseParts: [
-    { kind: 'part', partId: 'source-aster:given', role: 'given' },
-    { kind: 'part', partId: 'source-vale:family', role: 'family' },
-  ],
-};
-
-const readabilityDiagnostics = [{
-  id: 'read-1',
-  scope: 'name',
-  severity: 'notice',
-  label: 'Long name',
-  detail: 'The display form is relatively long.',
-}];
-
-const validGeneratedArtifact = {
-  kind: 'generated-name',
+const artifact = {
   id: 'artifact-generated',
   displayText: 'Aster',
-  soundProfile: validSoundProfile,
-  sound: validSound,
-  spelling: validLinkedSpelling,
-  spellingCandidates: [validLinkedSpelling],
+  soundProfile,
+  sound,
+  spelling,
+  spellingCandidates: [spelling],
   silhouette: { id: 'plan-1' },
   variants: [],
-  readabilityDiagnostics,
-};
-
-const validComposedArtifact = {
-  kind: 'composed-identity',
-  id: 'artifact-composed',
-  displayText: 'Aster Vale',
-  identity: validIdentity,
-  identityAudition: validIdentityAudition,
-  readabilityDiagnostics,
+  readabilityDiagnostics: [{
+    id: 'read-1',
+    scope: 'name',
+    severity: 'notice',
+    label: 'Long name',
+    detail: 'The display form is relatively long.',
+  }],
 };
 
 describe('isNameArtifact', () => {
-  it('requires an explicit artifact kind instead of accepting an ambiguous minimal record', () => {
-    expect(isNameArtifact({ id: 'artifact-1', displayText: 'Aster Vale' })).toBe(false);
-  });
-
   it('accepts a coherent singular generated-name artifact', () => {
-    expect(isNameArtifact(validGeneratedArtifact)).toBe(true);
+    expect(isNameArtifact(artifact)).toBe(true);
   });
 
-  it('accepts a composed identity with component-owned generation provenance', () => {
-    expect(isNameArtifact(validComposedArtifact)).toBe(true);
+  it('rejects ambiguous or incomplete records', () => {
+    expect(isNameArtifact({ id: 'artifact-1', displayText: 'Aster' })).toBe(false);
+    expect(isNameArtifact({ ...artifact, sound: undefined })).toBe(false);
   });
 
-  it('rejects aggregate primitive generation evidence on composed identities', () => {
-    expect(isNameArtifact({ ...validComposedArtifact, sound: validSound })).toBe(false);
-    expect(isNameArtifact({ ...validComposedArtifact, spelling: validLinkedSpelling })).toBe(false);
+  it('rejects composition and discriminator fields', () => {
+    expect(isNameArtifact({ ...artifact, kind: 'generated-name' })).toBe(false);
+    expect(isNameArtifact({ ...artifact, identity: {} })).toBe(false);
+    expect(isNameArtifact({ ...artifact, identityAudition: {} })).toBe(false);
   });
 
-  it('rejects composition fields or mismatched selected spelling on generated-name artifacts', () => {
-    expect(isNameArtifact({ ...validGeneratedArtifact, identity: validIdentity })).toBe(false);
-    expect(isNameArtifact({ ...validGeneratedArtifact, displayText: 'Aster Vale' })).toBe(false);
+  it('rejects display text that does not match the selected spelling', () => {
+    expect(isNameArtifact({ ...artifact, displayText: 'Aster Vale' })).toBe(false);
   });
 
-  it('rejects malformed persisted identity audition data', () => {
-    expect(isNameArtifact({ ...validComposedArtifact, identityAudition: {} })).toBe(false);
-    expect(isNameArtifact({
-      ...validComposedArtifact,
-      identityAudition: {
-        ...validIdentityAudition,
-        parts: [{ ...validIdentityAudition.parts[0], transcription: null }],
-      },
-    })).toBe(false);
-  });
-
-  it('rejects malformed or structurally inconsistent component generation provenance', () => {
-    expect(isNameArtifact({
-      ...validComposedArtifact,
-      identity: {
-        ...validIdentity,
-        parts: [{
-          ...validIdentity.parts[0],
-          generation: { ...validIdentity.parts[0].generation, soundProfile: { targets: validSoundProfile.targets } },
-        }],
-      },
-    })).toBe(false);
+  it('rejects spelling evidence that does not match the generated sound', () => {
+    const invalidSpelling = {
+      ...spelling,
+      mappings: [{ ...spelling.mappings[0], segmentId: 'm' }],
+    };
 
     expect(isNameArtifact({
-      ...validComposedArtifact,
-      identity: {
-        ...validIdentity,
-        parts: [{
-          ...validIdentity.parts[0],
-          generation: {
-            ...validIdentity.parts[0].generation,
-            spelling: {
-              ...validLinkedSpelling,
-              mappings: [{ ...validLinkedSpelling.mappings[0], segmentId: 'm' }],
-            },
-          },
-        }],
-      },
+      ...artifact,
+      spelling: invalidSpelling,
+      spellingCandidates: [invalidSpelling],
     })).toBe(false);
-  });
-});
-
-describe('migrateLegacyNameArtifact', () => {
-  it('normalizes a legacy composed artifact while discarding ambiguous aggregate primitive evidence', () => {
-    const migrated = migrateLegacyNameArtifact({
-      id: 'legacy-composed',
-      displayText: 'Aster Vale',
-      soundProfile: validSoundProfile,
-      sound: validSound,
-      spelling: { ...validLinkedSpelling, text: 'Aster Vale', mappings: [] },
-      spellingCandidates: [],
-      silhouette: { id: 'legacy-plan' },
-      variants: [],
-      identity: validIdentity,
-      identityAudition: validIdentityAudition,
-      readabilityDiagnostics,
-    });
-
-    expect(migrated?.kind).toBe('composed-identity');
-    expect(migrated?.displayText).toBe('Aster Vale');
-    expect('sound' in (migrated ?? {})).toBe(false);
-    if (migrated?.kind === 'composed-identity') {
-      expect(migrated.identity).toEqual(validIdentity);
-      expect(migrated.identityAudition).toEqual(validIdentityAudition);
-    }
-  });
-
-  it('normalizes a legacy singular generated artifact to the explicit generated-name kind', () => {
-    const { kind: _kind, ...legacyGenerated } = validGeneratedArtifact;
-    const migrated = migrateLegacyNameArtifact(legacyGenerated);
-
-    expect(migrated?.kind).toBe('generated-name');
-    if (migrated?.kind === 'generated-name') {
-      expect(migrated.displayText).toBe(migrated.spelling.text);
-      expect(migrated.sound).toEqual(validSound);
-    }
   });
 });
