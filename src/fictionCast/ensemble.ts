@@ -93,8 +93,7 @@ function withNameIdentity(candidate: UncomposedFictionCastName, settings: Fictio
       settings: supportingContext.settings,
       registry,
       determinism: {
-        planningSeed: `${settings.seed}${roleSeedSegment(settings, candidate.role)}:slot-${index}:supporting-${attempt}:${supportingIndex}`,
-        generationSeed: `${settings.seed}${roleSeedSegment(settings, candidate.role)}:supporting:${index}:${attempt}`,
+        seed: `${settings.seed}${roleSeedSegment(settings, candidate.role)}:slot-${index}:supporting-${attempt}`,
         resultIndex: supportingIndex,
       },
       preferences: semanticNamePreferencesForCandidate(supportingContext.settings, candidate.role, supportingIndex),
@@ -169,8 +168,7 @@ export function generateEnsemble(settings: FictionCastSettings, registry: Source
         settings: primaryContext.settings,
         registry,
         determinism: {
-          planningSeed: `${safeSettings.seed}${roleSeedSegment(safeSettings, role)}:slot-${index}:attempt-${attempt}:${index}`,
-          generationSeed: `${settings.seed}${roleSeedSegment(safeSettings, role)}:name:${index}:${attempt}`,
+          seed: `${safeSettings.seed}${roleSeedSegment(safeSettings, role)}:slot-${index}:attempt-${attempt}`,
           resultIndex: index,
         },
         preferences: semanticNamePreferencesForCandidate(primaryContext.settings, role, index),
