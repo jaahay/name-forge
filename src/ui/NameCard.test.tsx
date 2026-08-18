@@ -58,7 +58,7 @@ describe('NameCard', () => {
     expect(html).toContain(`data-rarity="${name.rarityBand}"`);
     expect(html).toContain(`data-role="${name.role?.role ?? 'none'}"`);
     expect(html).not.toContain(rarity.label);
-    expect(html).not.toContain(`${name.primaryName.silhouette.syllableCount} syllables`);
+    expect(html).not.toContain(`${name.primaryName.generationPlan.syllableCount} syllables`);
     expect(html).not.toContain('Sound sketch');
     expect(html).not.toContain(name.primaryName.sound.transcription);
     expect(html).not.toContain(readStatusFor(name));
@@ -77,7 +77,7 @@ describe('NameCard', () => {
     expect(html).toContain(readStatusFor(name));
     expect(html).toContain('Sound playback planned');
     expect(html).not.toContain(`Play sound sketch for ${name.displayName} (coming soon)`);
-    expect(html).not.toContain(`${name.primaryName.silhouette.syllableCount} syllables`);
+    expect(html).not.toContain(`${name.primaryName.generationPlan.syllableCount} syllables`);
   });
 
   it('renders name selection and lock as separate accessible controls', () => {
