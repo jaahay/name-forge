@@ -10,7 +10,7 @@ function brokenPack(overrides: Partial<StylePack>): StylePack {
   return {
     ...pack,
     phonotactics: { ...pack.phonotactics },
-    silhouetteBias: { ...pack.silhouetteBias },
+    formBias: { ...pack.formBias },
     listedVariants: { ...pack.listedVariants },
     variantRules: [...pack.variantRules],
     ...overrides,
