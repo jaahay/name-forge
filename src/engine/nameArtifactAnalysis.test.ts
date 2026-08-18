@@ -45,7 +45,6 @@ function artifact(id: string, displayText: string, options: ArtifactOptions = {}
 
   return {
     id,
-    displayText,
     soundProfile: {
       targets: {
         length: 'short',
@@ -101,8 +100,8 @@ function artifact(id: string, displayText: string, options: ArtifactOptions = {}
         score: 2.1,
       },
     ],
-    silhouette: {
-      id: `silhouette-${id}`,
+    generationPlan: {
+      id: `generation-plan-${id}`,
       syllableCount: syllables.length,
       stressPattern: syllables.map((entry) => entry.stress).join('-'),
       rhythm: cadence,
