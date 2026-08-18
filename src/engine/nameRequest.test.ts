@@ -51,16 +51,70 @@ describe('NameRequest v1 contracts', () => {
   });
 
   it('represents a resolved response with grouping, name artifacts, an emitted seed, and criteria diagnostics', () => {
+    const spelling = {
+      contract: 'SpellingCandidate' as const,
+      version: 1 as const,
+      text: 'Aurel',
+      mappings: [],
+      rank: 1,
+      score: 1,
+    };
     const artifact: NameArtifact = {
-      kind: 'composed-identity',
       id: 'name-artifact-1',
       displayText: 'Aurel',
-      identity: {
-        displayName: 'Aurel',
-        format: { id: 'format:given-only', kind: 'given-only', label: 'Given name' },
-        parts: [{ id: 'name-artifact-1:given', role: 'given', value: 'Aurel', sourceNameId: 'name-artifact-1', sourceName: 'Aurel' }],
-        phraseParts: [{ kind: 'part', partId: 'name-artifact-1:given', role: 'given' }],
+      soundProfile: {
+        targets: {
+          length: 'short',
+          syllableCount: { min: 1, max: 1, preferred: 1 },
+          texture: 'balanced',
+          distinctiveness: 0.5,
+          cadences: ['balanced'],
+        },
+        phonotactics: {
+          preferredSyllableShapes: ['CV'],
+          onsetWeight: 0.7,
+          codaWeight: 0.4,
+          liquidWeight: 0.3,
+          glideWeight: 0.2,
+          clusterTolerance: 0.2,
+        },
       },
+      sound: {
+        contract: 'SoundCandidate',
+        version: 1,
+        cadence: 'balanced',
+        sequence: {
+          contract: 'SegmentSequence',
+          version: 1,
+          segments: ['m', 'a'],
+          syllables: [{
+            start: 0,
+            end: 2,
+            onset: [0],
+            nucleus: [1],
+            coda: [],
+            shape: 'CV',
+            weight: 'light',
+            sonorityProfile: 'rising',
+            stress: 'primary',
+            stressSource: 'sequence',
+          }],
+        },
+        transcription: '/ma/',
+      },
+      spelling,
+      spellingCandidates: [spelling],
+      silhouette: {
+        id: 'silhouette-name-artifact-1',
+        syllableCount: 1,
+        stressPattern: 'primary',
+        rhythm: 'balanced',
+        shape: ['CV'],
+        texture: 'balanced',
+        targetNovelty: 0.5,
+        targetLength: 'short',
+      },
+      variants: [],
       readabilityDiagnostics: [],
     };
 
