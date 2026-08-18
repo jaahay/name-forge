@@ -57,8 +57,8 @@ const generatedName: GeneratedName = {
     { contract: 'SpellingCandidate', version: 1, text: 'Aurel', mappings: [], rank: 1, score: 0.94 },
     { contract: 'SpellingCandidate', version: 1, text: 'Orel', mappings: [], rank: 2, score: 0.82 },
   ],
-  silhouette: {
-    id: 'silhouette-medium-soft',
+  generationPlan: {
+    id: 'generation-plan-medium-soft',
     syllableCount: 2,
     stressPattern: 'primary-final',
     rhythm: 'balanced',
@@ -105,8 +105,8 @@ describe('toNameArtifact', () => {
     const artifact = toNameArtifact(generatedName);
 
     expect(artifact.id).toBe(generatedName.id);
-    expect(artifact.displayText).toBe(generatedName.name);
-    expect(artifact.displayText).toBe(generatedName.spelling.text);
+    expect(artifact.spelling.text).toBe(generatedName.name);
+    expect('displayText' in artifact).toBe(false);
     expect('kind' in artifact).toBe(false);
     expect('identity' in artifact).toBe(false);
     expect('identityAudition' in artifact).toBe(false);
@@ -119,7 +119,7 @@ describe('toNameArtifact', () => {
     expect(artifact.sound).toBe(generatedName.sound);
     expect(artifact.spelling).toBe(generatedName.spelling);
     expect(artifact.spellingCandidates).toBe(generatedName.spellingCandidates);
-    expect(artifact.silhouette).toBe(generatedName.silhouette);
+    expect(artifact.generationPlan).toBe(generatedName.generationPlan);
     expect(artifact.variants).toBe(generatedName.variants);
     expect(artifact.readabilityDiagnostics).toBe(generatedName.readabilityDiagnostics);
   });
