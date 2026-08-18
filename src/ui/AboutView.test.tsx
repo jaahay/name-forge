@@ -3,34 +3,22 @@ import { renderToString } from 'react-dom/server';
 import { AboutView } from './AboutView';
 
 describe('AboutView', () => {
-  it('explains every generator dial and the diagnostic score purpose in plain language', () => {
+  it('describes the current multi-mode product without turning About into control help', () => {
     const html = renderToString(<AboutView authorSiteUrl="https://jameshay.org/" />);
 
-    expect(html).toContain('What the dials mean');
-    expect(html).toContain('Cast size');
-    expect(html).toContain('Style preset');
-    expect(html).toContain('Seed');
-    expect(html).toContain('Cast role mix');
-    expect(html).toContain('Rarity distribution');
-    expect(html).toContain('Card surfaces');
-    expect(html).toContain('Collapsed cards are name-only browsing surfaces');
-    expect(html).toContain('Expanded cards add quick evaluation cues');
-    expect(html).toContain('Rarity');
-    expect(html).toContain('Readability');
-    expect(html).toContain('Compactness');
-    expect(html).toContain('Style closeness');
-    expect(html).toContain('Spelling criterion');
-    expect(html).not.toContain('Card detail');
-    expect(html).not.toContain('Basic, Brief, and Detail');
-    expect(html).not.toContain('Novelty');
-    expect(html).not.toContain('Pronounceability');
-    expect(html).not.toContain('Memorability');
-    expect(html).not.toContain('Cultural anchoring');
-    expect(html).not.toContain('Orthographic weirdness');
-    expect(html).not.toContain('Naming brief');
-    expect(html).not.toContain('Brief influence');
-    expect(html).toContain('What the diagnostic scores are for');
-    expect(html).toContain('not grades');
-    expect(html).toContain('collapsed cards stay name-only');
+    expect(html).toContain('multi-mode random-name workbench');
+    expect(html).toContain('Fiction Cast');
+    expect(html).toContain('Game NPC');
+    expect(html).toContain('deterministic randomness');
+    expect(html).toContain('Generated evidence, not human claims');
+    expect(html).toContain('Name Forge is about naming');
+    expect(html).toContain('James Hay');
+    expect(html).toContain('https://jameshay.org/');
+
+    expect(html).not.toContain('What the dials mean');
+    expect(html).not.toContain('Style preset');
+    expect(html).not.toContain('Cast size');
+    expect(html).not.toContain('What the diagnostic scores are for');
+    expect(html).not.toContain('collapsed cards stay name-only');
   });
 });
