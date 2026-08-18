@@ -11,11 +11,11 @@ import {
   type NameHistoryStorage,
 } from './nameHistory';
 
-function artifact(id: string, displayText: string): NameArtifact {
+function artifact(id: string, spellingText: string): NameArtifact {
   const spelling = {
     contract: 'SpellingCandidate' as const,
     version: 1 as const,
-    text: displayText,
+    text: spellingText,
     mappings: [],
     rank: 1,
     score: 1,
@@ -23,7 +23,6 @@ function artifact(id: string, displayText: string): NameArtifact {
 
   return {
     id,
-    displayText,
     soundProfile: {
       targets: {
         length: 'short',
@@ -66,8 +65,8 @@ function artifact(id: string, displayText: string): NameArtifact {
     },
     spelling,
     spellingCandidates: [spelling],
-    silhouette: {
-      id: `silhouette-${id}`,
+    generationPlan: {
+      id: `generation-plan-${id}`,
       syllableCount: 1,
       stressPattern: 'primary',
       rhythm: 'balanced',
@@ -102,20 +101,20 @@ describe('nameHistory', () => {
     const initial = addNameHistoryEntries(
       { version: 1, entries: [] },
       [artifact('a', 'Aster'), artifact('b', 'Bryn')],
-      { mode: 'fiction-cast', seed: 'cast-seed', savedAt: '2026-07-18T20:00:00.000Z' },
+      { mode: 'test-surface-a', seed: 'first-seed', savedAt: '2026-07-18T20:00:00.000Z' },
       3,
     );
     const updated = addNameHistoryEntries(
       initial,
       [artifact('c', 'Cael'), artifact('d', 'Dara')],
-      { mode: 'game-npc', seed: 'npc-seed', savedAt: '2026-07-18T21:00:00.000Z' },
+      { mode: 'test-surface-b', seed: 'second-seed', savedAt: '2026-07-18T21:00:00.000Z' },
       3,
     );
 
     expect(updated.version).toBe(1);
     expect(updated.entries).toHaveLength(3);
-    expect(updated.entries.map((entry) => entry.artifact.displayText)).toEqual(['Cael', 'Dara', 'Aster']);
-    expect(updated.entries.map((entry) => entry.mode)).toEqual(['game-npc', 'game-npc', 'fiction-cast']);
+    expect(updated.entries.map((entry) => entry.artifact.spelling.text)).toEqual(['Cael', 'Dara', 'Aster']);
+    expect(updated.entries.map((entry) => entry.mode)).toEqual(['test-surface-b', 'test-surface-b', 'test-surface-a']);
   });
 
   it('round-trips the versioned envelope through storage', () => {
@@ -132,19 +131,19 @@ describe('nameHistory', () => {
     expect(loadNameHistory(storage)).toEqual(history);
   });
 
-  it('drops legacy composed records instead of migrating them into shared artifacts', () => {
+  it('drops composition-shaped records instead of treating them as shared artifacts', () => {
     const parsed = parseNameHistory(JSON.stringify({
       version: 1,
       entries: [{
-        id: 'saved-legacy',
+        id: 'saved-composed',
         artifact: {
-          id: 'legacy-composed',
+          id: 'composed',
           displayText: 'Aster Vale',
           identity: { displayName: 'Aster Vale' },
           readabilityDiagnostics: [],
         },
-        mode: 'fiction-cast',
-        seed: 'legacy-seed',
+        mode: 'test-surface',
+        seed: 'seed',
         savedAt: '2026-07-18T21:00:00.000Z',
       }],
     }));
