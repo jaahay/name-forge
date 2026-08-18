@@ -20,7 +20,7 @@ const settings: FictionCastSettings = {
 };
 
 describe('NameSelectionSurface adaptive rail', () => {
-  it('renders one sparse tab rail and no duplicate selector or stepper navigation', () => {
+  it('renders one horizontal tab per cast identity with one active workspace', () => {
     const ensemble = generateEnsemble(settings, createDefaultRegistry());
     const selectedName = ensemble.names[1];
     const lockedName = ensemble.names[2];
@@ -38,18 +38,21 @@ describe('NameSelectionSurface adaptive rail', () => {
       </NameSelectionSurface>,
     );
 
+    expect((html.match(/role="tab"/g) ?? [])).toHaveLength(ensemble.names.length);
     expect(html).toContain('role="tablist"');
     expect(html).toContain('aria-orientation="horizontal"');
+    for (const name of ensemble.names) {
+      expect(html).toContain(`id="name-rail-tab-${name.id}"`);
+      expect(html).toContain(`title="${name.displayName}"`);
+    }
     expect(html).toContain(`id="name-rail-tab-${selectedName.id}"`);
     expect(html).toContain('aria-selected="true"');
     expect(html).toContain(`aria-label="${lockedName.displayName}, locked"`);
     expect(html).toContain('data-locked="true"');
     expect(html).toContain('role="tabpanel"');
     expect(html).toContain('id="active-name-workspace"');
-    expect(html).not.toContain('<select');
-    expect(html).not.toContain('>Previous<');
-    expect(html).not.toContain('>Next<');
-    expect(html).not.toContain('name-card-lock-control');
+    expect(html).toContain(`aria-labelledby="name-rail-tab-${selectedName.id}"`);
+    expect(html).toContain('Active workspace');
   });
 
   it('maps Left/Right and Home/End to immediate peer navigation with edge wrapping', () => {
