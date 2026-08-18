@@ -1,6 +1,5 @@
 import { generateEnsemble, type LockedNameSlot } from './fictionCast/ensemble';
 import type { FictionCastGeneratedEnsemble, FictionCastSettings } from './fictionCast/types';
-import { toNameArtifact, type NameArtifact } from './engine/nameArtifact';
 import type { SourceRegistry } from './engine/registry';
 
 export interface FictionCastRerollResult {
@@ -8,7 +7,6 @@ export interface FictionCastRerollResult {
   readonly committedSettings: FictionCastSettings;
   readonly replacementId: string;
   readonly lockedNameIds: Set<string>;
-  readonly historyArtifacts: readonly NameArtifact[];
 }
 
 function lockedSlotsExcept(ensemble: FictionCastGeneratedEnsemble, targetIndex: number): LockedNameSlot[] {
@@ -44,6 +42,5 @@ export function rerollSelectedCastName(
     committedSettings,
     replacementId: replacement.id,
     lockedNameIds: retainedLockIds(nextEnsemble, lockedNameIds),
-    historyArtifacts: [toNameArtifact(replacement.primaryName)],
   };
 }
