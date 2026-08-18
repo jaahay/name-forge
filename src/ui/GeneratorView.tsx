@@ -71,9 +71,6 @@ export function GeneratorView({
   const resolvedSelection = resolveNameSelection(selection, ensemble, lockedNameIds);
   const selectedNameId = selectedNameIdFromView(resolvedSelection);
   const selectedName = ensemble.names.find((name) => name.id === selectedNameId);
-  const selectedNameIndex = selectedName ? ensemble.names.findIndex((name) => name.id === selectedName.id) : -1;
-  const hasPreviousName = selectedNameIndex > 0;
-  const hasNextName = selectedNameIndex >= 0 && selectedNameIndex < ensemble.names.length - 1;
 
   useEffect(() => {
     if (!sameNameSelection(selection, resolvedSelection)) {
@@ -88,22 +85,6 @@ export function GeneratorView({
   function selectRelationshipName(id: string) {
     selectName(id);
     inspectorRegionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-
-  function selectAllNames() {
-    setSelection({ kind: 'all-names' });
-  }
-
-  function selectPreviousName() {
-    const previousName = ensemble.names[selectedNameIndex - 1];
-    if (!previousName) return;
-    selectName(previousName.id);
-  }
-
-  function selectNextName() {
-    const nextName = ensemble.names[selectedNameIndex + 1];
-    if (!nextName) return;
-    selectName(nextName.id);
   }
 
   function submitGeneration(event?: FormEvent<HTMLFormElement>) {
@@ -169,15 +150,8 @@ export function GeneratorView({
               <NameSelectionSurface
                 ensemble={ensemble}
                 lockedNameIds={lockedNameIds}
-                selection={resolvedSelection}
                 selectedNameId={selectedNameId}
-                hasPreviousName={hasPreviousName}
-                hasNextName={hasNextName}
                 onSelectName={selectName}
-                onSelectAllNames={selectAllNames}
-                onSelectPreviousName={selectPreviousName}
-                onSelectNextName={selectNextName}
-                onToggleLockedName={onToggleLockedName}
               >
                 <div ref={inspectorRegionRef}>
                   {inspector}
