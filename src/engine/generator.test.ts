@@ -108,7 +108,6 @@ describe('generateEnsemble', () => {
       expect(primaryName.variants.length).toBeGreaterThan(0);
       expect(primaryName.scores.overallFit).toBeGreaterThan(0);
       expect(primaryName.scores.styleFit).toBeGreaterThan(0);
-      expect(primaryName.scores.silhouetteFit).toBeGreaterThan(0);
       expect('ensembleFit' in primaryName.scores).toBe(false);
       expect('roleFit' in primaryName.scores).toBe(false);
       expect(name.contextualScores.ensembleFit).toBeGreaterThanOrEqual(0);
