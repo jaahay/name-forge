@@ -7,7 +7,6 @@ import {
   resolveNameRequest,
 } from './nameRequest';
 import { generateNameResponse } from './nameResponse';
-import { createSeededRandom } from './random';
 import { createDefaultRegistry } from './registry';
 
 const emptyCriteria = { clauses: [] } as const;
@@ -77,15 +76,13 @@ describe('shared exact quantity and grouping', () => {
     const first = generateName({
       settings,
       pack,
-      planningRandom: createSeededRandom('duplicate-display-silhouette'),
-      generationRandom: createSeededRandom('duplicate-display-name'),
+      seed: 'duplicate-display',
       index: 0,
     });
     const second = generateName({
       settings,
       pack,
-      planningRandom: createSeededRandom('duplicate-display-silhouette'),
-      generationRandom: createSeededRandom('duplicate-display-name'),
+      seed: 'duplicate-display',
       index: 1,
     });
 
