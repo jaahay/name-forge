@@ -37,7 +37,6 @@ function fictionCastScoreWeights(settings: FictionCastSettings): Record<FictionC
     culturalAnchoring: lerp(0.05, 0.19, settings.culturalAnchoring),
     orthographicNaturalness: lerp(0.2, 0.06, settings.orthographicWeirdness),
     styleFit: 0.1,
-    silhouetteFit: 0.08,
     ensembleFit: lerp(0.04, 0.11, settings.memorability),
     roleFit: roleFitWeight,
   };
@@ -50,5 +49,5 @@ export function combineFictionCastOverallFit(
 ): number {
   const weights = fictionCastScoreWeights(settings);
   const totalWeight = Object.values(weights).reduce((sum, weight) => sum + weight, 0);
-  return clamp((weights.pronounceability * scores.pronounceability + weights.memorability * scores.memorability + weights.novelty * scores.novelty + weights.culturalAnchoring * scores.culturalAnchoring + weights.orthographicNaturalness * scores.orthographicNaturalness + weights.styleFit * scores.styleFit + weights.silhouetteFit * scores.silhouetteFit + weights.ensembleFit * contextualScores.ensembleFit + weights.roleFit * contextualScores.roleFit) / totalWeight);
+  return clamp((weights.pronounceability * scores.pronounceability + weights.memorability * scores.memorability + weights.novelty * scores.novelty + weights.culturalAnchoring * scores.culturalAnchoring + weights.orthographicNaturalness * scores.orthographicNaturalness + weights.styleFit * scores.styleFit + weights.ensembleFit * contextualScores.ensembleFit + weights.roleFit * contextualScores.roleFit) / totalWeight);
 }
