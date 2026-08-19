@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { renderToString } from 'react-dom/server';
 import { generateEnsemble } from '../fictionCast/ensemble';
 import type { FictionCastGeneratedName, FictionCastSettings } from '../fictionCast/types';
+import { renderAuditionCue } from '../engine/audition';
 import { toNameArtifact } from '../engine/nameArtifact';
 import { createDefaultRegistry } from '../engine/registry';
 import { browserVoiceDraftSegments, browserVoiceDraftText, NameArtifactInspector } from './NameArtifactInspector';
@@ -41,22 +42,59 @@ function renderInspector(name: FictionCastGeneratedName, isLocked = false): stri
 }
 
 describe('NameInspector', () => {
-  it('keeps the composed Cast identity dominant with a compact pronunciation-adjacent primary row', () => {
+  it('keeps the composed Cast identity dominant with a whole-identity pronunciation guide beside playback', () => {
     const name = fixtureName({ nameFormat: 'given-family', seed: 'name-inspector-composed-display' });
     const html = renderInspector(name);
+    const primaryGuide = renderAuditionCue(name.primaryName.sound.sequence).displayText ?? name.primaryName.sound.transcription;
 
     expect(name.displayName).not.toBe(name.primaryName.name);
+    expect(name.identityAudition.displayText).not.toBe(primaryGuide);
     expect(html).toContain('data-inspector-presentation="pronunciation-guide"');
     expect(html).toContain('inspector-primary-compact');
     expect(html).toContain('inspector-pronunciation-line');
     expect(html).toContain(name.displayName);
     expect(html).toContain(`aria-label="Pronunciation guide for ${name.displayName}"`);
     expect(html).toContain(`aria-label="Play pronunciation guide for ${name.displayName}"`);
+    expect(html).toContain(`<p class="inspector-sound-description">${name.identityAudition.displayText}</p>`);
+    expect(html).not.toContain(`<p class="inspector-sound-description">${primaryGuide}</p>`);
     expect(html).not.toContain('>Sound</h3>');
     expect(html).not.toContain('>Generated spelling</h3>');
     expect(html).not.toContain('>Spelling</h3>');
     expect(html).not.toContain('>Name</h3>');
+    expect(html).toContain('<h3>Generated component sound</h3>');
+    expect(html).toContain(`<dt>Component</dt><dd>${name.primaryName.spelling.text}</dd>`);
     expect(html).toContain(name.primaryName.sound.transcription);
+  });
+
+  it('uses the whole-identity guide and suppresses primary spelling alternates when initials hide the source name', () => {
+    const name = fixtureName({ nameFormat: 'initials-family', seed: 'name-inspector-initials-guide' });
+    const primaryIdentityPart = name.identity.parts.find((part) => part.sourceNameId === name.primaryName.id);
+    const primaryGuide = renderAuditionCue(name.primaryName.sound.sequence).displayText ?? name.primaryName.sound.transcription;
+    const selected = name.primaryName.spelling;
+    const alternative = {
+      ...selected,
+      text: `${selected.text}e`,
+      rank: selected.rank + 1,
+      score: selected.score - 0.01,
+    };
+    const withAlternative: FictionCastGeneratedName = {
+      ...name,
+      primaryName: {
+        ...name.primaryName,
+        spellingCandidates: [selected, alternative],
+      },
+    };
+    const html = renderInspector(withAlternative);
+
+    expect(primaryIdentityPart).toBeDefined();
+    expect(primaryIdentityPart?.value).not.toBe(name.primaryName.name);
+    expect(name.identityAudition.displayText).not.toBe(primaryGuide);
+    expect(html).toContain(`<p class="inspector-sound-description">${name.identityAudition.displayText}</p>`);
+    expect(html).not.toContain(`<p class="inspector-sound-description">${primaryGuide}</p>`);
+    expect(html).not.toContain('Alternative spellings');
+    expect(html).not.toContain(alternative.text);
+    expect(html).toContain('<h3>Generated component sound</h3>');
+    expect(html).toContain(`aria-label="${name.primaryName.spelling.text} sound evidence"`);
   });
 
   it('promotes Cast context and keeps one calm Breakdown disclosure for secondary evidence', () => {
