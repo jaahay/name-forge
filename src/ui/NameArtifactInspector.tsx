@@ -9,6 +9,7 @@ interface NameArtifactInspectorProps {
   readonly artifact: NameArtifact;
   readonly displayText?: string;
   readonly voiceDraftText?: string;
+  readonly pronunciationGuideText?: string;
   readonly eyebrow?: string;
   readonly extraActions?: ReactNode;
   readonly promotedSections?: ReactNode;
@@ -16,6 +17,7 @@ interface NameArtifactInspectorProps {
   readonly primaryPresentation?: 'default' | 'pronunciation-guide';
   readonly actionPresentation?: 'text' | 'icon';
   readonly showVariants?: boolean;
+  readonly showPronunciationAlternates?: boolean;
   readonly detailsLabel?: string;
   readonly detailsDescription?: string;
 }
@@ -133,6 +135,7 @@ export function NameArtifactInspector({
   artifact,
   displayText = artifact.spelling.text,
   voiceDraftText,
+  pronunciationGuideText,
   eyebrow = 'Inspect',
   extraActions,
   promotedSections,
@@ -140,6 +143,7 @@ export function NameArtifactInspector({
   primaryPresentation = 'default',
   actionPresentation = 'text',
   showVariants = true,
+  showPronunciationAlternates = true,
   detailsLabel = 'More details',
   detailsDescription = 'Read notes, context, variants and scoring',
 }: NameArtifactInspectorProps) {
@@ -149,6 +153,7 @@ export function NameArtifactInspector({
   const variants = artifact.variants;
   const auditionCue = renderAuditionCue(artifact.sound.sequence);
   const soundDescription = auditionCue.displayText ?? artifact.sound.transcription;
+  const pronunciationGuide = pronunciationGuideText ?? soundDescription;
   const voiceText = voiceDraftText ?? browserVoiceDraftText(artifact, auditionCue.speechText);
   const browserSpeechAvailable = canUseBrowserSpeech();
   const displayName = protectInitialBreaks(displayText);
@@ -164,6 +169,9 @@ export function NameArtifactInspector({
   const hasMoreDetails = readNotes.length > 0 || (showVariants && variants.length > 0) || Boolean(extraSections);
   const spellingLabel = displayText === generatedText ? 'Spelling' : 'Generated spelling';
   const useIconActions = actionPresentation === 'icon';
+  const composedEvidence = primaryPresentation === 'pronunciation-guide' && displayText !== generatedText;
+  const artifactEvidenceText = composedEvidence ? generatedText : displayText;
+  const detailsPronunciationGuide = primaryPresentation === 'pronunciation-guide' ? pronunciationGuide : auditionCue.displayText;
 
   return (
     <aside
@@ -206,7 +214,7 @@ export function NameArtifactInspector({
               className={useIconActions ? 'inspector-icon-action selected-details-copy-action' : undefined}
               aria-label={`Copy details ${displayText}`}
               title={useIconActions ? 'Copy details' : undefined}
-              onClick={() => copyText(detailsText(artifact, displayText, auditionCue.displayText))}
+              onClick={() => copyText(detailsText(artifact, displayText, detailsPronunciationGuide))}
             >
               {useIconActions ? <InspectorActionIcon kind="details" /> : 'Copy details'}
             </button>
@@ -218,7 +226,7 @@ export function NameArtifactInspector({
         <div className="inspector-primary inspector-primary-compact" aria-label={`Selected details for ${displayText}`}>
           <section className="inspector-pronunciation" aria-label={`Pronunciation guide for ${displayText}`}>
             <div className="inspector-pronunciation-line">
-              <p className="inspector-sound-description">{soundDescription}</p>
+              <p className="inspector-sound-description">{pronunciationGuide}</p>
               <button
                 type="button"
                 className="secondary inspector-icon-action inspector-pronunciation-play"
@@ -230,7 +238,7 @@ export function NameArtifactInspector({
                 <InspectorActionIcon kind="play" />
               </button>
             </div>
-            {otherSpellings.length > 0 ? (
+            {showPronunciationAlternates && otherSpellings.length > 0 ? (
               <div className="inspector-alternates inspector-alternates-compact">
                 <span>Alternative spellings</span>
                 <ul aria-label={`${generatedText} other spellings`}>
@@ -277,18 +285,18 @@ export function NameArtifactInspector({
           </summary>
           <div className="inspector-more-body">
             {primaryPresentation === 'pronunciation-guide' ? (
-              <section className="inspector-detail-group inspector-sound-evidence" aria-label={`${displayText} sound evidence`}>
-                <h3>Sound evidence</h3>
+              <section className="inspector-detail-group inspector-sound-evidence" aria-label={`${artifactEvidenceText} sound evidence`}>
+                <h3>{composedEvidence ? 'Generated component sound' : 'Sound evidence'}</h3>
                 <p className="inspector-transcription">{artifact.sound.transcription}</p>
-                {displayText !== generatedText ? (
+                {composedEvidence ? (
                   <dl className="inspector-detail-facts">
-                    <div><dt>Generated spelling</dt><dd>{generatedText}</dd></div>
+                    <div><dt>Component</dt><dd>{generatedText}</dd></div>
                   </dl>
                 ) : null}
               </section>
             ) : null}
             {readNotes.length > 0 ? (
-              <section className="inspector-detail-group inspector-read-details" aria-label={`${displayText} readability notes`}>
+              <section className="inspector-detail-group inspector-read-details" aria-label={`${artifactEvidenceText} readability notes`}>
                 <h3>Read notes</h3>
                 <div className="inspector-read-note-list">
                   {readNotes.map((diagnostic) => (
