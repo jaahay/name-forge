@@ -145,14 +145,20 @@ function castBreakdownSections(name: FictionCastGeneratedName) {
 }
 
 export function NameInspector({ name, isLocked, onRerollName, onToggleLockedName }: NameInspectorProps) {
+  const primaryNameIsVisible = name.identity.parts.some((part) => (
+    part.sourceNameId === name.primaryName.id && part.value === name.primaryName.name
+  ));
+
   return (
     <NameArtifactInspector
       artifact={toFictionCastPrimaryNameArtifact(name)}
       displayText={name.displayName}
       voiceDraftText={name.identityAudition.speechText}
+      pronunciationGuideText={name.identityAudition.displayText}
       primaryPresentation="pronunciation-guide"
       actionPresentation="icon"
       showVariants={false}
+      showPronunciationAlternates={primaryNameIsVisible}
       detailsLabel="Breakdown"
       detailsDescription="Sound, construction, read notes and scoring"
       extraActions={(
