@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { generateEnsemble } from '../fictionCast/ensemble';
 import type { FictionCastSettings } from '../fictionCast/types';
 import { createDefaultRegistry } from '../engine/registry';
-import { NameSelectionSurface, nameRailTargetIndex } from './NameSelectionSurface';
+import { NameSelectionSurface, nameRailTargetIndex, nameRailWheelDelta } from './NameSelectionSurface';
 
 const settings: FictionCastSettings = {
   castSize: 3,
@@ -41,6 +41,8 @@ describe('NameSelectionSurface adaptive rail', () => {
     expect((html.match(/role="tab"/g) ?? [])).toHaveLength(ensemble.names.length);
     expect(html).toContain('role="tablist"');
     expect(html).toContain('aria-orientation="horizontal"');
+    expect(html).toContain('data-overflow-before="false"');
+    expect(html).toContain('data-overflow-after="false"');
     for (const name of ensemble.names) {
       expect(html).toContain(`id="name-rail-tab-${name.id}"`);
       expect(html).toContain(`title="${name.displayName}"`);
@@ -69,5 +71,19 @@ describe('NameSelectionSurface adaptive rail', () => {
     expect(nameRailTargetIndex('ArrowRight', -1, 3)).toBeUndefined();
     expect(nameRailTargetIndex('ArrowLeft', 3, 3)).toBeUndefined();
     expect(nameRailTargetIndex('Home', 0, 0)).toBeUndefined();
+  });
+
+  it('maps ordinary vertical wheel motion to horizontal rail travel only while travel remains', () => {
+    expect(nameRailWheelDelta(0, 48, 40, 400, 200)).toBe(48);
+    expect(nameRailWheelDelta(0, -48, 40, 400, 200)).toBe(-48);
+    expect(nameRailWheelDelta(0, -48, 0, 400, 200)).toBeUndefined();
+    expect(nameRailWheelDelta(0, 48, 200, 400, 200)).toBeUndefined();
+    expect(nameRailWheelDelta(0, 48, 0, 200, 200)).toBeUndefined();
+  });
+
+  it('leaves native horizontal trackpad motion untouched', () => {
+    expect(nameRailWheelDelta(36, 12, 40, 400, 200)).toBeUndefined();
+    expect(nameRailWheelDelta(12, 12, 40, 400, 200)).toBeUndefined();
+    expect(nameRailWheelDelta(4, 20, 40, 400, 200)).toBe(20);
   });
 });
