@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useReducer, useRef, useState, type FormEvent } from 'react';
 import { serializeCastAsJson, serializeCastAsMarkdown } from '../fictionCast/export';
 import type { FictionCastGeneratedEnsemble, FictionCastSettings } from '../fictionCast/types';
 import type { StylePackSummary } from '../engine/types';
 import { CastHealthPanel } from './CastHealth';
+import { reduceConfigureDrawerOpen } from './configureBehavior';
 import { ConfigureTray } from './ConfigureTray';
 import { ExportMenu } from './ExportMenu';
 import type { FictionCastModeConfig } from './modes';
@@ -52,7 +53,7 @@ export function GeneratorView({
   onClearLockedNames,
 }: GeneratorViewProps) {
   const [selectedNameId, setSelectedNameId] = useState('');
-  const [isConfigureOpen, setIsConfigureOpen] = useState(() => ensemble.names.length === 0);
+  const [isConfigureOpen, dispatchConfigure] = useReducer(reduceConfigureDrawerOpen, ensemble.names.length === 0);
   const inspectorRegionRef = useRef<HTMLDivElement>(null);
   const jsonExport = serializeCastAsJson(ensemble);
   const markdownExport = serializeCastAsMarkdown(ensemble);
@@ -75,6 +76,16 @@ export function GeneratorView({
   function selectRelationshipName(id: string) {
     selectName(id);
     inspectorRegionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function generateFromConfigure(event?: FormEvent<HTMLFormElement>) {
+    dispatchConfigure('generate');
+    onGenerate(event);
+  }
+
+  function randomizeFromConfigure() {
+    dispatchConfigure('shuffle');
+    onRandomizeSliders();
   }
 
   function rerollSelectedName() {
@@ -115,12 +126,12 @@ export function GeneratorView({
           committedSettings={committedSettings}
           isOpen={isConfigureOpen}
           lockedCount={lockedCount}
-          onOpen={() => setIsConfigureOpen(true)}
-          onClose={() => setIsConfigureOpen(false)}
+          onOpen={() => dispatchConfigure('open')}
+          onClose={() => dispatchConfigure('close')}
           onUpdateSetting={onUpdateSetting}
-          onGenerate={onGenerate}
+          onGenerate={generateFromConfigure}
           onCommitSettings={onCommitSettings}
-          onRandomizeSliders={onRandomizeSliders}
+          onRandomizeSliders={randomizeFromConfigure}
           onRandomizeSlider={onRandomizeSlider}
           onClearLockedNames={onClearLockedNames}
         />
