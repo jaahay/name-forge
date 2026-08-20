@@ -77,16 +77,6 @@ export function GeneratorView({
     inspectorRegionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  function submitGeneration(event?: FormEvent<HTMLFormElement>) {
-    setIsConfigureOpen(false);
-    onGenerate(event);
-  }
-
-  function randomizeSliders() {
-    setIsConfigureOpen(false);
-    onRandomizeSliders();
-  }
-
   function rerollSelectedName() {
     if (!selectedName) return;
     const replacementId = onRerollName(selectedName.id);
@@ -125,11 +115,12 @@ export function GeneratorView({
           committedSettings={committedSettings}
           isOpen={isConfigureOpen}
           lockedCount={lockedCount}
-          onToggleOpen={() => setIsConfigureOpen((isOpen) => !isOpen)}
+          onOpen={() => setIsConfigureOpen(true)}
+          onClose={() => setIsConfigureOpen(false)}
           onUpdateSetting={onUpdateSetting}
-          onGenerate={submitGeneration}
+          onGenerate={onGenerate}
           onCommitSettings={onCommitSettings}
-          onRandomizeSliders={randomizeSliders}
+          onRandomizeSliders={onRandomizeSliders}
           onRandomizeSlider={onRandomizeSlider}
           onClearLockedNames={onClearLockedNames}
         />
