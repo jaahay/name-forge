@@ -3,6 +3,7 @@ import { rarityDistributionOptions, type FictionCastRarityDistributionPresetKind
 import { castRoleOptions, castRolePresetOptions, roleInfluenceOptions } from '../fictionCast/roles';
 import type { CastRole, CastRolePresetKind, FictionCastSettings, RoleInfluenceLevel } from '../fictionCast/types';
 import type { NameFormatKind, StylePackSummary } from '../engine/types';
+import { resolveConfigureFocusTarget, shouldCloseConfigureOnKey } from './configureBehavior';
 import type { NamingModeConfig } from './modes';
 import { advancedScoreControls, primaryScoreControls, type ControlKey } from './presentation';
 import { ScoreControl } from './ScoreControl';
@@ -85,7 +86,7 @@ export function ConfigureTray({
 }: ConfigureTrayProps) {
   const triggerRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const wasOpenRef = useRef(isOpen);
+  const wasOpenRef = useRef(false);
   const castSize = clampCastSize(settings.castSize);
   const slotRoleCount = Math.max(0, Math.min(castSize, 8));
   const hasRoleMix = (settings.rolePreset ?? 'none') !== 'none';
@@ -98,10 +99,10 @@ export function ConfigureTray({
   const castSizeLabel = `${mode.shortLabel} size`;
 
   useEffect(() => {
-    const wasOpen = wasOpenRef.current;
-    if (isOpen && !wasOpen) {
+    const focusTarget = resolveConfigureFocusTarget(wasOpenRef.current, isOpen);
+    if (focusTarget === 'close') {
       closeButtonRef.current?.focus();
-    } else if (!isOpen && wasOpen) {
+    } else if (focusTarget === 'trigger') {
       triggerRef.current?.focus();
     }
     wasOpenRef.current = isOpen;
@@ -111,7 +112,7 @@ export function ConfigureTray({
     if (!isOpen) return undefined;
 
     function closeOnEscape(event: globalThis.KeyboardEvent) {
-      if (event.key !== 'Escape') return;
+      if (!shouldCloseConfigureOnKey(event.key)) return;
       event.preventDefault();
       onClose();
     }
