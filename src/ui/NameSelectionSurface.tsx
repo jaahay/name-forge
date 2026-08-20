@@ -1,4 +1,12 @@
-import { useEffect, useRef, type KeyboardEvent, type ReactNode } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type ReactNode,
+  type WheelEvent,
+} from 'react';
 import type { FictionCastGeneratedEnsemble } from '../fictionCast/types';
 
 interface NameSelectionSurfaceProps {
@@ -7,6 +15,11 @@ interface NameSelectionSurfaceProps {
   selectedNameId: string;
   children: ReactNode;
   onSelectName: (id: string) => void;
+}
+
+interface NameRailOverflowState {
+  before: boolean;
+  after: boolean;
 }
 
 export function nameRailTargetIndex(key: string, currentIndex: number, count: number): number | undefined {
@@ -26,6 +39,23 @@ export function nameRailTargetIndex(key: string, currentIndex: number, count: nu
   }
 }
 
+export function nameRailWheelDelta(
+  deltaX: number,
+  deltaY: number,
+  scrollLeft: number,
+  scrollWidth: number,
+  clientWidth: number,
+): number | undefined {
+  if (Math.abs(deltaX) >= Math.abs(deltaY) || deltaY === 0) return undefined;
+
+  const maxScrollLeft = Math.max(0, scrollWidth - clientWidth);
+  if (maxScrollLeft === 0) return undefined;
+  if (deltaY < 0 && scrollLeft <= 0) return undefined;
+  if (deltaY > 0 && scrollLeft >= maxScrollLeft) return undefined;
+
+  return deltaY;
+}
+
 export function NameSelectionSurface({
   ensemble,
   lockedNameIds,
@@ -34,10 +64,34 @@ export function NameSelectionSurface({
   onSelectName,
 }: NameSelectionSurfaceProps) {
   const tabRefs = useRef(new Map<string, HTMLButtonElement>());
+  const railRef = useRef<HTMLDivElement>(null);
+  const [railOverflow, setRailOverflow] = useState<NameRailOverflowState>({ before: false, after: false });
+
+  const updateRailOverflow = useCallback(() => {
+    const rail = railRef.current;
+    if (!rail) return;
+
+    const maxScrollLeft = Math.max(0, rail.scrollWidth - rail.clientWidth);
+    const next = {
+      before: rail.scrollLeft > 1,
+      after: rail.scrollLeft < maxScrollLeft - 1,
+    };
+
+    setRailOverflow((current) =>
+      current.before === next.before && current.after === next.after ? current : next,
+    );
+  }, []);
 
   useEffect(() => {
     tabRefs.current.get(selectedNameId)?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-  }, [selectedNameId]);
+    updateRailOverflow();
+  }, [selectedNameId, updateRailOverflow]);
+
+  useEffect(() => {
+    updateRailOverflow();
+    window.addEventListener('resize', updateRailOverflow);
+    return () => window.removeEventListener('resize', updateRailOverflow);
+  }, [ensemble.names.length, updateRailOverflow]);
 
   function handleRailKeyDown(event: KeyboardEvent<HTMLButtonElement>, currentIndex: number) {
     const targetIndex = nameRailTargetIndex(event.key, currentIndex, ensemble.names.length);
@@ -53,6 +107,22 @@ export function NameSelectionSurface({
     targetTab?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
   }
 
+  function handleRailWheel(event: WheelEvent<HTMLDivElement>) {
+    const rail = event.currentTarget;
+    const delta = nameRailWheelDelta(
+      event.deltaX,
+      event.deltaY,
+      rail.scrollLeft,
+      rail.scrollWidth,
+      rail.clientWidth,
+    );
+    if (delta === undefined) return;
+
+    event.preventDefault();
+    rail.scrollLeft += delta;
+    updateRailOverflow();
+  }
+
   const activeTabId = selectedNameId ? `name-rail-tab-${selectedNameId}` : undefined;
 
   return (
@@ -63,7 +133,17 @@ export function NameSelectionSurface({
             <h2 id="adaptive-name-rail-title">Names</h2>
             <span>{ensemble.names.length} generated</span>
           </div>
-          <div className="adaptive-name-rail-scroll" role="tablist" aria-label="Generated cast" aria-orientation="horizontal">
+          <div
+            ref={railRef}
+            className="adaptive-name-rail-scroll"
+            role="tablist"
+            aria-label="Generated cast"
+            aria-orientation="horizontal"
+            data-overflow-before={railOverflow.before ? 'true' : 'false'}
+            data-overflow-after={railOverflow.after ? 'true' : 'false'}
+            onScroll={updateRailOverflow}
+            onWheel={handleRailWheel}
+          >
             {ensemble.names.map((name, index) => {
               const isSelected = name.id === selectedNameId;
               const isLocked = lockedNameIds.has(name.id);

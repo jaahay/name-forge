@@ -2,9 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { renderToString } from 'react-dom/server';
 import { generateEnsemble } from '../fictionCast/ensemble';
 import type { FictionCastGeneratedName, FictionCastSettings } from '../fictionCast/types';
+import { renderAuditionCue } from '../engine/audition';
 import { toNameArtifact } from '../engine/nameArtifact';
 import { createDefaultRegistry } from '../engine/registry';
-import { browserVoiceDraftSegments, browserVoiceDraftText } from './NameArtifactInspector';
+import { browserVoiceDraftSegments, browserVoiceDraftText, NameArtifactInspector } from './NameArtifactInspector';
 import { NameInspector } from './NameInspector';
 
 const settings: FictionCastSettings = {
@@ -41,36 +42,137 @@ function renderInspector(name: FictionCastGeneratedName, isLocked = false): stri
 }
 
 describe('NameInspector', () => {
-  it('renders the composed Cast display above primary singular name evidence', () => {
+  it('keeps the composed Cast identity dominant with a whole-identity pronunciation guide beside playback', () => {
     const name = fixtureName({ nameFormat: 'given-family', seed: 'name-inspector-composed-display' });
     const html = renderInspector(name);
+    const primaryGuide = renderAuditionCue(name.primaryName.sound.sequence).displayText ?? name.primaryName.sound.transcription;
 
     expect(name.displayName).not.toBe(name.primaryName.name);
-    expect(html).toContain('inspector-primary');
-    expect(html).toContain('Sound');
-    expect(html).toContain('Generated spelling');
+    expect(name.identityAudition.displayText).not.toBe(primaryGuide);
+    expect(html).toContain('data-inspector-presentation="pronunciation-guide"');
+    expect(html).toContain('inspector-primary-compact');
+    expect(html).toContain('inspector-pronunciation-line');
     expect(html).toContain(name.displayName);
-    expect(html).toContain(name.primaryName.spelling.text);
+    expect(html).toContain(`aria-label="Pronunciation guide for ${name.displayName}"`);
+    expect(html).toContain(`aria-label="Play pronunciation guide for ${name.displayName}"`);
+    expect(html).toContain(`<p class="inspector-sound-description">${name.identityAudition.displayText}</p>`);
+    expect(html).not.toContain(`<p class="inspector-sound-description">${primaryGuide}</p>`);
+    expect(html).not.toContain('>Sound</h3>');
+    expect(html).not.toContain('>Generated spelling</h3>');
+    expect(html).not.toContain('>Spelling</h3>');
+    expect(html).not.toContain('>Name</h3>');
+    expect(html).toContain('<h3>Generated component sound</h3>');
+    expect(html).toContain(`<dt>Component</dt><dd>${name.primaryName.spelling.text}</dd>`);
     expect(html).toContain(name.primaryName.sound.transcription);
-    expect(html).not.toContain('modeled parts</span>');
   });
 
-  it('uses one disclosure for all secondary inspector information', () => {
-    const html = renderInspector(fixtureName());
+  it('uses the whole-identity guide and suppresses primary spelling alternates when initials hide the source name', () => {
+    const name = fixtureName({ nameFormat: 'initials-family', seed: 'name-inspector-initials-guide' });
+    const primaryIdentityPart = name.identity.parts.find((part) => part.sourceNameId === name.primaryName.id);
+    const primaryGuide = renderAuditionCue(name.primaryName.sound.sequence).displayText ?? name.primaryName.sound.transcription;
+    const selected = name.primaryName.spelling;
+    const alternative = {
+      ...selected,
+      text: `${selected.text}e`,
+      rank: selected.rank + 1,
+      score: selected.score - 0.01,
+    };
+    const withAlternative: FictionCastGeneratedName = {
+      ...name,
+      primaryName: {
+        ...name.primaryName,
+        spellingCandidates: [selected, alternative],
+      },
+    };
+    const html = renderInspector(withAlternative);
 
-    expect(html).toContain('More details');
-    expect(html).toContain('Cast context');
+    expect(primaryIdentityPart).toBeDefined();
+    expect(primaryIdentityPart?.value).not.toBe(name.primaryName.name);
+    expect(name.identityAudition.displayText).not.toBe(primaryGuide);
+    expect(html).toContain(`<p class="inspector-sound-description">${name.identityAudition.displayText}</p>`);
+    expect(html).not.toContain(`<p class="inspector-sound-description">${primaryGuide}</p>`);
+    expect(html).not.toContain('Alternative spellings');
+    expect(html).not.toContain(alternative.text);
+    expect(html).toContain('<h3>Generated component sound</h3>');
+    expect(html).toContain(`aria-label="${name.primaryName.spelling.text} sound evidence"`);
+  });
+
+  it('promotes Cast context and keeps one calm Breakdown disclosure for secondary evidence', () => {
+    const name = fixtureName({ rolePreset: 'classic-ensemble', roleInfluence: 'light' });
+    const html = renderInspector(name);
+    const detailsIndex = html.indexOf('<details');
+    const contextIndex = html.indexOf('Cast context');
+
+    expect(contextIndex).toBeGreaterThan(-1);
+    expect(detailsIndex).toBeGreaterThan(contextIndex);
+    expect(html).toContain('inspector-cast-context-facts');
+    expect(html).toContain('<dt>Role</dt>');
+    expect(html).toContain('<dt>Format</dt>');
+    expect(html).toContain('<dt>Rarity</dt>');
+    expect(html).toContain('<dt>Influence</dt>');
+    expect(html).toContain('Breakdown');
+    expect(html).not.toContain('More details');
+    expect(html).toContain('Generation');
     expect(html).toContain('Composition');
     expect(html).toContain('Component sound drafts');
     expect(html).toContain('Score detail');
     expect((html.match(/<summary/g) ?? [])).toHaveLength(1);
-
-    for (const oldDisclosure of ['<summary>Readability</summary>', '<summary>Other variants</summary>', '<summary>Cast context</summary>', '<summary>Generated shape</summary>', '<summary>Score detail</summary>', '<summary>Name parts</summary>', '<summary>Role cue</summary>']) {
-      expect(html).not.toContain(oldDisclosure);
-    }
   });
 
-  it('keeps composed component provenance and audition controls in the Cast-owned detail surface', () => {
+  it('removes engine variants from the ordinary Fiction Cast surface without changing the model', () => {
+    const name = fixtureName();
+    const variantValue = `${name.primaryName.name}-variant-fixture`;
+    const withVariant: FictionCastGeneratedName = {
+      ...name,
+      primaryName: {
+        ...name.primaryName,
+        variants: [{
+          value: variantValue,
+          kind: 'generated',
+          relationship: 'creative_respelling',
+          confidence: 'low',
+          source: {
+            id: 'variant-fixture-source',
+            kind: 'algorithm',
+            label: 'Variant fixture',
+            detail: 'Test-only variant source.',
+          },
+          generated: true,
+          ruleId: 'variant-fixture-rule',
+        }],
+      },
+    };
+
+    expect(withVariant.primaryName.variants).toHaveLength(1);
+    const html = renderInspector(withVariant);
+    expect(html).not.toContain('Variants</h3>');
+    expect(html).not.toContain(variantValue);
+  });
+
+  it('keeps alternative same-sound spellings visible without treating them as variants', () => {
+    const name = fixtureName();
+    const selected = name.primaryName.spelling;
+    const alternative = {
+      ...selected,
+      text: `${selected.text}e`,
+      rank: selected.rank + 1,
+      score: selected.score - 0.01,
+    };
+    const withAlternative: FictionCastGeneratedName = {
+      ...name,
+      primaryName: {
+        ...name.primaryName,
+        spellingCandidates: [selected, alternative],
+      },
+    };
+
+    const html = renderInspector(withAlternative);
+    expect(html).toContain('Alternative spellings');
+    expect(html).toContain(alternative.text);
+    expect(html).not.toContain('Variants</h3>');
+  });
+
+  it('keeps composed component provenance and audition controls in Breakdown', () => {
     const name = fixtureName({ nameFormat: 'epithet-place', seed: 'name-inspector-composed-provenance' });
     const soundParts = name.identityAudition.parts.filter((part) => part.kind === 'sound');
     const html = renderInspector(name);
@@ -94,7 +196,7 @@ describe('NameInspector', () => {
     expect(html).toContain(name.primaryName.sound.transcription);
   });
 
-  it('keeps primitive readability notes inside More details', () => {
+  it('keeps primitive readability notes inside Breakdown', () => {
     const cleanName = {
       ...fixtureName(),
       primaryName: { ...fixtureName().primaryName, readabilityDiagnostics: [] },
@@ -115,27 +217,35 @@ describe('NameInspector', () => {
 
     expect(renderInspector(cleanName)).not.toContain('Read notes</h3>');
     const notedHtml = renderInspector(notedName);
+    expect(notedHtml).toContain('Breakdown');
     expect(notedHtml).toContain('inspector-read-details');
     expect(notedHtml).toContain('Read notes</h3>');
     expect(notedHtml).toContain('Long read');
     expect(notedHtml).toContain('This generated name may take a second pass.');
   });
 
-  it('renders selected-name actions with copy utilities visually separated', () => {
+  it('uses icon-only whole-name actions with accessible names and tooltip titles', () => {
     const name = fixtureName();
     const html = renderInspector(name);
 
     expect(html).toContain('selected-name-actions');
     expect(html).toContain('selected-name-utilities');
+    expect(html).toContain('inspector-icon-action');
+    expect(html).toContain(`aria-label="Play pronunciation guide for ${name.displayName}"`);
     expect(html).toContain(`aria-label="Copy name ${name.displayName}"`);
+    expect(html).toContain('title="Copy name"');
     expect(html).toContain(`aria-label="Copy details ${name.displayName}"`);
-    expect(html).toContain('selected-name-reroll-action');
+    expect(html).toContain('title="Copy details"');
     expect(html).toContain(`aria-label="Reroll ${name.displayName}"`);
-    expect(html).toContain('>Reroll</button>');
+    expect(html).toContain('title="Reroll name"');
     expect(html).toContain(`aria-label="Lock ${name.displayName}"`);
+    expect(html).toContain('title="Lock name"');
     expect(html).toContain('aria-pressed="false"');
-    expect(html).toContain(`aria-label="Browser voice draft unavailable for ${name.displayName}"`);
-    expect(html).toContain('Play name');
+    expect(html).not.toContain('>Play name</button>');
+    expect(html).not.toContain('>Reroll</button>');
+    expect(html).not.toContain('>Lock</button>');
+    expect(html).not.toContain('>Copy name</button>');
+    expect(html).not.toContain('>Copy details</button>');
   });
 
   it('keeps shared voice helpers primitive while Fiction Cast owns the whole-identity speech text', () => {
@@ -148,6 +258,17 @@ describe('NameInspector', () => {
     expect(composed.identityAudition.identityText).toBe(composed.displayName);
   });
 
+  it('keeps the shared artifact inspector default presentation unchanged for non-Cast callers', () => {
+    const artifact = toNameArtifact(fixtureName().primaryName);
+    const html = renderToString(<NameArtifactInspector artifact={artifact} />);
+
+    expect(html).toContain('data-inspector-presentation="default"');
+    expect(html).toContain('>Sound</h3>');
+    expect(html).toContain('>Spelling</h3>');
+    expect(html).toContain('Play name');
+    expect(html).not.toContain('inspector-primary-compact');
+  });
+
   it('reflects the locked state and disables selected-name reroll', () => {
     const name = fixtureName();
     const html = renderInspector(name, true);
@@ -158,6 +279,7 @@ describe('NameInspector', () => {
     expect(html).toContain('title="Unlock this name to reroll it."');
     expect(html).toContain('selected-name-lock-action');
     expect(html).toContain(`aria-label="Unlock ${name.displayName}"`);
+    expect(html).toContain('title="Unlock name"');
     expect(html).toContain('aria-pressed="true"');
   });
 });

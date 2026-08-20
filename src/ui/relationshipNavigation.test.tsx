@@ -124,6 +124,6 @@ describe('sound relationship navigation integration', () => {
     expect(html).toContain(`id="name-rail-tab-${right.id}"`);
     expect(html).toContain('aria-selected="true"');
     expect(html).toContain(`aria-label="Reroll ${right.displayName}"`);
-    expect(html).toContain('>Reroll</button>');
+    expect(html).toContain('title="Reroll name"');
   });
 });
