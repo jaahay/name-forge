@@ -22,7 +22,8 @@ function renderConfigureTray(overrides: Partial<FictionCastSettings> = {}, isOpe
       committedSettings={renderedSettings}
       isOpen={isOpen}
       lockedCount={0}
-      onToggleOpen={() => {}}
+      onOpen={() => {}}
+      onClose={() => {}}
       onUpdateSetting={() => {}}
       onGenerate={() => {}}
       onCommitSettings={() => {}}
@@ -63,17 +64,31 @@ describe('ConfigureTray criteria surface', () => {
     expect(html).toContain('Spelling criterion');
   });
 
-  it('collapses to one compact generation summary after generation', () => {
+  it('uses a durable Configure launcher instead of a collapsed Generation summary', () => {
     const html = renderConfigureTray({ castSize: 8, nameFormat: 'mixed' }, false);
 
-    expect(html).toContain('Generation');
-    expect(html).toContain('8 names');
-    expect(html).toContain('Mixed cast formats');
-    expect(html).toContain('>Tune</button>');
-    expect(html).toContain('Regenerate');
+    expect(html).toContain('aria-label="Generation controls"');
+    expect(html).toContain('>Configure</button>');
+    expect(html).toContain('>Regenerate</button>');
+    expect(html).toContain('aria-expanded="false"');
+    expect(html).toContain('aria-controls="fiction-cast-configure-drawer"');
+    expect(html).not.toContain('>Generation<');
+    expect(html).not.toContain('>Tune</button>');
+    expect(html).not.toContain('role="dialog"');
     expect(html).not.toContain('Configure criteria');
     expect(html).not.toContain('Criteria summary');
-    expect(html).not.toContain('Rarity target:');
+  });
+
+  it('exposes the open Configure surface as a labelled drawer with an explicit close control', () => {
+    const html = renderConfigureTray();
+
+    expect(html).toContain('aria-expanded="true"');
+    expect(html).toContain('aria-haspopup="dialog"');
+    expect(html).toContain('id="fiction-cast-configure-drawer"');
+    expect(html).toContain('role="dialog"');
+    expect(html).toContain('aria-labelledby="fiction-cast-configure-title"');
+    expect(html).toContain('id="fiction-cast-configure-title"');
+    expect(html).toContain('aria-label="Close configure"');
   });
 
   it('does not require a new mode or free-form text surface to generate names', () => {
