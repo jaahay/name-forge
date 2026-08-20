@@ -26,56 +26,134 @@
   grid-template-columns: minmax(0, 1fr);
 }
 
-.configure-tray {
-  position: static;
-  display: grid;
-  gap: 0.8rem;
-  max-height: none;
-  overflow: visible;
-  padding: 0.88rem;
-}
-
-.configure-summary {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 0.85rem;
-  align-items: center;
-}
-
-.configure-summary-copy {
-  display: grid;
-  gap: 0.22rem;
-  min-width: 0;
-}
-
-.configure-summary-copy strong {
-  color: var(--text);
-  font-size: 0.95rem;
-  line-height: 1.25;
-}
-
-.configure-summary-actions {
+.configure-launcher {
+  position: sticky;
+  top: 0.75rem;
+  z-index: 12;
   display: flex;
   gap: 0.5rem;
   align-items: center;
-  justify-content: flex-end;
-  flex-wrap: wrap;
+  justify-self: end;
+  width: fit-content;
+  padding: 0.5rem;
+  background: rgba(31, 24, 18, 0.94);
 }
 
-.configure-summary-actions button {
+.configure-launcher button {
   width: auto;
+  padding: 0.62rem 0.86rem;
+}
+
+.configure-trigger[aria-expanded='true'] {
+  border-color: rgba(240, 184, 95, 0.52);
+  color: #f8d99f;
+  background: rgba(240, 184, 95, 0.12);
+}
+
+.configure-lock-count {
+  padding: 0 0.42rem 0 0.18rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.configure-drawer {
+  position: fixed;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 30;
+  display: grid;
+  align-content: start;
+  width: min(430px, calc(100vw - 1.5rem));
+  max-height: calc(100dvh - 1.5rem);
+  gap: 0;
+  padding: 0;
+  overflow: auto;
+  border-color: rgba(240, 184, 95, 0.28);
+  background: rgba(25, 20, 16, 0.98);
+  box-shadow: -18px 24px 90px rgba(0, 0, 0, 0.46);
+}
+
+.configure-drawer-header {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.8rem;
+  align-items: start;
+  padding: 0.9rem;
+  border-bottom: 1px solid rgba(240, 184, 95, 0.16);
+  background: rgba(31, 24, 18, 0.98);
+  backdrop-filter: blur(16px);
+}
+
+.configure-drawer-heading {
+  display: grid;
+  gap: 0.18rem;
+  min-width: 0;
+}
+
+.configure-drawer-heading .eyebrow {
+  margin-bottom: 0;
+}
+
+.configure-drawer-heading h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: 1.08rem;
+  line-height: 1.15;
+}
+
+.configure-current-settings {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.74rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.configure-close {
+  display: inline-grid;
+  place-items: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  padding: 0;
+  border: 1px solid rgba(240, 184, 95, 0.18);
+  border-radius: 999px;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.configure-close:focus-visible,
+.configure-trigger:focus-visible {
+  outline: 2px solid rgba(240, 184, 95, 0.78);
+  outline-offset: 0.18rem;
+}
+
+.configure-drawer-summary {
+  display: grid;
+  gap: 0.24rem;
+  padding: 0.8rem 0.9rem;
+  border-bottom: 1px solid rgba(240, 184, 95, 0.12);
+}
+
+.configure-drawer-summary .eyebrow,
+.configure-drawer-summary .section-note {
+  margin-bottom: 0;
 }
 
 .configure-sections {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.72rem;
+  padding: 0.8rem 0.9rem 0.9rem;
   align-items: start;
 }
 
 .configure-sections .actions {
   align-self: stretch;
-  min-height: 100%;
 }
 
 /* Adaptive rail heading and Cast Health */
@@ -467,18 +545,6 @@
 }
 
 @media (max-width: 900px) {
-  .configure-summary {
-    grid-template-columns: 1fr;
-  }
-
-  .configure-summary-actions {
-    justify-content: stretch;
-  }
-
-  .configure-summary-actions button {
-    flex: 1 1 10rem;
-  }
-
   .sound-relationships-heading {
     align-items: start;
   }
@@ -489,5 +555,29 @@
 
   .sound-relationship-pair-count {
     grid-column: 2;
+  }
+}
+
+@media (max-width: 700px) {
+  .configure-launcher {
+    justify-self: stretch;
+    width: 100%;
+  }
+
+  .configure-launcher button {
+    flex: 1 1 0;
+  }
+
+  .configure-lock-count {
+    display: none;
+  }
+
+  .configure-drawer {
+    inset: 0;
+    width: 100vw;
+    max-height: none;
+    height: 100dvh;
+    border: 0;
+    border-radius: 0;
   }
 }
