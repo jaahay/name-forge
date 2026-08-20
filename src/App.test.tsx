@@ -10,8 +10,7 @@ describe('App', () => {
       'Name Forge',
       'Fiction Cast',
       'Recent names',
-      'Generation',
-      'Tune',
+      '>Configure</button>',
       'Regenerate',
       'Names',
       'Generated cast',
@@ -30,5 +29,8 @@ describe('App', () => {
     ]) {
       expect(html).toContain(expected);
     }
+
+    expect(html).not.toContain('>Tune</button>');
+    expect(html).not.toContain('>Generation<');
   });
 });
