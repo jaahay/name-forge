@@ -10,27 +10,81 @@ export type ControlKey =
   | 'culturalAnchoring'
   | 'orthographicWeirdness';
 
-export const primaryScoreControls: Array<{
+export interface SemanticScoreChoice {
+  label: string;
+  value: number;
+}
+
+export interface ScoreControlDefinition {
   key: ControlKey;
   label: string;
   help: string;
-}> = [
-  { key: 'novelty', label: 'Familiar', help: 'Higher values push individual names toward less familiar shapes, textures, and spellings.' },
-  { key: 'pronounceability', label: 'Readable', help: 'Higher values favor names that are easier to read aloud on first sight.' },
+  choices: readonly SemanticScoreChoice[];
+}
+
+export const primaryScoreControls: ScoreControlDefinition[] = [
+  {
+    key: 'novelty',
+    label: 'Familiar',
+    help: 'Choose how familiar or unusual the generated name shapes should feel.',
+    choices: [
+      { label: 'Unusual', value: 0.75 },
+      { label: 'Balanced', value: 0.48 },
+      { label: 'Familiar', value: 0.25 },
+    ],
+  },
+  {
+    key: 'pronounceability',
+    label: 'Readable',
+    help: 'Choose how strongly the generator favors easy first-sight reading.',
+    choices: [
+      { label: 'Loose', value: 0.35 },
+      { label: 'Balanced', value: 0.55 },
+      { label: 'Clear', value: 0.72 },
+    ],
+  },
 ];
 
-export const advancedScoreControls: Array<{
-  key: ControlKey;
-  label: string;
-  help: string;
-}> = [
-  { key: 'memorability', label: 'Compact', help: 'Higher values favor shorter, more rhythmically distinct names.' },
-  { key: 'culturalAnchoring', label: 'Style', help: 'Higher values keep names closer to the selected style pack texture.' },
-  { key: 'orthographicWeirdness', label: 'Spelling', help: 'Higher values permit more distinctive spellings while still scoring naturalness separately.' },
+export const advancedScoreControls: ScoreControlDefinition[] = [
+  {
+    key: 'memorability',
+    label: 'Compact',
+    help: 'Choose how strongly the generator favors shorter, tighter name shapes.',
+    choices: [
+      { label: 'Longer', value: 0.35 },
+      { label: 'Balanced', value: 0.5 },
+      { label: 'Compact', value: 0.65 },
+    ],
+  },
+  {
+    key: 'culturalAnchoring',
+    label: 'Style',
+    help: 'Choose how closely names should follow the selected style pack.',
+    choices: [
+      { label: 'Loose', value: 0.35 },
+      { label: 'Balanced', value: 0.62 },
+      { label: 'Close', value: 0.82 },
+    ],
+  },
+  {
+    key: 'orthographicWeirdness',
+    label: 'Spelling',
+    help: 'Choose how plain or distinctive generated spellings may be.',
+    choices: [
+      { label: 'Plain', value: 0.28 },
+      { label: 'Balanced', value: 0.5 },
+      { label: 'Distinctive', value: 0.72 },
+    ],
+  },
 ];
 
 export const scoreControls = [...primaryScoreControls, ...advancedScoreControls];
-export const scoreAnchors = [0, 0.25, 0.5, 0.75, 1] as const;
+
+export function closestScoreChoice(control: ScoreControlDefinition, value: number): SemanticScoreChoice {
+  return control.choices.reduce((closest, choice) => (
+    Math.abs(choice.value - value) < Math.abs(closest.value - value) ? choice : closest
+  ));
+}
 
 export const scorePresentation: Array<{ key: ScoreKey; label: string }> = [
   { key: 'pronounceability', label: 'Pronounce' },
