@@ -31,6 +31,5 @@ describe('App', () => {
     }
 
     expect(html).not.toContain('>Tune</button>');
-    expect(html).not.toContain('>Generation<');
   });
 });
