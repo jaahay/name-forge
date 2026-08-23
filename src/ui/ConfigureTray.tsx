@@ -53,21 +53,6 @@ function labelForFormat(value: NameFormatKind | undefined): string {
   return formatOptions.find((option) => option.value === (value ?? 'given-only'))?.label ?? 'Given name only';
 }
 
-function tierLabel(value: number, low: string, middle: string, high: string): string {
-  if (value < 0.38) return low;
-  if (value > 0.62) return high;
-  return middle;
-}
-
-function criteriaSummaryItems(settings: FictionCastSettings, stylePackLabel: string): string[] {
-  return [
-    `Style source: ${stylePackLabel}`,
-    `Rarity target: ${tierLabel(settings.novelty, 'familiar', 'balanced', 'rarer')}`,
-    `Readability target: ${tierLabel(settings.pronounceability, 'loose', 'balanced', 'easy to read')}`,
-    `Spelling target: ${tierLabel(settings.orthographicWeirdness, 'plain', 'balanced', 'distinctive')}`,
-  ];
-}
-
 export function ConfigureTray({
   mode,
   stylePacks,
@@ -94,7 +79,6 @@ export function ConfigureTray({
   const summarySettings = committedSettings ?? settings;
   const summaryStylePack = stylePacks.find((pack) => pack.id === summarySettings.stylePackId)?.label ?? summarySettings.stylePackId;
   const summaryItems = [summaryStylePack, `${clampCastSize(summarySettings.castSize)} names`, labelForFormat(summarySettings.nameFormat)];
-  const criteriaItems = criteriaSummaryItems(summarySettings, summaryStylePack);
   const hasLockedNames = lockedCount > 0;
   const castSizeLabel = `${mode.shortLabel} size`;
 
@@ -175,18 +159,10 @@ export function ConfigureTray({
             </button>
           </header>
 
-          <div className="configure-drawer-summary" aria-label="Criteria summary">
-            <p className="eyebrow">Criteria summary</p>
-            <p className="section-note">Bounded criteria signals for this cast.</p>
-            <ul className="criteria-summary-list">
-              {criteriaItems.map((item) => <li key={item}>{item}</li>)}
-            </ul>
-          </div>
-
           <div className="configure-sections">
-            <details className="control-section" open>
-              <summary>Cast setup</summary>
+            <section className="control-section configure-essentials" aria-labelledby="configure-essentials-title">
               <div className="control-section-body">
+                <p id="configure-essentials-title" className="eyebrow">Essentials</p>
                 <label>
                   <span>{castSizeLabel}</span>
                   <div className="cast-size-control">
@@ -202,21 +178,27 @@ export function ConfigureTray({
                   </select>
                 </label>
                 <label>
-                  <span>Name format</span>
-                  <select value={settings.nameFormat ?? 'given-only'} onChange={(event) => onUpdateSetting('nameFormat', event.target.value as NameFormatKind)}>
-                    {formatOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-                  </select>
-                </label>
-              </div>
-            </details>
-
-            <details className="control-section">
-              <summary>Story roles</summary>
-              <div className="control-section-body">
-                <label>
                   <span>Cast role mix</span>
                   <select value={settings.rolePreset ?? 'none'} onChange={(event) => onUpdateSetting('rolePreset', event.target.value as CastRolePresetKind)}>
                     {castRolePresetOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                  </select>
+                </label>
+                <label>
+                  <span>Cast variety</span>
+                  <select value={settings.rarityDistribution ?? 'style-pack'} onChange={(event) => onUpdateSetting('rarityDistribution', event.target.value as FictionCastRarityDistributionPresetKind)}>
+                    {rarityDistributionOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                  </select>
+                </label>
+              </div>
+            </section>
+
+            <details className="control-section">
+              <summary>More</summary>
+              <div className="control-section-body">
+                <label>
+                  <span>Name format</span>
+                  <select value={settings.nameFormat ?? 'given-only'} onChange={(event) => onUpdateSetting('nameFormat', event.target.value as NameFormatKind)}>
+                    {formatOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                   </select>
                 </label>
                 <label>
@@ -226,56 +208,31 @@ export function ConfigureTray({
                   </select>
                   <small>{selectedRoleInfluence?.help}</small>
                 </label>
-                <p className="section-note">Role influence is opt-in. Off keeps roles as labels only; Light and Strong nudge silhouette, sound patterns, role-fit scoring, and export metadata.</p>
-                {hasRoleMix ? (
-                  <details className="slot-overrides">
-                    <summary>Customize slots</summary>
-                    <div className="slot-role-grid" aria-label="Slot role overrides">
-                      {Array.from({ length: slotRoleCount }, (_, index) => (
-                        <label key={`slot-role-${index + 1}`}>
-                          <span>Slot {index + 1}</span>
-                          <select value={settings.slotRoleOverrides?.[index] ?? ''} onChange={(event) => onUpdateSetting('slotRoleOverrides', updateSlotRole(settings.slotRoleOverrides, index, event.target.value as CastRole | ''))}>
-                            <option value="">Use role mix</option>
-                            {castRoleOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-                          </select>
-                        </label>
-                      ))}
-                      <p className="section-note">Slot overrides only affect selected slots and preserve the rest of the role mix.</p>
-                    </div>
-                  </details>
-                ) : (
-                  <p className="section-note">Choose a role mix to reveal optional slot-by-slot overrides.</p>
-                )}
-              </div>
-            </details>
-
-            <details className="control-section" open>
-              <summary>Criteria signals</summary>
-              <div className="control-section-body">
-                <label>
-                  <span>Cast variety / rarity spread</span>
-                  <select value={settings.rarityDistribution ?? 'style-pack'} onChange={(event) => onUpdateSetting('rarityDistribution', event.target.value as FictionCastRarityDistributionPresetKind)}>
-                    {rarityDistributionOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-                  </select>
-                </label>
                 {primaryScoreControls.map((control) => (
                   <ScoreControl key={control.key} control={control} value={Number(settings[control.key])} onChange={(key, value) => onUpdateSetting(key, value)} onRandomize={onRandomizeSlider} />
                 ))}
-                <details className="slot-overrides">
-                  <summary>Advanced tuning</summary>
-                  <div className="control-section-body">
-                    <p className="section-note">These bounded controls shape current criteria signals without introducing free-form text behavior.</p>
-                    {advancedScoreControls.map((control) => (
-                      <ScoreControl key={control.key} control={control} value={Number(settings[control.key])} onChange={(key, value) => onUpdateSetting(key, value)} onRandomize={onRandomizeSlider} />
-                    ))}
-                  </div>
-                </details>
               </div>
             </details>
 
             <details className="control-section">
-              <summary>Run options</summary>
+              <summary>Advanced</summary>
               <div className="control-section-body">
+                {hasRoleMix ? (
+                  <div className="slot-role-grid" aria-label="Slot role overrides">
+                    {Array.from({ length: slotRoleCount }, (_, index) => (
+                      <label key={`slot-role-${index + 1}`}>
+                        <span>Slot {index + 1}</span>
+                        <select value={settings.slotRoleOverrides?.[index] ?? ''} onChange={(event) => onUpdateSetting('slotRoleOverrides', updateSlotRole(settings.slotRoleOverrides, index, event.target.value as CastRole | ''))}>
+                          <option value="">Use role mix</option>
+                          {castRoleOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                        </select>
+                      </label>
+                    ))}
+                  </div>
+                ) : null}
+                {advancedScoreControls.map((control) => (
+                  <ScoreControl key={control.key} control={control} value={Number(settings[control.key])} onChange={(key, value) => onUpdateSetting(key, value)} onRandomize={onRandomizeSlider} />
+                ))}
                 <label className="seed-control">
                   <span>Generation seed</span>
                   <input value={settings.seed} onChange={(event) => onUpdateSetting('seed', event.target.value)} onBlur={onCommitSettings} onKeyDown={commitSeedOnEnter} />
