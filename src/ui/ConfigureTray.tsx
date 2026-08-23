@@ -5,7 +5,7 @@ import type { CastRole, CastRolePresetKind, FictionCastSettings, RoleInfluenceLe
 import type { NameFormatKind, StylePackSummary } from '../engine/types';
 import { resolveConfigureFocusTarget, shouldCloseConfigureOnKey } from './configureBehavior';
 import type { NamingModeConfig } from './modes';
-import { advancedScoreControls, primaryScoreControls, type ControlKey } from './presentation';
+import { advancedScoreControls, primaryScoreControls } from './presentation';
 import { ScoreControl } from './ScoreControl';
 
 export const formatOptions: Array<{ value: NameFormatKind; label: string }> = [
@@ -30,7 +30,6 @@ interface ConfigureTrayProps {
   onGenerate: (event?: FormEvent<HTMLFormElement>) => void;
   onCommitSettings: () => void;
   onRandomizeSliders: () => void;
-  onRandomizeSlider: (key: ControlKey) => void;
   onClearLockedNames: () => void;
 }
 
@@ -66,7 +65,6 @@ export function ConfigureTray({
   onGenerate,
   onCommitSettings,
   onRandomizeSliders,
-  onRandomizeSlider,
   onClearLockedNames,
 }: ConfigureTrayProps) {
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -209,7 +207,7 @@ export function ConfigureTray({
                   <small>{selectedRoleInfluence?.help}</small>
                 </label>
                 {primaryScoreControls.map((control) => (
-                  <ScoreControl key={control.key} control={control} value={Number(settings[control.key])} onChange={(key, value) => onUpdateSetting(key, value)} onRandomize={onRandomizeSlider} />
+                  <ScoreControl key={control.key} control={control} value={Number(settings[control.key])} onChange={(key, value) => onUpdateSetting(key, value)} />
                 ))}
               </div>
             </details>
@@ -231,7 +229,7 @@ export function ConfigureTray({
                   </div>
                 ) : null}
                 {advancedScoreControls.map((control) => (
-                  <ScoreControl key={control.key} control={control} value={Number(settings[control.key])} onChange={(key, value) => onUpdateSetting(key, value)} onRandomize={onRandomizeSlider} />
+                  <ScoreControl key={control.key} control={control} value={Number(settings[control.key])} onChange={(key, value) => onUpdateSetting(key, value)} />
                 ))}
                 <label className="seed-control">
                   <span>Generation seed</span>
@@ -242,7 +240,7 @@ export function ConfigureTray({
 
             <div className="actions" aria-label="Generation actions">
               <button type="submit">Generate</button>
-              <button type="button" className="secondary" onClick={onRandomizeSliders}>Shuffle feel</button>
+              <button type="button" className="secondary" onClick={onRandomizeSliders}>Shuffle criteria</button>
               {hasLockedNames ? (
                 <p className="lock-status">{lockedCount} locked. Generate keeps locked names and rerolls the rest. <button type="button" className="anchor-button" onClick={onClearLockedNames}>Clear</button></p>
               ) : null}
