@@ -16,9 +16,9 @@ import { ChangelogView } from './ui/ChangelogView';
 import { GameNpcView } from './ui/GameNpcView';
 import { GeneratorView } from './ui/GeneratorView';
 import { fictionCastMode, gameNpcMode, type NamingModeId } from './ui/modes';
-import type { AppView, ControlKey } from './ui/presentation';
+import type { AppView } from './ui/presentation';
 import { RecentNamesView } from './ui/RecentNamesView';
-import { randomizeScoreSettings, randomScore } from './ui/score';
+import { randomizeScoreSettings } from './ui/score';
 
 const registry = createDefaultRegistry();
 const stylePacks = registry.listStylePacks();
@@ -103,17 +103,10 @@ export default function App() {
     commitGeneration(settings);
   }
 
-  function randomizeSliders() {
+  function randomizeCriteria() {
     const randomizedSettings = randomizeScoreSettings(settings);
     setSettings(randomizedSettings);
     commitGeneration(randomizedSettings);
-  }
-
-  function randomizeSlider(key: ControlKey) {
-    const nextValue = randomScore();
-    const nextSettings = { ...settings, [key]: nextValue };
-    setSettings(nextSettings);
-    commitGeneration(nextSettings);
   }
 
   function rerollSelectedName(id: string): string | undefined {
@@ -183,8 +176,7 @@ export default function App() {
             onUpdateSetting={updateSetting}
             onGenerate={generate}
             onCommitSettings={commitCurrentSettings}
-            onRandomizeSliders={randomizeSliders}
-            onRandomizeSlider={randomizeSlider}
+            onRandomizeSliders={randomizeCriteria}
             onRerollName={rerollSelectedName}
             onToggleLockedName={toggleLockedName}
             onClearLockedNames={clearLockedNames}
