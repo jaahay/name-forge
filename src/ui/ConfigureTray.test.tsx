@@ -4,7 +4,6 @@ import type { FictionCastSettings } from '../fictionCast/types';
 import { createDefaultRegistry } from '../engine/registry';
 import { ConfigureTray } from './ConfigureTray';
 import { fictionCastMode } from './modes';
-import type { ControlKey } from './presentation';
 
 const registry = createDefaultRegistry();
 const stylePacks = registry.listStylePacks();
@@ -28,7 +27,6 @@ function renderConfigureTray(overrides: Partial<FictionCastSettings> = {}, isOpe
       onGenerate={() => {}}
       onCommitSettings={() => {}}
       onRandomizeSliders={() => {}}
-      onRandomizeSlider={(_: ControlKey) => {}}
       onClearLockedNames={() => {}}
     />,
   );
@@ -88,6 +86,30 @@ describe('ConfigureTray criteria surface', () => {
     expect(advancedHtml).not.toContain('Advanced tuning');
   });
 
+  it('uses semantic choices instead of numeric criterion tuning', () => {
+    const html = renderConfigureTray();
+    const criteriaStart = html.indexOf('<summary>More</summary>');
+    const criteriaHtml = html.slice(criteriaStart);
+
+    for (const label of ['Familiar', 'Readable', 'Compact', 'Style', 'Spelling']) {
+      expect(criteriaHtml).toContain(`<span>${label}</span>`);
+    }
+    for (const choice of ['Unusual', 'Familiar', 'Clear', 'Longer', 'Compact', 'Close', 'Plain', 'Distinctive']) {
+      expect(criteriaHtml).toContain(`>${choice}</option>`);
+    }
+
+    expect(html).not.toContain('type="range"');
+    expect(criteriaHtml).not.toContain('type="number"');
+    expect(criteriaHtml).not.toContain('<datalist');
+    expect(criteriaHtml).not.toContain('anchor values');
+    expect(criteriaHtml).not.toContain('Shuffle Familiar');
+    expect(criteriaHtml).not.toContain('Shuffle Readable');
+    expect(criteriaHtml).not.toContain('Shuffle Compact');
+    expect(criteriaHtml).not.toContain('Shuffle Style');
+    expect(criteriaHtml).not.toContain('Shuffle Spelling');
+    expect(html).toContain('>Shuffle criteria</button>');
+  });
+
   it('uses a durable Configure launcher instead of a collapsed Generation summary', () => {
     const html = renderConfigureTray({ castSize: 8, nameFormat: 'mixed' }, false);
 
@@ -118,7 +140,7 @@ describe('ConfigureTray criteria surface', () => {
     const html = renderConfigureTray();
 
     expect(html).toContain('Generate');
-    expect(html).toContain('Shuffle feel');
+    expect(html).toContain('Shuffle criteria');
     expect(html).not.toContain('<textarea');
     expect(html).not.toContain('What are you naming?');
   });
