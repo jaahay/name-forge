@@ -35,33 +35,57 @@ function renderConfigureTray(overrides: Partial<FictionCastSettings> = {}, isOpe
 }
 
 describe('ConfigureTray criteria surface', () => {
-  it('keeps the existing generation controls visible when tuning', () => {
+  it('keeps the four essential cast controls visible before any disclosure', () => {
     const html = renderConfigureTray();
+    const firstDisclosure = html.indexOf('<details');
 
-    expect(html).toContain('Cast size');
-    expect(html).toContain('Style pack');
-    expect(html).toContain('Name format');
-    expect(html).toContain('Generation seed');
-    expect(html).toContain('Generate');
-    expect(html).toContain('Shuffle feel');
+    expect(firstDisclosure).toBeGreaterThan(0);
+    for (const label of ['Cast size', 'Style pack', 'Cast role mix', 'Cast variety']) {
+      const labelIndex = html.indexOf(label);
+      expect(labelIndex).toBeGreaterThan(0);
+      expect(labelIndex).toBeLessThan(firstDisclosure);
+    }
   });
 
-  it('renders bounded criteria wording without adding a large taxonomy surface', () => {
-    const html = renderConfigureTray({
-      novelty: 0.72,
-      pronounceability: 0.74,
-      orthographicWeirdness: 0.24,
-    });
+  it('uses exactly two initially closed secondary groups', () => {
+    const html = renderConfigureTray();
 
-    expect(html).toContain('Configure criteria');
-    expect(html).toContain('Criteria summary');
-    expect(html).toContain('Criteria signals');
-    expect(html).toContain('Rarity target: rarer');
-    expect(html).toContain('Readability target: easy to read');
-    expect(html).toContain('Spelling target: plain');
-    expect(html).toContain('Rarity target');
-    expect(html).toContain('Readability target');
-    expect(html).toContain('Spelling criterion');
+    expect((html.match(/<details/g) ?? []).length).toBe(2);
+    expect(html).toContain('<summary>More</summary>');
+    expect(html).toContain('<summary>Advanced</summary>');
+    expect(html).not.toContain('<details class="control-section" open');
+    expect(html).not.toContain('Cast setup');
+    expect(html).not.toContain('Story roles');
+    expect(html).not.toContain('Criteria signals');
+    expect(html).not.toContain('Run options');
+    expect(html).not.toContain('Advanced tuning');
+  });
+
+  it('puts common optional controls in More', () => {
+    const html = renderConfigureTray();
+    const moreStart = html.indexOf('<summary>More</summary>');
+    const advancedStart = html.indexOf('<summary>Advanced</summary>');
+    const moreHtml = html.slice(moreStart, advancedStart);
+
+    for (const label of ['Name format', 'Role influence', 'Familiar', 'Readable']) {
+      expect(moreHtml).toContain(label);
+    }
+    for (const label of ['Compact', 'Spelling', 'Generation seed']) {
+      expect(moreHtml).not.toContain(label);
+    }
+  });
+
+  it('puts specialist controls and slot overrides directly in Advanced', () => {
+    const html = renderConfigureTray({ rolePreset: 'classic-ensemble' });
+    const advancedStart = html.indexOf('<summary>Advanced</summary>');
+    const advancedHtml = html.slice(advancedStart);
+
+    expect(advancedHtml).toContain('aria-label="Slot role overrides"');
+    for (const label of ['Compact', 'Style', 'Spelling', 'Generation seed']) {
+      expect(advancedHtml).toContain(label);
+    }
+    expect((advancedHtml.match(/<details/g) ?? []).length).toBe(0);
+    expect(advancedHtml).not.toContain('Advanced tuning');
   });
 
   it('uses a durable Configure launcher instead of a collapsed Generation summary', () => {
@@ -76,7 +100,6 @@ describe('ConfigureTray criteria surface', () => {
     expect(html).not.toContain('>Tune</button>');
     expect(html).not.toContain('role="dialog"');
     expect(html).not.toContain('Configure criteria');
-    expect(html).not.toContain('Criteria summary');
   });
 
   it('exposes the open Configure surface as a labelled drawer with an explicit close control', () => {
@@ -95,6 +118,7 @@ describe('ConfigureTray criteria surface', () => {
     const html = renderConfigureTray();
 
     expect(html).toContain('Generate');
+    expect(html).toContain('Shuffle feel');
     expect(html).not.toContain('<textarea');
     expect(html).not.toContain('What are you naming?');
   });
