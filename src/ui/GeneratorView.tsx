@@ -9,7 +9,6 @@ import { ExportMenu } from './ExportMenu';
 import type { FictionCastModeConfig } from './modes';
 import { NameInspector } from './NameInspector';
 import { NameSelectionSurface } from './NameSelectionSurface';
-import type { ControlKey } from './presentation';
 import { resolveSelectedNameId } from './workbenchSelection';
 
 interface GeneratorViewProps {
@@ -23,7 +22,6 @@ interface GeneratorViewProps {
   onGenerate: (event?: FormEvent<HTMLFormElement>) => void;
   onCommitSettings: () => void;
   onRandomizeSliders: () => void;
-  onRandomizeSlider: (key: ControlKey) => void;
   onRerollName: (id: string) => string | undefined;
   onToggleLockedName: (id: string) => void;
   onClearLockedNames: () => void;
@@ -47,7 +45,6 @@ export function GeneratorView({
   onGenerate,
   onCommitSettings,
   onRandomizeSliders,
-  onRandomizeSlider,
   onRerollName,
   onToggleLockedName,
   onClearLockedNames,
@@ -132,7 +129,6 @@ export function GeneratorView({
           onGenerate={generateFromConfigure}
           onCommitSettings={onCommitSettings}
           onRandomizeSliders={randomizeFromConfigure}
-          onRandomizeSlider={onRandomizeSlider}
           onClearLockedNames={onClearLockedNames}
         />
 
