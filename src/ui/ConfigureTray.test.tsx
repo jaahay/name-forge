@@ -94,7 +94,7 @@ describe('ConfigureTray criteria surface', () => {
     for (const label of ['Familiar', 'Readable', 'Compact', 'Style', 'Spelling']) {
       expect(criteriaHtml).toContain(`<legend>${label}</legend>`);
     }
-    for (const choice of ['Unusual', 'Familiar', 'Tricky', 'Clear', 'Elaborate', 'Compact', 'Loose', 'Faithful', 'Conventional', 'Distinctive']) {
+    for (const choice of ['Unusual', 'Familiar', 'Tricky', 'Clear', 'Extended', 'Compact', 'Loose', 'Faithful', 'Conventional', 'Distinctive']) {
       expect(criteriaHtml).toContain(`<span>${choice}</span>`);
     }
 
@@ -114,7 +114,7 @@ describe('ConfigureTray criteria surface', () => {
     expect(criteriaHtml).not.toContain('Shuffle Compact');
     expect(criteriaHtml).not.toContain('Shuffle Style');
     expect(criteriaHtml).not.toContain('Shuffle Spelling');
-    expect(html).toContain('>Shuffle criteria</button>');
+    expect(html).toContain('>Randomize criteria</button>');
   });
 
   it('uses a durable Configure launcher instead of a collapsed Generation summary', () => {
@@ -147,7 +147,7 @@ describe('ConfigureTray criteria surface', () => {
     const html = renderConfigureTray();
 
     expect(html).toContain('Generate');
-    expect(html).toContain('Shuffle criteria');
+    expect(html).toContain('Randomize criteria');
     expect(html).not.toContain('<textarea');
     expect(html).not.toContain('What are you naming?');
   });
