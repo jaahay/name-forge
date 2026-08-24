@@ -86,18 +86,25 @@ describe('ConfigureTray criteria surface', () => {
     expect(advancedHtml).not.toContain('Advanced tuning');
   });
 
-  it('uses semantic choices instead of numeric criterion tuning', () => {
+  it('uses visible semantic radio groups instead of numeric criterion tuning', () => {
     const html = renderConfigureTray();
     const criteriaStart = html.indexOf('<summary>More</summary>');
     const criteriaHtml = html.slice(criteriaStart);
 
     for (const label of ['Familiar', 'Readable', 'Compact', 'Style', 'Spelling']) {
-      expect(criteriaHtml).toContain(`<span>${label}</span>`);
+      expect(criteriaHtml).toContain(`<legend>${label}</legend>`);
     }
-    for (const choice of ['Unusual', 'Familiar', 'Clear', 'Longer', 'Compact', 'Close', 'Plain', 'Distinctive']) {
-      expect(criteriaHtml).toContain(`>${choice}</option>`);
+    for (const choice of ['Unusual', 'Familiar', 'Tricky', 'Clear', 'Elaborate', 'Compact', 'Loose', 'Faithful', 'Conventional', 'Distinctive']) {
+      expect(criteriaHtml).toContain(`<span>${choice}</span>`);
     }
 
+    expect((criteriaHtml.match(/class="semantic-score-options"/g) ?? []).length).toBe(5);
+    expect((criteriaHtml.match(/type="radio"/g) ?? []).length).toBe(15);
+    expect(criteriaHtml).toContain('name="score-novelty"');
+    expect(criteriaHtml).toContain('name="score-pronounceability"');
+    expect(criteriaHtml).toContain('name="score-memorability"');
+    expect(criteriaHtml).toContain('name="score-culturalAnchoring"');
+    expect(criteriaHtml).toContain('name="score-orthographicWeirdness"');
     expect(html).not.toContain('type="range"');
     expect(criteriaHtml).not.toContain('type="number"');
     expect(criteriaHtml).not.toContain('<datalist');
