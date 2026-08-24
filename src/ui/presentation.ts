@@ -26,7 +26,7 @@ export const primaryScoreControls: ScoreControlDefinition[] = [
   {
     key: 'novelty',
     label: 'Familiar',
-    help: 'Choose how familiar or unusual the generated name shapes should feel.',
+    help: 'Choose whether name shapes feel unusual or familiar.',
     choices: [
       { label: 'Unusual', value: 0.75 },
       { label: 'Balanced', value: 0.48 },
@@ -36,9 +36,9 @@ export const primaryScoreControls: ScoreControlDefinition[] = [
   {
     key: 'pronounceability',
     label: 'Readable',
-    help: 'Choose how strongly the generator favors easy first-sight reading.',
+    help: 'Choose whether a name feels tricky or clear to read aloud on first sight.',
     choices: [
-      { label: 'Loose', value: 0.35 },
+      { label: 'Tricky', value: 0.35 },
       { label: 'Balanced', value: 0.55 },
       { label: 'Clear', value: 0.72 },
     ],
@@ -49,9 +49,9 @@ export const advancedScoreControls: ScoreControlDefinition[] = [
   {
     key: 'memorability',
     label: 'Compact',
-    help: 'Choose how strongly the generator favors shorter, tighter name shapes.',
+    help: 'Choose whether name shapes feel elaborate or compact.',
     choices: [
-      { label: 'Longer', value: 0.35 },
+      { label: 'Elaborate', value: 0.35 },
       { label: 'Balanced', value: 0.5 },
       { label: 'Compact', value: 0.65 },
     ],
@@ -59,19 +59,19 @@ export const advancedScoreControls: ScoreControlDefinition[] = [
   {
     key: 'culturalAnchoring',
     label: 'Style',
-    help: 'Choose how closely names should follow the selected style pack.',
+    help: 'Choose how faithfully names follow the selected style pack.',
     choices: [
       { label: 'Loose', value: 0.35 },
       { label: 'Balanced', value: 0.62 },
-      { label: 'Close', value: 0.82 },
+      { label: 'Faithful', value: 0.82 },
     ],
   },
   {
     key: 'orthographicWeirdness',
     label: 'Spelling',
-    help: 'Choose how plain or distinctive generated spellings may be.',
+    help: 'Choose whether spellings stay conventional or become distinctive.',
     choices: [
-      { label: 'Plain', value: 0.28 },
+      { label: 'Conventional', value: 0.28 },
       { label: 'Balanced', value: 0.5 },
       { label: 'Distinctive', value: 0.72 },
     ],
