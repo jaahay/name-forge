@@ -240,7 +240,7 @@ export function ConfigureTray({
 
             <div className="actions" aria-label="Generation actions">
               <button type="submit">Generate</button>
-              <button type="button" className="secondary" onClick={onRandomizeSliders}>Shuffle criteria</button>
+              <button type="button" className="secondary" onClick={onRandomizeSliders}>Randomize criteria</button>
               {hasLockedNames ? (
                 <p className="lock-status">{lockedCount} locked. Generate keeps locked names and rerolls the rest. <button type="button" className="anchor-button" onClick={onClearLockedNames}>Clear</button></p>
               ) : null}
