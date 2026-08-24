@@ -49,9 +49,9 @@ export const advancedScoreControls: ScoreControlDefinition[] = [
   {
     key: 'memorability',
     label: 'Compact',
-    help: 'Choose whether name shapes feel elaborate or compact.',
+    help: 'Choose whether name shapes feel extended or compact.',
     choices: [
-      { label: 'Elaborate', value: 0.35 },
+      { label: 'Extended', value: 0.35 },
       { label: 'Balanced', value: 0.5 },
       { label: 'Compact', value: 0.65 },
     ],
