@@ -1,16 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import { fictionCastMode } from './modes';
 import { closestScoreChoice, scoreControls } from './presentation';
-import { randomizeScoreSettings } from './score';
+import { normalizeScoreSettings, randomizeScoreSettings } from './score';
 
 describe('semantic Fiction Cast criteria', () => {
-  it('defines three stable choices for each scalar criterion', () => {
-    expect(scoreControls.map((control) => control.label)).toEqual([
-      'Familiar',
-      'Readable',
-      'Compact',
-      'Style',
-      'Spelling',
+  it('defines three clear stable choices for each scalar criterion', () => {
+    expect(scoreControls.map((control) => ({
+      label: control.label,
+      choices: control.choices.map((choice) => choice.label),
+    }))).toEqual([
+      { label: 'Familiar', choices: ['Unusual', 'Balanced', 'Familiar'] },
+      { label: 'Readable', choices: ['Tricky', 'Balanced', 'Clear'] },
+      { label: 'Compact', choices: ['Elaborate', 'Balanced', 'Compact'] },
+      { label: 'Style', choices: ['Loose', 'Balanced', 'Faithful'] },
+      { label: 'Spelling', choices: ['Conventional', 'Balanced', 'Distinctive'] },
     ]);
 
     for (const control of scoreControls) {
@@ -34,16 +37,36 @@ describe('semantic Fiction Cast criteria', () => {
   it('preserves every current default as an exact semantic target', () => {
     const defaults = fictionCastMode.defaultSettings('test-style');
 
+    expect(normalizeScoreSettings(defaults)).toEqual(defaults);
     for (const control of scoreControls) {
       const currentValue = Number(defaults[control.key]);
       expect(closestScoreChoice(control, currentValue).value).toBe(currentValue);
     }
   });
 
-  it('maps legacy intermediate values deterministically to the nearest choice', () => {
-    const familiarControl = scoreControls.find((control) => control.key === 'novelty');
-    expect(familiarControl).toBeDefined();
-    expect(closestScoreChoice(familiarControl!, 0.4).label).toBe('Balanced');
+  it('normalizes legacy intermediate values to the exact nearest semantic targets', () => {
+    const defaults = fictionCastMode.defaultSettings('test-style');
+    const normalized = normalizeScoreSettings({
+      ...defaults,
+      seed: 'legacy-seed',
+      novelty: 0.4,
+      pronounceability: 0.6,
+      memorability: 0.58,
+      culturalAnchoring: 0.74,
+      orthographicWeirdness: 0.4,
+    });
+
+    expect(normalized.novelty).toBe(0.48);
+    expect(normalized.pronounceability).toBe(0.55);
+    expect(normalized.memorability).toBe(0.65);
+    expect(normalized.culturalAnchoring).toBe(0.82);
+    expect(normalized.orthographicWeirdness).toBe(0.5);
+    expect(normalized.seed).toBe('legacy-seed');
+
+    for (const control of scoreControls) {
+      const supportedValues = control.choices.map((choice) => choice.value);
+      expect(supportedValues).toContain(Number(normalized[control.key]));
+    }
   });
 
   it('keeps the cast-level shuffle on supported semantic values', () => {
