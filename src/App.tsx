@@ -18,11 +18,11 @@ import { GeneratorView } from './ui/GeneratorView';
 import { fictionCastMode, gameNpcMode, type NamingModeId } from './ui/modes';
 import type { AppView } from './ui/presentation';
 import { RecentNamesView } from './ui/RecentNamesView';
-import { normalizeScoreSettings, randomizeScoreSettings } from './ui/score';
+import { randomizeScoreSettings } from './ui/score';
 
 const registry = createDefaultRegistry();
 const stylePacks = registry.listStylePacks();
-const initialSettings = normalizeScoreSettings(fictionCastMode.defaultSettings(stylePacks[0]?.id ?? 'british-literary-fantasy'));
+const initialSettings = fictionCastMode.defaultSettings(stylePacks[0]?.id ?? 'british-literary-fantasy');
 const initialEnsemble = generateEnsemble(initialSettings, registry);
 const authorSiteUrl = 'https://jameshay.org/';
 const sourceUrl = 'https://github.com/jaahay/name-forge';
@@ -82,14 +82,12 @@ export default function App() {
   }
 
   function updateSetting<K extends keyof FictionCastSettings>(key: K, value: FictionCastSettings[K]) {
-    setSettings((current) => normalizeScoreSettings({ ...current, [key]: value }));
+    setSettings((current) => ({ ...current, [key]: value }));
   }
 
   function commitGeneration(nextSettings: FictionCastSettings, nextLockedNameIds = lockedNameIds) {
-    const normalizedSettings = normalizeScoreSettings(nextSettings);
-    const nextEnsemble = generateEnsemble(normalizedSettings, registry, lockedSlotsFor(ensemble, nextLockedNameIds));
-    setSettings(normalizedSettings);
-    setCommittedSettings(normalizedSettings);
+    const nextEnsemble = generateEnsemble(nextSettings, registry, lockedSlotsFor(ensemble, nextLockedNameIds));
+    setCommittedSettings(nextSettings);
     setEnsemble(nextEnsemble);
     setLockedNameIds(retainedLockIds(nextEnsemble, nextLockedNameIds));
   }
