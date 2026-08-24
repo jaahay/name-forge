@@ -23,6 +23,7 @@ interface ConfigureTrayProps {
   settings: FictionCastSettings;
   committedSettings?: FictionCastSettings;
   isOpen: boolean;
+  hasGeneratedCast: boolean;
   lockedCount: number;
   onOpen: () => void;
   onClose: () => void;
@@ -58,6 +59,7 @@ export function ConfigureTray({
   settings,
   committedSettings,
   isOpen,
+  hasGeneratedCast,
   lockedCount,
   onOpen,
   onClose,
@@ -79,6 +81,8 @@ export function ConfigureTray({
   const summaryItems = [summaryStylePack, `${clampCastSize(summarySettings.castSize)} names`, labelForFormat(summarySettings.nameFormat)];
   const hasLockedNames = lockedCount > 0;
   const castSizeLabel = `${mode.shortLabel} size`;
+  const launcherGenerateLabel = hasGeneratedCast ? 'Regenerate' : 'Start cast';
+  const drawerGenerateLabel = hasGeneratedCast ? 'Generate' : 'Start cast';
 
   useEffect(() => {
     const focusTarget = resolveConfigureFocusTarget(wasOpenRef.current, isOpen);
@@ -127,7 +131,7 @@ export function ConfigureTray({
         >
           Configure
         </button>
-        <button type="button" onClick={() => onGenerate()}>Regenerate</button>
+        <button type="button" onClick={() => onGenerate()}>{launcherGenerateLabel}</button>
         {hasLockedNames ? <span className="configure-lock-count">{lockedCount} locked</span> : null}
       </div>
 
@@ -239,7 +243,7 @@ export function ConfigureTray({
             </details>
 
             <div className="actions" aria-label="Generation actions">
-              <button type="submit">Generate</button>
+              <button type="submit">{drawerGenerateLabel}</button>
               <button type="button" className="secondary" onClick={onRandomizeSliders}>Randomize criteria</button>
               {hasLockedNames ? (
                 <p className="lock-status">{lockedCount} locked. Generate keeps locked names and rerolls the rest. <button type="button" className="anchor-button" onClick={onClearLockedNames}>Clear</button></p>
