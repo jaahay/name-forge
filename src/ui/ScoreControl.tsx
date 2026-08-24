@@ -1,4 +1,4 @@
-import { closestScoreChoice, type ControlKey, type ScoreControlDefinition } from './presentation';
+import type { ControlKey, ScoreControlDefinition } from './presentation';
 
 interface ScoreControlProps {
   control: ScoreControlDefinition;
@@ -7,8 +7,6 @@ interface ScoreControlProps {
 }
 
 export function ScoreControl({ control, value, onChange }: ScoreControlProps) {
-  const selectedChoice = closestScoreChoice(control, value);
-
   return (
     <fieldset className="semantic-score-control" title={control.help}>
       <legend>{control.label}</legend>
@@ -22,7 +20,7 @@ export function ScoreControl({ control, value, onChange }: ScoreControlProps) {
                 type="radio"
                 name={`score-${control.key}`}
                 value={String(choice.value)}
-                checked={selectedChoice.value === choice.value}
+                checked={value === choice.value}
                 onChange={() => onChange(control.key, choice.value)}
               />
               <span>{choice.label}</span>
