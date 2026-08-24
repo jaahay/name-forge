@@ -4,7 +4,6 @@ import type { FictionCastSettings } from '../fictionCast/types';
 import { createDefaultRegistry } from '../engine/registry';
 import { ConfigureTray } from './ConfigureTray';
 import { fictionCastMode } from './modes';
-import type { ControlKey } from './presentation';
 
 const registry = createDefaultRegistry();
 const stylePacks = registry.listStylePacks();
@@ -28,7 +27,6 @@ function renderConfigureTray(overrides: Partial<FictionCastSettings> = {}, isOpe
       onGenerate={() => {}}
       onCommitSettings={() => {}}
       onRandomizeSliders={() => {}}
-      onRandomizeSlider={(_: ControlKey) => {}}
       onClearLockedNames={() => {}}
     />,
   );
@@ -88,6 +86,37 @@ describe('ConfigureTray criteria surface', () => {
     expect(advancedHtml).not.toContain('Advanced tuning');
   });
 
+  it('uses visible semantic radio groups instead of numeric criterion tuning', () => {
+    const html = renderConfigureTray();
+    const criteriaStart = html.indexOf('<summary>More</summary>');
+    const criteriaHtml = html.slice(criteriaStart);
+
+    for (const label of ['Familiar', 'Readable', 'Compact', 'Style', 'Spelling']) {
+      expect(criteriaHtml).toContain(`<legend>${label}</legend>`);
+    }
+    for (const choice of ['Unusual', 'Familiar', 'Tricky', 'Clear', 'Extended', 'Compact', 'Loose', 'Faithful', 'Conventional', 'Distinctive']) {
+      expect(criteriaHtml).toContain(`<span>${choice}</span>`);
+    }
+
+    expect((criteriaHtml.match(/class="semantic-score-options"/g) ?? []).length).toBe(5);
+    expect((criteriaHtml.match(/type="radio"/g) ?? []).length).toBe(15);
+    expect(criteriaHtml).toContain('name="score-novelty"');
+    expect(criteriaHtml).toContain('name="score-pronounceability"');
+    expect(criteriaHtml).toContain('name="score-memorability"');
+    expect(criteriaHtml).toContain('name="score-culturalAnchoring"');
+    expect(criteriaHtml).toContain('name="score-orthographicWeirdness"');
+    expect(html).not.toContain('type="range"');
+    expect(criteriaHtml).not.toContain('type="number"');
+    expect(criteriaHtml).not.toContain('<datalist');
+    expect(criteriaHtml).not.toContain('anchor values');
+    expect(criteriaHtml).not.toContain('Shuffle Familiar');
+    expect(criteriaHtml).not.toContain('Shuffle Readable');
+    expect(criteriaHtml).not.toContain('Shuffle Compact');
+    expect(criteriaHtml).not.toContain('Shuffle Style');
+    expect(criteriaHtml).not.toContain('Shuffle Spelling');
+    expect(html).toContain('>Randomize criteria</button>');
+  });
+
   it('uses a durable Configure launcher instead of a collapsed Generation summary', () => {
     const html = renderConfigureTray({ castSize: 8, nameFormat: 'mixed' }, false);
 
@@ -118,7 +147,7 @@ describe('ConfigureTray criteria surface', () => {
     const html = renderConfigureTray();
 
     expect(html).toContain('Generate');
-    expect(html).toContain('Shuffle feel');
+    expect(html).toContain('Randomize criteria');
     expect(html).not.toContain('<textarea');
     expect(html).not.toContain('What are you naming?');
   });
