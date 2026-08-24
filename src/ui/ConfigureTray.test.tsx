@@ -10,7 +10,11 @@ const stylePacks = registry.listStylePacks();
 const stylePackId = stylePacks[0]?.id ?? 'british-literary-fantasy';
 const settings = fictionCastMode.defaultSettings(stylePackId);
 
-function renderConfigureTray(overrides: Partial<FictionCastSettings> = {}, isOpen = true): string {
+function renderConfigureTray(
+  overrides: Partial<FictionCastSettings> = {},
+  isOpen = true,
+  hasGeneratedCast = true,
+): string {
   const renderedSettings = { ...settings, ...overrides };
 
   return renderToStaticMarkup(
@@ -20,6 +24,7 @@ function renderConfigureTray(overrides: Partial<FictionCastSettings> = {}, isOpe
       settings={renderedSettings}
       committedSettings={renderedSettings}
       isOpen={isOpen}
+      hasGeneratedCast={hasGeneratedCast}
       lockedCount={0}
       onOpen={() => {}}
       onClose={() => {}}
@@ -129,6 +134,16 @@ describe('ConfigureTray criteria surface', () => {
     expect(html).not.toContain('>Tune</button>');
     expect(html).not.toContain('role="dialog"');
     expect(html).not.toContain('Configure criteria');
+  });
+
+  it('uses Start cast before the first generated ensemble', () => {
+    const closedHtml = renderConfigureTray({}, false, false);
+    const openHtml = renderConfigureTray({}, true, false);
+
+    expect(closedHtml).toContain('>Configure</button>');
+    expect(closedHtml).toContain('>Start cast</button>');
+    expect(closedHtml).not.toContain('>Regenerate</button>');
+    expect(openHtml).toContain('<button type="submit">Start cast</button>');
   });
 
   it('exposes the open Configure surface as a labelled drawer with an explicit close control', () => {
