@@ -80,12 +80,6 @@ export const advancedScoreControls: ScoreControlDefinition[] = [
 
 export const scoreControls = [...primaryScoreControls, ...advancedScoreControls];
 
-export function closestScoreChoice(control: ScoreControlDefinition, value: number): SemanticScoreChoice {
-  return control.choices.reduce((closest, choice) => (
-    Math.abs(choice.value - value) < Math.abs(closest.value - value) ? choice : closest
-  ));
-}
-
 export const scorePresentation: Array<{ key: ScoreKey; label: string }> = [
   { key: 'pronounceability', label: 'Pronounce' },
   { key: 'memorability', label: 'Memorable' },
