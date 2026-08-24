@@ -11,7 +11,7 @@ describe('semantic Fiction Cast criteria', () => {
     }))).toEqual([
       { label: 'Familiar', choices: ['Unusual', 'Balanced', 'Familiar'] },
       { label: 'Readable', choices: ['Tricky', 'Balanced', 'Clear'] },
-      { label: 'Compact', choices: ['Elaborate', 'Balanced', 'Compact'] },
+      { label: 'Compact', choices: ['Extended', 'Balanced', 'Compact'] },
       { label: 'Style', choices: ['Loose', 'Balanced', 'Faithful'] },
       { label: 'Spelling', choices: ['Conventional', 'Balanced', 'Distinctive'] },
     ]);
