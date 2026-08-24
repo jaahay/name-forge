@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App';
 import './styles.css';
 import './cast-mode.css';
+import './semantic-score-controls.css';
 import './inspect-actions.css';
 import './recent-names.css';
 import './cast-workbench.css';
