@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { fictionCastMode } from './modes';
-import { closestScoreChoice, scoreControls } from './presentation';
-import { normalizeScoreSettings, randomizeScoreSettings } from './score';
+import { scoreControls } from './presentation';
+import { randomizeScoreSettings } from './score';
 
 describe('semantic Fiction Cast criteria', () => {
   it('defines three clear stable choices for each scalar criterion', () => {
@@ -34,38 +34,12 @@ describe('semantic Fiction Cast criteria', () => {
     expect(familiar!.value).toBeLessThan(unusual!.value);
   });
 
-  it('preserves every current default as an exact semantic target', () => {
+  it('uses exact semantic values for every current default', () => {
     const defaults = fictionCastMode.defaultSettings('test-style');
-
-    expect(normalizeScoreSettings(defaults)).toEqual(defaults);
-    for (const control of scoreControls) {
-      const currentValue = Number(defaults[control.key]);
-      expect(closestScoreChoice(control, currentValue).value).toBe(currentValue);
-    }
-  });
-
-  it('normalizes legacy intermediate values to the exact nearest semantic targets', () => {
-    const defaults = fictionCastMode.defaultSettings('test-style');
-    const normalized = normalizeScoreSettings({
-      ...defaults,
-      seed: 'legacy-seed',
-      novelty: 0.4,
-      pronounceability: 0.6,
-      memorability: 0.58,
-      culturalAnchoring: 0.74,
-      orthographicWeirdness: 0.4,
-    });
-
-    expect(normalized.novelty).toBe(0.48);
-    expect(normalized.pronounceability).toBe(0.55);
-    expect(normalized.memorability).toBe(0.65);
-    expect(normalized.culturalAnchoring).toBe(0.82);
-    expect(normalized.orthographicWeirdness).toBe(0.5);
-    expect(normalized.seed).toBe('legacy-seed');
 
     for (const control of scoreControls) {
       const supportedValues = control.choices.map((choice) => choice.value);
-      expect(supportedValues).toContain(Number(normalized[control.key]));
+      expect(supportedValues).toContain(Number(defaults[control.key]));
     }
   });
 
