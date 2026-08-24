@@ -9,6 +9,7 @@ import './recent-names.css';
 import './cast-workbench.css';
 import './cast-interactions.css';
 import './adaptive-name-rail.css';
+import './cast-lifecycle.css';
 
 const root = document.getElementById('root');
 
