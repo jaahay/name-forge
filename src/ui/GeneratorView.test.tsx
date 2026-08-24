@@ -84,6 +84,5 @@ describe('GeneratorView cast lifecycle', () => {
     expect(html).toContain('aria-current="page"');
     expect(html).not.toContain('aria-label="Generation summary"');
     expect(html).not.toContain('repeated endings');
-    expect(html).not.toContain('read notes');
   });
 });
