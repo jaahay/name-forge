@@ -87,12 +87,18 @@ export default function App({ rememberedCasts = [] }: AppProps = {}) {
     setHistory(clearNameHistory(browserStorage()));
   }
 
+  function detachRememberedCast() {
+    setActiveRememberedCastId(undefined);
+  }
+
   function updateSetting<K extends keyof FictionCastSettings>(key: K, value: FictionCastSettings[K]) {
+    detachRememberedCast();
     setSettings((current) => ({ ...current, [key]: value }));
   }
 
   function commitGeneration(nextSettings: FictionCastSettings, nextLockedNameIds = lockedNameIds) {
     const nextEnsemble = generateEnsemble(nextSettings, registry, lockedSlotsFor(ensemble, nextLockedNameIds));
+    detachRememberedCast();
     setCommittedSettings(nextSettings);
     setEnsemble(nextEnsemble);
     setLockedNameIds(retainedLockIds(nextEnsemble, nextLockedNameIds));
@@ -128,6 +134,7 @@ export default function App({ rememberedCasts = [] }: AppProps = {}) {
     );
     if (!result) return undefined;
 
+    detachRememberedCast();
     setSettings((current) => ({ ...current, seed: result.committedSettings.seed }));
     setCommittedSettings(result.committedSettings);
     setEnsemble(result.ensemble);
@@ -136,6 +143,7 @@ export default function App({ rememberedCasts = [] }: AppProps = {}) {
   }
 
   function toggleLockedName(id: string) {
+    detachRememberedCast();
     setLockedNameIds((current) => {
       const next = new Set(current);
       if (next.has(id)) next.delete(id);
@@ -145,6 +153,7 @@ export default function App({ rememberedCasts = [] }: AppProps = {}) {
   }
 
   function clearLockedNames() {
+    detachRememberedCast();
     setLockedNameIds(new Set());
   }
 
