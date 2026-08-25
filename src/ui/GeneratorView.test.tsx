@@ -38,7 +38,7 @@ function renderGenerator(
       onUpdateSetting={() => {}}
       onGenerate={() => {}}
       onCommitSettings={() => {}}
-      onRandomizeSliders={() => {}}
+      onRandomizeCriteria={() => {}}
       onRerollName={() => undefined}
       onToggleLockedName={() => {}}
       onClearLockedNames={() => {}}
