@@ -26,7 +26,7 @@ interface GeneratorViewProps {
   onUpdateSetting: <K extends keyof FictionCastSettings>(key: K, value: FictionCastSettings[K]) => void;
   onGenerate: (event?: FormEvent<HTMLFormElement>) => void;
   onCommitSettings: () => void;
-  onRandomizeSliders: () => void;
+  onRandomizeCriteria: () => void;
   onRerollName: (id: string) => string | undefined;
   onToggleLockedName: (id: string) => void;
   onClearLockedNames: () => void;
@@ -53,7 +53,7 @@ export function GeneratorView({
   onUpdateSetting,
   onGenerate,
   onCommitSettings,
-  onRandomizeSliders,
+  onRandomizeCriteria,
   onRerollName,
   onToggleLockedName,
   onClearLockedNames,
@@ -89,7 +89,7 @@ export function GeneratorView({
 
   function randomizeFromConfigure() {
     dispatchConfigure('shuffle');
-    onRandomizeSliders();
+    onRandomizeCriteria();
   }
 
   function rerollSelectedName() {
@@ -152,7 +152,7 @@ export function GeneratorView({
           onUpdateSetting={onUpdateSetting}
           onGenerate={generateFromConfigure}
           onCommitSettings={onCommitSettings}
-          onRandomizeSliders={randomizeFromConfigure}
+          onRandomizeCriteria={randomizeFromConfigure}
           onClearLockedNames={onClearLockedNames}
         />
 
