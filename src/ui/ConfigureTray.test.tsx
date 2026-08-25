@@ -31,7 +31,7 @@ function renderConfigureTray(
       onUpdateSetting={() => {}}
       onGenerate={() => {}}
       onCommitSettings={() => {}}
-      onRandomizeSliders={() => {}}
+      onRandomizeCriteria={() => {}}
       onClearLockedNames={() => {}}
     />,
   );
