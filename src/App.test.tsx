@@ -54,11 +54,11 @@ describe('App', () => {
     const html = renderToString(<App rememberedCasts={[rememberedCast]} />);
 
     expect(html).toContain('aria-label="Fiction Cast workspaces"');
-    expect(html).toContain('aria-label="Open a new cast workspace"');
+    expect(html).toContain('aria-label="Start a new cast"');
     expect(html).toContain('aria-label="Remembered casts"');
     expect(html).toContain('>New Cast</button>');
     expect(html).toContain('>Court cast</button>');
-    expect(html).toContain('aria-current="page"');
+    expect(html).not.toContain('aria-current="page"');
     expect(html).toContain('>Start cast</button>');
     expect(html).not.toContain('Generated cast');
     expect(html).not.toContain('role="tablist"');
