@@ -30,7 +30,7 @@ interface ConfigureTrayProps {
   onUpdateSetting: <K extends keyof FictionCastSettings>(key: K, value: FictionCastSettings[K]) => void;
   onGenerate: (event?: FormEvent<HTMLFormElement>) => void;
   onCommitSettings: () => void;
-  onRandomizeSliders: () => void;
+  onRandomizeCriteria: () => void;
   onClearLockedNames: () => void;
 }
 
@@ -66,7 +66,7 @@ export function ConfigureTray({
   onUpdateSetting,
   onGenerate,
   onCommitSettings,
-  onRandomizeSliders,
+  onRandomizeCriteria,
   onClearLockedNames,
 }: ConfigureTrayProps) {
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -244,7 +244,7 @@ export function ConfigureTray({
 
             <div className="actions" aria-label="Generation actions">
               <button type="submit">{drawerGenerateLabel}</button>
-              <button type="button" className="secondary" onClick={onRandomizeSliders}>Randomize criteria</button>
+              <button type="button" className="secondary" onClick={onRandomizeCriteria}>Randomize criteria</button>
               {hasLockedNames ? (
                 <p className="lock-status">{lockedCount} locked. Generate keeps locked names and rerolls the rest. <button type="button" className="anchor-button" onClick={onClearLockedNames}>Clear</button></p>
               ) : null}
