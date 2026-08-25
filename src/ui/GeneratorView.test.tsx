@@ -51,11 +51,12 @@ describe('GeneratorView cast lifecycle', () => {
     const html = renderGenerator(null);
 
     expect(html).toContain('aria-label="Fiction Cast workspaces"');
-    expect(html).toContain('aria-label="Open a new cast workspace"');
+    expect(html).toContain('aria-label="Start a new cast"');
     expect(html).toContain('aria-label="Remembered casts"');
     expect(html).toContain('>New Cast</button>');
     expect(html).toContain('>Court cast</button>');
     expect(html).toContain('>Start cast</button>');
+    expect(html).not.toContain('aria-current="page"');
     expect(html).not.toContain('>Regenerate</button>');
     expect(html).not.toContain('aria-label="Generation summary"');
     expect(html).not.toContain('repeated endings');
@@ -68,6 +69,7 @@ describe('GeneratorView cast lifecycle', () => {
     const html = renderGenerator(ensemble, rememberedCast.id);
 
     for (const expected of [
+      'aria-label="Start a new cast"',
       '>Court cast</button>',
       '>Regenerate</button>',
       '>Names</h2>',
@@ -81,7 +83,8 @@ describe('GeneratorView cast lifecycle', () => {
       expect(html).toContain(expected);
     }
 
-    expect(html).toContain('aria-current="page"');
+    expect(html.match(/aria-current="page"/g)).toHaveLength(1);
+    expect(html).toContain('aria-current="page">Court cast</button>');
     expect(html).not.toContain('aria-label="Generation summary"');
     expect(html).not.toContain('repeated endings');
   });
