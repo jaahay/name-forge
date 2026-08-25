@@ -214,7 +214,7 @@ export default function App({ rememberedCasts = [] }: AppProps = {}) {
             onUpdateSetting={updateSetting}
             onGenerate={generate}
             onCommitSettings={commitCurrentSettings}
-            onRandomizeSliders={randomizeCriteria}
+            onRandomizeCriteria={randomizeCriteria}
             onRerollName={rerollSelectedName}
             onToggleLockedName={toggleLockedName}
             onClearLockedNames={clearLockedNames}
