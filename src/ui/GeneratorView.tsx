@@ -116,8 +116,7 @@ export function GeneratorView({
             <button
               type="button"
               className="secondary"
-              aria-label="Open a new cast workspace"
-              aria-current={activeRememberedCastId ? undefined : 'page'}
+              aria-label="Start a new cast"
               onClick={onStartNewCast}
             >
               New Cast
