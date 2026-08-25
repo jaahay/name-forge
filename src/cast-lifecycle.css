@@ -1,0 +1,82 @@
+/* Fiction Cast new-workspace and remembered-cast navigation. */
+
+.cast-workspace-nav {
+  display: flex;
+  gap: 0.45rem;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.remembered-cast-nav {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.cast-workspace-nav button {
+  width: auto;
+  max-width: 16rem;
+  padding: 0.48rem 0.72rem;
+  border: 1px solid rgba(240, 184, 95, 0.18);
+  color: #cdbd9f;
+  background: rgba(255, 255, 255, 0.045);
+  box-shadow: none;
+  font-size: 0.7rem;
+  font-weight: 850;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cast-workspace-nav button:hover,
+.cast-workspace-nav button:focus-visible {
+  border-color: rgba(240, 184, 95, 0.48);
+  color: #f8d99f;
+  background: rgba(240, 184, 95, 0.08);
+}
+
+.cast-workspace-nav button:focus-visible {
+  outline: 2px solid rgba(240, 184, 95, 0.72);
+  outline-offset: 0.15rem;
+}
+
+.cast-workspace-nav button[aria-current='page'] {
+  border-color: rgba(240, 184, 95, 0.5);
+  color: #1a130b;
+  background: #f0b85f;
+}
+
+.new-cast-workbench {
+  min-height: min(44vh, 28rem);
+  align-content: start;
+}
+
+.new-cast-workbench .configure-launcher {
+  position: static;
+  justify-self: center;
+  margin-top: clamp(2.4rem, 8vh, 5rem);
+}
+
+@media (max-width: 720px) {
+  .app-header:has(.cast-workspace-nav) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cast-workspace-nav,
+  .remembered-cast-nav {
+    justify-content: flex-start;
+  }
+
+  .cast-workspace-nav {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .cast-workspace-nav button {
+    max-width: min(100%, 18rem);
+  }
+}

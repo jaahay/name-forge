@@ -1,5 +1,6 @@
 import { FormEvent, useState } from 'react';
 import { generateEnsemble, type LockedNameSlot } from './fictionCast/ensemble';
+import type { FictionCastRememberedCast } from './fictionCast/rememberedCast';
 import type { FictionCastGeneratedEnsemble, FictionCastSettings } from './fictionCast/types';
 import {
   addNameHistoryEntries,
@@ -23,10 +24,13 @@ import { randomizeScoreSettings } from './ui/score';
 const registry = createDefaultRegistry();
 const stylePacks = registry.listStylePacks();
 const initialSettings = fictionCastMode.defaultSettings(stylePacks[0]?.id ?? 'british-literary-fantasy');
-const initialEnsemble = generateEnsemble(initialSettings, registry);
 const authorSiteUrl = 'https://jameshay.org/';
 const sourceUrl = 'https://github.com/jaahay/name-forge';
 const commitHistoryUrl = `${sourceUrl}/commits/main/`;
+
+interface AppProps {
+  rememberedCasts?: readonly FictionCastRememberedCast[];
+}
 
 function browserStorage(): NameHistoryStorage | undefined {
   if (typeof window === 'undefined') return undefined;
@@ -42,7 +46,8 @@ function createRandomSeed(): string {
   return `name-forge-${Math.random().toString(36).slice(2, 10)}`;
 }
 
-function lockedSlotsFor(ensemble: FictionCastGeneratedEnsemble, lockedNameIds: Set<string>): LockedNameSlot[] {
+function lockedSlotsFor(ensemble: FictionCastGeneratedEnsemble | null, lockedNameIds: Set<string>): LockedNameSlot[] {
+  if (!ensemble) return [];
   return ensemble.names.flatMap((name, index) => (lockedNameIds.has(name.id) ? [{ index, name }] : []));
 }
 
@@ -51,12 +56,13 @@ function retainedLockIds(ensemble: FictionCastGeneratedEnsemble, lockedNameIds: 
   return new Set([...lockedNameIds].filter((id) => visibleIds.has(id)));
 }
 
-export default function App() {
+export default function App({ rememberedCasts = [] }: AppProps = {}) {
   const [currentView, setCurrentView] = useState<AppView>('generator');
   const [activeModeId, setActiveModeId] = useState<NamingModeId>('fiction-cast');
   const [settings, setSettings] = useState<FictionCastSettings>(initialSettings);
   const [committedSettings, setCommittedSettings] = useState<FictionCastSettings>(initialSettings);
-  const [ensemble, setEnsemble] = useState<FictionCastGeneratedEnsemble>(initialEnsemble);
+  const [ensemble, setEnsemble] = useState<FictionCastGeneratedEnsemble | null>(null);
+  const [activeRememberedCastId, setActiveRememberedCastId] = useState<string>();
   const [lockedNameIds, setLockedNameIds] = useState<Set<string>>(() => new Set());
   const [history, setHistory] = useState(() => loadNameHistory(browserStorage()));
 
@@ -81,12 +87,18 @@ export default function App() {
     setHistory(clearNameHistory(browserStorage()));
   }
 
+  function detachRememberedCast() {
+    setActiveRememberedCastId(undefined);
+  }
+
   function updateSetting<K extends keyof FictionCastSettings>(key: K, value: FictionCastSettings[K]) {
+    detachRememberedCast();
     setSettings((current) => ({ ...current, [key]: value }));
   }
 
   function commitGeneration(nextSettings: FictionCastSettings, nextLockedNameIds = lockedNameIds) {
     const nextEnsemble = generateEnsemble(nextSettings, registry, lockedSlotsFor(ensemble, nextLockedNameIds));
+    detachRememberedCast();
     setCommittedSettings(nextSettings);
     setEnsemble(nextEnsemble);
     setLockedNameIds(retainedLockIds(nextEnsemble, nextLockedNameIds));
@@ -100,16 +112,19 @@ export default function App() {
   }
 
   function commitCurrentSettings() {
+    if (!ensemble) return;
     commitGeneration(settings);
   }
 
   function randomizeCriteria() {
     const randomizedSettings = randomizeScoreSettings(settings);
     setSettings(randomizedSettings);
-    commitGeneration(randomizedSettings);
+    if (ensemble) commitGeneration(randomizedSettings);
   }
 
   function rerollSelectedName(id: string): string | undefined {
+    if (!ensemble) return undefined;
+
     const result = rerollSelectedCastName(
       ensemble,
       id,
@@ -119,6 +134,7 @@ export default function App() {
     );
     if (!result) return undefined;
 
+    detachRememberedCast();
     setSettings((current) => ({ ...current, seed: result.committedSettings.seed }));
     setCommittedSettings(result.committedSettings);
     setEnsemble(result.ensemble);
@@ -127,6 +143,7 @@ export default function App() {
   }
 
   function toggleLockedName(id: string) {
+    detachRememberedCast();
     setLockedNameIds((current) => {
       const next = new Set(current);
       if (next.has(id)) next.delete(id);
@@ -136,7 +153,24 @@ export default function App() {
   }
 
   function clearLockedNames() {
+    detachRememberedCast();
     setLockedNameIds(new Set());
+  }
+
+  function startNewCast() {
+    setSettings(initialSettings);
+    setCommittedSettings(initialSettings);
+    setEnsemble(null);
+    setActiveRememberedCastId(undefined);
+    setLockedNameIds(new Set());
+  }
+
+  function loadRememberedCast(rememberedCast: FictionCastRememberedCast) {
+    setSettings(rememberedCast.ensemble.settings);
+    setCommittedSettings(rememberedCast.ensemble.settings);
+    setEnsemble(rememberedCast.ensemble);
+    setActiveRememberedCastId(rememberedCast.id);
+    setLockedNameIds(retainedLockIds(rememberedCast.ensemble, new Set(rememberedCast.lockedNameIds)));
   }
 
   return (
@@ -172,11 +206,15 @@ export default function App() {
             settings={settings}
             committedSettings={committedSettings}
             ensemble={ensemble}
+            rememberedCasts={rememberedCasts}
+            activeRememberedCastId={activeRememberedCastId}
             lockedNameIds={lockedNameIds}
+            onStartNewCast={startNewCast}
+            onLoadRememberedCast={loadRememberedCast}
             onUpdateSetting={updateSetting}
             onGenerate={generate}
             onCommitSettings={commitCurrentSettings}
-            onRandomizeSliders={randomizeCriteria}
+            onRandomizeCriteria={randomizeCriteria}
             onRerollName={rerollSelectedName}
             onToggleLockedName={toggleLockedName}
             onClearLockedNames={clearLockedNames}
