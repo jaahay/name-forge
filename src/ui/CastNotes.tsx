@@ -43,7 +43,7 @@ export function CastNotes({ names, onSelectName }: CastNotesProps) {
                       onClick={() => onSelectName(member.id)}
                     >
                       <span>{member.displayName}</span>
-                      {showSlot ? <small>Slot {slot}</small> : null}
+                      {showSlot ? <small> · Slot {slot}</small> : null}
                     </button>
                   );
                 })}
