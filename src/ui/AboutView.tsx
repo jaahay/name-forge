@@ -18,7 +18,7 @@ export function AboutView({ authorSiteUrl }: AboutViewProps) {
       <div className="about-grid">
         <article>
           <h2>Fiction Cast</h2>
-          <p>Generate and review a coherent but distinct ensemble of fictional character identities.</p>
+          <p>Generate and refine a coherent but distinct ensemble of fictional character identities.</p>
         </article>
         <article>
           <h2>Game NPC</h2>

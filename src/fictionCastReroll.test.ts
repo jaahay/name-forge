@@ -1,13 +1,9 @@
-import { createElement } from 'react';
-import { renderToString } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { generateEnsemble } from './fictionCast/ensemble';
-import { toFictionCastPrimaryNameArtifact } from './fictionCast/nameArtifact';
+import { findFictionCastCollisionNotes } from './fictionCast/ensembleCollisionNotes';
 import type { FictionCastSettings } from './fictionCast/types';
-import { analyzeNameArtifactSoundRelationships } from './engine/nameArtifactAnalysis';
 import { createDefaultRegistry } from './engine/registry';
 import { rerollSelectedCastName } from './fictionCastReroll';
-import { CastHealthPanel } from './ui/CastHealth';
 import { resolveSelectedNameId } from './ui/workbenchSelection';
 
 const settings: FictionCastSettings = {
@@ -67,49 +63,36 @@ describe('rerollSelectedCastName', () => {
     expect(result.ensemble.diagnostics).not.toBe(before.diagnostics);
   });
 
-  it('refreshes sound relationships from the post-reroll active roster', () => {
+  it('refreshes composed-identity collision notes from the post-reroll active roster', () => {
     const registry = createDefaultRegistry();
     const before = generateEnsemble(settings, registry);
     const anchor = before.names[0];
     const target = before.names[1];
 
-    if (!anchor || !target) throw new Error('Expected generated sound fixtures.');
+    if (!anchor || !target) throw new Error('Expected generated cast fixtures.');
 
-    const sentinelName = 'RetiredTargetSentinel';
     const sentinelTarget = {
       ...target,
       id: 'name-reroll-retired-target',
-      displayName: sentinelName,
-      primaryName: {
-        ...target.primaryName,
-        id: 'generated-reroll-retired-target',
-        name: sentinelName,
-        soundProfile: anchor.primaryName.soundProfile,
-        sound: anchor.primaryName.sound,
-        spelling: { ...target.primaryName.spelling, text: sentinelName, mappings: [] },
-        spellingCandidates: [{ ...target.primaryName.spelling, text: sentinelName, mappings: [], rank: 1 }],
-      },
-      identity: { ...target.identity, displayName: sentinelName },
+      displayName: anchor.displayName,
+      identity: { ...target.identity, displayName: anchor.displayName },
     };
     const beforeWithSentinel = {
       ...before,
       names: before.names.map((name, index) => (index === 1 ? sentinelTarget : name)),
     };
-    const beforeRelationships = analyzeNameArtifactSoundRelationships(beforeWithSentinel.names.map(toFictionCastPrimaryNameArtifact));
-    const beforeHtml = renderToString(createElement(CastHealthPanel, {
-      ensemble: beforeWithSentinel,
-      lockedNameIds: new Set<string>(),
-      onSelectName: () => {},
-    }));
+    const beforeNotes = findFictionCastCollisionNotes(beforeWithSentinel.names);
 
-    expect(beforeRelationships.some((relationship) => relationship.artifactIds.includes(sentinelTarget.id))).toBe(true);
-    expect(beforeHtml).toContain(sentinelName);
+    expect(beforeNotes.some((note) => (
+      note.kind === 'same-visible-identity'
+      && note.members.some((member) => member.id === sentinelTarget.id)
+    ))).toBe(true);
 
     const result = rerollSelectedCastName(
       beforeWithSentinel,
       sentinelTarget.id,
       new Set(),
-      'selected-reroll-sound-after',
+      'selected-reroll-collision-after',
       registry,
     );
 
@@ -117,18 +100,12 @@ describe('rerollSelectedCastName', () => {
     if (!result) throw new Error('Expected selected-name reroll to succeed.');
 
     const activeIds = new Set(result.ensemble.names.map((name) => name.id));
-    const afterRelationships = analyzeNameArtifactSoundRelationships(result.ensemble.names.map(toFictionCastPrimaryNameArtifact));
-    const afterHtml = renderToString(createElement(CastHealthPanel, {
-      ensemble: result.ensemble,
-      lockedNameIds: result.lockedNameIds,
-      onSelectName: () => {},
-    }));
+    const afterNotes = findFictionCastCollisionNotes(result.ensemble.names);
 
     expect(activeIds.has(sentinelTarget.id)).toBe(false);
     expect(activeIds.has(result.replacementId)).toBe(true);
-    expect(afterRelationships.every((relationship) => relationship.artifactIds.every((id) => activeIds.has(id)))).toBe(true);
-    expect(afterRelationships.some((relationship) => relationship.artifactIds.includes(sentinelTarget.id))).toBe(false);
-    expect(afterHtml).not.toContain(sentinelName);
+    expect(afterNotes.every((note) => note.members.every((member) => activeIds.has(member.id)))).toBe(true);
+    expect(afterNotes.some((note) => note.members.some((member) => member.id === sentinelTarget.id))).toBe(false);
   });
 
   it('returns the replacement id so inspection can remain on the same slot after identity changes', () => {

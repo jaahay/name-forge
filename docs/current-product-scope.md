@@ -20,7 +20,7 @@ Its shared product goal is:
 
 The two active product surfaces are:
 
-- **Fiction Cast:** generate and review a coherent but distinct ensemble of character identities.
+- **Fiction Cast:** generate and refine a coherent but distinct ensemble of character identities.
 - **Game NPC:** generate one usable name quickly for preparation or live play.
 
 The product focuses on naming. Character biographies, encounter generation, and general writing assistance are outside the current product job.
@@ -115,11 +115,13 @@ Current Fiction Cast capabilities include:
 - deterministic ensemble generation;
 - cast size, format, role mix, role influence, rarity, and tuning controls;
 - slot locks and selected-name reroll;
-- surface-owned contextual scoring and ensemble diagnostics;
-- same-roster sound relationship analysis;
-- Cast-ID navigation into the selected-name inspector;
+- surface-owned contextual scoring and internal ensemble diagnostics;
+- conditional collision notes over composed visible identities;
+- Cast-ID navigation from the name rail and collision notes into the selected-name inspector;
 - whole-identity and per-generated-component browser audition;
 - JSON and Markdown export of the Fiction Cast result.
+
+Fiction Cast collision notes are deliberately narrow. They report supported deterministic relationships on the composed `displayName` only when they identify concrete identities the user can inspect; they do not grade cast quality or surface primary-name sound analysis as if it described the whole composed identity.
 
 Fiction Cast export is surface-owned and currently serializes the composed display identity together with relevant primary-name sound, spelling, generation-plan, variant, and score evidence. It carries no public schema-version branding.
 
@@ -160,7 +162,7 @@ The exact shared runtime inventory contracts remain future bounded implementatio
 
 ## Analysis and human-facing evidence
 
-Name Forge may present deterministic evidence about generated structure, spelling alternatives, readability observations, and modeled sound relationships.
+Name Forge may present deterministic evidence about generated structure, spelling alternatives, readability observations, and modeled sound relationships when that evidence improves a concrete naming decision.
 
 Human-perception claims require separate evidence. The current boundary is:
 
@@ -168,7 +170,8 @@ Human-perception claims require separate evidence. The current boundary is:
 | --- | --- |
 | Readability diagnostics | Deterministic generated-text observations |
 | Browser audition | Approximate browser speech projection |
-| Same-roster sound relationships | Deterministic modeled-sound evidence |
+| Composed Fiction Cast collision notes | Conditional deterministic visible-identity relationships |
+| NameArtifact modeled-sound relationships | Reusable deterministic analysis; not ordinary composed-identity Cast review UI |
 | Pronounceability as a human metric | Research boundary |
 | Familiarity | Research boundary |
 | Memorability | Research boundary |
