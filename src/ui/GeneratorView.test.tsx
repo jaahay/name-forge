@@ -62,6 +62,8 @@ describe('GeneratorView cast lifecycle', () => {
     expect(html).not.toContain('repeated endings');
     expect(html).not.toContain('read notes');
     expect(html).not.toContain('Generated cast');
+    expect(html).not.toContain('Cast review');
+    expect(html).not.toContain('Cast notes');
     expect(html).not.toContain('<summary>Export</summary>');
   });
 
@@ -77,7 +79,6 @@ describe('GeneratorView cast lifecycle', () => {
       'role="tablist"',
       'role="tabpanel"',
       'Inspect',
-      'Cast review',
       '<summary>Export</summary>',
     ]) {
       expect(html).toContain(expected);
@@ -86,6 +87,7 @@ describe('GeneratorView cast lifecycle', () => {
     expect(html.match(/aria-current="page"/g)).toHaveLength(1);
     expect(html).toContain('aria-current="page">Court cast</button>');
     expect(html).not.toContain('aria-label="Generation summary"');
-    expect(html).not.toContain('repeated endings');
+    expect(html).not.toContain('Cast review');
+    expect(html).not.toContain('Sound relationships');
   });
 });
