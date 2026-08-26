@@ -117,11 +117,11 @@ Primary job:
 
 > Help me build a coherent but distinct ensemble of character names.
 
-Fiction Cast owns the surface semantics required by that job: roster construction, roles, locks, targeted reroll, cast review, composed identities, same-roster relationships, cross-name selection pressure, and cast export.
+Fiction Cast owns the surface semantics required by that job: roster construction, roles, locks, targeted reroll, composed identities, conditional composed-identity collision notes, cross-name selection pressure, and cast export.
 
 Fiction Cast primary given-name generation delegates through reusable `generateGivenName(...)`. Family/place supporting generation still uses generic `generateName(...)` in the current runtime, but #202 should add their accepted first-class wrappers while preserving the same singular primitive beneath them. Cast-specific roles, contextual scoring, rarity, composition, and aggregate behavior remain above those one-name mechanics.
 
-The aggregate operation that makes a cast coherent may remain Fiction Cast-specific. That specificity is compatible with a highly reusable lower naming library.
+The aggregate operation that makes a cast coherent may remain Fiction Cast-specific. That specificity is compatible with a highly reusable lower naming library. Aggregate analysis should appear in the product only when it helps the user locate a concrete naming decision; the surface should report supported deterministic relationships rather than grade the creative quality of the cast.
 
 ### Game NPC
 
