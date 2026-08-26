@@ -60,6 +60,23 @@ describe('CastNotes', () => {
     expect(html).not.toContain('⚠');
   });
 
+  it('disambiguates exact duplicate identities by roster slot', () => {
+    const [first, second, third] = generatedNames();
+    if (!first || !second || !third) throw new Error('Expected three generated names.');
+    const names = [
+      { ...first, displayName: 'Aveline Thorn' },
+      { ...second, displayName: 'Aveline Thorn' },
+      { ...third, displayName: 'Cedric Moss' },
+    ];
+    const html = renderToStaticMarkup(<CastNotes names={names} onSelectName={() => {}} />);
+
+    expect(html).toContain('Same visible identity');
+    expect(html).toContain('Inspect Aveline Thorn, slot 1, from cast notes');
+    expect(html).toContain('Inspect Aveline Thorn, slot 2, from cast notes');
+    expect(html).toContain('Slot 1');
+    expect(html).toContain('Slot 2');
+  });
+
   it('renders nothing when no supported collision exists', () => {
     const [first, second, third] = generatedNames();
     if (!first || !second || !third) throw new Error('Expected three generated names.');
