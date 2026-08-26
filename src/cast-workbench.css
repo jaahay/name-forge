@@ -1,4 +1,4 @@
-/* Fiction Cast workbench density, Inspector behavior, and Cast Review styling. */
+/* Fiction Cast workbench density, Inspector behavior, and Cast notes styling. */
 
 .configure-tray.collapsed {
   gap: 0;
@@ -200,14 +200,14 @@
   overflow-wrap: anywhere;
 }
 
-.cast-review {
+.cast-notes {
   overflow: hidden;
   border: 1px solid rgba(240, 184, 95, 0.12);
   border-radius: 0.9rem;
   background: rgba(255, 255, 255, 0.015);
 }
 
-.cast-review > summary {
+.cast-notes > summary {
   position: relative;
   display: flex;
   gap: 0.72rem;
@@ -218,11 +218,11 @@
   list-style: none;
 }
 
-.cast-review > summary::-webkit-details-marker {
+.cast-notes > summary::-webkit-details-marker {
   display: none;
 }
 
-.cast-review > summary::after {
+.cast-notes > summary::after {
   position: absolute;
   top: 50%;
   right: 0.82rem;
@@ -231,16 +231,16 @@
   transform: translateY(-52%);
 }
 
-.cast-review[open] > summary::after {
+.cast-notes[open] > summary::after {
   content: '−';
 }
 
-.cast-review > summary:hover {
+.cast-notes > summary:hover {
   color: #f4d59c;
   background: rgba(240, 184, 95, 0.035);
 }
 
-.cast-review > summary span {
+.cast-notes > summary span {
   color: inherit;
   font-size: 0.73rem;
   font-weight: 900;
@@ -248,40 +248,69 @@
   text-transform: uppercase;
 }
 
-.cast-review > summary small {
+.cast-notes > summary small {
   color: #82745f;
   font-size: 0.66rem;
   font-weight: 700;
 }
 
-.cast-review-body {
-  display: grid;
-  gap: 0.78rem;
+.cast-notes-body {
   padding: 0 0.78rem 0.78rem;
 }
 
-.cast-review-notes {
+.cast-note-list {
   display: grid;
-  gap: 0.52rem;
-  padding-top: 0.68rem;
-  border-top: 1px solid rgba(240, 184, 95, 0.1);
-}
-
-.cast-review-notes h2 {
+  gap: 0;
   margin: 0;
-  color: #f0b85f;
-  font-size: 0.68rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  padding: 0.68rem 0 0;
+  border-top: 1px solid rgba(240, 184, 95, 0.1);
+  list-style: none;
 }
 
-.cast-review .cast-health-list {
-  gap: 0.42rem;
+.cast-note {
+  display: grid;
+  gap: 0.38rem;
+  padding: 0.5rem 0;
 }
 
-.cast-review .sound-relationships {
-  padding-top: 0.7rem;
-  border-top-color: rgba(240, 184, 95, 0.1);
+.cast-note:first-child {
+  padding-top: 0;
+}
+
+.cast-note + .cast-note {
+  border-top: 1px solid rgba(255, 255, 255, 0.055);
+}
+
+.cast-note > strong {
+  color: #e7dccb;
+  font-size: 0.72rem;
+  font-weight: 820;
+}
+
+.cast-note-members {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.34rem;
+}
+
+.cast-note-member {
+  width: auto;
+  min-height: 2.25rem;
+  border: 1px solid rgba(240, 184, 95, 0.16);
+  border-radius: 0.62rem;
+  padding: 0.34rem 0.52rem;
+  color: #cdbd9f;
+  background: rgba(240, 184, 95, 0.035);
+  box-shadow: none;
+  font-size: 0.7rem;
+  font-weight: 760;
+  text-align: left;
+}
+
+.cast-note-member:hover {
+  border-color: rgba(240, 184, 95, 0.42);
+  color: #f4d59c;
+  background: rgba(240, 184, 95, 0.075);
 }
 
 @media (max-width: 900px) {
@@ -294,7 +323,7 @@
     white-space: normal;
   }
 
-  .cast-review > summary {
+  .cast-notes > summary {
     display: grid;
     gap: 0.12rem;
   }
