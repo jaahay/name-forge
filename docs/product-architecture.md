@@ -152,7 +152,7 @@ Fiction Cast is intentionally surface-specific. It currently owns:
 - scan/select/lock behavior;
 - selected-name reroll while preserving non-target roster state;
 - composed identities and Fiction Cast grammar;
-- cast review and same-roster relationship evidence;
+- conditional composed-identity collision notes;
 - JSON and Markdown cast export.
 
 Its identity grammar uses semantic parts including given, family, and place names plus lexical titles, epithets, initials, and literals.
@@ -161,7 +161,7 @@ Fiction Cast currently routes primary given-name generation through `generateGiv
 
 Family/place supporting generation still calls generic `generateName(...)` in the current runtime. Their first-class `generateFamilyName(...)` and `generatePlaceName(...)` wrappers are accepted and pending #202; they may initially preserve the same lower generation behavior while establishing stable semantic caller boundaries. Fiction Cast should consume those wrappers once implemented rather than owning duplicate one-name mechanics.
 
-Fiction Cast itself should remain responsible for what makes a **cast** a cast: roles, locks, composition, roster state, cross-name selection pressure, review, and targeted reroll.
+Fiction Cast itself should remain responsible for what makes a **cast** a cast: roles, locks, composition, roster state, cross-name selection pressure, conditional composed-identity collision notes, and targeted reroll.
 
 ### Fiction Cast aggregate behavior
 
@@ -184,6 +184,8 @@ Fiction Cast orchestration
 ```
 
 There is no requirement that this aggregate become a generic `NameGrouping` kind. Likewise, combining generated names with selected lexical values, derived values, or literals does not require a universal `NameSegment` abstraction or omnibus `generatePersonName(...)` API; composition remains with the domain whose grammar is known.
+
+Aggregate analysis should earn product surface area by helping the user locate a concrete naming decision. Fiction Cast may expose supported deterministic relationships between composed visible identities, but reusable lower-level analysis should not be presented as a verdict on the creative quality of the cast or as evidence about a different object than the identity the user sees.
 
 ## Active surface: Game NPC
 
