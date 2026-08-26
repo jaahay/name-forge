@@ -4,7 +4,7 @@ Name Forge is a Vite + TypeScript + React random-name workbench for producing in
 
 The current app has two active product modes:
 
-- **Fiction Cast** builds a coherent-but-distinct roster with cast-specific controls, locks, diagnostics, reroll, inspection, and export.
+- **Fiction Cast** builds a coherent-but-distinct roster with cast-specific controls, locks, conditional collision notes, reroll, inspection, and export.
 - **Game NPC** generates one immediately usable name for prep or live play with shared inspection, copy, and reroll behavior.
 
 Both modes reuse lower-level naming capabilities rather than owning separate sound generators.
@@ -91,7 +91,7 @@ Historical planning and requirements remain useful context, but they are not the
 
 Shared capabilities include deterministic seeded replay, exact independent-set generation, singular `generateName(...)` orchestration, reusable `generateGivenName(...)`, sound-first candidate generation, exhaustive supported spelling derivation, ranked spelling retention, deterministic readability observations, browser voice-draft audition, pure artifact analysis, shared inspection, source descriptors, and recent-artifact persistence.
 
-Fiction Cast additionally owns roster generation and balancing, cast-specific roles and formats, locks and targeted reroll, composed identities, provenance-preserving phrase audition, same-roster sound relationships, cast review, and JSON/Markdown export.
+Fiction Cast additionally owns roster generation and balancing, cast-specific roles and formats, locks and targeted reroll, composed identities, provenance-preserving phrase audition, conditional composed-identity collision notes, and JSON/Markdown export.
 
 Game NPC additionally owns a deliberately minimal one-name workflow with style-source selection and fresh-seed reroll. A future NPC roster must deliberately choose its product semantics: plain independent quantity can reuse the existing shared request capability, while meaningful roster-specific coordination should remain surface orchestration composed from reusable semantic callbacks rather than a mode-driven branch in `generateName(...)`.
 
