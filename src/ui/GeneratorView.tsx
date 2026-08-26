@@ -3,7 +3,7 @@ import { serializeCastAsJson, serializeCastAsMarkdown } from '../fictionCast/exp
 import type { FictionCastRememberedCast } from '../fictionCast/rememberedCast';
 import type { FictionCastGeneratedEnsemble, FictionCastSettings } from '../fictionCast/types';
 import type { StylePackSummary } from '../engine/types';
-import { CastHealthPanel } from './CastHealth';
+import { CastNotes } from './CastNotes';
 import { reduceConfigureDrawerOpen } from './configureBehavior';
 import { ConfigureTray } from './ConfigureTray';
 import { ExportMenu } from './ExportMenu';
@@ -77,7 +77,7 @@ export function GeneratorView({
     setSelectedNameId(id);
   }
 
-  function selectRelationshipName(id: string) {
+  function selectCastNoteName(id: string) {
     selectName(id);
     inspectorRegionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
@@ -168,7 +168,7 @@ export function GeneratorView({
                 {inspector}
               </div>
             </NameSelectionSurface>
-            <CastHealthPanel ensemble={ensemble} lockedNameIds={lockedNameIds} onSelectName={selectRelationshipName} />
+            <CastNotes names={ensemble.names} onSelectName={selectCastNoteName} />
             <ExportMenu jsonExport={serializeCastAsJson(ensemble)} markdownExport={serializeCastAsMarkdown(ensemble)} />
           </section>
         ) : null}
