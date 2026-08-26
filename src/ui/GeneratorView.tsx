@@ -79,7 +79,7 @@ export function GeneratorView({
 
   function selectCastNoteName(id: string) {
     selectName(id);
-    inspectorRegionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    inspectorRegionRef.current?.scrollIntoView({ block: 'start' });
   }
 
   function generateFromConfigure(event?: FormEvent<HTMLFormElement>) {
