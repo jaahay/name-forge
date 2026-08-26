@@ -27,17 +27,26 @@ export function CastNotes({ names, onSelectName }: CastNotesProps) {
             <li className="cast-note" key={note.id}>
               <strong>{noteLabel(note.kind, note.value)}</strong>
               <div className="cast-note-members">
-                {note.members.map((member) => (
-                  <button
-                    key={member.id}
-                    type="button"
-                    className="cast-note-member"
-                    aria-label={`Inspect ${member.displayName} from cast notes`}
-                    onClick={() => onSelectName(member.id)}
-                  >
-                    {member.displayName}
-                  </button>
-                ))}
+                {note.members.map((member) => {
+                  const slot = names.findIndex((name) => name.id === member.id) + 1;
+                  const showSlot = note.kind === 'same-visible-identity';
+                  const accessibleLabel = showSlot
+                    ? `Inspect ${member.displayName}, slot ${slot}, from cast notes`
+                    : `Inspect ${member.displayName} from cast notes`;
+
+                  return (
+                    <button
+                      key={member.id}
+                      type="button"
+                      className="cast-note-member"
+                      aria-label={accessibleLabel}
+                      onClick={() => onSelectName(member.id)}
+                    >
+                      <span>{member.displayName}</span>
+                      {showSlot ? <small>Slot {slot}</small> : null}
+                    </button>
+                  );
+                })}
               </div>
             </li>
           ))}
