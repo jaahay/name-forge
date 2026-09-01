@@ -1,5 +1,5 @@
 import type { SoundProfile } from '../engine/soundProfile';
-import type { GeneratedName, GenerationSettings, NameGenerationPlan, NameVariant, ReadabilityDiagnostic } from '../engine/types';
+import type { GeneratedName, NameGenerationPlan, NameVariant, ReadabilityDiagnostic } from '../engine/types';
 import type { FictionCastRarityBand } from './rarity';
 import { fictionCastBaselineGenerationSettings } from './semanticIntent';
 import type { FictionCastGeneratedEnsemble, FictionCastGeneratedName, FictionCastSettings, RoleInfluenceMetadata } from './types';
@@ -14,7 +14,21 @@ export interface ExportedSound { profile: SoundProfile; transcription: string; s
 export type ExportedNameScores = Omit<GeneratedName['scores'], 'overallFit'> & { ensembleFit: number; roleFit: number; overallFit: number; };
 export type ExportedGenerationPlan = Pick<NameGenerationPlan, 'syllableCount' | 'stressPattern' | 'rhythm' | 'texture' | 'targetNovelty' | 'targetLength'> & { rarityBand: FictionCastRarityBand; };
 export interface ExportedName { id: string; name: string; role?: string; roleInfluence?: ExportedRoleInfluence; readabilityDiagnostics: ExportedReadabilityDiagnostic[]; score: number; scores: ExportedNameScores; sound: ExportedSound; generationPlan: ExportedGenerationPlan; format: string; parts: ExportedNamePart[]; variants: ExportedNameVariant[]; seed: string; warnings: string[]; }
-export type ExportedFictionCastSettings = Omit<FictionCastSettings, 'semanticBaseline'> & GenerationSettings;
+export interface ExportedFictionCastSettings {
+  castSize: number;
+  novelty: number;
+  pronounceability: number;
+  memorability: number;
+  culturalAnchoring: number;
+  orthographicWeirdness: number;
+  stylePackId: string;
+  seed: string;
+  nameFormat?: FictionCastSettings['nameFormat'];
+  rolePreset?: FictionCastSettings['rolePreset'];
+  roleInfluence?: FictionCastSettings['roleInfluence'];
+  slotRoleOverrides?: FictionCastSettings['slotRoleOverrides'];
+  rarityDistribution?: FictionCastSettings['rarityDistribution'];
+}
 export interface CastExportPayload { generatedBy: 'Name Forge'; seed: string; settings: ExportedFictionCastSettings; sourcePack: FictionCastGeneratedEnsemble['sourcePack']; diagnostics: FictionCastGeneratedEnsemble['diagnostics']; names: ExportedName[]; }
 
 type RetainedSpellingCandidate = GeneratedName['spellingCandidates'][number];
