@@ -1,9 +1,10 @@
+import type { FictionCastSemanticControlValue } from '../fictionCast/semanticIntent';
 import type { ControlKey, ScoreControlDefinition } from './presentation';
 
 interface ScoreControlProps {
   control: ScoreControlDefinition;
-  value: number;
-  onChange: (key: ControlKey, value: number) => void;
+  value: FictionCastSemanticControlValue;
+  onChange: (key: ControlKey, value: FictionCastSemanticControlValue) => void;
 }
 
 export function ScoreControl({ control, value, onChange }: ScoreControlProps) {
@@ -19,7 +20,7 @@ export function ScoreControl({ control, value, onChange }: ScoreControlProps) {
                 id={optionId}
                 type="radio"
                 name={`score-${control.key}`}
-                value={String(choice.value)}
+                value={choice.value}
                 checked={value === choice.value}
                 onChange={() => onChange(control.key, choice.value)}
               />

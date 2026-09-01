@@ -1,26 +1,13 @@
-import type { NameGenerationSettings } from '../engine/types';
-import { roleInfluencedSettings } from './roles';
-import type { CastRoleAssignment, FictionCastSettings } from './types';
+import type { GenerationSettings } from '../engine/types';
+import { roleInfluencedGenerationSettings, resolveRoleInfluence } from './roles';
+import type {
+  CastRoleAssignment,
+  FictionCastSemanticBaseline,
+  FictionCastSettings,
+} from './types';
 
-export type FictionCastSemanticControlKey =
-  | 'familiarity'
-  | 'readability'
-  | 'compactness'
-  | 'styleAnchoring'
-  | 'spellingDistinctiveness';
-
-type FictionCastCompatibilitySettingKey = keyof Pick<
-  NameGenerationSettings,
-  'novelty' | 'pronounceability' | 'memorability' | 'culturalAnchoring' | 'orthographicWeirdness'
->;
-
-export interface FictionCastSemanticBaseline {
-  readonly familiarity: number;
-  readonly readability: number;
-  readonly compactness: number;
-  readonly styleAnchoring: number;
-  readonly spellingDistinctiveness: number;
-}
+export type FictionCastSemanticControlKey = keyof FictionCastSemanticBaseline;
+export type FictionCastSemanticControlValue = FictionCastSemanticBaseline[FictionCastSemanticControlKey];
 
 export interface FictionCastSemanticIntentContext {
   readonly role?: CastRoleAssignment;
@@ -28,65 +15,72 @@ export interface FictionCastSemanticIntentContext {
 
 export interface ResolvedFictionCastSemanticIntent {
   readonly baseline: FictionCastSemanticBaseline;
-  readonly generationSettings: FictionCastSettings;
+  readonly generationSettings: GenerationSettings;
 }
 
-const compatibilitySettingBySemanticControl: Record<FictionCastSemanticControlKey, FictionCastCompatibilitySettingKey> = {
-  familiarity: 'novelty',
-  readability: 'pronounceability',
-  compactness: 'memorability',
-  styleAnchoring: 'culturalAnchoring',
-  spellingDistinctiveness: 'orthographicWeirdness',
-};
+const familiarityNovelty = {
+  unusual: 0.75,
+  balanced: 0.48,
+  familiar: 0.25,
+} as const;
+
+const readabilityPronounceability = {
+  tricky: 0.35,
+  balanced: 0.55,
+  clear: 0.72,
+} as const;
+
+const compactnessMemorability = {
+  extended: 0.35,
+  balanced: 0.5,
+  compact: 0.65,
+} as const;
+
+const styleAnchoringCulturalAnchoring = {
+  loose: 0.35,
+  balanced: 0.62,
+  faithful: 0.82,
+} as const;
+
+const spellingDistinctivenessWeirdness = {
+  conventional: 0.28,
+  balanced: 0.5,
+  distinctive: 0.72,
+} as const;
 
 /**
- * The numeric values remain the current deterministic control tokens in this
- * compatibility slice. Their product meaning comes from the semantic field
- * name and discrete UI choice, not from a validated human-facing metric scale.
+ * Compatibility translation for the currently shipped semantic choices.
+ * These numbers remain engine mechanics; the Fiction Cast product state stores
+ * only the discrete surface selections above this boundary.
  */
-export function fictionCastSemanticBaselineFromSettings(settings: FictionCastSettings): FictionCastSemanticBaseline {
+export function fictionCastBaselineGenerationSettings(settings: FictionCastSettings): GenerationSettings {
+  const baseline = settings.semanticBaseline;
   return {
-    familiarity: settings.novelty,
-    readability: settings.pronounceability,
-    compactness: settings.memorability,
-    styleAnchoring: settings.culturalAnchoring,
-    spellingDistinctiveness: settings.orthographicWeirdness,
+    novelty: familiarityNovelty[baseline.familiarity],
+    pronounceability: readabilityPronounceability[baseline.readability],
+    memorability: compactnessMemorability[baseline.compactness],
+    culturalAnchoring: styleAnchoringCulturalAnchoring[baseline.styleAnchoring],
+    orthographicWeirdness: spellingDistinctivenessWeirdness[baseline.spellingDistinctiveness],
+    stylePackId: settings.stylePackId,
+    seed: settings.seed,
   };
 }
 
-export function fictionCastGenerationSettingUpdateForSemanticControl(
-  key: FictionCastSemanticControlKey,
-  value: number,
-): { readonly key: FictionCastCompatibilitySettingKey; readonly value: number } {
-  return {
-    key: compatibilitySettingBySemanticControl[key],
-    value,
-  };
+export function fictionCastSemanticBaselineFromSettings(settings: FictionCastSettings): FictionCastSemanticBaseline {
+  return settings.semanticBaseline;
 }
 
 export function withFictionCastSemanticControl<T extends FictionCastSettings>(
   settings: T,
   key: FictionCastSemanticControlKey,
-  value: number,
+  value: FictionCastSemanticControlValue,
 ): T {
-  const update = fictionCastGenerationSettingUpdateForSemanticControl(key, value);
   return {
     ...settings,
-    [update.key]: update.value,
-  } as T;
-}
-
-function fictionCastSettingsFromSemanticBaseline(
-  settings: FictionCastSettings,
-  baseline: FictionCastSemanticBaseline,
-): FictionCastSettings {
-  return {
-    ...settings,
-    novelty: baseline.familiarity,
-    pronounceability: baseline.readability,
-    memorability: baseline.compactness,
-    culturalAnchoring: baseline.styleAnchoring,
-    orthographicWeirdness: baseline.spellingDistinctiveness,
+    semanticBaseline: {
+      ...settings.semanticBaseline,
+      [key]: value,
+    } as FictionCastSemanticBaseline,
   };
 }
 
@@ -94,11 +88,11 @@ export function resolveFictionCastSemanticIntent(
   settings: FictionCastSettings,
   context: FictionCastSemanticIntentContext = {},
 ): ResolvedFictionCastSemanticIntent {
-  const baseline = fictionCastSemanticBaselineFromSettings(settings);
-  const baselineSettings = fictionCastSettingsFromSemanticBaseline(settings, baseline);
+  const baselineSettings = fictionCastBaselineGenerationSettings(settings);
+  const roleInfluence = resolveRoleInfluence(settings, context.role);
 
   return {
-    baseline,
-    generationSettings: roleInfluencedSettings(baselineSettings, context.role),
+    baseline: settings.semanticBaseline,
+    generationSettings: roleInfluencedGenerationSettings(baselineSettings, roleInfluence),
   };
 }

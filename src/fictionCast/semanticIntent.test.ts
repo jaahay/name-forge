@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createDefaultRegistry } from '../engine/registry';
 import { generateEnsemble } from './ensemble';
 import {
-  fictionCastGenerationSettingUpdateForSemanticControl,
+  fictionCastBaselineGenerationSettings,
   fictionCastSemanticBaselineFromSettings,
   resolveFictionCastSemanticIntent,
   withFictionCastSemanticControl,
@@ -11,11 +11,13 @@ import type { CastRoleAssignment, FictionCastSettings } from './types';
 
 const settings: FictionCastSettings = {
   castSize: 4,
-  novelty: 0.5,
-  pronounceability: 0.7,
-  memorability: 0.6,
-  culturalAnchoring: 0.65,
-  orthographicWeirdness: 0.25,
+  semanticBaseline: {
+    familiarity: 'balanced',
+    readability: 'clear',
+    compactness: 'compact',
+    styleAnchoring: 'balanced',
+    spellingDistinctiveness: 'conventional',
+  },
   stylePackId: 'british-literary-fantasy',
   seed: 'semantic-intent',
   nameFormat: 'given-only',
@@ -29,34 +31,41 @@ const mentorRole: CastRoleAssignment = {
 };
 
 describe('Fiction Cast semantic intent', () => {
-  it('represents the current scalar Configure baseline in surface language', () => {
+  it('stores the Configure baseline as discrete surface intent rather than engine fields', () => {
     expect(fictionCastSemanticBaselineFromSettings(settings)).toEqual({
-      familiarity: 0.5,
-      readability: 0.7,
-      compactness: 0.6,
-      styleAnchoring: 0.65,
-      spellingDistinctiveness: 0.25,
+      familiarity: 'balanced',
+      readability: 'clear',
+      compactness: 'compact',
+      styleAnchoring: 'balanced',
+      spellingDistinctiveness: 'conventional',
     });
+    for (const engineKey of ['novelty', 'pronounceability', 'memorability', 'culturalAnchoring', 'orthographicWeirdness']) {
+      expect(engineKey in settings).toBe(false);
+    }
   });
 
-  it('owns the compatibility mapping from semantic controls to generic generation settings', () => {
-    expect(fictionCastGenerationSettingUpdateForSemanticControl('familiarity', 0.48)).toEqual({ key: 'novelty', value: 0.48 });
-    expect(fictionCastGenerationSettingUpdateForSemanticControl('readability', 0.72)).toEqual({ key: 'pronounceability', value: 0.72 });
-    expect(fictionCastGenerationSettingUpdateForSemanticControl('compactness', 0.65)).toEqual({ key: 'memorability', value: 0.65 });
-    expect(fictionCastGenerationSettingUpdateForSemanticControl('styleAnchoring', 0.62)).toEqual({ key: 'culturalAnchoring', value: 0.62 });
-    expect(fictionCastGenerationSettingUpdateForSemanticControl('spellingDistinctiveness', 0.28)).toEqual({ key: 'orthographicWeirdness', value: 0.28 });
-
-    expect(withFictionCastSemanticControl(settings, 'familiarity', 0.48)).toEqual({
-      ...settings,
+  it('owns the compatibility translation from semantic selections to current generation mechanics', () => {
+    expect(fictionCastBaselineGenerationSettings(settings)).toEqual({
       novelty: 0.48,
+      pronounceability: 0.72,
+      memorability: 0.65,
+      culturalAnchoring: 0.62,
+      orthographicWeirdness: 0.28,
+      stylePackId: 'british-literary-fantasy',
+      seed: 'semantic-intent',
     });
+
+    const updated = withFictionCastSemanticControl(settings, 'familiarity', 'familiar');
+    expect(updated.semanticBaseline.familiarity).toBe('familiar');
+    expect(settings.semanticBaseline.familiarity).toBe('balanced');
+    expect(fictionCastBaselineGenerationSettings(updated).novelty).toBe(0.25);
   });
 
-  it('round-trips the current baseline before contextual shaping', () => {
+  it('resolves the baseline exactly before contextual shaping', () => {
     const resolved = resolveFictionCastSemanticIntent(settings);
 
-    expect(resolved.baseline).toEqual(fictionCastSemanticBaselineFromSettings(settings));
-    expect(resolved.generationSettings).toEqual(settings);
+    expect(resolved.baseline).toEqual(settings.semanticBaseline);
+    expect(resolved.generationSettings).toEqual(fictionCastBaselineGenerationSettings(settings));
   });
 
   it('preserves the existing role-influence mechanics behind the semantic boundary', () => {
@@ -65,18 +74,12 @@ describe('Fiction Cast semantic intent', () => {
       { role: mentorRole },
     );
 
-    expect(resolved.baseline).toEqual({
-      familiarity: 0.5,
-      readability: 0.7,
-      compactness: 0.6,
-      styleAnchoring: 0.65,
-      spellingDistinctiveness: 0.25,
-    });
-    expect(resolved.generationSettings.novelty).toBeCloseTo(0.46);
-    expect(resolved.generationSettings.pronounceability).toBeCloseTo(0.73);
-    expect(resolved.generationSettings.memorability).toBeCloseTo(0.6);
-    expect(resolved.generationSettings.culturalAnchoring).toBeCloseTo(0.74);
-    expect(resolved.generationSettings.orthographicWeirdness).toBeCloseTo(0.22);
+    expect(resolved.baseline).toEqual(settings.semanticBaseline);
+    expect(resolved.generationSettings.novelty).toBeCloseTo(0.44);
+    expect(resolved.generationSettings.pronounceability).toBeCloseTo(0.75);
+    expect(resolved.generationSettings.memorability).toBeCloseTo(0.65);
+    expect(resolved.generationSettings.culturalAnchoring).toBeCloseTo(0.71);
+    expect(resolved.generationSettings.orthographicWeirdness).toBeCloseTo(0.25);
   });
 
   it('keeps deterministic Fiction Cast generation stable for equivalent inputs', () => {

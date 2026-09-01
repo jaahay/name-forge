@@ -6,11 +6,13 @@ import { createDefaultRegistry } from './registry';
 
 const settings: FictionCastSettings = {
   castSize: 4,
-  novelty: 0.5,
-  pronounceability: 0.7,
-  memorability: 0.6,
-  culturalAnchoring: 0.65,
-  orthographicWeirdness: 0.25,
+  semanticBaseline: {
+    familiarity: 'balanced',
+    readability: 'clear',
+    compactness: 'compact',
+    styleAnchoring: 'balanced',
+    spellingDistinctiveness: 'conventional',
+  },
   stylePackId: 'british-literary-fantasy',
   seed: 'export-test-seed',
   nameFormat: 'mixed',
@@ -34,6 +36,12 @@ describe('cast export serialization', () => {
     expect(payload.seed).toBe(settings.seed);
     expect(payload.settings.seed).toBe(settings.seed);
     expect(payload.settings.roleInfluence).toBe('light');
+    expect(payload.settings.novelty).toBe(0.48);
+    expect(payload.settings.pronounceability).toBe(0.72);
+    expect(payload.settings.memorability).toBe(0.65);
+    expect(payload.settings.culturalAnchoring).toBe(0.62);
+    expect(payload.settings.orthographicWeirdness).toBe(0.28);
+    expect('semanticBaseline' in payload.settings).toBe(false);
     expect(payload.sourcePack.id).toBe(settings.stylePackId);
     expect(payload.names).toHaveLength(settings.castSize);
 

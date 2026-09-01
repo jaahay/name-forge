@@ -7,11 +7,23 @@ import type { FictionCastSettings } from './types';
 
 const settings: FictionCastSettings = {
   castSize: 4,
-  novelty: 0.5,
-  pronounceability: 0.7,
-  memorability: 0.6,
-  culturalAnchoring: 0.65,
-  orthographicWeirdness: 0.25,
+  semanticBaseline: {
+    familiarity: 'balanced',
+    readability: 'clear',
+    compactness: 'compact',
+    styleAnchoring: 'balanced',
+    spellingDistinctiveness: 'conventional',
+  },
+  stylePackId: 'british-literary-fantasy',
+  seed: 'component-context',
+};
+
+const expectedGenerationSettings = {
+  novelty: 0.48,
+  pronounceability: 0.72,
+  memorability: 0.65,
+  culturalAnchoring: 0.62,
+  orthographicWeirdness: 0.28,
   stylePackId: 'british-literary-fantasy',
   seed: 'component-context',
 };
@@ -33,16 +45,10 @@ describe('Fiction Cast component generation context', () => {
     expect(given.kind).toBe('given');
     expect(family.kind).toBe('family');
     expect(place.kind).toBe('place');
-    expect(given.semanticIntent.baseline).toEqual({
-      familiarity: 0.5,
-      readability: 0.7,
-      compactness: 0.6,
-      styleAnchoring: 0.65,
-      spellingDistinctiveness: 0.25,
-    });
-    expect(given.semanticIntent.generationSettings).toEqual(settings);
-    expect(given.settings).toEqual(settings);
-    expect(family.settings).toEqual(settings);
-    expect(place.settings).toEqual(settings);
+    expect(given.semanticIntent.baseline).toEqual(settings.semanticBaseline);
+    expect(given.semanticIntent.generationSettings).toEqual(expectedGenerationSettings);
+    expect(given.settings).toEqual(expectedGenerationSettings);
+    expect(family.settings).toEqual(expectedGenerationSettings);
+    expect(place.settings).toEqual(expectedGenerationSettings);
   });
 });

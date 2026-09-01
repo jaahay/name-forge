@@ -2,8 +2,9 @@ import { useEffect, useRef, type FormEvent, type KeyboardEvent } from 'react';
 import { rarityDistributionOptions, type FictionCastRarityDistributionPresetKind } from '../fictionCast/rarity';
 import { castRoleOptions, castRolePresetOptions, roleInfluenceOptions } from '../fictionCast/roles';
 import {
-  fictionCastGenerationSettingUpdateForSemanticControl,
   fictionCastSemanticBaselineFromSettings,
+  withFictionCastSemanticControl,
+  type FictionCastSemanticControlValue,
 } from '../fictionCast/semanticIntent';
 import type { CastRole, CastRolePresetKind, FictionCastSettings, RoleInfluenceLevel } from '../fictionCast/types';
 import type { NameFormatKind, StylePackSummary } from '../engine/types';
@@ -116,9 +117,9 @@ export function ConfigureTray({
     onUpdateSetting('castSize', clampCastSize(value));
   }
 
-  function updateSemanticControl(key: ControlKey, value: number) {
-    const update = fictionCastGenerationSettingUpdateForSemanticControl(key, value);
-    onUpdateSetting(update.key, update.value);
+  function updateSemanticControl(key: ControlKey, value: FictionCastSemanticControlValue) {
+    const nextSettings = withFictionCastSemanticControl(settings, key, value);
+    onUpdateSetting('semanticBaseline', nextSettings.semanticBaseline);
   }
 
   function commitSeedOnEnter(event: KeyboardEvent<HTMLInputElement>) {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { fictionCastSemanticBaselineFromSettings } from '../fictionCast/semanticIntent';
+import { fictionCastBaselineGenerationSettings, fictionCastSemanticBaselineFromSettings, withFictionCastSemanticControl } from '../fictionCast/semanticIntent';
 import { fictionCastMode } from './modes';
 import { scoreControls } from './presentation';
 import { randomizeScoreSettings } from './score';
@@ -23,16 +23,14 @@ describe('semantic Fiction Cast criteria', () => {
     }
   });
 
-  it('preserves the current Familiar choice direction at the compatibility boundary', () => {
-    const control = scoreControls.find((candidate) => candidate.key === 'familiarity');
-    expect(control).toBeDefined();
+  it('keeps Familiar as product intent while preserving the current inverse novelty mapping', () => {
+    const defaults = fictionCastMode.defaultSettings('test-style');
+    const unusual = withFictionCastSemanticControl(defaults, 'familiarity', 'unusual');
+    const familiar = withFictionCastSemanticControl(defaults, 'familiarity', 'familiar');
 
-    const unusual = control?.choices.find((choice) => choice.label === 'Unusual');
-    const familiar = control?.choices.find((choice) => choice.label === 'Familiar');
-
-    expect(unusual).toBeDefined();
-    expect(familiar).toBeDefined();
-    expect(familiar!.value).toBeLessThan(unusual!.value);
+    expect(unusual.semanticBaseline.familiarity).toBe('unusual');
+    expect(familiar.semanticBaseline.familiarity).toBe('familiar');
+    expect(fictionCastBaselineGenerationSettings(familiar).novelty).toBeLessThan(fictionCastBaselineGenerationSettings(unusual).novelty);
   });
 
   it('uses exact semantic values for every current default', () => {

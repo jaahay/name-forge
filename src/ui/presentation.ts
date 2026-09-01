@@ -1,6 +1,9 @@
 import type { ScoreKey } from '../engine/types';
 import type { FictionCastRarityBand } from '../fictionCast/rarity';
-import type { FictionCastSemanticControlKey } from '../fictionCast/semanticIntent';
+import type {
+  FictionCastSemanticControlKey,
+  FictionCastSemanticControlValue,
+} from '../fictionCast/semanticIntent';
 
 export type AppView = 'generator' | 'recent-names' | 'changelog' | 'about';
 
@@ -8,7 +11,7 @@ export type ControlKey = FictionCastSemanticControlKey;
 
 export interface SemanticScoreChoice {
   label: string;
-  value: number;
+  value: FictionCastSemanticControlValue;
 }
 
 export interface ScoreControlDefinition {
@@ -24,9 +27,9 @@ export const primaryScoreControls: ScoreControlDefinition[] = [
     label: 'Familiar',
     help: 'Choose whether name shapes feel unusual or familiar.',
     choices: [
-      { label: 'Unusual', value: 0.75 },
-      { label: 'Balanced', value: 0.48 },
-      { label: 'Familiar', value: 0.25 },
+      { label: 'Unusual', value: 'unusual' },
+      { label: 'Balanced', value: 'balanced' },
+      { label: 'Familiar', value: 'familiar' },
     ],
   },
   {
@@ -34,9 +37,9 @@ export const primaryScoreControls: ScoreControlDefinition[] = [
     label: 'Readable',
     help: 'Choose whether a name feels tricky or clear to read aloud on first sight.',
     choices: [
-      { label: 'Tricky', value: 0.35 },
-      { label: 'Balanced', value: 0.55 },
-      { label: 'Clear', value: 0.72 },
+      { label: 'Tricky', value: 'tricky' },
+      { label: 'Balanced', value: 'balanced' },
+      { label: 'Clear', value: 'clear' },
     ],
   },
 ];
@@ -47,9 +50,9 @@ export const advancedScoreControls: ScoreControlDefinition[] = [
     label: 'Compact',
     help: 'Choose whether name shapes feel extended or compact.',
     choices: [
-      { label: 'Extended', value: 0.35 },
-      { label: 'Balanced', value: 0.5 },
-      { label: 'Compact', value: 0.65 },
+      { label: 'Extended', value: 'extended' },
+      { label: 'Balanced', value: 'balanced' },
+      { label: 'Compact', value: 'compact' },
     ],
   },
   {
@@ -57,9 +60,9 @@ export const advancedScoreControls: ScoreControlDefinition[] = [
     label: 'Style',
     help: 'Choose how faithfully names follow the selected style pack.',
     choices: [
-      { label: 'Loose', value: 0.35 },
-      { label: 'Balanced', value: 0.62 },
-      { label: 'Faithful', value: 0.82 },
+      { label: 'Loose', value: 'loose' },
+      { label: 'Balanced', value: 'balanced' },
+      { label: 'Faithful', value: 'faithful' },
     ],
   },
   {
@@ -67,9 +70,9 @@ export const advancedScoreControls: ScoreControlDefinition[] = [
     label: 'Spelling',
     help: 'Choose whether spellings stay conventional or become distinctive.',
     choices: [
-      { label: 'Conventional', value: 0.28 },
-      { label: 'Balanced', value: 0.5 },
-      { label: 'Distinctive', value: 0.72 },
+      { label: 'Conventional', value: 'conventional' },
+      { label: 'Balanced', value: 'balanced' },
+      { label: 'Distinctive', value: 'distinctive' },
     ],
   },
 ];

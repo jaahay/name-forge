@@ -4,7 +4,7 @@ import { generateFamilyName } from '../naming/familyName';
 import { generateGivenName, type GivenNamePreferences } from '../naming/givenName';
 import { generatePlaceName } from '../naming/placeName';
 import { renderIdentityAuditionPhrase } from '../engine/identityAudition';
-import type { GeneratedName } from '../engine/types';
+import type { GeneratedName, GenerationSettings } from '../engine/types';
 import type { SourceRegistry } from '../engine/registry';
 import {
   resolveFictionCastComponentGenerationContext,
@@ -14,6 +14,7 @@ import { createNameIdentity, requiresSupportingName, resolveMaterializedFormatKi
 import { resolveFictionCastRarityBand } from './rarity';
 import { getRolePreferenceProfile, isRoleInfluenceActive, resolveCastRole, resolveRoleInfluence } from './roles';
 import { combineFictionCastOverallFit, scoreFictionCastRoleFit } from './scoring';
+import { fictionCastBaselineGenerationSettings } from './semanticIntent';
 import type {
   CastRoleAssignment,
   FictionCastContextualScores,
@@ -44,7 +45,7 @@ function withEnsembleFit(candidate: FictionCastGeneratedName, selected: FictionC
   const contextualScores = {
     ...candidate.contextualScores,
     ensembleFit,
-    overallFit: combineFictionCastOverallFit(candidate.primaryName.scores, { ensembleFit, roleFit: candidate.contextualScores.roleFit }, scoringSettings),
+    overallFit: combineFictionCastOverallFit(candidate.primaryName.scores, { ensembleFit, roleFit: candidate.contextualScores.roleFit }, scoringSettings, settings.roleInfluence),
   };
   return { ...candidate, contextualScores };
 }
@@ -66,13 +67,18 @@ function semanticNamePreferencesForCandidate(settings: FictionCastSettings, role
   };
 }
 
-function withRoleInfluence(candidate: GeneratedName, settings: FictionCastSettings, role?: CastRoleAssignment): ContextualizedPrimaryName {
+function withRoleInfluence(
+  candidate: GeneratedName,
+  generationSettings: GenerationSettings,
+  settings: FictionCastSettings,
+  role?: CastRoleAssignment,
+): ContextualizedPrimaryName {
   const roleInfluence = resolveRoleInfluence(settings, role);
   const roleFit = scoreFictionCastRoleFit(candidate.name, candidate.generationPlan, roleInfluence);
   const contextualScores = {
     ensembleFit: 0.72,
     roleFit,
-    overallFit: combineFictionCastOverallFit(candidate.scores, { ensembleFit: 0.72, roleFit }, settings),
+    overallFit: combineFictionCastOverallFit(candidate.scores, { ensembleFit: 0.72, roleFit }, generationSettings, settings.roleInfluence),
   };
   return {
     primaryName: candidate,
@@ -96,7 +102,7 @@ function withNameIdentity(candidate: UncomposedFictionCastName, settings: Fictio
         seed: `${settings.seed}${roleSeedSegment(settings, candidate.role)}:slot-${index}:supporting-${attempt}`,
         resultIndex: supportingIndex,
       },
-      preferences: semanticNamePreferencesForCandidate(supportingContext.settings, candidate.role, supportingIndex),
+      preferences: semanticNamePreferencesForCandidate(settings, candidate.role, supportingIndex),
     }
     : undefined;
   const supportingName = requiresSupportingName(formatKind) && supportingKind && supportingOptions
@@ -149,6 +155,7 @@ function lockedSlotMap(lockedSlots: LockedNameSlot[] | undefined, castSize: numb
 export function generateEnsemble(settings: FictionCastSettings, registry: SourceRegistry, lockedSlots?: LockedNameSlot[]): FictionCastGeneratedEnsemble {
   const castSize = Math.round(clamp(settings.castSize, 1, 24));
   const safeSettings: FictionCastSettings = { ...settings, castSize };
+  const baselineGenerationSettings = fictionCastBaselineGenerationSettings(safeSettings);
   const pack = registry.getStylePack(settings.stylePackId);
   const selected: FictionCastGeneratedName[] = [];
   const lockedNames = lockedSlotMap(lockedSlots, castSize);
@@ -161,7 +168,12 @@ export function generateEnsemble(settings: FictionCastSettings, registry: Source
     }
 
     const role = resolveCastRole(safeSettings, index);
-    const rarityBand = resolveFictionCastRarityBand(safeSettings, index);
+    const rarityBand = resolveFictionCastRarityBand({
+      novelty: baselineGenerationSettings.novelty,
+      rarityDistribution: safeSettings.rarityDistribution,
+      seed: safeSettings.seed,
+      stylePackId: safeSettings.stylePackId,
+    }, index);
     const primaryContext = resolveFictionCastComponentGenerationContext(safeSettings, role, 'given');
     const candidates = Array.from({ length: 16 }, (_, attempt) => {
       const generated = generateGivenName({
@@ -171,10 +183,10 @@ export function generateEnsemble(settings: FictionCastSettings, registry: Source
           seed: `${safeSettings.seed}${roleSeedSegment(safeSettings, role)}:slot-${index}:attempt-${attempt}`,
           resultIndex: index,
         },
-        preferences: semanticNamePreferencesForCandidate(primaryContext.settings, role, index),
+        preferences: semanticNamePreferencesForCandidate(safeSettings, role, index),
       });
       const baseName: UncomposedFictionCastName = {
-        ...withRoleInfluence(generated, primaryContext.settings, role),
+        ...withRoleInfluence(generated, primaryContext.settings, safeSettings, role),
         role,
         rarityBand,
       };

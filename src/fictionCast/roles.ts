@@ -1,4 +1,5 @@
 import type {
+  GenerationSettings,
   NameGenerationSettings,
   NameTexture,
   WeightedValue,
@@ -183,8 +184,10 @@ export function resolveRoleInfluence(settings: FictionCastSettings, role?: CastR
   };
 }
 
-export function roleInfluencedSettings(settings: FictionCastSettings, role?: CastRoleAssignment): FictionCastSettings {
-  const influence = resolveRoleInfluence(settings, role);
+export function roleInfluencedGenerationSettings(
+  settings: GenerationSettings,
+  influence?: RoleInfluenceMetadata,
+): GenerationSettings {
   if (!influence) return settings;
   const profile = getRolePreferenceProfile(influence.role);
   return {
