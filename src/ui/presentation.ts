@@ -1,14 +1,10 @@
 import type { ScoreKey } from '../engine/types';
 import type { FictionCastRarityBand } from '../fictionCast/rarity';
+import type { FictionCastSemanticControlKey } from '../fictionCast/semanticIntent';
 
 export type AppView = 'generator' | 'recent-names' | 'changelog' | 'about';
 
-export type ControlKey =
-  | 'novelty'
-  | 'pronounceability'
-  | 'memorability'
-  | 'culturalAnchoring'
-  | 'orthographicWeirdness';
+export type ControlKey = FictionCastSemanticControlKey;
 
 export interface SemanticScoreChoice {
   label: string;
@@ -24,7 +20,7 @@ export interface ScoreControlDefinition {
 
 export const primaryScoreControls: ScoreControlDefinition[] = [
   {
-    key: 'novelty',
+    key: 'familiarity',
     label: 'Familiar',
     help: 'Choose whether name shapes feel unusual or familiar.',
     choices: [
@@ -34,7 +30,7 @@ export const primaryScoreControls: ScoreControlDefinition[] = [
     ],
   },
   {
-    key: 'pronounceability',
+    key: 'readability',
     label: 'Readable',
     help: 'Choose whether a name feels tricky or clear to read aloud on first sight.',
     choices: [
@@ -47,7 +43,7 @@ export const primaryScoreControls: ScoreControlDefinition[] = [
 
 export const advancedScoreControls: ScoreControlDefinition[] = [
   {
-    key: 'memorability',
+    key: 'compactness',
     label: 'Compact',
     help: 'Choose whether name shapes feel extended or compact.',
     choices: [
@@ -57,7 +53,7 @@ export const advancedScoreControls: ScoreControlDefinition[] = [
     ],
   },
   {
-    key: 'culturalAnchoring',
+    key: 'styleAnchoring',
     label: 'Style',
     help: 'Choose how faithfully names follow the selected style pack.',
     choices: [
@@ -67,7 +63,7 @@ export const advancedScoreControls: ScoreControlDefinition[] = [
     ],
   },
   {
-    key: 'orthographicWeirdness',
+    key: 'spellingDistinctiveness',
     label: 'Spelling',
     help: 'Choose whether spellings stay conventional or become distinctive.',
     choices: [

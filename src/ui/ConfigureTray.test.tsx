@@ -105,11 +105,11 @@ describe('ConfigureTray criteria surface', () => {
 
     expect((criteriaHtml.match(/class="semantic-score-options"/g) ?? []).length).toBe(5);
     expect((criteriaHtml.match(/type="radio"/g) ?? []).length).toBe(15);
-    expect(criteriaHtml).toContain('name="score-novelty"');
-    expect(criteriaHtml).toContain('name="score-pronounceability"');
-    expect(criteriaHtml).toContain('name="score-memorability"');
-    expect(criteriaHtml).toContain('name="score-culturalAnchoring"');
-    expect(criteriaHtml).toContain('name="score-orthographicWeirdness"');
+    expect(criteriaHtml).toContain('name="score-familiarity"');
+    expect(criteriaHtml).toContain('name="score-readability"');
+    expect(criteriaHtml).toContain('name="score-compactness"');
+    expect(criteriaHtml).toContain('name="score-styleAnchoring"');
+    expect(criteriaHtml).toContain('name="score-spellingDistinctiveness"');
     expect(html).not.toContain('type="range"');
     expect(criteriaHtml).not.toContain('type="number"');
     expect(criteriaHtml).not.toContain('<datalist');

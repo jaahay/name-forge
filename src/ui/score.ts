@@ -1,4 +1,5 @@
-import type { GenerationSettings } from '../engine/types';
+import type { FictionCastSettings } from '../fictionCast/types';
+import { withFictionCastSemanticControl } from '../fictionCast/semanticIntent';
 import { scoreControls, type ScoreControlDefinition } from './presentation';
 
 export function formatScore(value: number): string {
@@ -10,9 +11,9 @@ export function randomScoreChoice(control: ScoreControlDefinition): number {
   return control.choices[index]?.value ?? control.choices[0].value;
 }
 
-export function randomizeScoreSettings<T extends GenerationSettings>(settings: T): T {
-  return scoreControls.reduce<T>((nextSettings, control) => ({
-    ...nextSettings,
-    [control.key]: randomScoreChoice(control),
-  } as T), settings);
+export function randomizeScoreSettings<T extends FictionCastSettings>(settings: T): T {
+  return scoreControls.reduce<T>(
+    (nextSettings, control) => withFictionCastSemanticControl(nextSettings, control.key, randomScoreChoice(control)),
+    settings,
+  );
 }

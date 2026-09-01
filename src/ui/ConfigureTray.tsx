@@ -1,11 +1,15 @@
 import { useEffect, useRef, type FormEvent, type KeyboardEvent } from 'react';
 import { rarityDistributionOptions, type FictionCastRarityDistributionPresetKind } from '../fictionCast/rarity';
 import { castRoleOptions, castRolePresetOptions, roleInfluenceOptions } from '../fictionCast/roles';
+import {
+  fictionCastGenerationSettingUpdateForSemanticControl,
+  fictionCastSemanticBaselineFromSettings,
+} from '../fictionCast/semanticIntent';
 import type { CastRole, CastRolePresetKind, FictionCastSettings, RoleInfluenceLevel } from '../fictionCast/types';
 import type { NameFormatKind, StylePackSummary } from '../engine/types';
 import { resolveConfigureFocusTarget, shouldCloseConfigureOnKey } from './configureBehavior';
 import type { NamingModeConfig } from './modes';
-import { advancedScoreControls, primaryScoreControls } from './presentation';
+import { advancedScoreControls, primaryScoreControls, type ControlKey } from './presentation';
 import { ScoreControl } from './ScoreControl';
 
 export const formatOptions: Array<{ value: NameFormatKind; label: string }> = [
@@ -73,6 +77,7 @@ export function ConfigureTray({
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const wasOpenRef = useRef(false);
   const castSize = clampCastSize(settings.castSize);
+  const semanticBaseline = fictionCastSemanticBaselineFromSettings(settings);
   const slotRoleCount = Math.max(0, Math.min(castSize, 8));
   const hasRoleMix = (settings.rolePreset ?? 'none') !== 'none';
   const selectedRoleInfluence = roleInfluenceOptions.find((option) => option.value === (settings.roleInfluence ?? 'off'));
@@ -109,6 +114,11 @@ export function ConfigureTray({
 
   function updateCastSize(value: number) {
     onUpdateSetting('castSize', clampCastSize(value));
+  }
+
+  function updateSemanticControl(key: ControlKey, value: number) {
+    const update = fictionCastGenerationSettingUpdateForSemanticControl(key, value);
+    onUpdateSetting(update.key, update.value);
   }
 
   function commitSeedOnEnter(event: KeyboardEvent<HTMLInputElement>) {
@@ -211,7 +221,7 @@ export function ConfigureTray({
                   <small>{selectedRoleInfluence?.help}</small>
                 </label>
                 {primaryScoreControls.map((control) => (
-                  <ScoreControl key={control.key} control={control} value={Number(settings[control.key])} onChange={(key, value) => onUpdateSetting(key, value)} />
+                  <ScoreControl key={control.key} control={control} value={semanticBaseline[control.key]} onChange={updateSemanticControl} />
                 ))}
               </div>
             </details>
@@ -233,7 +243,7 @@ export function ConfigureTray({
                   </div>
                 ) : null}
                 {advancedScoreControls.map((control) => (
-                  <ScoreControl key={control.key} control={control} value={Number(settings[control.key])} onChange={(key, value) => onUpdateSetting(key, value)} />
+                  <ScoreControl key={control.key} control={control} value={semanticBaseline[control.key]} onChange={updateSemanticControl} />
                 ))}
                 <label className="seed-control">
                   <span>Generation seed</span>

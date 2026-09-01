@@ -1,5 +1,8 @@
 import type { NameFormatKind } from '../engine/types';
-import { roleInfluencedSettings } from './roles';
+import {
+  resolveFictionCastSemanticIntent,
+  type ResolvedFictionCastSemanticIntent,
+} from './semanticIntent';
 import type { CastRoleAssignment, FictionCastSettings } from './types';
 
 export type FictionCastSoundComponentKind = 'given' | 'family' | 'place';
@@ -7,6 +10,7 @@ export type MaterializedComponentFormat = Exclude<NameFormatKind, 'mixed'>;
 
 export interface FictionCastComponentGenerationContext {
   readonly kind: FictionCastSoundComponentKind;
+  readonly semanticIntent: ResolvedFictionCastSemanticIntent;
   readonly settings: FictionCastSettings;
 }
 
@@ -21,8 +25,11 @@ export function resolveFictionCastComponentGenerationContext(
   role: CastRoleAssignment | undefined,
   kind: FictionCastSoundComponentKind,
 ): FictionCastComponentGenerationContext {
+  const semanticIntent = resolveFictionCastSemanticIntent(settings, { role });
+
   return {
     kind,
-    settings: roleInfluencedSettings(settings, role),
+    semanticIntent,
+    settings: semanticIntent.generationSettings,
   };
 }

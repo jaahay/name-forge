@@ -33,6 +33,14 @@ describe('Fiction Cast component generation context', () => {
     expect(given.kind).toBe('given');
     expect(family.kind).toBe('family');
     expect(place.kind).toBe('place');
+    expect(given.semanticIntent.baseline).toEqual({
+      familiarity: 0.5,
+      readability: 0.7,
+      compactness: 0.6,
+      styleAnchoring: 0.65,
+      spellingDistinctiveness: 0.25,
+    });
+    expect(given.semanticIntent.generationSettings).toEqual(settings);
     expect(given.settings).toEqual(settings);
     expect(family.settings).toEqual(settings);
     expect(place.settings).toEqual(settings);
