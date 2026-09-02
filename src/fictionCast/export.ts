@@ -27,7 +27,7 @@ export interface ExportedFictionCastSettings {
   rolePreset?: FictionCastSettings['rolePreset'];
   roleInfluence?: FictionCastSettings['roleInfluence'];
   slotRoleOverrides?: FictionCastSettings['slotRoleOverrides'];
-  rarityDistribution?: FictionCastSettings['rarityDistribution'];
+  castVariation?: FictionCastSettings['castVariation'];
 }
 export interface CastExportPayload { generatedBy: 'Name Forge'; seed: string; settings: ExportedFictionCastSettings; sourcePack: FictionCastGeneratedEnsemble['sourcePack']; diagnostics: FictionCastGeneratedEnsemble['diagnostics']; names: ExportedName[]; }
 
@@ -64,7 +64,7 @@ function exportSettings(settings: FictionCastSettings): ExportedFictionCastSetti
     rolePreset: settings.rolePreset,
     roleInfluence: settings.roleInfluence,
     slotRoleOverrides: settings.slotRoleOverrides,
-    rarityDistribution: settings.rarityDistribution,
+    castVariation: settings.castVariation,
   };
 }
 
@@ -102,7 +102,7 @@ export function createCastExportPayload(ensemble: FictionCastGeneratedEnsemble):
 export function serializeCastAsJson(ensemble: FictionCastGeneratedEnsemble): string { return JSON.stringify(createCastExportPayload(ensemble), null, 2) + '\n'; }
 
 export function serializeCastAsMarkdown(ensemble: FictionCastGeneratedEnsemble): string {
-  const lines = ['# Name Forge Cast Export', '', 'Seed: `' + ensemble.settings.seed + '`', 'Style pack: ' + ensemble.sourcePack.label, 'Cast size: ' + ensemble.names.length, 'Role influence: ' + (ensemble.settings.roleInfluence ?? 'off'), '', '## Ensemble balance', '', ensemble.diagnostics.summary, ensemble.diagnostics.readabilitySummary, ''];
+  const lines = ['# Name Forge Cast Export', '', 'Seed: `' + ensemble.settings.seed + '`', 'Style pack: ' + ensemble.sourcePack.label, 'Cast size: ' + ensemble.names.length, 'Cast variation: ' + (ensemble.settings.castVariation ?? 'balanced'), 'Role influence: ' + (ensemble.settings.roleInfluence ?? 'off'), '', '## Ensemble balance', '', ensemble.diagnostics.summary, ensemble.diagnostics.readabilitySummary, ''];
   ensemble.names.forEach((name, index) => {
     const exported = exportName(name, ensemble.settings.seed);
     const partText = exported.parts.length > 0 ? exported.parts.map((part) => part.role + ': ' + part.value).join('; ') : 'Single generated name';

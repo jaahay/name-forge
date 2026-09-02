@@ -11,10 +11,9 @@ import {
   supportingComponentKindForFormat,
 } from './componentGenerationContext';
 import { createNameIdentity, requiresSupportingName, resolveMaterializedFormatKind } from './identity';
-import { resolveFictionCastRarityBand } from './rarity';
+import { rarityBandForNovelty } from './rarity';
 import { isRoleInfluenceActive, resolveCastRole, resolveRoleInfluence } from './roles';
 import { combineFictionCastOverallFit, scoreFictionCastRoleFit } from './scoring';
-import { fictionCastBaselineGenerationSettings } from './semanticIntent';
 import type {
   CastRoleAssignment,
   FictionCastContextualScores,
@@ -39,9 +38,9 @@ function cadenceKey(name: FictionCastGeneratedName): string { return `${name.pri
 function countRepeated(values: string[]): number { const seen = new Set<string>(); let repeated = 0; for (const value of values) { if (seen.has(value)) repeated += 1; seen.add(value); } return repeated; }
 function roleSeedSegment(settings: FictionCastSettings, role?: CastRoleAssignment): string { return role && isRoleInfluenceActive(settings) ? `:role-${role.role}` : ''; }
 function ensembleFitScore(candidate: FictionCastGeneratedName, selected: FictionCastGeneratedName[]): number { const initials = new Set(selected.map((name) => name.displayName.charAt(0).toLowerCase())); const endings = new Set(selected.map((name) => endingKey(name.displayName))); const cadences = new Set(selected.map(cadenceKey)); const names = new Set(selected.map((name) => name.displayName.toLowerCase())); const penalty = (initials.has(candidate.displayName.charAt(0).toLowerCase()) ? 0.24 : 0) + (endings.has(endingKey(candidate.displayName)) ? 0.22 : 0) + (cadences.has(cadenceKey(candidate)) ? 0.16 : 0) + (names.has(candidate.displayName.toLowerCase()) ? 1 : 0); return clamp(1 - penalty); }
-function withEnsembleFit(candidate: FictionCastGeneratedName, selected: FictionCastGeneratedName[], settings: FictionCastSettings, resultIndex: number): FictionCastGeneratedName {
+function withEnsembleFit(candidate: FictionCastGeneratedName, selected: FictionCastGeneratedName[], settings: FictionCastSettings, slotIndex: number): FictionCastGeneratedName {
   const ensembleFit = ensembleFitScore(candidate, selected);
-  const scoringSettings = resolveFictionCastComponentGenerationContext(settings, candidate.role, 'given', resultIndex).settings;
+  const scoringSettings = resolveFictionCastComponentGenerationContext(settings, candidate.role, 'given', slotIndex).settings;
   const contextualScores = {
     ...candidate.contextualScores,
     ensembleFit,
@@ -75,7 +74,7 @@ function withNameIdentity(candidate: UncomposedFictionCastName, settings: Fictio
   const supportingKind = supportingComponentKindForFormat(formatKind);
   const supportingIndex = index + 1000;
   const supportingContext = supportingKind
-    ? resolveFictionCastComponentGenerationContext(settings, candidate.role, supportingKind, supportingIndex)
+    ? resolveFictionCastComponentGenerationContext(settings, candidate.role, supportingKind, index)
     : undefined;
   const supportingOptions = supportingContext
     ? {
@@ -138,7 +137,6 @@ function lockedSlotMap(lockedSlots: LockedNameSlot[] | undefined, castSize: numb
 export function generateEnsemble(settings: FictionCastSettings, registry: SourceRegistry, lockedSlots?: LockedNameSlot[]): FictionCastGeneratedEnsemble {
   const castSize = Math.round(clamp(settings.castSize, 1, 24));
   const safeSettings: FictionCastSettings = { ...settings, castSize };
-  const baselineGenerationSettings = fictionCastBaselineGenerationSettings(safeSettings);
   const pack = registry.getStylePack(settings.stylePackId);
   const selected: FictionCastGeneratedName[] = [];
   const lockedNames = lockedSlotMap(lockedSlots, castSize);
@@ -151,13 +149,8 @@ export function generateEnsemble(settings: FictionCastSettings, registry: Source
     }
 
     const role = resolveCastRole(safeSettings, index);
-    const rarityBand = resolveFictionCastRarityBand({
-      novelty: baselineGenerationSettings.novelty,
-      rarityDistribution: safeSettings.rarityDistribution,
-      seed: safeSettings.seed,
-      stylePackId: safeSettings.stylePackId,
-    }, index);
     const primaryContext = resolveFictionCastComponentGenerationContext(safeSettings, role, 'given', index);
+    const rarityBand = rarityBandForNovelty(primaryContext.settings.novelty);
     const candidates = Array.from({ length: 16 }, (_, attempt) => {
       const generated = generateGivenName({
         settings: primaryContext.settings,

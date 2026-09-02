@@ -1,5 +1,4 @@
 import { useEffect, useRef, type FormEvent, type KeyboardEvent } from 'react';
-import { rarityDistributionOptions, type FictionCastRarityDistributionPresetKind } from '../fictionCast/rarity';
 import { castRoleOptions, castRolePresetOptions, roleInfluenceOptions } from '../fictionCast/roles';
 import {
   fictionCastSemanticBaselineFromSettings,
@@ -7,6 +6,7 @@ import {
   type FictionCastSemanticControlValue,
 } from '../fictionCast/semanticIntent';
 import type { CastRole, CastRolePresetKind, FictionCastSettings, RoleInfluenceLevel } from '../fictionCast/types';
+import { castVariationOptions, type FictionCastVariation } from '../fictionCast/variation';
 import type { NameFormatKind, StylePackSummary } from '../engine/types';
 import { resolveConfigureFocusTarget, shouldCloseConfigureOnKey } from './configureBehavior';
 import type { NamingModeConfig } from './modes';
@@ -197,9 +197,9 @@ export function ConfigureTray({
                   </select>
                 </label>
                 <label>
-                  <span>Cast variety</span>
-                  <select value={settings.rarityDistribution ?? 'style-pack'} onChange={(event) => onUpdateSetting('rarityDistribution', event.target.value as FictionCastRarityDistributionPresetKind)}>
-                    {rarityDistributionOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                  <span>Cast variation</span>
+                  <select value={settings.castVariation ?? 'balanced'} onChange={(event) => onUpdateSetting('castVariation', event.target.value as FictionCastVariation)}>
+                    {castVariationOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                   </select>
                 </label>
               </div>

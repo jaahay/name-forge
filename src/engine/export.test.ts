@@ -18,6 +18,7 @@ const settings: FictionCastSettings = {
   nameFormat: 'mixed',
   rolePreset: 'classic-ensemble',
   roleInfluence: 'light',
+  castVariation: 'wide',
 };
 
 function exportableEnsemble() {
@@ -36,12 +37,14 @@ describe('cast export serialization', () => {
     expect(payload.seed).toBe(settings.seed);
     expect(payload.settings.seed).toBe(settings.seed);
     expect(payload.settings.roleInfluence).toBe('light');
+    expect(payload.settings.castVariation).toBe('wide');
     expect(payload.settings.novelty).toBe(0.48);
     expect(payload.settings.pronounceability).toBe(0.72);
     expect(payload.settings.memorability).toBe(0.65);
     expect(payload.settings.culturalAnchoring).toBe(0.62);
     expect(payload.settings.orthographicWeirdness).toBe(0.28);
     expect('semanticBaseline' in payload.settings).toBe(false);
+    expect('rarityDistribution' in payload.settings).toBe(false);
     expect(payload.sourcePack.id).toBe(settings.stylePackId);
     expect(payload.names).toHaveLength(settings.castSize);
 
@@ -77,7 +80,7 @@ describe('cast export serialization', () => {
     expect(firstName.warnings).toEqual([]);
   });
 
-  it('renders a Markdown export with score, selected sound, spelling candidates, variants, role influence, and seed', () => {
+  it('renders a Markdown export with score, variation, selected sound, spelling candidates, variants, role influence, and seed', () => {
     const ensemble = exportableEnsemble();
     const markdown = serializeCastAsMarkdown(ensemble);
     const [sourceName] = ensemble.names;
@@ -90,6 +93,7 @@ describe('cast export serialization', () => {
     expect(markdown).toContain('# Name Forge Cast Export');
     expect(markdown).toContain('Seed: `export-test-seed`');
     expect(markdown).toContain('Style pack: British literary fantasy');
+    expect(markdown).toContain('Cast variation: wide');
     expect(markdown).toContain('Role influence: light');
     expect(markdown).toContain('## Ensemble balance');
     expect(markdown).toContain('## 1.');

@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { createDefaultRegistry } from '../engine/registry';
-import { generateGivenName } from '../naming/givenName';
 import { generateEnsemble } from './ensemble';
 import { getRolePreferenceProfile } from './roles';
 import {
@@ -10,9 +9,10 @@ import {
   withFictionCastSemanticControl,
 } from './semanticIntent';
 import type { CastRoleAssignment, FictionCastSettings } from './types';
+import { resolveFictionCastVariationDelta } from './variation';
 
 const settings: FictionCastSettings = {
-  castSize: 4,
+  castSize: 5,
   semanticBaseline: {
     familiarity: 'balanced',
     readability: 'clear',
@@ -23,6 +23,7 @@ const settings: FictionCastSettings = {
   stylePackId: 'british-literary-fantasy',
   seed: 'semantic-intent',
   nameFormat: 'given-only',
+  castVariation: 'balanced',
 };
 
 const mentorRole: CastRoleAssignment = {
@@ -46,7 +47,7 @@ describe('Fiction Cast semantic intent', () => {
     }
   });
 
-  it('owns the compatibility translation from semantic selections to current generation mechanics', () => {
+  it('owns the compatibility translation from semantic selections to baseline generation mechanics', () => {
     expect(fictionCastBaselineGenerationSettings(settings)).toEqual({
       novelty: 0.48,
       pronounceability: 0.72,
@@ -68,68 +69,40 @@ describe('Fiction Cast semantic intent', () => {
     }
   });
 
-  it('resolves the baseline and current slot planning inputs exactly before contextual shaping', () => {
-    const resolved = resolveFictionCastSemanticIntent(settings, { resultIndex: 2 });
+  it('applies Cast variation around the Familiar baseline without changing surface state', () => {
+    const slotIndex = 3;
+    const variationDelta = resolveFictionCastVariationDelta(settings, slotIndex);
+    const resolved = resolveFictionCastSemanticIntent(settings, { slotIndex });
 
     expect(resolved.baseline).toEqual(settings.semanticBaseline);
-    expect(resolved.generationSettings).toEqual(fictionCastBaselineGenerationSettings(settings));
-    expect(resolved.planningPreferences).toEqual({ noveltyOffset: 0 });
+    expect(resolved.variationDelta).toBe(variationDelta);
+    expect(resolved.generationSettings.novelty).toBeCloseTo(0.48 + variationDelta);
+    expect(resolved.planningPreferences).toEqual({});
+    expect(settings.semanticBaseline.familiarity).toBe('balanced');
   });
 
-  it('preserves the existing role-influence mechanics behind the semantic boundary', () => {
-    const resolved = resolveFictionCastSemanticIntent(
-      { ...settings, roleInfluence: 'strong' },
-      { role: mentorRole, resultIndex: 2 },
-    );
+  it('applies role shaping after variation and keeps role planning hints at the same boundary', () => {
+    const roleSettings: FictionCastSettings = {
+      ...settings,
+      castSize: 5,
+      castVariation: 'wide',
+      roleInfluence: 'strong',
+    };
+    const slotIndex = 1;
+    const variationDelta = resolveFictionCastVariationDelta(roleSettings, slotIndex);
+    const resolved = resolveFictionCastSemanticIntent(roleSettings, { role: mentorRole, slotIndex });
+    const profile = getRolePreferenceProfile('mentor');
 
-    expect(resolved.baseline).toEqual(settings.semanticBaseline);
-    expect(resolved.generationSettings.novelty).toBeCloseTo(0.44);
+    expect(resolved.generationSettings.novelty).toBeCloseTo(0.48 + variationDelta - 0.04);
     expect(resolved.generationSettings.pronounceability).toBeCloseTo(0.75);
     expect(resolved.generationSettings.memorability).toBeCloseTo(0.65);
     expect(resolved.generationSettings.culturalAnchoring).toBeCloseTo(0.71);
     expect(resolved.generationSettings.orthographicWeirdness).toBeCloseTo(0.25);
-    expect(resolved.planningPreferences.preferenceStrength).toBe(1);
-  });
-
-  it('matches the pre-boundary role-shaped generation inputs and output for a representative slot', () => {
-    const registry = createDefaultRegistry();
-    const roleSettings: FictionCastSettings = { ...settings, roleInfluence: 'light' };
-    const profile = getRolePreferenceProfile('mentor');
-    const legacyGenerationSettings = {
-      novelty: 0.48 + (-0.04 * 0.42),
-      pronounceability: 0.72 + (0.03 * 0.42),
-      memorability: 0.65,
-      culturalAnchoring: 0.62 + (0.09 * 0.42),
-      orthographicWeirdness: 0.28 + (-0.03 * 0.42),
-      stylePackId: settings.stylePackId,
-      seed: settings.seed,
-    };
-    const legacyPlanningPreferences = {
-      noveltyOffset: 0.06,
-      preferenceStrength: 0.42,
+    expect(resolved.planningPreferences).toEqual({
+      preferenceStrength: 1,
       syllableCounts: profile.syllableCounts,
       textures: profile.textures,
-    };
-    const resolved = resolveFictionCastSemanticIntent(roleSettings, { role: mentorRole, resultIndex: 3 });
-
-    expect(resolved.generationSettings).toEqual(legacyGenerationSettings);
-    expect(resolved.planningPreferences).toEqual(legacyPlanningPreferences);
-
-    const determinism = { seed: 'legacy-role-shaped-equivalence', resultIndex: 3 } as const;
-    const legacyName = generateGivenName({
-      settings: legacyGenerationSettings,
-      registry,
-      determinism,
-      preferences: legacyPlanningPreferences,
     });
-    const resolvedName = generateGivenName({
-      settings: resolved.generationSettings,
-      registry,
-      determinism,
-      preferences: resolved.planningPreferences,
-    });
-
-    expect(resolvedName).toEqual(legacyName);
   });
 
   it('keeps deterministic Fiction Cast generation stable for equivalent inputs', () => {
@@ -140,6 +113,7 @@ describe('Fiction Cast semantic intent', () => {
       nameFormat: 'given-family',
       rolePreset: 'classic-ensemble',
       roleInfluence: 'light',
+      castVariation: 'wide',
     };
 
     const first = generateEnsemble(generationSettings, registry);

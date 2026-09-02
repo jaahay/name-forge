@@ -6,10 +6,8 @@ import type {
   ReadabilityDiagnostic,
   StylePackSummary,
 } from '../engine/types';
-import type {
-  FictionCastRarityBand,
-  FictionCastRarityDistributionPresetKind,
-} from './rarity';
+import type { FictionCastRarityBand } from './rarity';
+import type { FictionCastVariation } from './variation';
 
 export type CastRole = 'protagonist' | 'rival' | 'mentor' | 'sidekick' | 'guardian' | 'outsider' | 'villain' | 'wildcard';
 export type CastRolePresetKind = 'none' | 'classic-ensemble' | 'quest-party' | 'court-intrigue';
@@ -55,7 +53,7 @@ export interface FictionCastSettings {
   readonly rolePreset?: CastRolePresetKind;
   readonly roleInfluence?: RoleInfluenceLevel;
   readonly slotRoleOverrides?: SlotRoleOverrides;
-  readonly rarityDistribution?: FictionCastRarityDistributionPresetKind;
+  readonly castVariation?: FictionCastVariation;
 }
 
 export interface FictionCastContextualScores {

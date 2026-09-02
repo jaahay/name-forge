@@ -25,9 +25,9 @@ export function resolveFictionCastComponentGenerationContext(
   settings: FictionCastSettings,
   role: CastRoleAssignment | undefined,
   kind: FictionCastSoundComponentKind,
-  resultIndex: number,
+  slotIndex: number,
 ): FictionCastComponentGenerationContext {
-  const semanticIntent = resolveFictionCastSemanticIntent(settings, { role, resultIndex });
+  const semanticIntent = resolveFictionCastSemanticIntent(settings, { role, slotIndex });
 
   return {
     kind,

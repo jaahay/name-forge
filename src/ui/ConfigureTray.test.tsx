@@ -43,10 +43,23 @@ describe('ConfigureTray criteria surface', () => {
     const firstDisclosure = html.indexOf('<details');
 
     expect(firstDisclosure).toBeGreaterThan(0);
-    for (const label of ['Cast size', 'Style pack', 'Cast role mix', 'Cast variety']) {
+    for (const label of ['Cast size', 'Style pack', 'Cast role mix', 'Cast variation']) {
       const labelIndex = html.indexOf(label);
       expect(labelIndex).toBeGreaterThan(0);
       expect(labelIndex).toBeLessThan(firstDisclosure);
+    }
+  });
+
+  it('offers Cast variation as centered spread rather than rarity-direction presets', () => {
+    const html = renderConfigureTray();
+    const variationStart = html.indexOf('Cast variation');
+    const variationHtml = html.slice(variationStart, html.indexOf('</label>', variationStart));
+
+    for (const option of ['Tight', 'Balanced', 'Wide']) {
+      expect(variationHtml).toContain(`>${option}</option>`);
+    }
+    for (const oldOption of ['Style-pack weighted', 'Grounded cast', 'Rare-forward cast', 'Mythic arc']) {
+      expect(html).not.toContain(oldOption);
     }
   });
 

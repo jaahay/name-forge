@@ -43,7 +43,7 @@ export const fictionCastMode: FictionCastModeConfig = {
     stylePackId,
     seed: 'name-forge-001',
     nameFormat: 'mixed',
-    rarityDistribution: 'style-pack',
+    castVariation: 'balanced',
     rolePreset: 'none',
     roleInfluence: 'off',
     slotRoleOverrides: {},
