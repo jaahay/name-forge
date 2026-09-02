@@ -2,11 +2,25 @@ import { describe, expect, it } from 'vitest';
 import { generateEnsemble } from '../fictionCast/ensemble';
 import { fictionCastEpithetLexemes, fictionCastTitleLexemes } from '../fictionCast/identityLexicon';
 import type { FictionCastRarityBand } from '../fictionCast/rarity';
+import { fictionCastBaselineGenerationSettings } from '../fictionCast/semanticIntent';
 import type { FictionCastGeneratedName, FictionCastSettings } from '../fictionCast/types';
 import { generateName } from '../naming/generator';
 import { createDefaultRegistry } from './registry';
 
-const settings: FictionCastSettings = { castSize: 6, novelty: 0.5, pronounceability: 0.7, memorability: 0.6, culturalAnchoring: 0.65, orthographicWeirdness: 0.25, stylePackId: 'british-literary-fantasy', seed: 'deterministic-test-seed', nameFormat: 'given-only' };
+const settings: FictionCastSettings = {
+  castSize: 6,
+  semanticBaseline: {
+    familiarity: 'balanced',
+    readability: 'clear',
+    compactness: 'compact',
+    styleAnchoring: 'balanced',
+    spellingDistinctiveness: 'conventional',
+  },
+  stylePackId: 'british-literary-fantasy',
+  seed: 'deterministic-test-seed',
+  nameFormat: 'given-only',
+};
+const generationSettings = fictionCastBaselineGenerationSettings(settings);
 const mmoRarityBands: FictionCastRarityBand[] = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
 
 function nameListFor(overrides: Partial<FictionCastSettings> = {}): string[] {
@@ -47,7 +61,7 @@ describe('generateEnsemble', () => {
     const registry = createDefaultRegistry();
     const pack = registry.getStylePack(settings.stylePackId);
     const generated = generateName({
-      settings,
+      settings: generationSettings,
       pack,
       seed: 'candidate',
       index: 0,
@@ -76,7 +90,7 @@ describe('generateEnsemble', () => {
     const registry = createDefaultRegistry();
     const pack = registry.getStylePack(settings.stylePackId);
     const options = {
-      settings,
+      settings: generationSettings,
       pack,
       seed: 'primitive-replay',
       index: 2,

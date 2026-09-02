@@ -1,7 +1,6 @@
 import type { IdentityAuditionPhrase } from '../engine/identityAudition';
 import type {
   GeneratedName,
-  GenerationSettings,
   NameFormatKind,
   NameIdentity,
   ReadabilityDiagnostic,
@@ -16,6 +15,20 @@ export type CastRole = 'protagonist' | 'rival' | 'mentor' | 'sidekick' | 'guardi
 export type CastRolePresetKind = 'none' | 'classic-ensemble' | 'quest-party' | 'court-intrigue';
 export type RoleInfluenceLevel = 'off' | 'light' | 'strong';
 export type SlotRoleOverrides = Partial<Record<number, CastRole>>;
+
+export type FictionCastFamiliarity = 'unusual' | 'balanced' | 'familiar';
+export type FictionCastReadability = 'tricky' | 'balanced' | 'clear';
+export type FictionCastCompactness = 'extended' | 'balanced' | 'compact';
+export type FictionCastStyleAnchoring = 'loose' | 'balanced' | 'faithful';
+export type FictionCastSpellingDistinctiveness = 'conventional' | 'balanced' | 'distinctive';
+
+export interface FictionCastSemanticBaseline {
+  readonly familiarity: FictionCastFamiliarity;
+  readonly readability: FictionCastReadability;
+  readonly compactness: FictionCastCompactness;
+  readonly styleAnchoring: FictionCastStyleAnchoring;
+  readonly spellingDistinctiveness: FictionCastSpellingDistinctiveness;
+}
 
 export interface CastRoleAssignment {
   readonly role: CastRole;
@@ -33,8 +46,11 @@ export interface RoleInfluenceMetadata {
   readonly effects: string[];
 }
 
-export interface FictionCastSettings extends GenerationSettings {
+export interface FictionCastSettings {
   readonly castSize: number;
+  readonly semanticBaseline: FictionCastSemanticBaseline;
+  readonly stylePackId: string;
+  readonly seed: string;
   readonly nameFormat?: NameFormatKind;
   readonly rolePreset?: CastRolePresetKind;
   readonly roleInfluence?: RoleInfluenceLevel;

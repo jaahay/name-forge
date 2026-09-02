@@ -139,11 +139,13 @@ function fixtureEnsemble(): FictionCastGeneratedEnsemble {
   return {
     settings: {
       castSize: 1,
-      novelty: 0.5,
-      pronounceability: 0.5,
-      memorability: 0.5,
-      culturalAnchoring: 0.5,
-      orthographicWeirdness: 0.5,
+      semanticBaseline: {
+        familiarity: 'balanced',
+        readability: 'balanced',
+        compactness: 'balanced',
+        styleAnchoring: 'balanced',
+        spellingDistinctiveness: 'balanced',
+      },
       stylePackId: pack.id,
       seed: 'variant-contract-test',
     },

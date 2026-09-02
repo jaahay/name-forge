@@ -33,11 +33,13 @@ export const fictionCastMode: FictionCastModeConfig = {
   generateLabel: 'Generate cast',
   defaultSettings: (stylePackId) => ({
     castSize: 8,
-    novelty: 0.48,
-    pronounceability: 0.72,
-    memorability: 0.65,
-    culturalAnchoring: 0.62,
-    orthographicWeirdness: 0.28,
+    semanticBaseline: {
+      familiarity: 'balanced',
+      readability: 'clear',
+      compactness: 'compact',
+      styleAnchoring: 'balanced',
+      spellingDistinctiveness: 'conventional',
+    },
     stylePackId,
     seed: 'name-forge-001',
     nameFormat: 'mixed',

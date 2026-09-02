@@ -6,15 +6,26 @@ import { createDefaultRegistry } from './registry';
 
 const baseSettings: FictionCastSettings = {
   castSize: 6,
-  novelty: 0.5,
-  pronounceability: 0.7,
-  memorability: 0.6,
-  culturalAnchoring: 0.65,
-  orthographicWeirdness: 0.25,
+  semanticBaseline: {
+    familiarity: 'balanced',
+    readability: 'clear',
+    compactness: 'compact',
+    styleAnchoring: 'balanced',
+    spellingDistinctiveness: 'conventional',
+  },
   stylePackId: 'british-literary-fantasy',
   seed: 'ensemble-role-test-seed',
   nameFormat: 'given-only',
 };
+
+function raritySettings(rarityDistribution: 'style-pack' | 'grounded' | 'balanced' | 'rare-forward' | 'mythic-arc', novelty = 0.48) {
+  return {
+    novelty,
+    rarityDistribution,
+    seed: baseSettings.seed,
+    stylePackId: baseSettings.stylePackId,
+  };
+}
 
 describe('generateEnsemble role and rarity controls', () => {
   it('assigns preset roles deterministically', () => {
@@ -70,7 +81,7 @@ describe('generateEnsemble role and rarity controls', () => {
     ]);
 
     const bandsFor = (rarityDistribution: 'grounded' | 'balanced' | 'rare-forward' | 'mythic-arc') => (
-      Array.from({ length: 8 }, (_, index) => resolveFictionCastRarityBand({ ...baseSettings, rarityDistribution }, index))
+      Array.from({ length: 8 }, (_, index) => resolveFictionCastRarityBand(raritySettings(rarityDistribution), index))
     );
 
     expect(bandsFor('grounded')).toEqual(['common', 'common', 'uncommon', 'common', 'uncommon', 'rare', 'common', 'uncommon']);
@@ -80,7 +91,7 @@ describe('generateEnsemble role and rarity controls', () => {
   });
 
   it('applies the style-pack novelty shift in the surface rarity policy', () => {
-    const settings = { ...baseSettings, novelty: 0.5, rarityDistribution: 'style-pack' as const };
+    const settings = raritySettings('style-pack', 0.5);
     const rarityBands = Array.from({ length: 8 }, (_, index) => resolveFictionCastRarityBand(settings, index));
 
     expect(rarityBands).toEqual(['rare', 'epic', 'rare', 'rare', 'rare', 'uncommon', 'uncommon', 'uncommon']);

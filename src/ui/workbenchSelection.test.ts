@@ -6,11 +6,13 @@ import { resolveSelectedNameId } from './workbenchSelection';
 
 const settings: FictionCastSettings = {
   castSize: 3,
-  novelty: 0.5,
-  pronounceability: 0.7,
-  memorability: 0.6,
-  culturalAnchoring: 0.65,
-  orthographicWeirdness: 0.25,
+  semanticBaseline: {
+    familiarity: 'balanced',
+    readability: 'clear',
+    compactness: 'compact',
+    styleAnchoring: 'balanced',
+    spellingDistinctiveness: 'conventional',
+  },
   stylePackId: 'british-literary-fantasy',
   seed: 'workbench-selection-test-seed',
   nameFormat: 'mixed',

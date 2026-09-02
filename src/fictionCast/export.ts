@@ -1,7 +1,8 @@
 import type { SoundProfile } from '../engine/soundProfile';
 import type { GeneratedName, NameGenerationPlan, NameVariant, ReadabilityDiagnostic } from '../engine/types';
 import type { FictionCastRarityBand } from './rarity';
-import type { FictionCastGeneratedEnsemble, FictionCastGeneratedName, RoleInfluenceMetadata } from './types';
+import { fictionCastBaselineGenerationSettings } from './semanticIntent';
+import type { FictionCastGeneratedEnsemble, FictionCastGeneratedName, FictionCastSettings, RoleInfluenceMetadata } from './types';
 
 export interface ExportedNamePart { role: string; value: string; sourceName: string; }
 export interface ExportedRoleInfluence { level: RoleInfluenceMetadata['level']; profileId: string; label: string; effects: string[]; }
@@ -13,7 +14,22 @@ export interface ExportedSound { profile: SoundProfile; transcription: string; s
 export type ExportedNameScores = Omit<GeneratedName['scores'], 'overallFit'> & { ensembleFit: number; roleFit: number; overallFit: number; };
 export type ExportedGenerationPlan = Pick<NameGenerationPlan, 'syllableCount' | 'stressPattern' | 'rhythm' | 'texture' | 'targetNovelty' | 'targetLength'> & { rarityBand: FictionCastRarityBand; };
 export interface ExportedName { id: string; name: string; role?: string; roleInfluence?: ExportedRoleInfluence; readabilityDiagnostics: ExportedReadabilityDiagnostic[]; score: number; scores: ExportedNameScores; sound: ExportedSound; generationPlan: ExportedGenerationPlan; format: string; parts: ExportedNamePart[]; variants: ExportedNameVariant[]; seed: string; warnings: string[]; }
-export interface CastExportPayload { generatedBy: 'Name Forge'; seed: string; settings: FictionCastGeneratedEnsemble['settings']; sourcePack: FictionCastGeneratedEnsemble['sourcePack']; diagnostics: FictionCastGeneratedEnsemble['diagnostics']; names: ExportedName[]; }
+export interface ExportedFictionCastSettings {
+  castSize: number;
+  novelty: number;
+  pronounceability: number;
+  memorability: number;
+  culturalAnchoring: number;
+  orthographicWeirdness: number;
+  stylePackId: string;
+  seed: string;
+  nameFormat?: FictionCastSettings['nameFormat'];
+  rolePreset?: FictionCastSettings['rolePreset'];
+  roleInfluence?: FictionCastSettings['roleInfluence'];
+  slotRoleOverrides?: FictionCastSettings['slotRoleOverrides'];
+  rarityDistribution?: FictionCastSettings['rarityDistribution'];
+}
+export interface CastExportPayload { generatedBy: 'Name Forge'; seed: string; settings: ExportedFictionCastSettings; sourcePack: FictionCastGeneratedEnsemble['sourcePack']; diagnostics: FictionCastGeneratedEnsemble['diagnostics']; names: ExportedName[]; }
 
 type RetainedSpellingCandidate = GeneratedName['spellingCandidates'][number];
 
@@ -32,6 +48,25 @@ function variantText(variants: ExportedNameVariant[]): string { return variants.
 function spellingCandidateText(candidates: ExportedSpellingCandidate[]): string { return candidates.length === 0 ? 'None' : candidates.map((candidate) => candidate.text + ' (' + (candidate.selected ? 'selected; ' : '') + 'rank ' + candidate.rank + ', score ' + candidate.score.toFixed(2) + ')').join(', '); }
 function generationPlanSummary(plan: NameGenerationPlan, rarityBand: FictionCastRarityBand): string { return plan.syllableCount + ' syllable ' + plan.texture + ' ' + rarityBand + ' name with ' + plan.rhythm + ' rhythm'; }
 function soundProfileSummary(profile: SoundProfile): string { return `${profile.targets.length}, ${profile.targets.texture}, distinctiveness ${profile.targets.distinctiveness.toFixed(2)}`; }
+
+function exportSettings(settings: FictionCastSettings): ExportedFictionCastSettings {
+  const generationSettings = fictionCastBaselineGenerationSettings(settings);
+  return {
+    castSize: settings.castSize,
+    novelty: generationSettings.novelty,
+    pronounceability: generationSettings.pronounceability,
+    memorability: generationSettings.memorability,
+    culturalAnchoring: generationSettings.culturalAnchoring,
+    orthographicWeirdness: generationSettings.orthographicWeirdness,
+    stylePackId: settings.stylePackId,
+    seed: settings.seed,
+    nameFormat: settings.nameFormat,
+    rolePreset: settings.rolePreset,
+    roleInfluence: settings.roleInfluence,
+    slotRoleOverrides: settings.slotRoleOverrides,
+    rarityDistribution: settings.rarityDistribution,
+  };
+}
 
 function exportName(name: FictionCastGeneratedName, seed: string): ExportedName {
   const primaryName = name.primaryName;
@@ -61,7 +96,7 @@ function exportName(name: FictionCastGeneratedName, seed: string): ExportedName 
 }
 
 export function createCastExportPayload(ensemble: FictionCastGeneratedEnsemble): CastExportPayload {
-  return { generatedBy: 'Name Forge', seed: ensemble.settings.seed, settings: ensemble.settings, sourcePack: ensemble.sourcePack, diagnostics: ensemble.diagnostics, names: ensemble.names.map((name) => exportName(name, ensemble.settings.seed)) };
+  return { generatedBy: 'Name Forge', seed: ensemble.settings.seed, settings: exportSettings(ensemble.settings), sourcePack: ensemble.sourcePack, diagnostics: ensemble.diagnostics, names: ensemble.names.map((name) => exportName(name, ensemble.settings.seed)) };
 }
 
 export function serializeCastAsJson(ensemble: FictionCastGeneratedEnsemble): string { return JSON.stringify(createCastExportPayload(ensemble), null, 2) + '\n'; }

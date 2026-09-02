@@ -1,7 +1,7 @@
 import { clamp, lerp } from '../engine/random';
-import type { NameGenerationPlan, NameScores, ScoreKey } from '../engine/types';
+import type { GenerationSettings, NameGenerationPlan, NameScores, ScoreKey } from '../engine/types';
 import { getRolePreferenceProfile } from './roles';
-import type { FictionCastContextualScores, FictionCastSettings, RoleInfluenceMetadata } from './types';
+import type { FictionCastContextualScores, RoleInfluenceLevel, RoleInfluenceMetadata } from './types';
 
 type FictionCastScoreKey = ScoreKey | 'ensembleFit' | 'roleFit';
 
@@ -28,8 +28,11 @@ export function scoreFictionCastRoleFit(name: string, plan: NameGenerationPlan, 
   return clamp(lengthFit * 0.3 + textureFit * 0.28 + rhythmFit * 0.22 + syllableFit * 0.2);
 }
 
-function fictionCastScoreWeights(settings: FictionCastSettings): Record<FictionCastScoreKey, number> {
-  const roleFitWeight = settings.roleInfluence === 'strong' ? 0.12 : settings.roleInfluence === 'light' ? 0.06 : 0;
+function fictionCastScoreWeights(
+  settings: GenerationSettings,
+  roleInfluence: RoleInfluenceLevel | undefined,
+): Record<FictionCastScoreKey, number> {
+  const roleFitWeight = roleInfluence === 'strong' ? 0.12 : roleInfluence === 'light' ? 0.06 : 0;
   return {
     pronounceability: lerp(0.08, 0.24, settings.pronounceability),
     memorability: lerp(0.06, 0.24, settings.memorability),
@@ -45,9 +48,10 @@ function fictionCastScoreWeights(settings: FictionCastSettings): Record<FictionC
 export function combineFictionCastOverallFit(
   scores: Pick<NameScores, ScoreKey>,
   contextualScores: Pick<FictionCastContextualScores, 'ensembleFit' | 'roleFit'>,
-  settings: FictionCastSettings,
+  settings: GenerationSettings,
+  roleInfluence?: RoleInfluenceLevel,
 ): number {
-  const weights = fictionCastScoreWeights(settings);
+  const weights = fictionCastScoreWeights(settings, roleInfluence);
   const totalWeight = Object.values(weights).reduce((sum, weight) => sum + weight, 0);
   return clamp((weights.pronounceability * scores.pronounceability + weights.memorability * scores.memorability + weights.novelty * scores.novelty + weights.culturalAnchoring * scores.culturalAnchoring + weights.orthographicNaturalness * scores.orthographicNaturalness + weights.styleFit * scores.styleFit + weights.ensembleFit * contextualScores.ensembleFit + weights.roleFit * contextualScores.roleFit) / totalWeight);
 }
