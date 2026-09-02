@@ -1,13 +1,13 @@
 import type { FictionCastSemanticControlValue } from '../fictionCast/semanticIntent';
 import type { ControlKey, ScoreControlDefinition } from './presentation';
 
-interface ScoreControlProps {
-  control: ScoreControlDefinition;
-  value: FictionCastSemanticControlValue;
-  onChange: (key: ControlKey, value: FictionCastSemanticControlValue) => void;
+interface ScoreControlProps<K extends ControlKey> {
+  control: ScoreControlDefinition<K>;
+  value: FictionCastSemanticControlValue<K>;
+  onChange: (key: K, value: FictionCastSemanticControlValue<K>) => void;
 }
 
-export function ScoreControl({ control, value, onChange }: ScoreControlProps) {
+export function ScoreControl<K extends ControlKey>({ control, value, onChange }: ScoreControlProps<K>) {
   return (
     <fieldset className="semantic-score-control" title={control.help}>
       <legend>{control.label}</legend>

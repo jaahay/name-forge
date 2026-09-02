@@ -37,10 +37,10 @@ describe('Fiction Cast component generation context', () => {
     expect(supportingComponentKindForFormat('title-name')).toBeUndefined();
   });
 
-  it('preserves current generation settings while carrying product component semantics', () => {
-    const given = resolveFictionCastComponentGenerationContext(settings, undefined, 'given');
-    const family = resolveFictionCastComponentGenerationContext(settings, undefined, 'family');
-    const place = resolveFictionCastComponentGenerationContext(settings, undefined, 'place');
+  it('preserves current generation settings and planning inputs while carrying product component semantics', () => {
+    const given = resolveFictionCastComponentGenerationContext(settings, undefined, 'given', 2);
+    const family = resolveFictionCastComponentGenerationContext(settings, undefined, 'family', 2);
+    const place = resolveFictionCastComponentGenerationContext(settings, undefined, 'place', 2);
 
     expect(given.kind).toBe('given');
     expect(family.kind).toBe('family');
@@ -48,7 +48,10 @@ describe('Fiction Cast component generation context', () => {
     expect(given.semanticIntent.baseline).toEqual(settings.semanticBaseline);
     expect(given.semanticIntent.generationSettings).toEqual(expectedGenerationSettings);
     expect(given.settings).toEqual(expectedGenerationSettings);
+    expect(given.preferences).toEqual({ noveltyOffset: 0 });
     expect(family.settings).toEqual(expectedGenerationSettings);
+    expect(family.preferences).toEqual({ noveltyOffset: 0 });
     expect(place.settings).toEqual(expectedGenerationSettings);
+    expect(place.preferences).toEqual({ noveltyOffset: 0 });
   });
 });

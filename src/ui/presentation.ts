@@ -9,20 +9,24 @@ export type AppView = 'generator' | 'recent-names' | 'changelog' | 'about';
 
 export type ControlKey = FictionCastSemanticControlKey;
 
-export interface SemanticScoreChoice {
+export interface SemanticScoreChoice<K extends ControlKey = ControlKey> {
   label: string;
-  value: FictionCastSemanticControlValue;
+  value: FictionCastSemanticControlValue<K>;
 }
 
-export interface ScoreControlDefinition {
-  key: ControlKey;
+export interface ScoreControlDefinition<K extends ControlKey = ControlKey> {
+  key: K;
   label: string;
   help: string;
-  choices: readonly SemanticScoreChoice[];
+  choices: readonly SemanticScoreChoice<K>[];
 }
 
-export const primaryScoreControls: ScoreControlDefinition[] = [
-  {
+function defineScoreControl<K extends ControlKey>(definition: ScoreControlDefinition<K>): ScoreControlDefinition<K> {
+  return definition;
+}
+
+export const primaryScoreControls = [
+  defineScoreControl({
     key: 'familiarity',
     label: 'Familiar',
     help: 'Choose whether name shapes feel unusual or familiar.',
@@ -31,8 +35,8 @@ export const primaryScoreControls: ScoreControlDefinition[] = [
       { label: 'Balanced', value: 'balanced' },
       { label: 'Familiar', value: 'familiar' },
     ],
-  },
-  {
+  }),
+  defineScoreControl({
     key: 'readability',
     label: 'Readable',
     help: 'Choose whether a name feels tricky or clear to read aloud on first sight.',
@@ -41,11 +45,11 @@ export const primaryScoreControls: ScoreControlDefinition[] = [
       { label: 'Balanced', value: 'balanced' },
       { label: 'Clear', value: 'clear' },
     ],
-  },
+  }),
 ];
 
-export const advancedScoreControls: ScoreControlDefinition[] = [
-  {
+export const advancedScoreControls = [
+  defineScoreControl({
     key: 'compactness',
     label: 'Compact',
     help: 'Choose whether name shapes feel extended or compact.',
@@ -54,8 +58,8 @@ export const advancedScoreControls: ScoreControlDefinition[] = [
       { label: 'Balanced', value: 'balanced' },
       { label: 'Compact', value: 'compact' },
     ],
-  },
-  {
+  }),
+  defineScoreControl({
     key: 'styleAnchoring',
     label: 'Style',
     help: 'Choose how faithfully names follow the selected style pack.',
@@ -64,8 +68,8 @@ export const advancedScoreControls: ScoreControlDefinition[] = [
       { label: 'Balanced', value: 'balanced' },
       { label: 'Faithful', value: 'faithful' },
     ],
-  },
-  {
+  }),
+  defineScoreControl({
     key: 'spellingDistinctiveness',
     label: 'Spelling',
     help: 'Choose whether spellings stay conventional or become distinctive.',
@@ -74,7 +78,7 @@ export const advancedScoreControls: ScoreControlDefinition[] = [
       { label: 'Balanced', value: 'balanced' },
       { label: 'Distinctive', value: 'distinctive' },
     ],
-  },
+  }),
 ];
 
 export const scoreControls = [...primaryScoreControls, ...advancedScoreControls];

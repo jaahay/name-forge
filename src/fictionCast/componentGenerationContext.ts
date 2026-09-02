@@ -12,6 +12,7 @@ export interface FictionCastComponentGenerationContext {
   readonly kind: FictionCastSoundComponentKind;
   readonly semanticIntent: ResolvedFictionCastSemanticIntent;
   readonly settings: GenerationSettings;
+  readonly preferences: ResolvedFictionCastSemanticIntent['planningPreferences'];
 }
 
 export function supportingComponentKindForFormat(format: MaterializedComponentFormat): FictionCastSoundComponentKind | undefined {
@@ -24,12 +25,14 @@ export function resolveFictionCastComponentGenerationContext(
   settings: FictionCastSettings,
   role: CastRoleAssignment | undefined,
   kind: FictionCastSoundComponentKind,
+  resultIndex: number,
 ): FictionCastComponentGenerationContext {
-  const semanticIntent = resolveFictionCastSemanticIntent(settings, { role });
+  const semanticIntent = resolveFictionCastSemanticIntent(settings, { role, resultIndex });
 
   return {
     kind,
     semanticIntent,
     settings: semanticIntent.generationSettings,
+    preferences: semanticIntent.planningPreferences,
   };
 }

@@ -1,5 +1,6 @@
 import type { GenerationSettings } from '../engine/types';
-import { roleInfluencedGenerationSettings, resolveRoleInfluence } from './roles';
+import type { SemanticNamePreferences } from '../naming/semanticName';
+import { getRolePreferenceProfile, roleInfluencedGenerationSettings, resolveRoleInfluence } from './roles';
 import type {
   CastRoleAssignment,
   FictionCastSemanticBaseline,
@@ -7,15 +8,17 @@ import type {
 } from './types';
 
 export type FictionCastSemanticControlKey = keyof FictionCastSemanticBaseline;
-export type FictionCastSemanticControlValue = FictionCastSemanticBaseline[FictionCastSemanticControlKey];
+export type FictionCastSemanticControlValue<K extends FictionCastSemanticControlKey = FictionCastSemanticControlKey> = FictionCastSemanticBaseline[K];
 
 export interface FictionCastSemanticIntentContext {
   readonly role?: CastRoleAssignment;
+  readonly resultIndex: number;
 }
 
 export interface ResolvedFictionCastSemanticIntent {
   readonly baseline: FictionCastSemanticBaseline;
   readonly generationSettings: GenerationSettings;
+  readonly planningPreferences: SemanticNamePreferences;
 }
 
 const familiarityNovelty = {
@@ -70,10 +73,13 @@ export function fictionCastSemanticBaselineFromSettings(settings: FictionCastSet
   return settings.semanticBaseline;
 }
 
-export function withFictionCastSemanticControl<T extends FictionCastSettings>(
+export function withFictionCastSemanticControl<
+  T extends FictionCastSettings,
+  K extends FictionCastSemanticControlKey,
+>(
   settings: T,
-  key: FictionCastSemanticControlKey,
-  value: FictionCastSemanticControlValue,
+  key: K,
+  value: FictionCastSemanticBaseline[NoInfer<K>],
 ): T {
   return {
     ...settings,
@@ -84,9 +90,31 @@ export function withFictionCastSemanticControl<T extends FictionCastSettings>(
   };
 }
 
+function planningNoveltyOffsetForResult(resultIndex: number): number {
+  return ((resultIndex % 5) - 2) * 0.06;
+}
+
+function currentPlanningPreferences(
+  settings: FictionCastSettings,
+  role: CastRoleAssignment | undefined,
+  resultIndex: number,
+): SemanticNamePreferences {
+  const noveltyOffset = planningNoveltyOffsetForResult(resultIndex);
+  const influence = resolveRoleInfluence(settings, role);
+  if (!influence) return { noveltyOffset };
+
+  const profile = getRolePreferenceProfile(influence.role);
+  return {
+    noveltyOffset,
+    preferenceStrength: influence.strength,
+    syllableCounts: profile.syllableCounts,
+    textures: profile.textures,
+  };
+}
+
 export function resolveFictionCastSemanticIntent(
   settings: FictionCastSettings,
-  context: FictionCastSemanticIntentContext = {},
+  context: FictionCastSemanticIntentContext,
 ): ResolvedFictionCastSemanticIntent {
   const baselineSettings = fictionCastBaselineGenerationSettings(settings);
   const roleInfluence = resolveRoleInfluence(settings, context.role);
@@ -94,5 +122,6 @@ export function resolveFictionCastSemanticIntent(
   return {
     baseline: settings.semanticBaseline,
     generationSettings: roleInfluencedGenerationSettings(baselineSettings, roleInfluence),
+    planningPreferences: currentPlanningPreferences(settings, context.role, context.resultIndex),
   };
 }

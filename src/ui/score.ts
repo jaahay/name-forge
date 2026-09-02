@@ -1,13 +1,12 @@
+import { withFictionCastSemanticControl, type FictionCastSemanticControlValue } from '../fictionCast/semanticIntent';
 import type { FictionCastSettings } from '../fictionCast/types';
-import { withFictionCastSemanticControl } from '../fictionCast/semanticIntent';
-import { scoreControls, type ScoreControlDefinition } from './presentation';
-import type { FictionCastSemanticControlValue } from '../fictionCast/semanticIntent';
+import { scoreControls, type ControlKey, type ScoreControlDefinition } from './presentation';
 
 export function formatScore(value: number): string {
   return Math.round(value * 100).toString();
 }
 
-export function randomScoreChoice(control: ScoreControlDefinition): FictionCastSemanticControlValue {
+export function randomScoreChoice<K extends ControlKey>(control: ScoreControlDefinition<K>): FictionCastSemanticControlValue<K> {
   const index = Math.min(control.choices.length - 1, Math.floor(Math.random() * control.choices.length));
   return control.choices[index]?.value ?? control.choices[0].value;
 }
