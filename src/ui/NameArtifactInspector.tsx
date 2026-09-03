@@ -12,12 +12,14 @@ interface NameArtifactInspectorProps {
   readonly pronunciationGuideText?: string;
   readonly eyebrow?: string;
   readonly extraActions?: ReactNode;
+  readonly headingSupplement?: ReactNode;
   readonly promotedSections?: ReactNode;
   readonly extraSections?: ReactNode;
   readonly primaryPresentation?: 'default' | 'pronunciation-guide';
   readonly actionPresentation?: 'text' | 'icon';
   readonly showVariants?: boolean;
   readonly showPronunciationAlternates?: boolean;
+  readonly showPrimarySoundEvidence?: boolean;
   readonly detailsLabel?: string;
   readonly detailsDescription?: string;
 }
@@ -138,14 +140,16 @@ export function NameArtifactInspector({
   pronunciationGuideText,
   eyebrow = 'Inspect',
   extraActions,
+  headingSupplement,
   promotedSections,
   extraSections,
   primaryPresentation = 'default',
   actionPresentation = 'text',
   showVariants = true,
   showPronunciationAlternates = true,
+  showPrimarySoundEvidence = true,
   detailsLabel = 'More details',
-  detailsDescription = 'Read notes, context, variants and scoring',
+  detailsDescription = 'Read notes, context, variants and evidence',
 }: NameArtifactInspectorProps) {
   const generatedText = artifact.spelling.text;
   const otherSpellings = artifact.spellingCandidates.filter((candidate) => !isSelectedSpelling(candidate, artifact.spelling));
@@ -159,12 +163,10 @@ export function NameArtifactInspector({
   const displayName = protectInitialBreaks(displayText);
   const displayLength = getNameDisplayLength(displayText);
   const playVoiceDraftLabel = primaryPresentation === 'pronunciation-guide'
-    ? `Play pronunciation guide for ${displayText}`
-    : browserSpeechAvailable
-      ? `Play browser voice draft for ${displayText}`
-      : `Browser voice draft unavailable for ${displayText}`;
+    ? `Play approximate browser voice for ${displayText}`
+    : `Play browser voice draft for ${displayText}`;
   const playVoiceDraftTitle = primaryPresentation === 'pronunciation-guide'
-    ? browserSpeechAvailable ? 'Play pronunciation guide' : 'Pronunciation guide playback unavailable'
+    ? browserSpeechAvailable ? 'Play approximate browser voice' : 'Approximate browser voice unavailable'
     : undefined;
   const hasMoreDetails = readNotes.length > 0 || (showVariants && variants.length > 0) || Boolean(extraSections);
   const spellingLabel = displayText === generatedText ? 'Spelling' : 'Generated spelling';
@@ -222,6 +224,8 @@ export function NameArtifactInspector({
         </div>
       </header>
 
+      {headingSupplement ? <div className="inspector-heading-supplement">{headingSupplement}</div> : null}
+
       {primaryPresentation === 'pronunciation-guide' ? (
         <div className="inspector-primary inspector-primary-compact" aria-label={`Selected details for ${displayText}`}>
           <section className="inspector-pronunciation" aria-label={`Pronunciation guide for ${displayText}`}>
@@ -238,6 +242,7 @@ export function NameArtifactInspector({
                 <InspectorActionIcon kind="play" />
               </button>
             </div>
+            <p className="inspector-audition-note">Browser playback is an approximate voice draft, not canonical pronunciation.</p>
             {showPronunciationAlternates && otherSpellings.length > 0 ? (
               <div className="inspector-alternates inspector-alternates-compact">
                 <span>Alternative spellings</span>
@@ -284,7 +289,7 @@ export function NameArtifactInspector({
             <small>{detailsDescription}</small>
           </summary>
           <div className="inspector-more-body">
-            {primaryPresentation === 'pronunciation-guide' ? (
+            {primaryPresentation === 'pronunciation-guide' && showPrimarySoundEvidence ? (
               <section className="inspector-detail-group inspector-sound-evidence" aria-label={`${artifactEvidenceText} sound evidence`}>
                 <h3>{composedEvidence ? 'Generated component sound' : 'Sound evidence'}</h3>
                 <p className="inspector-transcription">{artifact.sound.transcription}</p>

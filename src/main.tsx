@@ -7,6 +7,7 @@ import './semantic-score-controls.css';
 import './inspect-actions.css';
 import './recent-names.css';
 import './cast-workbench.css';
+import './inspector-evidence.css';
 import './cast-interactions.css';
 import './adaptive-name-rail.css';
 import './cast-lifecycle.css';

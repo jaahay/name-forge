@@ -1,15 +1,33 @@
+import type { ReactNode } from 'react';
+import { renderAuditionCue } from '../engine/audition';
+import type { NameTexture } from '../engine/types';
 import { toFictionCastPrimaryNameArtifact } from '../fictionCast/nameArtifact';
-import type { FictionCastGeneratedName } from '../fictionCast/types';
-import { NameArtifactInspector } from './NameArtifactInspector';
-import { rarityPresentation, scorePresentation } from './presentation';
-import { formatScore } from './score';
+import { resolveFictionCastSemanticIntent } from '../fictionCast/semanticIntent';
+import type { FictionCastGeneratedName, FictionCastSettings } from '../fictionCast/types';
+import { rarityPresentation } from './presentation';
 import { labelFor } from './namePresentation';
+import { NameArtifactInspector } from './NameArtifactInspector';
 
 interface NameInspectorProps {
   name: FictionCastGeneratedName;
+  settings: FictionCastSettings;
+  stylePackLabel: string;
+  slotIndex: number;
   isLocked: boolean;
   onRerollName: () => void;
   onToggleLockedName: (id: string) => void;
+}
+
+type GeneratedComponentRole = 'given' | 'family' | 'place';
+
+type AuditionCue = ReturnType<typeof renderAuditionCue>;
+
+interface GeneratedComponentEvidence {
+  readonly sourceNameId: string;
+  readonly value: string;
+  readonly role: GeneratedComponentRole;
+  readonly cue: AuditionCue;
+  readonly transcription: string;
 }
 
 let componentSpeechPlaybackToken = 0;
@@ -49,6 +67,117 @@ function LockIcon({ locked }: { locked: boolean }) {
   );
 }
 
+function PlayIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M8 5.6v12.8L18 12 8 5.6Z" />
+    </svg>
+  );
+}
+
+function InfoIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M12 10.5v6M12 7.5h.01" />
+    </svg>
+  );
+}
+
+function InfoDisclosure({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <details className="inspector-info-disclosure">
+      <summary aria-label={`About ${label}`}>
+        <InfoIcon />
+      </summary>
+      <div className="inspector-info-copy">{children}</div>
+    </details>
+  );
+}
+
+function isGeneratedComponentRole(role: string): role is GeneratedComponentRole {
+  return role === 'given' || role === 'family' || role === 'place';
+}
+
+function generatedComponents(name: FictionCastGeneratedName): GeneratedComponentEvidence[] {
+  const primaryCue = renderAuditionCue(name.primaryName.sound.sequence);
+  const components: GeneratedComponentEvidence[] = [{
+    sourceNameId: name.primaryName.id,
+    value: name.primaryName.name,
+    role: 'given',
+    cue: primaryCue,
+    transcription: name.primaryName.sound.transcription,
+  }];
+  const seen = new Set([name.primaryName.id]);
+
+  for (const part of name.identity.parts) {
+    if (!part.generation || !isGeneratedComponentRole(part.role) || seen.has(part.sourceNameId)) continue;
+    seen.add(part.sourceNameId);
+    components.push({
+      sourceNameId: part.sourceNameId,
+      value: part.sourceName,
+      role: part.role,
+      cue: renderAuditionCue(part.generation.sound.sequence),
+      transcription: part.generation.sound.transcription,
+    });
+  }
+
+  return components;
+}
+
+function componentSoundTargetId(name: FictionCastGeneratedName, component: GeneratedComponentEvidence): string {
+  return `generated-sound-${name.id}-${component.sourceNameId}`;
+}
+
+function focusComponentSound(targetId: string) {
+  const target = document.getElementById(targetId);
+  if (!(target instanceof HTMLElement)) return;
+  const disclosure = target.closest('details');
+  if (disclosure instanceof HTMLDetailsElement) disclosure.open = true;
+  target.focus();
+  target.scrollIntoView({ block: 'nearest' });
+}
+
+function GeneratedComponents({ name, components }: { name: FictionCastGeneratedName; components: GeneratedComponentEvidence[] }) {
+  const browserSpeechAvailable = canUseBrowserSpeech();
+
+  return (
+    <section className="inspector-generated-components" aria-label={`${name.displayName} generated components`}>
+      <span className="inspector-generated-components-label">Generated components</span>
+      <ul>
+        {components.map((component) => {
+          const soundTargetId = componentSoundTargetId(name, component);
+          const roleLabel = labelFor(component.role);
+          const playLabel = `Play approximate browser voice for ${component.value}`;
+
+          return (
+            <li key={component.sourceNameId}>
+              <button
+                type="button"
+                className="inspector-generated-component-focus"
+                aria-controls={soundTargetId}
+                onClick={() => focusComponentSound(soundTargetId)}
+              >
+                <strong>{component.value}</strong>
+                <span>{roleLabel}</span>
+              </button>
+              <button
+                type="button"
+                className="inspector-generated-component-play"
+                aria-label={playLabel}
+                disabled={!browserSpeechAvailable}
+                onClick={() => playComponentVoiceDraft(component.cue.speechText)}
+              >
+                <PlayIcon />
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
+
 function castContext(name: FictionCastGeneratedName) {
   const rarity = rarityPresentation[name.rarityBand];
   const roleLabel = name.role?.label ?? 'No role';
@@ -63,6 +192,9 @@ function castContext(name: FictionCastGeneratedName) {
         <div><dt>Rarity</dt><dd>{rarity.label}</dd></div>
         <div><dt>Influence</dt><dd>{roleInfluenceLabel}</dd></div>
       </dl>
+      <p className="inspector-cast-context-note">
+        <span>Rarity is derived from resolved novelty intent; it is not a separate generation control.</span>
+      </p>
       {name.roleInfluence ? (
         <p className="inspector-cast-context-note">
           <strong>{name.roleInfluence.label}</strong>
@@ -73,25 +205,100 @@ function castContext(name: FictionCastGeneratedName) {
   );
 }
 
-function castBreakdownSections(name: FictionCastGeneratedName) {
+function textureDescription(texture: NameTexture): string {
+  if (texture === 'soft') return 'Soft-leaning sound palette';
+  if (texture === 'hard') return 'Hard-edged sound palette';
+  if (texture === 'liquid') return 'Flowing, liquid sound palette';
+  return 'Mixed sound palette';
+}
+
+function stressDescription(pattern: string): string {
+  return pattern
+    .split('-')
+    .map((part) => part === 'S' ? 'STRONG' : part === 's' ? 'secondary' : 'weak')
+    .join(' · ');
+}
+
+function syllableShapeDescription(shape: readonly string[]): string {
+  return shape.map((syllable) => [...syllable]
+    .map((part) => part === 'C' ? 'consonant' : part === 'V' ? 'vowel' : part)
+    .join('-'))
+    .join(' · ');
+}
+
+function variationPosition(delta: number): string {
+  if (Math.abs(delta) < 0.000001) return 'At the cast baseline';
+  return delta > 0 ? 'Shifted more unusual than the cast baseline' : 'Shifted more familiar than the cast baseline';
+}
+
+function readabilityEvidence(name: FictionCastGeneratedName): string {
+  const warnings = name.readabilityDiagnostics.filter((diagnostic) => diagnostic.severity === 'warning').length;
+  if (name.readabilityDiagnostics.length === 0) return 'No deterministic read-friction notes';
+  if (warnings > 0) return `${name.readabilityDiagnostics.length} deterministic read note(s), including ${warnings} warning(s)`;
+  return `${name.readabilityDiagnostics.length} deterministic read note(s)`;
+}
+
+function criteriaEvidence(
+  name: FictionCastGeneratedName,
+  settings: FictionCastSettings,
+  stylePackLabel: string,
+  slotIndex: number,
+) {
+  const resolvedIntent = resolveFictionCastSemanticIntent(settings, { role: name.role, slotIndex });
+  const baseline = resolvedIntent.baseline;
+  const alternatives = Math.max(0, name.primaryName.spellingCandidates.length - 1);
+  const castVariation = labelFor(settings.castVariation ?? 'balanced');
+  const roleEvidence = name.roleInfluence ? `${labelFor(name.roleInfluence.level)} · ${name.roleInfluence.label}` : undefined;
+
+  return (
+    <section className="inspector-detail-group inspector-criteria-evidence" aria-label={`${name.displayName} criteria evidence`}>
+      <div className="inspector-detail-heading">
+        <h3>Criteria evidence</h3>
+        <InfoDisclosure label="criteria evidence">
+          <p>This compares your selected intent with deterministic generation evidence. It is not a quality, faithfulness, or human-perception score.</p>
+        </InfoDisclosure>
+      </div>
+      <p className="inspector-evidence-intro">Requested intent stays visible; contextual shaping and generated evidence are reported separately.</p>
+      <dl className="inspector-evidence-list">
+        <div><dt>Familiar</dt><dd>{labelFor(baseline.familiarity)} baseline · {variationPosition(resolvedIntent.variationDelta)}</dd></div>
+        <div><dt>Readable</dt><dd>{labelFor(baseline.readability)} baseline · {readabilityEvidence(name)}</dd></div>
+        <div><dt>Compact</dt><dd>{labelFor(baseline.compactness)} baseline · {labelFor(name.primaryName.generationPlan.targetLength)} primary form plan</dd></div>
+        <div><dt>Style</dt><dd>{labelFor(baseline.styleAnchoring)} baseline · {stylePackLabel} selected</dd></div>
+        <div><dt>Spelling</dt><dd>{labelFor(baseline.spellingDistinctiveness)} baseline · {alternatives === 0 ? 'No alternative same-sound spellings retained' : `${alternatives} alternative same-sound spelling(s) retained`}</dd></div>
+        <div><dt>Cast variation</dt><dd>{castVariation} · {variationPosition(resolvedIntent.variationDelta)}</dd></div>
+        {roleEvidence ? <div><dt>Role shaping</dt><dd>{roleEvidence}</dd></div> : null}
+      </dl>
+    </section>
+  );
+}
+
+function castBreakdownSections(
+  name: FictionCastGeneratedName,
+  settings: FictionCastSettings,
+  stylePackLabel: string,
+  slotIndex: number,
+  components: GeneratedComponentEvidence[],
+) {
   const identity = name.identity;
-  const primaryName = name.primaryName;
-  const contextualScores = name.contextualScores;
-  const soundParts = name.identityAudition.parts.filter((part) => part.kind === 'sound');
   const browserSpeechAvailable = canUseBrowserSpeech();
-  const plan = primaryName.generationPlan;
+  const plan = name.primaryName.generationPlan;
 
   return (
     <>
-      <section className="inspector-detail-group" aria-label={`${name.displayName} generation plan`}>
-        <h3>Generation</h3>
-        <dl className="inspector-detail-facts">
-          <div><dt>Texture</dt><dd>{labelFor(plan.texture)}</dd></div>
+      <section className="inspector-detail-group" aria-label={`${name.displayName} primary generation plan`}>
+        <div className="inspector-detail-heading">
+          <h3>Primary generation plan</h3>
+          <InfoDisclosure label="primary generation plan">
+            <p>This is the structural plan used to construct the primary generated component, not a quality score. Sound texture describes the palette of sounds; stress describes syllable emphasis; syllable shape describes consonant/vowel structure.</p>
+          </InfoDisclosure>
+        </div>
+        <dl className="inspector-detail-facts inspector-generation-plan-facts">
+          <div><dt>Sound texture</dt><dd>{textureDescription(plan.texture)}</dd><small>{labelFor(plan.texture)} texture</small></div>
           <div><dt>Syllables</dt><dd>{plan.syllableCount}</dd></div>
           <div><dt>Rhythm</dt><dd>{labelFor(plan.rhythm)}</dd></div>
-          <div><dt>Length</dt><dd>{labelFor(plan.targetLength)}</dd></div>
-          <div><dt>Stress</dt><dd>{plan.stressPattern}</dd></div>
-          <div><dt>Shape</dt><dd>{plan.shape.join('-')}</dd></div>
+          <div><dt>Length plan</dt><dd>{labelFor(plan.targetLength)}</dd></div>
+          <div><dt>Stress pattern</dt><dd>{stressDescription(plan.stressPattern)}</dd><small>{plan.stressPattern}</small></div>
+          <div><dt>Syllable shape</dt><dd>{syllableShapeDescription(plan.shape)}</dd><small>{plan.shape.join(' · ')} · C = consonant · V = vowel</small></div>
         </dl>
       </section>
 
@@ -102,52 +309,60 @@ function castBreakdownSections(name: FictionCastGeneratedName) {
         </ul>
       </section>
 
-      {soundParts.length > 0 ? (
-        <section className="inspector-detail-group" aria-label={`${name.displayName} modeled sound parts`}>
+      <section className="inspector-detail-group inspector-component-sound-group" aria-label={`${name.displayName} generated component sound evidence`}>
+        <div className="inspector-detail-heading">
           <h3>Component sound drafts</h3>
-          <ul className="inspector-sound-parts inspector-sound-components">
-            {soundParts.map((part) => {
-              const playLabel = browserSpeechAvailable
-                ? `Play sound draft for ${part.value}`
-                : `Browser voice draft unavailable for ${part.value}`;
-              return (
-                <li key={`${name.id}-${part.index}-${part.sourceNameId}`}>
-                  <div className="inspector-sound-component-copy">
-                    <strong>{part.value}</strong>
-                    <span>{part.displayText}</span>
-                  </div>
-                  <button
-                    type="button"
-                    className="inspector-component-play"
-                    aria-label={playLabel}
-                    disabled={!browserSpeechAvailable}
-                    onClick={() => playComponentVoiceDraft(part.cue.speechText)}
-                  >
-                    Play
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        </section>
-      ) : null}
-
-      <section className="inspector-detail-group" aria-label={`${name.displayName} score breakdown`}>
-        <h3>Score detail</h3>
-        <dl className="score-list detail-score-list">
-          {scorePresentation.map((score) => <div key={`${name.id}-${score.key}`}><dt>{score.label}</dt><dd>{formatScore(primaryName.scores[score.key])}</dd></div>)}
-          <div><dt>Cast fit</dt><dd>{formatScore(contextualScores.ensembleFit)}</dd></div>
-          <div><dt>Role fit</dt><dd>{formatScore(contextualScores.roleFit)}</dd></div>
-        </dl>
+          <InfoDisclosure label="component sound drafts">
+            <p>These drafts come from each generated component's modeled sound. Browser playback is approximate and may not realize the modeled sound faithfully.</p>
+          </InfoDisclosure>
+        </div>
+        <ul className="inspector-sound-parts inspector-sound-components">
+          {components.map((component) => {
+            const playLabel = `Play approximate browser voice for ${component.value}`;
+            return (
+              <li
+                id={componentSoundTargetId(name, component)}
+                tabIndex={-1}
+                key={component.sourceNameId}
+              >
+                <div className="inspector-sound-component-copy">
+                  <strong>{component.value} <small>{labelFor(component.role)}</small></strong>
+                  <span>{component.cue.displayText}</span>
+                  <code>{component.transcription}</code>
+                </div>
+                <button
+                  type="button"
+                  className="inspector-component-play"
+                  aria-label={playLabel}
+                  disabled={!browserSpeechAvailable}
+                  onClick={() => playComponentVoiceDraft(component.cue.speechText)}
+                >
+                  <PlayIcon />
+                </button>
+              </li>
+            );
+          })}
+        </ul>
       </section>
+
+      {criteriaEvidence(name, settings, stylePackLabel, slotIndex)}
     </>
   );
 }
 
-export function NameInspector({ name, isLocked, onRerollName, onToggleLockedName }: NameInspectorProps) {
+export function NameInspector({
+  name,
+  settings,
+  stylePackLabel,
+  slotIndex,
+  isLocked,
+  onRerollName,
+  onToggleLockedName,
+}: NameInspectorProps) {
   const primaryNameIsVisible = name.identity.parts.some((part) => (
     part.sourceNameId === name.primaryName.id && part.value === name.primaryName.name
   ));
+  const components = generatedComponents(name);
 
   return (
     <NameArtifactInspector
@@ -159,8 +374,10 @@ export function NameInspector({ name, isLocked, onRerollName, onToggleLockedName
       actionPresentation="icon"
       showVariants={false}
       showPronunciationAlternates={primaryNameIsVisible}
+      showPrimarySoundEvidence={false}
+      headingSupplement={<GeneratedComponents name={name} components={components} />}
       detailsLabel="Breakdown"
-      detailsDescription="Sound, construction, read notes and scoring"
+      detailsDescription="Sound, construction, read notes and criteria evidence"
       extraActions={(
         <>
           <button
@@ -186,7 +403,7 @@ export function NameInspector({ name, isLocked, onRerollName, onToggleLockedName
         </>
       )}
       promotedSections={castContext(name)}
-      extraSections={castBreakdownSections(name)}
+      extraSections={castBreakdownSections(name, settings, stylePackLabel, slotIndex, components)}
     />
   );
 }
