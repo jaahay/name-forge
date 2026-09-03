@@ -31,7 +31,7 @@ interface ContextualizedPrimaryName {
   readonly contextualScores: FictionCastContextualScores;
 }
 
-type UncomposedFictionCastName = ContextualizedPrimaryName & Pick<FictionCastGeneratedName, 'role' | 'rarityBand'>;
+type UncomposedFictionCastName = ContextualizedPrimaryName & Pick<FictionCastGeneratedName, 'role' | 'rarityBand' | 'resolvedIntentEvidence'>;
 
 function endingKey(name: string): string { const normalized = name.toLowerCase(); return normalized.slice(Math.max(0, normalized.length - 2)); }
 function cadenceKey(name: FictionCastGeneratedName): string { return `${name.primaryName.generationPlan.stressPattern}:${name.primaryName.generationPlan.syllableCount}:${name.primaryName.generationPlan.rhythm}`; }
@@ -106,6 +106,7 @@ function withNameIdentity(candidate: UncomposedFictionCastName, settings: Fictio
     readabilityDiagnostics: diagnoseNameReadability(identity.displayName),
     role: candidate.role,
     ...(candidate.roleInfluence === undefined ? {} : { roleInfluence: candidate.roleInfluence }),
+    resolvedIntentEvidence: candidate.resolvedIntentEvidence,
     contextualScores: candidate.contextualScores,
     rarityBand: candidate.rarityBand,
   };
@@ -165,6 +166,11 @@ export function generateEnsemble(settings: FictionCastSettings, registry: Source
         ...withRoleInfluence(generated, primaryContext.settings, safeSettings, role),
         role,
         rarityBand,
+        resolvedIntentEvidence: {
+          baseline: { ...primaryContext.semanticIntent.baseline },
+          castVariation: safeSettings.castVariation ?? 'balanced',
+          variationDelta: primaryContext.semanticIntent.variationDelta,
+        },
       };
       return withEnsembleFit(withNameIdentity(baseName, safeSettings, registry, index, attempt), selected, safeSettings, index);
     });

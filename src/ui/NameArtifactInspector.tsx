@@ -10,6 +10,7 @@ interface NameArtifactInspectorProps {
   readonly displayText?: string;
   readonly voiceDraftText?: string;
   readonly pronunciationGuideText?: string;
+  readonly guideLabel?: string;
   readonly eyebrow?: string;
   readonly extraActions?: ReactNode;
   readonly headingSupplement?: ReactNode;
@@ -113,7 +114,7 @@ export function browserVoiceDraftSegments(artifact: NameArtifact, soundSpeechTex
   return [browserVoiceDraftText(artifact, soundSpeechText)];
 }
 
-function detailsText(artifact: NameArtifact, displayText: string, pronunciationGuide?: string): string {
+function detailsText(artifact: NameArtifact, displayText: string, guideLabel: string, pronunciationGuide?: string): string {
   const analysis = analyzeNameArtifact(artifact);
   const generatedText = artifact.spelling.text;
   const spellings = artifact.spellingCandidates
@@ -124,7 +125,7 @@ function detailsText(artifact: NameArtifact, displayText: string, pronunciationG
     displayText,
     displayText === generatedText ? undefined : `Generated name evidence: ${generatedText}`,
     `Sound sketch: ${artifact.sound.transcription}`,
-    pronunciationGuide ? `Pronunciation guide: ${pronunciationGuide}` : undefined,
+    pronunciationGuide ? `${guideLabel}: ${pronunciationGuide}` : undefined,
     analysis.structure ? `Structure: ${analysis.structure.syllableCount} syllable(s); ${analysis.structure.segmentCount} segments; ${analysis.structure.syllableShapes.join('-')}` : undefined,
     `Selected spelling: ${artifact.spelling.text} (preference rank ${artifact.spelling.rank})`,
     analysis.spelling?.selectionSummary,
@@ -138,6 +139,7 @@ export function NameArtifactInspector({
   displayText = artifact.spelling.text,
   voiceDraftText,
   pronunciationGuideText,
+  guideLabel = 'Pronunciation guide',
   eyebrow = 'Inspect',
   extraActions,
   headingSupplement,
@@ -216,7 +218,7 @@ export function NameArtifactInspector({
               className={useIconActions ? 'inspector-icon-action selected-details-copy-action' : undefined}
               aria-label={`Copy details ${displayText}`}
               title={useIconActions ? 'Copy details' : undefined}
-              onClick={() => copyText(detailsText(artifact, displayText, detailsPronunciationGuide))}
+              onClick={() => copyText(detailsText(artifact, displayText, guideLabel, detailsPronunciationGuide))}
             >
               {useIconActions ? <InspectorActionIcon kind="details" /> : 'Copy details'}
             </button>
@@ -228,7 +230,7 @@ export function NameArtifactInspector({
 
       {primaryPresentation === 'pronunciation-guide' ? (
         <div className="inspector-primary inspector-primary-compact" aria-label={`Selected details for ${displayText}`}>
-          <section className="inspector-pronunciation" aria-label={`Pronunciation guide for ${displayText}`}>
+          <section className="inspector-pronunciation" aria-label={`${guideLabel} for ${displayText}`}>
             <div className="inspector-pronunciation-line">
               <p className="inspector-sound-description">{pronunciationGuide}</p>
               <button

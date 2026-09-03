@@ -36,14 +36,13 @@ function renderInspector(
   name: FictionCastGeneratedName,
   isLocked = false,
   inspectorSettings: FictionCastSettings = settings,
-  slotIndex = 0,
 ): string {
   return renderToString(
     <NameInspector
       name={name}
-      settings={inspectorSettings}
+      baseline={inspectorSettings.semanticBaseline}
+      castVariation={inspectorSettings.castVariation ?? 'balanced'}
       stylePackLabel="British literary fantasy"
-      slotIndex={slotIndex}
       isLocked={isLocked}
       onRerollName={() => undefined}
       onToggleLockedName={() => undefined}
@@ -85,7 +84,7 @@ describe('NameInspector', () => {
     expect(html).toContain(name.primaryName.sound.transcription);
   });
 
-  it('keeps the composed Cast identity dominant with a whole-identity pronunciation guide', () => {
+  it('keeps the composed Cast identity dominant with a whole-identity sound guide', () => {
     const generatedSettings = { ...settings, nameFormat: 'given-family' as const, seed: 'name-inspector-composed-display' };
     const name = fixtureName(generatedSettings);
     const html = renderInspector(name, false, generatedSettings);
@@ -97,7 +96,8 @@ describe('NameInspector', () => {
     expect(html).toContain('inspector-primary-compact');
     expect(html).toContain('inspector-pronunciation-line');
     expect(html).toContain(name.displayName);
-    expect(html).toContain(`aria-label="Pronunciation guide for ${name.displayName}"`);
+    expect(html).toContain(`aria-label="Sound guide for ${name.displayName}"`);
+    expect(html).not.toContain(`aria-label="Pronunciation guide for ${name.displayName}"`);
     expect(html).toContain(`aria-label="Play approximate browser voice for ${name.displayName}"`);
     expect(html).toContain(`<p class="inspector-sound-description">${name.identityAudition.displayText}</p>`);
     expect(html).not.toContain(`<p class="inspector-sound-description">${primaryGuide}</p>`);
@@ -129,10 +129,14 @@ describe('NameInspector', () => {
     expect(html).toContain('Component sound drafts');
   });
 
-  it('replaces raw score cards with criteria-relative evidence', () => {
+  it('replaces raw score cards with criteria-relative evidence without overstating style adherence', () => {
     const generatedSettings: FictionCastSettings = {
       ...settings,
       castSize: 3,
+      semanticBaseline: {
+        ...settings.semanticBaseline,
+        styleAnchoring: 'faithful',
+      },
       castVariation: 'wide',
       rolePreset: 'classic-ensemble',
       roleInfluence: 'light',
@@ -141,14 +145,18 @@ describe('NameInspector', () => {
     const html = renderInspector(name, false, generatedSettings);
 
     expect(html).toContain('Criteria evidence');
-    expect(html).toContain('This compares your selected intent with deterministic generation evidence.');
-    expect(html).toContain('<dt>Familiar</dt>');
+    expect(html).toContain('This compares retained user intent with generation-time and deterministic evidence.');
+    expect(html).toContain('<dt>Familiar</dt><dd>Balanced baseline</dd>');
     expect(html).toContain('<dt>Readable</dt>');
     expect(html).toContain('<dt>Compact</dt>');
-    expect(html).toContain('<dt>Style</dt>');
+    expect(html).toContain('<dt>Naming style</dt><dd>British literary fantasy selected</dd>');
     expect(html).toContain('<dt>Spelling</dt>');
-    expect(html).toContain('<dt>Cast variation</dt>');
+    expect(html).toContain('<dt>Cast variation</dt><dd>Wide ·');
+    expect(html).toContain('<dt>Rarity label</dt>');
+    expect(html).toContain('derived from resolved novelty intent at generation time');
     expect(html).toContain('<dt>Role shaping</dt>');
+    expect(html).not.toContain('<dt>Style</dt>');
+    expect(html).not.toContain('Faithful baseline');
     expect(html).not.toContain('Score detail');
     expect(html).not.toContain('<dt>Pronounce</dt>');
     expect(html).not.toContain('<dt>Memorable</dt>');
@@ -158,6 +166,50 @@ describe('NameInspector', () => {
     expect(html).not.toContain('<dt>Style fit</dt>');
     expect(html).not.toContain('<dt>Cast fit</dt>');
     expect(html).not.toContain('<dt>Role fit</dt>');
+  });
+
+  it('uses retained generation-time intent evidence instead of re-resolving later settings', () => {
+    const generatedSettings: FictionCastSettings = {
+      ...settings,
+      castSize: 5,
+      semanticBaseline: {
+        ...settings.semanticBaseline,
+        familiarity: 'unusual',
+      },
+      castVariation: 'wide',
+      seed: 'name-inspector-retained-intent',
+    };
+    const name = fixtureName(generatedSettings);
+    const conflictingInspectorSettings: FictionCastSettings = {
+      ...generatedSettings,
+      semanticBaseline: {
+        ...generatedSettings.semanticBaseline,
+        familiarity: 'familiar',
+      },
+      castVariation: 'tight',
+    };
+    const html = renderInspector(name, false, conflictingInspectorSettings);
+
+    expect(name.resolvedIntentEvidence).toBeDefined();
+    expect(name.resolvedIntentEvidence?.baseline.familiarity).toBe('unusual');
+    expect(name.resolvedIntentEvidence?.castVariation).toBe('wide');
+    expect(html).toContain('<dt>Familiar</dt><dd>Unusual baseline</dd>');
+    expect(html).toContain('<dt>Cast variation</dt><dd>Wide ·');
+    expect(html).not.toContain('<dt>Familiar</dt><dd>Familiar baseline</dd>');
+    expect(html).not.toContain('<dt>Cast variation</dt><dd>Tight ·');
+  });
+
+  it('keeps older remembered snapshots honest when per-slot intent evidence is unavailable', () => {
+    const generatedSettings: FictionCastSettings = {
+      ...settings,
+      castVariation: 'wide',
+      seed: 'name-inspector-legacy-intent',
+    };
+    const generated = fixtureName(generatedSettings);
+    const { resolvedIntentEvidence: _resolvedIntentEvidence, ...legacySnapshot } = generated;
+    const html = renderInspector(legacySnapshot, false, generatedSettings);
+
+    expect(html).toContain('<dt>Cast variation</dt><dd>Wide · Generation-time slot position unavailable for this older snapshot</dd>');
   });
 
   it('explains the primary generation plan instead of exposing opaque notation alone', () => {
@@ -180,6 +232,7 @@ describe('NameInspector', () => {
     const html = renderInspector(name, false, generatedSettings);
     const detailsIndex = html.indexOf('class="inspector-more"');
     const contextIndex = html.indexOf('Cast context');
+    const promotedContext = html.slice(contextIndex, detailsIndex);
 
     expect(contextIndex).toBeGreaterThan(-1);
     expect(detailsIndex).toBeGreaterThan(contextIndex);
@@ -188,7 +241,8 @@ describe('NameInspector', () => {
     expect(html).toContain('<dt>Format</dt>');
     expect(html).toContain('<dt>Rarity</dt>');
     expect(html).toContain('<dt>Influence</dt>');
-    expect(html).toContain('Rarity is derived from resolved novelty intent');
+    expect(promotedContext).not.toContain('derived from resolved novelty intent');
+    expect(html).toContain('<dt>Rarity label</dt>');
     expect(html).toContain('Breakdown');
     expect(html).not.toContain('More details');
     expect(html).toContain('Primary generation plan');

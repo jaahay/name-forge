@@ -2,17 +2,20 @@ import type { ReactNode } from 'react';
 import { renderAuditionCue } from '../engine/audition';
 import type { NameTexture } from '../engine/types';
 import { toFictionCastPrimaryNameArtifact } from '../fictionCast/nameArtifact';
-import { resolveFictionCastSemanticIntent } from '../fictionCast/semanticIntent';
-import type { FictionCastGeneratedName, FictionCastSettings } from '../fictionCast/types';
+import type {
+  FictionCastGeneratedName,
+  FictionCastSemanticBaseline,
+} from '../fictionCast/types';
+import type { FictionCastVariation } from '../fictionCast/variation';
 import { rarityPresentation } from './presentation';
 import { labelFor } from './namePresentation';
 import { NameArtifactInspector } from './NameArtifactInspector';
 
 interface NameInspectorProps {
   name: FictionCastGeneratedName;
-  settings: FictionCastSettings;
+  baseline: FictionCastSemanticBaseline;
+  castVariation: FictionCastVariation;
   stylePackLabel: string;
-  slotIndex: number;
   isLocked: boolean;
   onRerollName: () => void;
   onToggleLockedName: (id: string) => void;
@@ -192,9 +195,6 @@ function castContext(name: FictionCastGeneratedName) {
         <div><dt>Rarity</dt><dd>{rarity.label}</dd></div>
         <div><dt>Influence</dt><dd>{roleInfluenceLabel}</dd></div>
       </dl>
-      <p className="inspector-cast-context-note">
-        <span>Rarity is derived from resolved novelty intent; it is not a separate generation control.</span>
-      </p>
       {name.roleInfluence ? (
         <p className="inspector-cast-context-note">
           <strong>{name.roleInfluence.label}</strong>
@@ -240,32 +240,37 @@ function readabilityEvidence(name: FictionCastGeneratedName): string {
 
 function criteriaEvidence(
   name: FictionCastGeneratedName,
-  settings: FictionCastSettings,
+  fallbackBaseline: FictionCastSemanticBaseline,
+  fallbackCastVariation: FictionCastVariation,
   stylePackLabel: string,
-  slotIndex: number,
 ) {
-  const resolvedIntent = resolveFictionCastSemanticIntent(settings, { role: name.role, slotIndex });
-  const baseline = resolvedIntent.baseline;
+  const retainedIntent = name.resolvedIntentEvidence;
+  const baseline = retainedIntent?.baseline ?? fallbackBaseline;
+  const castVariation = retainedIntent?.castVariation ?? fallbackCastVariation;
+  const variationEvidence = retainedIntent
+    ? variationPosition(retainedIntent.variationDelta)
+    : 'Generation-time slot position unavailable for this older snapshot';
   const alternatives = Math.max(0, name.primaryName.spellingCandidates.length - 1);
-  const castVariation = labelFor(settings.castVariation ?? 'balanced');
   const roleEvidence = name.roleInfluence ? `${labelFor(name.roleInfluence.level)} · ${name.roleInfluence.label}` : undefined;
+  const rarity = rarityPresentation[name.rarityBand];
 
   return (
     <section className="inspector-detail-group inspector-criteria-evidence" aria-label={`${name.displayName} criteria evidence`}>
       <div className="inspector-detail-heading">
         <h3>Criteria evidence</h3>
         <InfoDisclosure label="criteria evidence">
-          <p>This compares your selected intent with deterministic generation evidence. It is not a quality, faithfulness, or human-perception score.</p>
+          <p>This compares retained user intent with generation-time and deterministic evidence. It is not a quality, faithfulness, or human-perception score.</p>
         </InfoDisclosure>
       </div>
-      <p className="inspector-evidence-intro">Requested intent stays visible; contextual shaping and generated evidence are reported separately.</p>
+      <p className="inspector-evidence-intro">Requested baseline stays visible; generation-time shaping and generated evidence are reported separately.</p>
       <dl className="inspector-evidence-list">
-        <div><dt>Familiar</dt><dd>{labelFor(baseline.familiarity)} baseline · {variationPosition(resolvedIntent.variationDelta)}</dd></div>
+        <div><dt>Familiar</dt><dd>{labelFor(baseline.familiarity)} baseline</dd></div>
         <div><dt>Readable</dt><dd>{labelFor(baseline.readability)} baseline · {readabilityEvidence(name)}</dd></div>
         <div><dt>Compact</dt><dd>{labelFor(baseline.compactness)} baseline · {labelFor(name.primaryName.generationPlan.targetLength)} primary form plan</dd></div>
-        <div><dt>Style</dt><dd>{labelFor(baseline.styleAnchoring)} baseline · {stylePackLabel} selected</dd></div>
+        <div><dt>Naming style</dt><dd>{stylePackLabel} selected</dd></div>
         <div><dt>Spelling</dt><dd>{labelFor(baseline.spellingDistinctiveness)} baseline · {alternatives === 0 ? 'No alternative same-sound spellings retained' : `${alternatives} alternative same-sound spelling(s) retained`}</dd></div>
-        <div><dt>Cast variation</dt><dd>{castVariation} · {variationPosition(resolvedIntent.variationDelta)}</dd></div>
+        <div><dt>Cast variation</dt><dd>{labelFor(castVariation)} · {variationEvidence}</dd></div>
+        <div><dt>Rarity label</dt><dd>{rarity.label} · derived from resolved novelty intent at generation time</dd></div>
         {roleEvidence ? <div><dt>Role shaping</dt><dd>{roleEvidence}</dd></div> : null}
       </dl>
     </section>
@@ -274,9 +279,9 @@ function criteriaEvidence(
 
 function castBreakdownSections(
   name: FictionCastGeneratedName,
-  settings: FictionCastSettings,
+  baseline: FictionCastSemanticBaseline,
+  castVariation: FictionCastVariation,
   stylePackLabel: string,
-  slotIndex: number,
   components: GeneratedComponentEvidence[],
 ) {
   const identity = name.identity;
@@ -345,16 +350,16 @@ function castBreakdownSections(
         </ul>
       </section>
 
-      {criteriaEvidence(name, settings, stylePackLabel, slotIndex)}
+      {criteriaEvidence(name, baseline, castVariation, stylePackLabel)}
     </>
   );
 }
 
 export function NameInspector({
   name,
-  settings,
+  baseline,
+  castVariation,
   stylePackLabel,
-  slotIndex,
   isLocked,
   onRerollName,
   onToggleLockedName,
@@ -370,6 +375,7 @@ export function NameInspector({
       displayText={name.displayName}
       voiceDraftText={name.identityAudition.speechText}
       pronunciationGuideText={name.identityAudition.displayText}
+      guideLabel="Sound guide"
       primaryPresentation="pronunciation-guide"
       actionPresentation="icon"
       showVariants={false}
@@ -403,7 +409,7 @@ export function NameInspector({
         </>
       )}
       promotedSections={castContext(name)}
-      extraSections={castBreakdownSections(name, settings, stylePackLabel, slotIndex, components)}
+      extraSections={castBreakdownSections(name, baseline, castVariation, stylePackLabel, components)}
     />
   );
 }

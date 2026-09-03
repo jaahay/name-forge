@@ -66,7 +66,6 @@ export function GeneratorView({
   const hasGeneratedCast = ensemble !== null;
   const resolvedSelectedNameId = ensemble ? resolveSelectedNameId(selectedNameId, ensemble, lockedNameIds) : '';
   const selectedName = ensemble?.names.find((name) => name.id === resolvedSelectedNameId);
-  const selectedNameIndex = ensemble?.names.findIndex((name) => name.id === resolvedSelectedNameId) ?? -1;
 
   useEffect(() => {
     if (selectedNameId !== resolvedSelectedNameId) {
@@ -99,12 +98,12 @@ export function GeneratorView({
     if (replacementId) selectName(replacementId);
   }
 
-  const inspector = selectedName && ensemble && selectedNameIndex >= 0 ? (
+  const inspector = selectedName && ensemble ? (
     <NameInspector
       name={selectedName}
-      settings={ensemble.settings}
+      baseline={ensemble.settings.semanticBaseline}
+      castVariation={ensemble.settings.castVariation ?? 'balanced'}
       stylePackLabel={ensemble.sourcePack.label}
-      slotIndex={selectedNameIndex}
       isLocked={lockedNameIds.has(selectedName.id)}
       onRerollName={rerollSelectedName}
       onToggleLockedName={onToggleLockedName}
