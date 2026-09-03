@@ -50,6 +50,10 @@ function renderInspector(
   );
 }
 
+function normalizeRenderedHtml(html: string): string {
+  return html.replace(/<!-- -->/g, '');
+}
+
 describe('NameInspector', () => {
   it('promotes every genuinely generated component directly beneath the composed identity', () => {
     const generatedSettings = { ...settings, nameFormat: 'given-family' as const, seed: 'name-inspector-generated-components' };
@@ -142,7 +146,7 @@ describe('NameInspector', () => {
       roleInfluence: 'light',
     };
     const name = fixtureName(generatedSettings);
-    const html = renderInspector(name, false, generatedSettings);
+    const html = normalizeRenderedHtml(renderInspector(name, false, generatedSettings));
 
     expect(html).toContain('Criteria evidence');
     expect(html).toContain('This compares retained user intent with generation-time and deterministic evidence.');
@@ -188,7 +192,7 @@ describe('NameInspector', () => {
       },
       castVariation: 'tight',
     };
-    const html = renderInspector(name, false, conflictingInspectorSettings);
+    const html = normalizeRenderedHtml(renderInspector(name, false, conflictingInspectorSettings));
 
     expect(name.resolvedIntentEvidence).toBeDefined();
     expect(name.resolvedIntentEvidence?.baseline.familiarity).toBe('unusual');
@@ -207,7 +211,7 @@ describe('NameInspector', () => {
     };
     const generated = fixtureName(generatedSettings);
     const { resolvedIntentEvidence: _resolvedIntentEvidence, ...legacySnapshot } = generated;
-    const html = renderInspector(legacySnapshot, false, generatedSettings);
+    const html = normalizeRenderedHtml(renderInspector(legacySnapshot, false, generatedSettings));
 
     expect(html).toContain('<dt>Cast variation</dt><dd>Wide · Generation-time slot position unavailable for this older snapshot</dd>');
   });
