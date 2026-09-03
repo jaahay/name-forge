@@ -4,6 +4,7 @@ import {
   supportingComponentKindForFormat,
 } from './componentGenerationContext';
 import type { FictionCastSettings } from './types';
+import { resolveFictionCastVariationDelta } from './variation';
 
 const settings: FictionCastSettings = {
   castSize: 4,
@@ -16,16 +17,7 @@ const settings: FictionCastSettings = {
   },
   stylePackId: 'british-literary-fantasy',
   seed: 'component-context',
-};
-
-const expectedGenerationSettings = {
-  novelty: 0.48,
-  pronounceability: 0.72,
-  memorability: 0.65,
-  culturalAnchoring: 0.62,
-  orthographicWeirdness: 0.28,
-  stylePackId: 'british-literary-fantasy',
-  seed: 'component-context',
+  castVariation: 'wide',
 };
 
 describe('Fiction Cast component generation context', () => {
@@ -37,21 +29,23 @@ describe('Fiction Cast component generation context', () => {
     expect(supportingComponentKindForFormat('title-name')).toBeUndefined();
   });
 
-  it('preserves current generation settings and planning inputs while carrying product component semantics', () => {
-    const given = resolveFictionCastComponentGenerationContext(settings, undefined, 'given', 2);
-    const family = resolveFictionCastComponentGenerationContext(settings, undefined, 'family', 2);
-    const place = resolveFictionCastComponentGenerationContext(settings, undefined, 'place', 2);
+  it('shares one slot-level variation adjustment across generated identity components', () => {
+    const slotIndex = 2;
+    const expectedVariationDelta = resolveFictionCastVariationDelta(settings, slotIndex);
+    const given = resolveFictionCastComponentGenerationContext(settings, undefined, 'given', slotIndex);
+    const family = resolveFictionCastComponentGenerationContext(settings, undefined, 'family', slotIndex);
+    const place = resolveFictionCastComponentGenerationContext(settings, undefined, 'place', slotIndex);
 
     expect(given.kind).toBe('given');
     expect(family.kind).toBe('family');
     expect(place.kind).toBe('place');
     expect(given.semanticIntent.baseline).toEqual(settings.semanticBaseline);
-    expect(given.semanticIntent.generationSettings).toEqual(expectedGenerationSettings);
-    expect(given.settings).toEqual(expectedGenerationSettings);
-    expect(given.preferences).toEqual({ noveltyOffset: 0 });
-    expect(family.settings).toEqual(expectedGenerationSettings);
-    expect(family.preferences).toEqual({ noveltyOffset: 0 });
-    expect(place.settings).toEqual(expectedGenerationSettings);
-    expect(place.preferences).toEqual({ noveltyOffset: 0 });
+    expect(given.semanticIntent.variationDelta).toBe(expectedVariationDelta);
+    expect(given.settings.novelty).toBeCloseTo(0.48 + expectedVariationDelta);
+    expect(family.settings).toEqual(given.settings);
+    expect(place.settings).toEqual(given.settings);
+    expect(given.preferences).toEqual({});
+    expect(family.preferences).toEqual({});
+    expect(place.preferences).toEqual({});
   });
 });

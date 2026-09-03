@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { generateEnsemble } from '../fictionCast/ensemble';
-import { rarityDistributionOptions, resolveFictionCastRarityBand } from '../fictionCast/rarity';
+import { rarityBandForNovelty } from '../fictionCast/rarity';
+import { resolveFictionCastSemanticIntent } from '../fictionCast/semanticIntent';
 import type { FictionCastSettings } from '../fictionCast/types';
 import { createDefaultRegistry } from './registry';
 
@@ -16,18 +17,17 @@ const baseSettings: FictionCastSettings = {
   stylePackId: 'british-literary-fantasy',
   seed: 'ensemble-role-test-seed',
   nameFormat: 'given-only',
+  castVariation: 'balanced',
 };
 
-function raritySettings(rarityDistribution: 'style-pack' | 'grounded' | 'balanced' | 'rare-forward' | 'mythic-arc', novelty = 0.48) {
-  return {
-    novelty,
-    rarityDistribution,
-    seed: baseSettings.seed,
-    stylePackId: baseSettings.stylePackId,
-  };
+function noveltyRange(settings: FictionCastSettings): number {
+  const values = Array.from({ length: settings.castSize }, (_, slotIndex) => (
+    resolveFictionCastSemanticIntent(settings, { slotIndex }).generationSettings.novelty
+  ));
+  return Math.max(...values) - Math.min(...values);
 }
 
-describe('generateEnsemble role and rarity controls', () => {
+describe('generateEnsemble role and variation controls', () => {
   it('assigns preset roles deterministically', () => {
     const registry = createDefaultRegistry();
     const settings = { ...baseSettings, castSize: 4, rolePreset: 'classic-ensemble' as const };
@@ -71,47 +71,42 @@ describe('generateEnsemble role and rarity controls', () => {
     expect(ensemble.names[2].role?.source).toBe('slot');
   });
 
-  it('preserves established rarity control labels and preset sequences', () => {
-    expect(rarityDistributionOptions).toEqual([
-      { value: 'style-pack', label: 'Style-pack weighted' },
-      { value: 'grounded', label: 'Grounded cast' },
-      { value: 'balanced', label: 'Balanced spread' },
-      { value: 'rare-forward', label: 'Rare-forward cast' },
-      { value: 'mythic-arc', label: 'Mythic arc' },
-    ]);
+  it('makes Cast variation causal while keeping Familiar as the baseline center', () => {
+    const tightSettings = { ...baseSettings, castSize: 7, castVariation: 'tight' as const };
+    const balancedSettings = { ...baseSettings, castSize: 7, castVariation: 'balanced' as const };
+    const wideSettings = { ...baseSettings, castSize: 7, castVariation: 'wide' as const };
 
-    const bandsFor = (rarityDistribution: 'grounded' | 'balanced' | 'rare-forward' | 'mythic-arc') => (
-      Array.from({ length: 8 }, (_, index) => resolveFictionCastRarityBand(raritySettings(rarityDistribution), index))
-    );
+    expect(noveltyRange(tightSettings)).toBeLessThan(noveltyRange(balancedSettings));
+    expect(noveltyRange(balancedSettings)).toBeLessThan(noveltyRange(wideSettings));
+    expect(tightSettings.semanticBaseline.familiarity).toBe('balanced');
+    expect(wideSettings.semanticBaseline.familiarity).toBe('balanced');
 
-    expect(bandsFor('grounded')).toEqual(['common', 'common', 'uncommon', 'common', 'uncommon', 'rare', 'common', 'uncommon']);
-    expect(bandsFor('balanced')).toEqual(['common', 'uncommon', 'rare', 'uncommon', 'epic', 'common', 'rare', 'legendary']);
-    expect(bandsFor('rare-forward')).toEqual(['rare', 'uncommon', 'epic', 'rare', 'common', 'legendary', 'rare', 'epic']);
-    expect(bandsFor('mythic-arc')).toEqual(['common', 'uncommon', 'rare', 'epic', 'legendary', 'rare', 'epic', 'legendary']);
-  });
-
-  it('applies the style-pack novelty shift in the surface rarity policy', () => {
-    const settings = raritySettings('style-pack', 0.5);
-    const rarityBands = Array.from({ length: 8 }, (_, index) => resolveFictionCastRarityBand(settings, index));
-
-    expect(rarityBands).toEqual(['rare', 'epic', 'rare', 'rare', 'rare', 'uncommon', 'uncommon', 'uncommon']);
-  });
-
-  it('threads surface-owned rarity distributions through selected names', () => {
     const registry = createDefaultRegistry();
-    const ensemble = generateEnsemble({ ...baseSettings, castSize: 5, rarityDistribution: 'mythic-arc' }, registry);
-
-    expect(ensemble.names.map((name) => name.rarityBand)).toEqual(['common', 'uncommon', 'rare', 'epic', 'legendary']);
-    expect(ensemble.names.every((name) => !('rarityBand' in name.primaryName.generationPlan))).toBe(true);
+    const tight = generateEnsemble(tightSettings, registry);
+    const wide = generateEnsemble(wideSettings, registry);
+    expect(wide.names.map((name) => name.primaryName.generationPlan.targetNovelty))
+      .not.toEqual(tight.names.map((name) => name.primaryName.generationPlan.targetNovelty));
   });
 
-  it('changes rarity labels without changing generated primary names', () => {
+  it('derives rarity evidence from each slot resolved novelty instead of a separate rarity policy', () => {
     const registry = createDefaultRegistry();
-    const grounded = generateEnsemble({ ...baseSettings, castSize: 5, rarityDistribution: 'grounded' }, registry);
-    const mythic = generateEnsemble({ ...baseSettings, castSize: 5, rarityDistribution: 'mythic-arc' }, registry);
+    const settings = { ...baseSettings, castSize: 5, castVariation: 'wide' as const };
+    const ensemble = generateEnsemble(settings, registry);
 
-    expect(mythic.names.map((name) => name.primaryName.name)).toEqual(grounded.names.map((name) => name.primaryName.name));
-    expect(mythic.names.map((name) => name.rarityBand)).not.toEqual(grounded.names.map((name) => name.rarityBand));
+    ensemble.names.forEach((name, slotIndex) => {
+      const resolvedNovelty = resolveFictionCastSemanticIntent(settings, { slotIndex }).generationSettings.novelty;
+      expect(name.rarityBand).toBe(rarityBandForNovelty(resolvedNovelty));
+      expect('rarityBand' in name.primaryName.generationPlan).toBe(false);
+    });
+  });
+
+  it('makes Cast variation naturally inert for a one-name cast', () => {
+    const registry = createDefaultRegistry();
+    const tight = generateEnsemble({ ...baseSettings, castSize: 1, castVariation: 'tight' }, registry);
+    const wide = generateEnsemble({ ...baseSettings, castSize: 1, castVariation: 'wide' }, registry);
+
+    expect(tight.names[0].primaryName).toEqual(wide.names[0].primaryName);
+    expect(tight.names[0].rarityBand).toBe(wide.names[0].rarityBand);
   });
 
   it('keeps composed Cast identities separate from the singular generated-name result', () => {

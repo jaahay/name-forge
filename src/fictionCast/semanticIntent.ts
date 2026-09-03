@@ -1,3 +1,4 @@
+import { clamp } from '../engine/random';
 import type { GenerationSettings } from '../engine/types';
 import type { SemanticNamePreferences } from '../naming/semanticName';
 import { getRolePreferenceProfile, roleInfluencedGenerationSettings, resolveRoleInfluence } from './roles';
@@ -6,17 +7,19 @@ import type {
   FictionCastSemanticBaseline,
   FictionCastSettings,
 } from './types';
+import { resolveFictionCastVariationDelta } from './variation';
 
 export type FictionCastSemanticControlKey = keyof FictionCastSemanticBaseline;
 export type FictionCastSemanticControlValue<K extends FictionCastSemanticControlKey = FictionCastSemanticControlKey> = FictionCastSemanticBaseline[K];
 
 export interface FictionCastSemanticIntentContext {
   readonly role?: CastRoleAssignment;
-  readonly resultIndex: number;
+  readonly slotIndex: number;
 }
 
 export interface ResolvedFictionCastSemanticIntent {
   readonly baseline: FictionCastSemanticBaseline;
+  readonly variationDelta: number;
   readonly generationSettings: GenerationSettings;
   readonly planningPreferences: SemanticNamePreferences;
 }
@@ -90,22 +93,15 @@ export function withFictionCastSemanticControl<
   };
 }
 
-function planningNoveltyOffsetForResult(resultIndex: number): number {
-  return ((resultIndex % 5) - 2) * 0.06;
-}
-
-function currentPlanningPreferences(
+function rolePlanningPreferences(
   settings: FictionCastSettings,
   role: CastRoleAssignment | undefined,
-  resultIndex: number,
 ): SemanticNamePreferences {
-  const noveltyOffset = planningNoveltyOffsetForResult(resultIndex);
   const influence = resolveRoleInfluence(settings, role);
-  if (!influence) return { noveltyOffset };
+  if (!influence) return {};
 
   const profile = getRolePreferenceProfile(influence.role);
   return {
-    noveltyOffset,
     preferenceStrength: influence.strength,
     syllableCounts: profile.syllableCounts,
     textures: profile.textures,
@@ -117,11 +113,17 @@ export function resolveFictionCastSemanticIntent(
   context: FictionCastSemanticIntentContext,
 ): ResolvedFictionCastSemanticIntent {
   const baselineSettings = fictionCastBaselineGenerationSettings(settings);
+  const variationDelta = resolveFictionCastVariationDelta(settings, context.slotIndex);
+  const variedSettings: GenerationSettings = {
+    ...baselineSettings,
+    novelty: clamp(baselineSettings.novelty + variationDelta),
+  };
   const roleInfluence = resolveRoleInfluence(settings, context.role);
 
   return {
     baseline: settings.semanticBaseline,
-    generationSettings: roleInfluencedGenerationSettings(baselineSettings, roleInfluence),
-    planningPreferences: currentPlanningPreferences(settings, context.role, context.resultIndex),
+    variationDelta,
+    generationSettings: roleInfluencedGenerationSettings(variedSettings, roleInfluence),
+    planningPreferences: rolePlanningPreferences(settings, context.role),
   };
 }
