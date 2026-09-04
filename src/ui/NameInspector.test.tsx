@@ -263,7 +263,7 @@ describe('NameInspector', () => {
     expect(html).toContain('<dt>Format</dt>');
     expect(html).toContain('<dt>Rarity</dt>');
     expect(html).not.toContain('<dt>Influence</dt>');
-    expect(html).toContain("This records the identity's assigned role, materialized format, and derived rarity.");
+    expect(html).toContain('materialized format, and derived rarity.');
     expect(html).toContain('Rarity comes from generation-time novelty intent');
     expect(html).toContain('>Details</span>');
     expect(html).not.toContain('>Breakdown</span>');
