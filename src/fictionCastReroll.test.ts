@@ -96,6 +96,47 @@ describe('rerollSelectedCastName', () => {
     });
   });
 
+  it('preplans a Mixed reroll against preserved formats on both sides of the target', () => {
+    const registry = createDefaultRegistry();
+    const mixedBefore = generateEnsemble({ ...settings, castSize: 3 }, registry);
+    const fixedNeighbors = generateEnsemble({
+      ...settings,
+      castSize: 3,
+      seed: 'selected-reroll-fixed-neighbors',
+      nameFormat: 'given-family',
+    }, registry);
+    const target = mixedBefore.names[1];
+    const left = fixedNeighbors.names[0];
+    const right = fixedNeighbors.names[2];
+
+    if (!target || !left || !right) throw new Error('Expected three-name reroll fixtures.');
+
+    const before = {
+      ...mixedBefore,
+      names: [left, target, right],
+    };
+    const result = rerollSelectedCastName(
+      before,
+      target.id,
+      new Set(),
+      'selected-reroll-neighbor-aware',
+      registry,
+    );
+
+    expect(result).toBeDefined();
+    if (!result) throw new Error('Expected neighbor-aware selected-name reroll to succeed.');
+
+    const replacement = result.ensemble.names[1];
+    expect(replacement).toBeDefined();
+    if (!replacement) throw new Error('Expected replacement name in the middle slot.');
+
+    expect(result.ensemble.names[0]).toEqual(left);
+    expect(result.ensemble.names[2]).toEqual(right);
+    expect(left.identity.format.kind).toBe('given-family');
+    expect(right.identity.format.kind).toBe('given-family');
+    expect(replacement.identity.format.kind).not.toBe('given-family');
+  });
+
   it('refreshes composed-identity collision notes from the post-reroll active roster', () => {
     const registry = createDefaultRegistry();
     const before = generateEnsemble(settings, registry);
