@@ -1,21 +1,16 @@
-import { createSeededRandom } from '../engine/random';
 import type {
   GeneratedName,
   GeneratedNamePart,
-  NameFormatKind,
   NameFormatRule,
   NameIdentity,
   NameIdentityPhrasePart,
 } from '../engine/types';
+import type { MaterializedNameFormatKind } from './formatSelection';
 import {
   fictionCastEpithetLexemes,
   fictionCastTitleLexemes,
   type FictionCastIdentityLexeme,
 } from './identityLexicon';
-
-export type MaterializedNameFormatKind = Exclude<NameFormatKind, 'mixed'>;
-
-const mixedFormatOptions: readonly MaterializedNameFormatKind[] = ['given-only', 'given-family', 'initials-family', 'title-name', 'epithet-place'];
 
 const formatRules: Record<MaterializedNameFormatKind, NameFormatRule> = {
   'given-only': { id: 'format:given-only', kind: 'given-only', label: 'Given name only' },
@@ -24,23 +19,6 @@ const formatRules: Record<MaterializedNameFormatKind, NameFormatRule> = {
   'title-name': { id: 'format:title-name', kind: 'title-name', label: 'Title + name' },
   'epithet-place': { id: 'format:epithet-place', kind: 'epithet-place', label: 'Epithet/place-style name' },
 };
-
-export function resolveMaterializedFormatKind(
-  format: NameFormatKind | undefined,
-  seed: string,
-  index: number,
-  previousFormats: readonly MaterializedNameFormatKind[] = [],
-): MaterializedNameFormatKind {
-  if (format && format !== 'mixed') return format;
-
-  const previous = previousFormats[previousFormats.length - 1];
-  const twoBack = previousFormats[previousFormats.length - 2];
-  const eligibleFormats = previous && previous === twoBack
-    ? mixedFormatOptions.filter((candidate) => candidate !== previous)
-    : mixedFormatOptions;
-
-  return createSeededRandom(`${seed}:fiction-cast:mixed-format:slot-${index}`).pick(eligibleFormats);
-}
 
 export function requiresSupportingName(format: MaterializedNameFormatKind): boolean {
   return format === 'given-family' || format === 'initials-family' || format === 'epithet-place';
