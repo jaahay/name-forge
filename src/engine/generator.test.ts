@@ -279,20 +279,52 @@ describe('generateEnsemble', () => {
     expect(placePart.sourceName).toBe(placePart.value);
   });
 
-  it('deterministically cycles supported formats in mixed mode', () => {
-    const ensemble = generateEnsemble({ ...settings, castSize: 5, nameFormat: 'mixed' }, createDefaultRegistry());
-    expect(ensemble.names).toHaveLength(5);
-    const [firstName, secondName, thirdName, fourthName, fifthName] = ensemble.names;
-    expect(firstName).toBeDefined();
-    expect(secondName).toBeDefined();
-    expect(thirdName).toBeDefined();
-    expect(fourthName).toBeDefined();
-    expect(fifthName).toBeDefined();
-    if (!firstName || !secondName || !thirdName || !fourthName || !fifthName) throw new Error('Expected five generated names.');
-    expect(firstName.identity.format.kind).toBe('given-only');
-    expect(secondName.identity.format.kind).toBe('given-family');
-    expect(thirdName.identity.format.kind).toBe('initials-family');
-    expect(fourthName.identity.format.kind).toBe('title-name');
-    expect(fifthName.identity.format.kind).toBe('epithet-place');
+  it('materializes Mixed formats reproducibly from the seed with bounded anti-clumping', () => {
+    const registry = createDefaultRegistry();
+    const supportedFormats = ['given-only', 'given-family', 'initials-family', 'title-name', 'epithet-place'] as const;
+    const mixedSettings: FictionCastSettings = {
+      ...settings,
+      castSize: 24,
+      seed: 'mixed-format-seed-a',
+      nameFormat: 'mixed',
+    };
+    const first = generateEnsemble(mixedSettings, registry);
+    const replay = generateEnsemble(mixedSettings, registry);
+    const formats = first.names.map((name) => name.identity.format.kind);
+    const replayFormats = replay.names.map((name) => name.identity.format.kind);
+    const formerFixedCycle = Array.from({ length: mixedSettings.castSize }, (_, index) => supportedFormats[index % supportedFormats.length]);
+
+    expect(first.names).toHaveLength(24);
+    expect(replayFormats).toEqual(formats);
+    expect(formats.every((format) => supportedFormats.includes(format))).toBe(true);
+    expect(formats).not.toEqual(formerFixedCycle);
+    for (let index = 2; index < formats.length; index += 1) {
+      expect(formats[index] === formats[index - 1] && formats[index] === formats[index - 2]).toBe(false);
+    }
+
+    for (const castSize of [1, 24]) {
+      const ensemble = generateEnsemble({ ...mixedSettings, castSize }, registry);
+      expect(ensemble.names).toHaveLength(castSize);
+      expect(ensemble.names.every((name) => supportedFormats.includes(name.identity.format.kind))).toBe(true);
+    }
+  });
+
+  it('lets new seeds change both Mixed slot order and relative format counts', () => {
+    const registry = createDefaultRegistry();
+    const supportedFormats = ['given-only', 'given-family', 'initials-family', 'title-name', 'epithet-place'] as const;
+    const formatsForSeed = (seed: string) => generateEnsemble({
+      ...settings,
+      castSize: 12,
+      seed,
+      nameFormat: 'mixed',
+    }, registry).names.map((name) => name.identity.format.kind);
+    const countSignature = (formats: ReturnType<typeof formatsForSeed>) => supportedFormats.map(
+      (format) => formats.filter((candidate) => candidate === format).length,
+    );
+    const first = formatsForSeed('mixed-format-seed-a');
+    const second = formatsForSeed('mixed-format-seed-b');
+
+    expect(second).not.toEqual(first);
+    expect(countSignature(second)).not.toEqual(countSignature(first));
   });
 });
