@@ -55,24 +55,31 @@ function normalizeRenderedHtml(html: string): string {
 }
 
 describe('NameInspector', () => {
-  it('promotes every genuinely generated component directly beneath the composed identity', () => {
+  it('promotes every genuinely generated component and keeps its detail local to the component controls', () => {
     const generatedSettings = { ...settings, nameFormat: 'given-family' as const, seed: 'name-inspector-generated-components' };
     const name = fixtureName(generatedSettings);
     const familyPart = name.identity.parts.find((part) => part.role === 'family' && part.generation);
     const html = renderInspector(name, false, generatedSettings);
     const titleIndex = html.indexOf(name.displayName);
     const componentsIndex = html.indexOf('inspector-generated-components');
+    const localDetailIndex = html.indexOf('inspector-generated-component-detail');
     const pronunciationIndex = html.indexOf('inspector-pronunciation');
 
     expect(familyPart).toBeDefined();
     expect(titleIndex).toBeGreaterThan(-1);
     expect(componentsIndex).toBeGreaterThan(titleIndex);
-    expect(pronunciationIndex).toBeGreaterThan(componentsIndex);
+    expect(localDetailIndex).toBeGreaterThan(componentsIndex);
+    expect(pronunciationIndex).toBeGreaterThan(localDetailIndex);
     expect(html).toContain('Generated components');
-    expect(html).toContain(`<strong>${name.primaryName.name}</strong><span>Given</span>`);
-    expect(html).toContain(`<strong>${familyPart?.sourceName}</strong><span>Family</span>`);
-    expect(html).toContain(`aria-controls="generated-sound-${name.id}-${name.primaryName.id}"`);
-    expect(html).toContain(`aria-label="Play approximate browser voice for ${name.primaryName.name}"`);
+    expect(html).toContain(`<strong>${name.primaryName.name}</strong>`);
+    expect(html).toContain(`<strong>${familyPart?.sourceName}</strong>`);
+    expect(html).toContain(`aria-label="Inspect given component ${name.primaryName.name}"`);
+    expect(html).toContain(`aria-label="Inspect family component ${familyPart?.sourceName}"`);
+    expect(html).toContain(`aria-controls="generated-component-detail-${name.id}"`);
+    expect(html).toContain(`id="generated-component-detail-${name.id}"`);
+    expect(html).toContain(name.primaryName.sound.transcription);
+    expect(html).not.toContain(`<strong>${name.primaryName.name}</strong><span>Given</span>`);
+    expect(html).not.toContain('Modeled sound for this generated component; browser playback is approximate.');
   });
 
   it('keeps the underlying generated given component visible when initials hide its spelling', () => {
@@ -83,8 +90,8 @@ describe('NameInspector', () => {
 
     expect(primaryIdentityPart).toBeDefined();
     expect(primaryIdentityPart?.value).not.toBe(name.primaryName.name);
-    expect(html).toContain(`<strong>${name.primaryName.name}</strong><span>Given</span>`);
-    expect(html).toContain(`id="generated-sound-${name.id}-${name.primaryName.id}"`);
+    expect(html).toContain(`<strong>${name.primaryName.name}</strong>`);
+    expect(html).toContain(`id="generated-component-detail-${name.id}"`);
     expect(html).toContain(name.primaryName.sound.transcription);
   });
 
@@ -130,10 +137,11 @@ describe('NameInspector', () => {
 
     expect(html).not.toContain('Alternative spellings');
     expect(html).not.toContain(alternative.text);
-    expect(html).toContain('Component sound drafts');
+    expect(html).toContain('inspector-generated-component-detail');
+    expect(html).not.toContain('Component sound drafts');
   });
 
-  it('replaces raw score cards with criteria-relative evidence without overstating style adherence', () => {
+  it('replaces raw score cards and audit terminology with understandable shaping context', () => {
     const generatedSettings: FictionCastSettings = {
       ...settings,
       castSize: 3,
@@ -148,18 +156,18 @@ describe('NameInspector', () => {
     const name = fixtureName(generatedSettings);
     const html = normalizeRenderedHtml(renderInspector(name, false, generatedSettings));
 
-    expect(html).toContain('Criteria evidence');
-    expect(html).toContain('This compares retained user intent with generation-time and deterministic evidence.');
-    expect(html).toContain('<dt>Familiar</dt><dd>Balanced baseline</dd>');
-    expect(html).toContain('<dt>Readable</dt>');
-    expect(html).toContain('<dt>Compact</dt>');
-    expect(html).toContain('<dt>Naming style</dt><dd>British literary fantasy selected</dd>');
-    expect(html).toContain('<dt>Spelling</dt>');
+    expect(html).toContain('What shaped this name');
+    expect(html).toContain('Requested baseline');
+    expect(html).toContain('Contextual shaping');
+    expect(html).toContain('This keeps your requested baseline separate from generation-time Cast variation and role shaping.');
+    expect(html).toContain('<dt>Familiar</dt><dd>Balanced</dd>');
+    expect(html).toContain('<dt>Readable</dt><dd>Clear</dd>');
+    expect(html).toContain('<dt>Compact</dt><dd>Compact</dd>');
+    expect(html).toContain('<dt>Naming style</dt><dd>British literary fantasy</dd>');
+    expect(html).toContain('<dt>Spelling</dt><dd>Conventional</dd>');
     expect(html).toContain('<dt>Cast variation</dt><dd>Wide ·');
-    expect(html).toContain('<dt>Rarity label</dt>');
-    expect(html).toContain('derived from resolved novelty intent at generation time');
     expect(html).toContain('<dt>Role shaping</dt>');
-    expect(html).not.toContain('<dt>Style</dt>');
+    expect(html).not.toContain('Criteria evidence');
     expect(html).not.toContain('Faithful baseline');
     expect(html).not.toContain('Score detail');
     expect(html).not.toContain('<dt>Pronounce</dt>');
@@ -197,9 +205,9 @@ describe('NameInspector', () => {
     expect(name.resolvedIntentEvidence).toBeDefined();
     expect(name.resolvedIntentEvidence?.baseline.familiarity).toBe('unusual');
     expect(name.resolvedIntentEvidence?.castVariation).toBe('wide');
-    expect(html).toContain('<dt>Familiar</dt><dd>Unusual baseline</dd>');
+    expect(html).toContain('<dt>Familiar</dt><dd>Unusual</dd>');
     expect(html).toContain('<dt>Cast variation</dt><dd>Wide ·');
-    expect(html).not.toContain('<dt>Familiar</dt><dd>Familiar baseline</dd>');
+    expect(html).not.toContain('<dt>Familiar</dt><dd>Familiar</dd>');
     expect(html).not.toContain('<dt>Cast variation</dt><dd>Tight ·');
   });
 
@@ -216,12 +224,17 @@ describe('NameInspector', () => {
     expect(html).toContain('<dt>Cast variation</dt><dd>Wide · Generation-time slot position unavailable for this older snapshot</dd>');
   });
 
-  it('explains the primary generation plan instead of exposing opaque notation alone', () => {
+  it('preserves opaque generation mechanics under deeper Technical construction', () => {
     const name = fixtureName();
     const html = renderInspector(name);
+    const detailsIndex = html.indexOf('class="inspector-more"');
+    const technicalIndex = html.indexOf('class="inspector-technical-construction"');
 
+    expect(detailsIndex).toBeGreaterThan(-1);
+    expect(technicalIndex).toBeGreaterThan(detailsIndex);
+    expect(html).toContain('Technical construction');
+    expect(html).toContain('Generator mechanics for the primary generated component.');
     expect(html).toContain('Primary generation plan');
-    expect(html).toContain('About primary generation plan');
     expect(html).toContain('<dt>Sound texture</dt>');
     expect(html).toContain('<dt>Stress pattern</dt>');
     expect(html).toContain('<dt>Syllable shape</dt>');
@@ -230,29 +243,33 @@ describe('NameInspector', () => {
     expect(html).toContain(name.primaryName.generationPlan.shape.join(' · '));
   });
 
-  it('promotes Cast context and keeps one primary Breakdown disclosure for secondary evidence', () => {
+  it('moves Cast context below sound and spelling inside one neutral Details disclosure', () => {
     const generatedSettings = { ...settings, rolePreset: 'classic-ensemble' as const, roleInfluence: 'light' as const };
     const name = fixtureName(generatedSettings);
     const html = renderInspector(name, false, generatedSettings);
+    const pronunciationIndex = html.indexOf('inspector-pronunciation');
     const detailsIndex = html.indexOf('class="inspector-more"');
+    const shapingIndex = html.indexOf('What shaped this name');
     const contextIndex = html.indexOf('Cast context');
-    const promotedContext = html.slice(contextIndex, detailsIndex);
+    const technicalIndex = html.indexOf('Technical construction');
 
-    expect(contextIndex).toBeGreaterThan(-1);
-    expect(detailsIndex).toBeGreaterThan(contextIndex);
+    expect(pronunciationIndex).toBeGreaterThan(-1);
+    expect(detailsIndex).toBeGreaterThan(pronunciationIndex);
+    expect(shapingIndex).toBeGreaterThan(detailsIndex);
+    expect(contextIndex).toBeGreaterThan(detailsIndex);
+    expect(technicalIndex).toBeGreaterThan(detailsIndex);
     expect(html).toContain('inspector-cast-context-facts');
     expect(html).toContain('<dt>Role</dt>');
     expect(html).toContain('<dt>Format</dt>');
     expect(html).toContain('<dt>Rarity</dt>');
-    expect(html).toContain('<dt>Influence</dt>');
-    expect(promotedContext).not.toContain('derived from resolved novelty intent');
-    expect(html).toContain('<dt>Rarity label</dt>');
-    expect(html).toContain('Breakdown');
-    expect(html).not.toContain('More details');
-    expect(html).toContain('Primary generation plan');
-    expect(html).toContain('Composition');
-    expect(html).toContain('Component sound drafts');
-    expect(html).toContain('Criteria evidence');
+    expect(html).not.toContain('<dt>Influence</dt>');
+    expect(html).toContain('materialized format, and derived rarity.');
+    expect(html).toContain('Rarity comes from generation-time novelty intent');
+    expect(html).toContain('>Details</span>');
+    expect(html).not.toContain('>Breakdown</span>');
+    expect(html).not.toContain('Component sound drafts');
+    expect(html).not.toContain('Criteria evidence');
+    expect(html).not.toContain('inspector-promoted');
     expect((html.match(/class="inspector-more"/g) ?? [])).toHaveLength(1);
   });
 
@@ -309,7 +326,7 @@ describe('NameInspector', () => {
     expect(html).not.toContain('Variants</h3>');
   });
 
-  it('connects promoted generated components to per-component sound evidence and icon audition', () => {
+  it('connects promoted generated components to one adjacent sound-detail region and icon audition', () => {
     const generatedSettings = { ...settings, nameFormat: 'epithet-place' as const, seed: 'name-inspector-composed-provenance' };
     const name = fixtureName(generatedSettings);
     const generatedSoundParts = name.identity.parts.filter((part) => part.generation && (part.role === 'given' || part.role === 'family' || part.role === 'place'));
@@ -318,10 +335,11 @@ describe('NameInspector', () => {
 
     expect(name.identity.format.kind).toBe('epithet-place');
     expect(html).toContain('Generated components');
-    expect(html).toContain('Component sound drafts');
-    expect(html).toContain('inspector-sound-components');
+    expect(html).toContain('inspector-generated-component-detail');
     expect((html.match(/inspector-generated-component-play/g) ?? [])).toHaveLength(expectedComponentCount);
-    expect((html.match(/class="inspector-component-play"/g) ?? [])).toHaveLength(expectedComponentCount);
+    expect((html.match(/class="inspector-generated-component-detail"/g) ?? [])).toHaveLength(1);
+    expect(html).not.toContain('Component sound drafts');
+    expect(html).not.toContain('inspector-sound-components');
     for (const part of name.identity.parts) {
       expect(html).toContain(part.value);
       expect(html).toContain(part.role);
@@ -329,7 +347,7 @@ describe('NameInspector', () => {
     expect(html).toContain(name.primaryName.sound.transcription);
   });
 
-  it('keeps primitive readability notes inside Breakdown', () => {
+  it('keeps primitive readability notes inside Details', () => {
     const base = fixtureName();
     const cleanName = {
       ...base,
@@ -351,11 +369,18 @@ describe('NameInspector', () => {
 
     expect(renderInspector(cleanName)).not.toContain('Read notes</h3>');
     const notedHtml = renderInspector(notedName);
-    expect(notedHtml).toContain('Breakdown');
+    expect(notedHtml).toContain('>Details</span>');
     expect(notedHtml).toContain('inspector-read-details');
     expect(notedHtml).toContain('Read notes</h3>');
     expect(notedHtml).toContain('Long read');
     expect(notedHtml).toContain('This generated name may take a second pass.');
+  });
+
+  it('uses a single circle treatment for Inspector information controls', () => {
+    const html = renderInspector(fixtureName());
+
+    expect(html).toContain('inspector-info-disclosure');
+    expect(html).not.toContain('<circle cx="12" cy="12" r="8.5"></circle>');
   });
 
   it('uses icon-only whole-name actions with accessible names and tooltip titles', () => {

@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { renderAuditionCue } from '../engine/audition';
 import type { NameTexture } from '../engine/types';
 import { toFictionCastPrimaryNameArtifact } from '../fictionCast/nameArtifact';
@@ -31,6 +31,11 @@ interface GeneratedComponentEvidence {
   readonly role: GeneratedComponentRole;
   readonly cue: AuditionCue;
   readonly transcription: string;
+}
+
+interface ComponentSelection {
+  readonly nameId: string;
+  readonly sourceNameId: string;
 }
 
 let componentSpeechPlaybackToken = 0;
@@ -81,7 +86,6 @@ function PlayIcon() {
 function InfoIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <circle cx="12" cy="12" r="8.5" />
       <path d="M12 10.5v6M12 7.5h.01" />
     </svg>
   );
@@ -128,46 +132,54 @@ function generatedComponents(name: FictionCastGeneratedName): GeneratedComponent
   return components;
 }
 
-function componentSoundTargetId(name: FictionCastGeneratedName, component: GeneratedComponentEvidence): string {
-  return `generated-sound-${name.id}-${component.sourceNameId}`;
+function componentDetailId(name: FictionCastGeneratedName): string {
+  return `generated-component-detail-${name.id}`;
 }
 
-function focusComponentSound(targetId: string) {
-  const target = document.getElementById(targetId);
-  if (!(target instanceof HTMLElement)) return;
-  const disclosure = target.closest('details');
-  if (disclosure instanceof HTMLDetailsElement) disclosure.open = true;
-  target.focus();
-  target.scrollIntoView({ block: 'nearest' });
-}
-
-function GeneratedComponents({ name, components }: { name: FictionCastGeneratedName; components: GeneratedComponentEvidence[] }) {
+function GeneratedComponents({
+  name,
+  components,
+  selectedComponentId,
+  onSelectComponent,
+}: {
+  name: FictionCastGeneratedName;
+  components: GeneratedComponentEvidence[];
+  selectedComponentId: string;
+  onSelectComponent: (sourceNameId: string) => void;
+}) {
   const browserSpeechAvailable = canUseBrowserSpeech();
+  const selectedComponent = components.find((component) => component.sourceNameId === selectedComponentId) ?? components[0];
+  if (!selectedComponent) return null;
+
+  const detailId = componentDetailId(name);
+  const selectedRoleLabel = labelFor(selectedComponent.role);
 
   return (
     <section className="inspector-generated-components" aria-label={`${name.displayName} generated components`}>
       <span className="inspector-generated-components-label">Generated components</span>
       <ul>
         {components.map((component) => {
-          const soundTargetId = componentSoundTargetId(name, component);
           const roleLabel = labelFor(component.role);
           const playLabel = `Play approximate browser voice for ${component.value}`;
+          const selected = component.sourceNameId === selectedComponent.sourceNameId;
 
           return (
             <li key={component.sourceNameId}>
               <button
                 type="button"
                 className="inspector-generated-component-focus"
-                aria-controls={soundTargetId}
-                onClick={() => focusComponentSound(soundTargetId)}
+                aria-controls={detailId}
+                aria-pressed={selected}
+                aria-label={`Inspect ${roleLabel.toLowerCase()} component ${component.value}`}
+                onClick={() => onSelectComponent(component.sourceNameId)}
               >
                 <strong>{component.value}</strong>
-                <span>{roleLabel}</span>
               </button>
               <button
                 type="button"
                 className="inspector-generated-component-play"
                 aria-label={playLabel}
+                title={browserSpeechAvailable ? `Play ${component.value}` : 'Approximate browser voice unavailable'}
                 disabled={!browserSpeechAvailable}
                 onClick={() => playComponentVoiceDraft(component.cue.speechText)}
               >
@@ -177,6 +189,22 @@ function GeneratedComponents({ name, components }: { name: FictionCastGeneratedN
           );
         })}
       </ul>
+      <div
+        id={detailId}
+        className="inspector-generated-component-detail"
+        role="region"
+        aria-live="polite"
+        aria-label={`${selectedRoleLabel} component ${selectedComponent.value} sound detail`}
+      >
+        <div className="inspector-generated-component-detail-heading">
+          <strong>{selectedComponent.value}</strong>
+          <span>{selectedRoleLabel} component</span>
+        </div>
+        <div className="inspector-generated-component-sound">
+          <span>{selectedComponent.cue.displayText ?? selectedComponent.transcription}</span>
+          <code>{selectedComponent.transcription}</code>
+        </div>
+      </div>
     </section>
   );
 }
@@ -184,23 +212,20 @@ function GeneratedComponents({ name, components }: { name: FictionCastGeneratedN
 function castContext(name: FictionCastGeneratedName) {
   const rarity = rarityPresentation[name.rarityBand];
   const roleLabel = name.role?.label ?? 'No role';
-  const roleInfluenceLabel = name.roleInfluence ? `${labelFor(name.roleInfluence.level)} influence` : 'Role-neutral';
 
   return (
-    <section className="inspector-cast-context" aria-labelledby={`cast-context-heading-${name.id}`}>
-      <h3 id={`cast-context-heading-${name.id}`}>Cast context</h3>
+    <section className="inspector-detail-group inspector-cast-context" aria-labelledby={`cast-context-heading-${name.id}`}>
+      <div className="inspector-detail-heading">
+        <h3 id={`cast-context-heading-${name.id}`}>Cast context</h3>
+        <InfoDisclosure label="Cast context">
+          <p>This records the identity's assigned role, materialized format, and derived rarity. Rarity comes from generation-time novelty intent, not real-world or cultural rarity.</p>
+        </InfoDisclosure>
+      </div>
       <dl className="inspector-cast-context-facts">
         <div><dt>Role</dt><dd>{roleLabel}</dd></div>
         <div><dt>Format</dt><dd>{name.identity.format.label}</dd></div>
         <div><dt>Rarity</dt><dd>{rarity.label}</dd></div>
-        <div><dt>Influence</dt><dd>{roleInfluenceLabel}</dd></div>
       </dl>
-      {name.roleInfluence ? (
-        <p className="inspector-cast-context-note">
-          <strong>{name.roleInfluence.label}</strong>
-          <span>{name.roleInfluence.effects.join(', ')}</span>
-        </p>
-      ) : null}
     </section>
   );
 }
@@ -231,14 +256,7 @@ function variationPosition(delta: number): string {
   return delta > 0 ? 'Shifted more unusual than the cast baseline' : 'Shifted more familiar than the cast baseline';
 }
 
-function readabilityEvidence(name: FictionCastGeneratedName): string {
-  const warnings = name.readabilityDiagnostics.filter((diagnostic) => diagnostic.severity === 'warning').length;
-  if (name.readabilityDiagnostics.length === 0) return 'No deterministic read-friction notes';
-  if (warnings > 0) return `${name.readabilityDiagnostics.length} deterministic read note(s), including ${warnings} warning(s)`;
-  return `${name.readabilityDiagnostics.length} deterministic read note(s)`;
-}
-
-function criteriaEvidence(
+function whatShapedThisName(
   name: FictionCastGeneratedName,
   fallbackBaseline: FictionCastSemanticBaseline,
   fallbackCastVariation: FictionCastVariation,
@@ -250,107 +268,85 @@ function criteriaEvidence(
   const variationEvidence = retainedIntent
     ? variationPosition(retainedIntent.variationDelta)
     : 'Generation-time slot position unavailable for this older snapshot';
-  const alternatives = Math.max(0, name.primaryName.spellingCandidates.length - 1);
-  const roleEvidence = name.roleInfluence ? `${labelFor(name.roleInfluence.level)} · ${name.roleInfluence.label}` : undefined;
-  const rarity = rarityPresentation[name.rarityBand];
+  const roleEvidence = name.roleInfluence ? `${labelFor(name.roleInfluence.level)} · ${name.roleInfluence.label}` : 'None';
 
   return (
-    <section className="inspector-detail-group inspector-criteria-evidence" aria-label={`${name.displayName} criteria evidence`}>
+    <section className="inspector-detail-group inspector-name-shaping" aria-label={`${name.displayName} shaping context`}>
       <div className="inspector-detail-heading">
-        <h3>Criteria evidence</h3>
-        <InfoDisclosure label="criteria evidence">
-          <p>This compares retained user intent with generation-time and deterministic evidence. It is not a quality, faithfulness, or human-perception score.</p>
+        <h3>What shaped this name</h3>
+        <InfoDisclosure label="What shaped this name">
+          <p>This keeps your requested baseline separate from generation-time Cast variation and role shaping. It is not a quality, faithfulness, or human-perception score.</p>
         </InfoDisclosure>
       </div>
-      <p className="inspector-evidence-intro">Requested baseline stays visible; generation-time shaping and generated evidence are reported separately.</p>
-      <dl className="inspector-evidence-list">
-        <div><dt>Familiar</dt><dd>{labelFor(baseline.familiarity)} baseline</dd></div>
-        <div><dt>Readable</dt><dd>{labelFor(baseline.readability)} baseline · {readabilityEvidence(name)}</dd></div>
-        <div><dt>Compact</dt><dd>{labelFor(baseline.compactness)} baseline · {labelFor(name.primaryName.generationPlan.targetLength)} primary form plan</dd></div>
-        <div><dt>Naming style</dt><dd>{stylePackLabel} selected</dd></div>
-        <div><dt>Spelling</dt><dd>{labelFor(baseline.spellingDistinctiveness)} baseline · {alternatives === 0 ? 'No alternative same-sound spellings retained' : `${alternatives} alternative same-sound spelling(s) retained`}</dd></div>
-        <div><dt>Cast variation</dt><dd>{labelFor(castVariation)} · {variationEvidence}</dd></div>
-        <div><dt>Rarity label</dt><dd>{rarity.label} · derived from resolved novelty intent at generation time</dd></div>
-        {roleEvidence ? <div><dt>Role shaping</dt><dd>{roleEvidence}</dd></div> : null}
-      </dl>
+      <div className="inspector-shaping-columns">
+        <section className="inspector-shaping-group" aria-label="Requested baseline">
+          <h4>Requested baseline</h4>
+          <dl className="inspector-shaping-list">
+            <div><dt>Familiar</dt><dd>{labelFor(baseline.familiarity)}</dd></div>
+            <div><dt>Readable</dt><dd>{labelFor(baseline.readability)}</dd></div>
+            <div><dt>Compact</dt><dd>{labelFor(baseline.compactness)}</dd></div>
+            <div><dt>Naming style</dt><dd>{stylePackLabel}</dd></div>
+            <div><dt>Spelling</dt><dd>{labelFor(baseline.spellingDistinctiveness)}</dd></div>
+          </dl>
+        </section>
+        <section className="inspector-shaping-group" aria-label="Contextual shaping">
+          <h4>Contextual shaping</h4>
+          <dl className="inspector-shaping-list">
+            <div><dt>Cast variation</dt><dd>{labelFor(castVariation)} · {variationEvidence}</dd></div>
+            <div><dt>Role shaping</dt><dd>{roleEvidence}</dd></div>
+          </dl>
+        </section>
+      </div>
     </section>
   );
 }
 
-function castBreakdownSections(
+function technicalConstruction(name: FictionCastGeneratedName) {
+  const identity = name.identity;
+  const plan = name.primaryName.generationPlan;
+
+  return (
+    <details className="inspector-technical-construction">
+      <summary>
+        <span>Technical construction</span>
+        <small>Generation plan and identity composition</small>
+      </summary>
+      <div className="inspector-technical-body">
+        <section className="inspector-detail-group" aria-label={`${name.displayName} primary generation plan`}>
+          <h3>Primary generation plan</h3>
+          <p className="inspector-technical-intro">Generator mechanics for the primary generated component. These values are diagnostic, not a quality score.</p>
+          <dl className="inspector-detail-facts inspector-generation-plan-facts">
+            <div><dt>Sound texture</dt><dd>{textureDescription(plan.texture)}</dd><small>{labelFor(plan.texture)} texture</small></div>
+            <div><dt>Syllables</dt><dd>{plan.syllableCount}</dd></div>
+            <div><dt>Rhythm</dt><dd>{labelFor(plan.rhythm)}</dd></div>
+            <div><dt>Length plan</dt><dd>{labelFor(plan.targetLength)}</dd></div>
+            <div><dt>Stress pattern</dt><dd>{stressDescription(plan.stressPattern)}</dd><small>{plan.stressPattern}</small></div>
+            <div><dt>Syllable shape</dt><dd>{syllableShapeDescription(plan.shape)}</dd><small>{plan.shape.join(' · ')} · C = consonant · V = vowel</small></div>
+          </dl>
+        </section>
+
+        <section className="inspector-detail-group">
+          <h3>Composition</h3>
+          <ul className="inspector-name-parts">
+            {identity.parts.map((part) => <li key={part.id}><span>{part.value}</span><em>{part.role}</em></li>)}
+          </ul>
+        </section>
+      </div>
+    </details>
+  );
+}
+
+function castDetailSections(
   name: FictionCastGeneratedName,
   baseline: FictionCastSemanticBaseline,
   castVariation: FictionCastVariation,
   stylePackLabel: string,
-  components: GeneratedComponentEvidence[],
 ) {
-  const identity = name.identity;
-  const browserSpeechAvailable = canUseBrowserSpeech();
-  const plan = name.primaryName.generationPlan;
-
   return (
     <>
-      <section className="inspector-detail-group" aria-label={`${name.displayName} primary generation plan`}>
-        <div className="inspector-detail-heading">
-          <h3>Primary generation plan</h3>
-          <InfoDisclosure label="primary generation plan">
-            <p>This is the structural plan used to construct the primary generated component, not a quality score. Sound texture describes the palette of sounds; stress describes syllable emphasis; syllable shape describes consonant/vowel structure.</p>
-          </InfoDisclosure>
-        </div>
-        <dl className="inspector-detail-facts inspector-generation-plan-facts">
-          <div><dt>Sound texture</dt><dd>{textureDescription(plan.texture)}</dd><small>{labelFor(plan.texture)} texture</small></div>
-          <div><dt>Syllables</dt><dd>{plan.syllableCount}</dd></div>
-          <div><dt>Rhythm</dt><dd>{labelFor(plan.rhythm)}</dd></div>
-          <div><dt>Length plan</dt><dd>{labelFor(plan.targetLength)}</dd></div>
-          <div><dt>Stress pattern</dt><dd>{stressDescription(plan.stressPattern)}</dd><small>{plan.stressPattern}</small></div>
-          <div><dt>Syllable shape</dt><dd>{syllableShapeDescription(plan.shape)}</dd><small>{plan.shape.join(' · ')} · C = consonant · V = vowel</small></div>
-        </dl>
-      </section>
-
-      <section className="inspector-detail-group">
-        <h3>Composition</h3>
-        <ul className="inspector-name-parts">
-          {identity.parts.map((part) => <li key={part.id}><span>{part.value}</span><em>{part.role}</em></li>)}
-        </ul>
-      </section>
-
-      <section className="inspector-detail-group inspector-component-sound-group" aria-label={`${name.displayName} generated component sound evidence`}>
-        <div className="inspector-detail-heading">
-          <h3>Component sound drafts</h3>
-          <InfoDisclosure label="component sound drafts">
-            <p>These drafts come from each generated component's modeled sound. Browser playback is approximate and may not realize the modeled sound faithfully.</p>
-          </InfoDisclosure>
-        </div>
-        <ul className="inspector-sound-parts inspector-sound-components">
-          {components.map((component) => {
-            const playLabel = `Play approximate browser voice for ${component.value}`;
-            return (
-              <li
-                id={componentSoundTargetId(name, component)}
-                tabIndex={-1}
-                key={component.sourceNameId}
-              >
-                <div className="inspector-sound-component-copy">
-                  <strong>{component.value} <small>{labelFor(component.role)}</small></strong>
-                  <span>{component.cue.displayText}</span>
-                  <code>{component.transcription}</code>
-                </div>
-                <button
-                  type="button"
-                  className="inspector-component-play"
-                  aria-label={playLabel}
-                  disabled={!browserSpeechAvailable}
-                  onClick={() => playComponentVoiceDraft(component.cue.speechText)}
-                >
-                  <PlayIcon />
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      </section>
-
-      {criteriaEvidence(name, baseline, castVariation, stylePackLabel)}
+      {whatShapedThisName(name, baseline, castVariation, stylePackLabel)}
+      {castContext(name)}
+      {technicalConstruction(name)}
     </>
   );
 }
@@ -368,6 +364,14 @@ export function NameInspector({
     part.sourceNameId === name.primaryName.id && part.value === name.primaryName.name
   ));
   const components = generatedComponents(name);
+  const [componentSelection, setComponentSelection] = useState<ComponentSelection>({
+    nameId: name.id,
+    sourceNameId: name.primaryName.id,
+  });
+  const selectedComponentId = componentSelection.nameId === name.id
+    && components.some((component) => component.sourceNameId === componentSelection.sourceNameId)
+    ? componentSelection.sourceNameId
+    : components[0]?.sourceNameId ?? name.primaryName.id;
 
   return (
     <NameArtifactInspector
@@ -381,9 +385,16 @@ export function NameInspector({
       showVariants={false}
       showPronunciationAlternates={primaryNameIsVisible}
       showPrimarySoundEvidence={false}
-      headingSupplement={<GeneratedComponents name={name} components={components} />}
-      detailsLabel="Breakdown"
-      detailsDescription="Sound, construction, read notes and criteria evidence"
+      headingSupplement={(
+        <GeneratedComponents
+          name={name}
+          components={components}
+          selectedComponentId={selectedComponentId}
+          onSelectComponent={(sourceNameId) => setComponentSelection({ nameId: name.id, sourceNameId })}
+        />
+      )}
+      detailsLabel="Details"
+      detailsDescription="Shaping, cast context and technical construction"
       extraActions={(
         <>
           <button
@@ -408,8 +419,7 @@ export function NameInspector({
           </button>
         </>
       )}
-      promotedSections={castContext(name)}
-      extraSections={castBreakdownSections(name, baseline, castVariation, stylePackLabel, components)}
+      extraSections={castDetailSections(name, baseline, castVariation, stylePackLabel)}
     />
   );
 }
