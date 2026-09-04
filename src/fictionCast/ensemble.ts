@@ -11,11 +11,10 @@ import {
   supportingComponentKindForFormat,
 } from './componentGenerationContext';
 import {
-  createNameIdentity,
-  requiresSupportingName,
-  resolveMaterializedFormatKind,
+  resolveMaterializedFormatPlan,
   type MaterializedNameFormatKind,
-} from './identity';
+} from './formatSelection';
+import { createNameIdentity, requiresSupportingName } from './identity';
 import { rarityBandForNovelty } from './rarity';
 import { isRoleInfluenceActive, resolveCastRole, resolveRoleInfluence } from './roles';
 import { combineFictionCastOverallFit, scoreFictionCastRoleFit } from './scoring';
@@ -151,23 +150,25 @@ export function generateEnsemble(settings: FictionCastSettings, registry: Source
   const safeSettings: FictionCastSettings = { ...settings, castSize };
   const pack = registry.getStylePack(settings.stylePackId);
   const selected: FictionCastGeneratedName[] = [];
-  const materializedFormats: MaterializedNameFormatKind[] = [];
   const lockedNames = lockedSlotMap(lockedSlots, castSize);
+  const lockedFormats = new Map<number, MaterializedNameFormatKind>();
+  for (const [index, lockedName] of lockedNames) lockedFormats.set(index, lockedName.identity.format.kind);
+  const materializedFormats = resolveMaterializedFormatPlan(
+    safeSettings.nameFormat,
+    safeSettings.seed,
+    castSize,
+    lockedFormats,
+  );
 
   for (let index = 0; index < castSize; index += 1) {
     const lockedName = lockedNames.get(index);
     if (lockedName) {
       selected.push(lockedName);
-      materializedFormats.push(lockedName.identity.format.kind);
       continue;
     }
 
-    const formatKind = resolveMaterializedFormatKind(
-      safeSettings.nameFormat,
-      safeSettings.seed,
-      index,
-      materializedFormats,
-    );
+    const formatKind = materializedFormats[index];
+    if (!formatKind) throw new Error(`Fiction Cast has no materialized format for slot ${index}.`);
     const role = resolveCastRole(safeSettings, index);
     const primaryContext = resolveFictionCastComponentGenerationContext(safeSettings, role, 'given', index);
     const rarityBand = rarityBandForNovelty(primaryContext.settings.novelty);
@@ -200,7 +201,6 @@ export function generateEnsemble(settings: FictionCastSettings, registry: Source
     });
     candidates.sort((left, right) => right.contextualScores.overallFit - left.contextualScores.overallFit);
     selected.push(candidates[0]);
-    materializedFormats.push(formatKind);
   }
 
   return { settings: safeSettings, sourcePack: { id: pack.id, label: pack.label, description: pack.description, source: pack.source, style: pack.style }, names: selected, diagnostics: diagnosticsFor(selected, castSize) };
