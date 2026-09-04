@@ -204,7 +204,6 @@ function GeneratedComponents({
           <span>{selectedComponent.cue.displayText ?? selectedComponent.transcription}</span>
           <code>{selectedComponent.transcription}</code>
         </div>
-        <small>Modeled sound for this generated component; browser playback is approximate.</small>
       </div>
     </section>
   );
@@ -213,28 +212,20 @@ function GeneratedComponents({
 function castContext(name: FictionCastGeneratedName) {
   const rarity = rarityPresentation[name.rarityBand];
   const roleLabel = name.role?.label ?? 'No role';
-  const roleInfluenceLabel = name.roleInfluence ? `${labelFor(name.roleInfluence.level)} influence` : 'Role-neutral';
 
   return (
     <section className="inspector-detail-group inspector-cast-context" aria-labelledby={`cast-context-heading-${name.id}`}>
       <div className="inspector-detail-heading">
         <h3 id={`cast-context-heading-${name.id}`}>Cast context</h3>
         <InfoDisclosure label="Cast context">
-          <p>Rarity is a derived label from generation-time novelty intent, not a claim about real-world or cultural rarity.</p>
+          <p>This records the identity's assigned role, materialized format, and derived rarity. Rarity comes from generation-time novelty intent, not real-world or cultural rarity.</p>
         </InfoDisclosure>
       </div>
       <dl className="inspector-cast-context-facts">
         <div><dt>Role</dt><dd>{roleLabel}</dd></div>
         <div><dt>Format</dt><dd>{name.identity.format.label}</dd></div>
         <div><dt>Rarity</dt><dd>{rarity.label}</dd></div>
-        <div><dt>Influence</dt><dd>{roleInfluenceLabel}</dd></div>
       </dl>
-      {name.roleInfluence ? (
-        <p className="inspector-cast-context-note">
-          <strong>{name.roleInfluence.label}</strong>
-          <span>{name.roleInfluence.effects.join(', ')}</span>
-        </p>
-      ) : null}
     </section>
   );
 }
