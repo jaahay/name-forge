@@ -63,6 +63,19 @@ export interface FictionCastContextualScores {
 }
 
 /**
+ * Surface-owned generation-time intent evidence. Retaining this on the result
+ * keeps later inspection from re-resolving an older identity against changed
+ * variation or semantic translation mechanics. The optional result field below
+ * preserves compatibility with remembered casts created before this evidence
+ * was retained.
+ */
+export interface FictionCastResolvedIntentEvidence {
+  readonly baseline: FictionCastSemanticBaseline;
+  readonly castVariation: FictionCastVariation;
+  readonly variationDelta: number;
+}
+
+/**
  * One Fiction Cast product identity composed around an unchanged primitive
  * sound-backed generated name. The compound display identity owns no aggregate
  * sound/spelling evidence; callers reach that evidence through `primaryName` or
@@ -77,6 +90,7 @@ export interface FictionCastGeneratedName {
   readonly readabilityDiagnostics: ReadabilityDiagnostic[];
   readonly role?: CastRoleAssignment;
   readonly roleInfluence?: RoleInfluenceMetadata;
+  readonly resolvedIntentEvidence?: FictionCastResolvedIntentEvidence;
   readonly contextualScores: FictionCastContextualScores;
   readonly rarityBand: FictionCastRarityBand;
 }

@@ -98,9 +98,12 @@ export function GeneratorView({
     if (replacementId) selectName(replacementId);
   }
 
-  const inspector = selectedName ? (
+  const inspector = selectedName && ensemble ? (
     <NameInspector
       name={selectedName}
+      baseline={ensemble.settings.semanticBaseline}
+      castVariation={ensemble.settings.castVariation ?? 'balanced'}
+      stylePackLabel={ensemble.sourcePack.label}
       isLocked={lockedNameIds.has(selectedName.id)}
       onRerollName={rerollSelectedName}
       onToggleLockedName={onToggleLockedName}
