@@ -50,7 +50,8 @@
 .inspector-generated-component-focus {
   display: inline-flex;
   align-items: center;
-  padding: 0.32rem 0.5rem 0.32rem 0.56rem;
+  min-height: 2.5rem;
+  padding: 0.4rem 0.65rem;
   color: #e7dccb;
   text-align: left;
 }
@@ -68,8 +69,9 @@
 .inspector-generated-component-play {
   display: inline-grid;
   place-items: center;
-  width: 1.9rem;
-  min-width: 1.9rem;
+  width: 2.5rem;
+  min-width: 2.5rem;
+  min-height: 2.5rem;
   padding: 0;
   color: #bba98d;
 }
@@ -90,7 +92,11 @@
 }
 
 .inspector-generated-component-focus:focus-visible,
-.inspector-generated-component-play:focus-visible,
+.inspector-generated-component-play:focus-visible {
+  outline: 2px solid rgba(240, 184, 95, 0.82);
+  outline-offset: -2px;
+}
+
 .inspector-info-disclosure summary:focus-visible,
 .inspector-technical-construction > summary:focus-visible {
   outline: 2px solid rgba(240, 184, 95, 0.82);
@@ -155,13 +161,6 @@
   overflow-wrap: anywhere;
 }
 
-.inspector-generated-component-detail > small {
-  grid-column: 1 / -1;
-  color: #81735f;
-  font-size: 0.6rem;
-  line-height: 1.35;
-}
-
 .inspector-audition-note {
   margin: -0.2rem 0 0;
   color: #81735f;
@@ -184,8 +183,8 @@
 .inspector-info-disclosure > summary {
   display: inline-grid;
   place-items: center;
-  width: 1.45rem;
-  height: 1.45rem;
+  width: 2rem;
+  height: 2rem;
   border: 1px solid rgba(240, 184, 95, 0.18);
   border-radius: 999px;
   color: #9f9078;
@@ -219,7 +218,10 @@
   color: #a99a83;
   background: rgba(240, 184, 95, 0.035);
   font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: normal;
   line-height: 1.45;
+  text-transform: none;
 }
 
 .inspector-info-copy p {
@@ -297,6 +299,10 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.055);
 }
 
+.inspector-cast-context.inspector-detail-group .inspector-cast-context-facts {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .inspector-generation-plan-facts div {
   align-content: start;
 }
@@ -371,6 +377,12 @@
   color: #8f806b;
   font-size: 0.64rem;
   line-height: 1.4;
+}
+
+@media (max-width: 900px) {
+  .inspector-cast-context.inspector-detail-group .inspector-cast-context-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 760px) {
