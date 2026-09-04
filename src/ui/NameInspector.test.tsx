@@ -79,6 +79,7 @@ describe('NameInspector', () => {
     expect(html).toContain(`id="generated-component-detail-${name.id}"`);
     expect(html).toContain(name.primaryName.sound.transcription);
     expect(html).not.toContain(`<strong>${name.primaryName.name}</strong><span>Given</span>`);
+    expect(html).not.toContain('Modeled sound for this generated component; browser playback is approximate.');
   });
 
   it('keeps the underlying generated given component visible when initials hide its spelling', () => {
@@ -261,8 +262,9 @@ describe('NameInspector', () => {
     expect(html).toContain('<dt>Role</dt>');
     expect(html).toContain('<dt>Format</dt>');
     expect(html).toContain('<dt>Rarity</dt>');
-    expect(html).toContain('<dt>Influence</dt>');
-    expect(html).toContain('Rarity is a derived label from generation-time novelty intent');
+    expect(html).not.toContain('<dt>Influence</dt>');
+    expect(html).toContain("This records the identity's assigned role, materialized format, and derived rarity.");
+    expect(html).toContain('Rarity comes from generation-time novelty intent');
     expect(html).toContain('>Details</span>');
     expect(html).not.toContain('>Breakdown</span>');
     expect(html).not.toContain('Component sound drafts');
