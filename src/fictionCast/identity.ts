@@ -5,7 +5,7 @@ import type {
   NameIdentity,
   NameIdentityPhrasePart,
 } from '../engine/types';
-import type { MaterializedNameFormatKind } from './formatSelection';
+import type { MaterializedNameFormatKind } from './identityFormat';
 import {
   fictionCastEpithetLexemes,
   fictionCastTitleLexemes,
