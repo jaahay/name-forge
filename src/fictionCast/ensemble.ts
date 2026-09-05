@@ -48,7 +48,7 @@ function withEnsembleFit(candidate: FictionCastGeneratedName, selected: FictionC
   const contextualScores = {
     ...candidate.contextualScores,
     ensembleFit,
-    overallFit: combineFictionCastOverallFit(candidate.primaryName.scores, { ensembleFit, roleFit: candidate.contextualScores.roleFit }, scoringSettings, settings.roleInfluence),
+    overallFit: combineFictionCastOverallFit(candidate.primaryName.scores, { ensembleFit, roleFit: candidate.contextualScores.roleFit }, scoringSettings, candidate.roleInfluence?.level),
   };
   return { ...candidate, contextualScores };
 }
@@ -64,7 +64,7 @@ function withRoleInfluence(
   const contextualScores = {
     ensembleFit: 0.72,
     roleFit,
-    overallFit: combineFictionCastOverallFit(candidate.scores, { ensembleFit: 0.72, roleFit }, generationSettings, settings.roleInfluence),
+    overallFit: combineFictionCastOverallFit(candidate.scores, { ensembleFit: 0.72, roleFit }, generationSettings, roleInfluence?.level),
   };
   return {
     primaryName: candidate,
