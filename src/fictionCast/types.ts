@@ -10,7 +10,7 @@ import type { FictionCastRarityBand } from './rarity';
 import type { FictionCastVariation } from './variation';
 
 export type CastRole = 'protagonist' | 'rival' | 'mentor' | 'sidekick' | 'guardian' | 'outsider' | 'villain' | 'wildcard';
-export type CastRolePresetKind = 'none' | 'classic-ensemble' | 'quest-party' | 'court-intrigue';
+export type CastRolePresetKind = 'none' | 'classic-ensemble' | 'quest-party' | 'court-intrigue' | 'custom';
 export type RoleInfluenceLevel = 'off' | 'light' | 'strong';
 export type SlotRoleOverrides = Partial<Record<number, CastRole>>;
 
