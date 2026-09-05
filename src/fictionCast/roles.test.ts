@@ -8,6 +8,7 @@ import {
   resolveCastRole,
   resolveEffectiveCastRoleOverride,
   withCastRoleOverride,
+  withCastRolePreset,
 } from './roles';
 import type { FictionCastSettings } from './types';
 
@@ -101,6 +102,33 @@ describe('Fiction Cast role assignment', () => {
     expect(withCastRoleOverride(presetSettings, 0, 'protagonist')).toBeUndefined();
     expect(withCastRoleOverride(presetSettings, 0, 'villain')).toEqual({ 0: 'villain' });
     expect(withCastRoleOverride({ ...presetSettings, slotRoleOverrides: { 0: 'villain' } }, 0, undefined)).toBeUndefined();
+  });
+
+  it('drops overrides that become inherited instead of reviving them after a preset round trip', () => {
+    const classicSettings: FictionCastSettings = {
+      ...settings,
+      rolePreset: 'classic-ensemble',
+      slotRoleOverrides: { 3: 'villain' },
+    };
+    const courtSettings = withCastRolePreset(classicSettings, 'court-intrigue');
+    const classicAgain = withCastRolePreset(courtSettings, 'classic-ensemble');
+
+    expect(courtSettings.slotRoleOverrides).toBeUndefined();
+    expect(resolveCastRole(courtSettings, 3)).toMatchObject({ role: 'villain', source: 'preset' });
+    expect(classicAgain.slotRoleOverrides).toBeUndefined();
+    expect(resolveCastRole(classicAgain, 3)).toMatchObject({ role: 'sidekick', source: 'preset' });
+  });
+
+  it('cleans a legacy inherited no-op before entering Custom', () => {
+    const legacySettings: FictionCastSettings = {
+      ...settings,
+      rolePreset: 'classic-ensemble',
+      slotRoleOverrides: { 0: 'protagonist' },
+    };
+    const customSettings = withCastRolePreset(legacySettings, 'custom');
+
+    expect(customSettings.slotRoleOverrides).toBeUndefined();
+    expect(resolveCastRole(customSettings, 0)).toBeUndefined();
   });
 
   it('keeps role guidance co-located and complete for every selectable role', () => {
