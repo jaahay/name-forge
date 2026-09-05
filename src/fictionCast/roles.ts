@@ -12,6 +12,7 @@ import type {
   FictionCastSettings,
   RoleInfluenceLevel,
   RoleInfluenceMetadata,
+  SlotRoleOverrides,
 } from './types';
 
 export const castRoleLabels: Record<CastRole, string> = {
@@ -189,6 +190,11 @@ function normalizeRoleToken(value: string): string {
   return value.trim().toLowerCase().replace(/\s+/g, '-');
 }
 
+function normalizedCastSize(value: number): number {
+  if (Number.isNaN(value)) return 1;
+  return Math.max(1, Math.min(24, Math.round(value)));
+}
+
 function roleInfluenceStrength(level: RoleInfluenceLevel | undefined): number {
   if (level === 'strong') return 1;
   if (level === 'light') return 0.42;
@@ -200,27 +206,75 @@ export function parseCastRole(value: string): CastRole | undefined {
   return castRoleOptions.some((option) => option.value === normalized) ? normalized as CastRole : undefined;
 }
 
+export function resolveInheritedCastRole(
+  settings: FictionCastSettings,
+  index: number,
+): CastRoleAssignment | undefined {
+  const preset = settings.rolePreset ?? 'none';
+  if (preset === 'none' || preset === 'custom') return undefined;
+
+  const presetSlots = rolePresetSlots[preset];
+  const role = presetSlots[index % presetSlots.length];
+  return { role, label: castRoleLabels[role], source: 'preset', slot: index + 1 };
+}
+
+export function resolveEffectiveCastRoleOverride(
+  settings: FictionCastSettings,
+  index: number,
+): CastRole | undefined {
+  const preset = settings.rolePreset ?? 'none';
+  if (preset === 'none') return undefined;
+
+  const slotRole = settings.slotRoleOverrides?.[index];
+  if (!slotRole) return undefined;
+  if (preset === 'custom') return slotRole;
+
+  return slotRole === resolveInheritedCastRole(settings, index)?.role ? undefined : slotRole;
+}
+
+export function configuredRoleOverrideCount(settings: FictionCastSettings): number {
+  const castSize = normalizedCastSize(settings.castSize);
+  let count = 0;
+  for (let index = 0; index < castSize; index += 1) {
+    if (resolveEffectiveCastRoleOverride(settings, index)) count += 1;
+  }
+  return count;
+}
+
+export function withCastRoleOverride(
+  settings: FictionCastSettings,
+  index: number,
+  role: CastRole | undefined,
+): SlotRoleOverrides | undefined {
+  const castSize = normalizedCastSize(settings.castSize);
+  if (index < 0 || index >= castSize) return settings.slotRoleOverrides;
+
+  const nextRoles: SlotRoleOverrides = { ...(settings.slotRoleOverrides ?? {}) };
+  const inheritedRole = resolveInheritedCastRole(settings, index)?.role;
+  const effectiveRole = role && role !== inheritedRole ? role : undefined;
+
+  if (effectiveRole) nextRoles[index] = effectiveRole;
+  else delete nextRoles[index];
+
+  return Object.keys(nextRoles).length > 0 ? nextRoles : undefined;
+}
+
 export function hasAssignedCastRoles(settings: FictionCastSettings): boolean {
   const preset = settings.rolePreset ?? 'none';
   if (preset === 'none') return false;
   if (preset !== 'custom') return true;
-
-  return Object.entries(settings.slotRoleOverrides ?? {}).some(([index, role]) => (
-    role !== undefined && Number(index) >= 0 && Number(index) < settings.castSize
-  ));
+  return configuredRoleOverrideCount(settings) > 0;
 }
 
 export function resolveCastRole(settings: FictionCastSettings, index: number): CastRoleAssignment | undefined {
   const preset = settings.rolePreset ?? 'none';
   if (preset === 'none') return undefined;
 
-  const slotRole = settings.slotRoleOverrides?.[index];
+  const slotRole = resolveEffectiveCastRoleOverride(settings, index);
   if (slotRole) return { role: slotRole, label: castRoleLabels[slotRole], source: 'slot', slot: index + 1 };
-
   if (preset === 'custom') return undefined;
-  const presetSlots = rolePresetSlots[preset];
-  const role = presetSlots[index % presetSlots.length];
-  return { role, label: castRoleLabels[role], source: 'preset', slot: index + 1 };
+
+  return resolveInheritedCastRole(settings, index);
 }
 
 export function isRoleInfluenceActive(settings: FictionCastSettings): boolean {
