@@ -2,9 +2,12 @@ import { describe, expect, it } from 'vitest';
 import {
   castRoleGuidance,
   castRoleOptions,
+  configuredRoleOverrideCount,
   hasAssignedCastRoles,
   isRoleInfluenceActive,
   resolveCastRole,
+  resolveEffectiveCastRoleOverride,
+  withCastRoleOverride,
 } from './roles';
 import type { FictionCastSettings } from './types';
 
@@ -73,6 +76,31 @@ describe('Fiction Cast role assignment', () => {
     expect(resolveCastRole(presetSettings, 0)).toMatchObject({ role: 'protagonist', source: 'preset', slot: 1 });
     expect(resolveCastRole(presetSettings, 1)).toMatchObject({ role: 'villain', source: 'slot', slot: 2 });
     expect(isRoleInfluenceActive(presetSettings)).toBe(true);
+  });
+
+  it('treats inherited-equivalent overrides as no-ops rather than customizations', () => {
+    const legacySettings: FictionCastSettings = {
+      ...settings,
+      rolePreset: 'classic-ensemble',
+      roleInfluence: 'light',
+      slotRoleOverrides: { 0: 'protagonist', 1: 'villain' },
+    };
+
+    expect(resolveEffectiveCastRoleOverride(legacySettings, 0)).toBeUndefined();
+    expect(resolveCastRole(legacySettings, 0)).toMatchObject({ role: 'protagonist', source: 'preset', slot: 1 });
+    expect(resolveEffectiveCastRoleOverride(legacySettings, 1)).toBe('villain');
+    expect(configuredRoleOverrideCount(legacySettings)).toBe(1);
+  });
+
+  it('stores only material deviations from a preset role', () => {
+    const presetSettings: FictionCastSettings = {
+      ...settings,
+      rolePreset: 'classic-ensemble',
+    };
+
+    expect(withCastRoleOverride(presetSettings, 0, 'protagonist')).toBeUndefined();
+    expect(withCastRoleOverride(presetSettings, 0, 'villain')).toEqual({ 0: 'villain' });
+    expect(withCastRoleOverride({ ...presetSettings, slotRoleOverrides: { 0: 'villain' } }, 0, undefined)).toBeUndefined();
   });
 
   it('keeps role guidance co-located and complete for every selectable role', () => {
