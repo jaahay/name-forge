@@ -271,6 +271,10 @@
   border-radius: 0.68rem;
 }
 
+.roles-member-navigation {
+  display: none;
+}
+
 .roles-slot-list {
   display: grid;
   gap: 0.42rem;
@@ -523,8 +527,7 @@
     border-radius: 0;
   }
 
-  .configure-role-entry,
-  .roles-slot-row {
+  .configure-role-entry {
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -533,8 +536,49 @@
     width: 100%;
   }
 
+  .roles-member-navigation {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .roles-member-nav-button {
+    width: auto;
+    min-height: 2.65rem;
+    padding-inline: 0.7rem;
+  }
+
+  .roles-member-position {
+    color: var(--muted);
+    font-size: 0.74rem;
+    font-weight: 850;
+    text-align: center;
+  }
+
   .roles-slot-list {
+    display: flex;
+    gap: 0;
     max-height: none;
-    overflow: visible;
+    padding-right: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .roles-slot-list::-webkit-scrollbar {
+    display: none;
+  }
+
+  .roles-slot-row {
+    flex: 0 0 100%;
+    min-width: 100%;
+    grid-template-columns: minmax(0, 1fr);
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    padding: 0.5rem 0.1rem;
   }
 }
