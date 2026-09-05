@@ -1,11 +1,14 @@
-import type { Ref } from 'react';
+import { useEffect, useRef, useState, type Ref, type UIEvent } from 'react';
 import {
   castRoleGuidance,
   castRoleOptions,
   castRolePresetOptions,
+  configuredRoleOverrideCount,
   hasAssignedCastRoles,
-  resolveCastRole,
+  resolveEffectiveCastRoleOverride,
+  resolveInheritedCastRole,
   roleInfluenceOptions,
+  withCastRoleOverride,
 } from '../fictionCast/roles';
 import type {
   CastRole,
@@ -13,6 +16,11 @@ import type {
   FictionCastSettings,
   RoleInfluenceLevel,
 } from '../fictionCast/types';
+import {
+  clampRoleMemberIndex,
+  roleMemberIndexFromScroll,
+  stepRoleMemberIndex,
+} from './roleMemberNavigation';
 
 interface FictionCastRolesConfigurationProps {
   settings: FictionCastSettings;
@@ -24,27 +32,6 @@ interface FictionCastRolesConfigurationProps {
 function clampCastSize(value: number): number {
   if (Number.isNaN(value)) return 1;
   return Math.max(1, Math.min(24, Math.round(value)));
-}
-
-function updateSlotRole(
-  currentRoles: FictionCastSettings['slotRoleOverrides'],
-  index: number,
-  role: CastRole | '',
-): FictionCastSettings['slotRoleOverrides'] {
-  const nextRoles = { ...(currentRoles ?? {}) };
-  if (role === '') {
-    delete nextRoles[index];
-    return nextRoles;
-  }
-  nextRoles[index] = role;
-  return nextRoles;
-}
-
-export function configuredRoleOverrideCount(settings: FictionCastSettings): number {
-  const castSize = clampCastSize(settings.castSize);
-  return Object.entries(settings.slotRoleOverrides ?? {}).filter(([index, role]) => (
-    role !== undefined && Number(index) >= 0 && Number(index) < castSize
-  )).length;
 }
 
 function rolePresetLabel(preset: CastRolePresetKind): string {
@@ -84,6 +71,28 @@ export function FictionCastRolesConfiguration({
   const isOff = preset === 'none';
   const hasAssignedRoles = hasAssignedCastRoles(settings);
   const selectedRoleInfluence = roleInfluenceOptions.find((option) => option.value === (settings.roleInfluence ?? 'off'));
+  const memberTrackRef = useRef<HTMLDivElement>(null);
+  const [activeMemberIndex, setActiveMemberIndex] = useState(0);
+  const visibleMemberIndex = clampRoleMemberIndex(activeMemberIndex, castSize);
+
+  useEffect(() => {
+    setActiveMemberIndex((current) => clampRoleMemberIndex(current, castSize));
+  }, [castSize]);
+
+  function moveToMember(direction: -1 | 1) {
+    const nextIndex = stepRoleMemberIndex(visibleMemberIndex, direction, castSize);
+    setActiveMemberIndex(nextIndex);
+
+    const track = memberTrackRef.current;
+    if (track) {
+      track.scrollTo({ left: nextIndex * track.clientWidth, behavior: 'smooth' });
+    }
+  }
+
+  function syncMemberFromScroll(event: UIEvent<HTMLDivElement>) {
+    const track = event.currentTarget;
+    setActiveMemberIndex(roleMemberIndexFromScroll(track.scrollLeft, track.clientWidth, castSize));
+  }
 
   return (
     <div className="roles-configuration" aria-label="Roles configuration">
@@ -154,17 +163,49 @@ export function FictionCastRolesConfiguration({
           <p className="section-note">
             {isCustom
               ? 'Unassigned members have no role. Choose only the members you want to contextualize or shape.'
-              : 'Choose a role to customize a member. Use role mix restores that member to the selected preset.'}
+              : 'Choose a different role to customize a member. Use role mix restores that member to the selected preset.'}
           </p>
-          <div className="roles-slot-list" role="group" aria-label="Role assignments by cast member">
+          {castSize > 1 ? (
+            <div className="roles-member-navigation" aria-label="Cast member navigation">
+              <button
+                type="button"
+                className="secondary roles-member-nav-button"
+                aria-label="Previous cast member"
+                disabled={visibleMemberIndex === 0}
+                onClick={() => moveToMember(-1)}
+              >
+                Previous
+              </button>
+              <span className="roles-member-position" aria-live="polite">
+                {visibleMemberIndex + 1} of {castSize}
+              </span>
+              <button
+                type="button"
+                className="secondary roles-member-nav-button"
+                aria-label="Next cast member"
+                disabled={visibleMemberIndex === castSize - 1}
+                onClick={() => moveToMember(1)}
+              >
+                Next
+              </button>
+            </div>
+          ) : null}
+          <div
+            ref={memberTrackRef}
+            className="roles-slot-list"
+            role="group"
+            aria-label="Role assignments by cast member"
+            onScroll={syncMemberFromScroll}
+          >
             {Array.from({ length: castSize }, (_, index) => {
-              const override = settings.slotRoleOverrides?.[index] ?? '';
-              const inheritedRole = isCustom
-                ? undefined
-                : resolveCastRole({ ...settings, slotRoleOverrides: undefined }, index);
+              const inheritedRole = isCustom ? undefined : resolveInheritedCastRole(settings, index);
+              const override = resolveEffectiveCastRoleOverride(settings, index) ?? '';
               const defaultLabel = isCustom
                 ? 'Unassigned'
                 : `Use role mix — ${inheritedRole?.label ?? 'Unassigned'}`;
+              const roleOptions = inheritedRole
+                ? castRoleOptions.filter((option) => option.value !== inheritedRole.role)
+                : castRoleOptions;
 
               return (
                 <label key={`role-slot-${index + 1}`} className="roles-slot-row">
@@ -174,11 +215,15 @@ export function FictionCastRolesConfiguration({
                     value={override}
                     onChange={(event) => onUpdateSetting(
                       'slotRoleOverrides',
-                      updateSlotRole(settings.slotRoleOverrides, index, event.target.value as CastRole | ''),
+                      withCastRoleOverride(
+                        settings,
+                        index,
+                        event.target.value === '' ? undefined : event.target.value as CastRole,
+                      ),
                     )}
                   >
                     <option value="">{defaultLabel}</option>
-                    {castRoleOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                    {roleOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                   </select>
                 </label>
               );
