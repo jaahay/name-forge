@@ -12,6 +12,7 @@ import type {
   FictionCastSettings,
   RoleInfluenceLevel,
   RoleInfluenceMetadata,
+  SlotRoleOverrides,
 } from './types';
 
 export const castRoleLabels: Record<CastRole, string> = {
@@ -31,17 +32,66 @@ export const castRoleOptions: Array<{ value: CastRole; label: string }> = Object
 }));
 
 export const castRolePresetOptions: Array<{ value: CastRolePresetKind; label: string }> = [
-  { value: 'none', label: 'No role mix' },
+  { value: 'none', label: 'Off' },
   { value: 'classic-ensemble', label: 'Classic ensemble' },
   { value: 'quest-party', label: 'Quest party' },
   { value: 'court-intrigue', label: 'Court intrigue' },
+  { value: 'custom', label: 'Custom' },
 ];
 
 export const roleInfluenceOptions: Array<{ value: RoleInfluenceLevel; label: string; help: string }> = [
-  { value: 'off', label: 'Off', help: 'Roles label cast slots only; generation and scoring stay role-neutral.' },
-  { value: 'light', label: 'Light', help: 'Roles add small silhouette and scoring nudges while preserving slider intent.' },
-  { value: 'strong', label: 'Strong', help: 'Roles more visibly shape silhouette, phonotactics, and score preference.' },
+  { value: 'off', label: 'None', help: 'Roles label cast members only; generation stays role-neutral.' },
+  { value: 'light', label: 'Light', help: 'Roles gently shape form and naming tendencies around your baseline.' },
+  { value: 'strong', label: 'Strong', help: 'Roles more strongly shape form and naming tendencies around your baseline.' },
 ];
+
+export interface CastRoleGuidance {
+  readonly role: CastRole;
+  readonly label: string;
+  readonly storyMeaning: string;
+  readonly namingDirection: string;
+}
+
+const roleGuidanceText: Record<CastRole, Pick<CastRoleGuidance, 'storyMeaning' | 'namingDirection'>> = {
+  protagonist: {
+    storyMeaning: 'A central character who carries much of the story\'s action or viewpoint.',
+    namingDirection: 'Clear, balanced forms with a modest pull toward memorability and easy recognition.',
+  },
+  rival: {
+    storyMeaning: 'A recurring counterforce whose goals or methods challenge another central character.',
+    namingDirection: 'Sharper, more compact forms with a little extra edge and novelty.',
+  },
+  mentor: {
+    storyMeaning: 'An experienced guide, teacher, or source of perspective for other characters.',
+    namingDirection: 'More grounded, slightly longer forms with steadier or more flowing cadence.',
+  },
+  sidekick: {
+    storyMeaning: 'A close companion or supporting partner who regularly shares the action.',
+    namingDirection: 'Shorter, softer, readily spoken forms with a friendly, memorable cadence.',
+  },
+  guardian: {
+    storyMeaning: 'A protector, keeper, or stabilizing presence whose role centers on responsibility.',
+    namingDirection: 'Solid, grounded forms with stable cadence and balanced-to-firmer texture.',
+  },
+  outsider: {
+    storyMeaning: 'A character marked by distance from the group, setting, culture, or established order.',
+    namingDirection: 'More unusual forms with looser anchoring and a greater tolerance for distinctive texture.',
+  },
+  villain: {
+    storyMeaning: 'An antagonistic force whose choices or goals place them in sustained conflict with others.',
+    namingDirection: 'Stronger, harder-edged forms with somewhat greater novelty and structural weight.',
+  },
+  wildcard: {
+    storyMeaning: 'An unpredictable or hard-to-classify character whose place in the ensemble stays flexible.',
+    namingDirection: 'Broader variation in length, texture, and cadence, with a modest novelty lift.',
+  },
+};
+
+export const castRoleGuidance: CastRoleGuidance[] = castRoleOptions.map(({ value, label }) => ({
+  role: value,
+  label,
+  ...roleGuidanceText[value],
+}));
 
 export interface CastRolePreferenceProfile {
   id: string;
@@ -55,7 +105,7 @@ export interface CastRolePreferenceProfile {
   rhythms: Array<WeightedValue<string>>;
 }
 
-const rolePresetSlots: Record<Exclude<CastRolePresetKind, 'none'>, CastRole[]> = {
+const rolePresetSlots: Record<Exclude<CastRolePresetKind, 'none' | 'custom'>, CastRole[]> = {
   'classic-ensemble': ['protagonist', 'rival', 'mentor', 'sidekick', 'guardian', 'outsider', 'villain', 'wildcard'],
   'quest-party': ['protagonist', 'sidekick', 'mentor', 'guardian', 'outsider', 'rival', 'wildcard', 'villain'],
   'court-intrigue': ['protagonist', 'rival', 'mentor', 'villain', 'outsider', 'guardian', 'sidekick', 'wildcard'],
@@ -140,6 +190,11 @@ function normalizeRoleToken(value: string): string {
   return value.trim().toLowerCase().replace(/\s+/g, '-');
 }
 
+function normalizedCastSize(value: number): number {
+  if (Number.isNaN(value)) return 1;
+  return Math.max(1, Math.min(24, Math.round(value)));
+}
+
 function roleInfluenceStrength(level: RoleInfluenceLevel | undefined): number {
   if (level === 'strong') return 1;
   if (level === 'light') return 0.42;
@@ -151,19 +206,103 @@ export function parseCastRole(value: string): CastRole | undefined {
   return castRoleOptions.some((option) => option.value === normalized) ? normalized as CastRole : undefined;
 }
 
-export function resolveCastRole(settings: FictionCastSettings, index: number): CastRoleAssignment | undefined {
-  const slotRole = settings.slotRoleOverrides?.[index];
-  if (slotRole) return { role: slotRole, label: castRoleLabels[slotRole], source: 'slot', slot: index + 1 };
-
+export function resolveInheritedCastRole(
+  settings: FictionCastSettings,
+  index: number,
+): CastRoleAssignment | undefined {
   const preset = settings.rolePreset ?? 'none';
-  if (preset === 'none') return undefined;
+  if (preset === 'none' || preset === 'custom') return undefined;
+
   const presetSlots = rolePresetSlots[preset];
   const role = presetSlots[index % presetSlots.length];
   return { role, label: castRoleLabels[role], source: 'preset', slot: index + 1 };
 }
 
+export function resolveEffectiveCastRoleOverride(
+  settings: FictionCastSettings,
+  index: number,
+): CastRole | undefined {
+  const preset = settings.rolePreset ?? 'none';
+  if (preset === 'none') return undefined;
+
+  const slotRole = settings.slotRoleOverrides?.[index];
+  if (!slotRole) return undefined;
+  if (preset === 'custom') return slotRole;
+
+  return slotRole === resolveInheritedCastRole(settings, index)?.role ? undefined : slotRole;
+}
+
+export function canonicalizeCastRoleOverrides(settings: FictionCastSettings): SlotRoleOverrides | undefined {
+  const preset = settings.rolePreset ?? 'none';
+  if (preset === 'none') return settings.slotRoleOverrides;
+
+  const castSize = normalizedCastSize(settings.castSize);
+  const canonical: SlotRoleOverrides = {};
+  for (let index = 0; index < castSize; index += 1) {
+    const role = resolveEffectiveCastRoleOverride(settings, index);
+    if (role) canonical[index] = role;
+  }
+  return Object.keys(canonical).length > 0 ? canonical : undefined;
+}
+
+export function withCastRolePreset(
+  settings: FictionCastSettings,
+  rolePreset: CastRolePresetKind,
+): FictionCastSettings {
+  const previousCanonical = canonicalizeCastRoleOverrides(settings);
+  const nextSettings: FictionCastSettings = {
+    ...settings,
+    rolePreset,
+    slotRoleOverrides: previousCanonical,
+  };
+  return {
+    ...nextSettings,
+    slotRoleOverrides: canonicalizeCastRoleOverrides(nextSettings),
+  };
+}
+
+export function configuredRoleOverrideCount(settings: FictionCastSettings): number {
+  return Object.keys(canonicalizeCastRoleOverrides(settings) ?? {}).length;
+}
+
+export function withCastRoleOverride(
+  settings: FictionCastSettings,
+  index: number,
+  role: CastRole | undefined,
+): SlotRoleOverrides | undefined {
+  const castSize = normalizedCastSize(settings.castSize);
+  if (index < 0 || index >= castSize) return canonicalizeCastRoleOverrides(settings);
+
+  const nextRoles: SlotRoleOverrides = { ...(canonicalizeCastRoleOverrides(settings) ?? {}) };
+  const inheritedRole = resolveInheritedCastRole(settings, index)?.role;
+  const effectiveRole = role && role !== inheritedRole ? role : undefined;
+
+  if (effectiveRole) nextRoles[index] = effectiveRole;
+  else delete nextRoles[index];
+
+  return Object.keys(nextRoles).length > 0 ? nextRoles : undefined;
+}
+
+export function hasAssignedCastRoles(settings: FictionCastSettings): boolean {
+  const preset = settings.rolePreset ?? 'none';
+  if (preset === 'none') return false;
+  if (preset !== 'custom') return true;
+  return configuredRoleOverrideCount(settings) > 0;
+}
+
+export function resolveCastRole(settings: FictionCastSettings, index: number): CastRoleAssignment | undefined {
+  const preset = settings.rolePreset ?? 'none';
+  if (preset === 'none') return undefined;
+
+  const slotRole = resolveEffectiveCastRoleOverride(settings, index);
+  if (slotRole) return { role: slotRole, label: castRoleLabels[slotRole], source: 'slot', slot: index + 1 };
+  if (preset === 'custom') return undefined;
+
+  return resolveInheritedCastRole(settings, index);
+}
+
 export function isRoleInfluenceActive(settings: FictionCastSettings): boolean {
-  return roleInfluenceStrength(settings.roleInfluence) > 0;
+  return hasAssignedCastRoles(settings) && roleInfluenceStrength(settings.roleInfluence) > 0;
 }
 
 export function getRolePreferenceProfile(role: CastRole): CastRolePreferenceProfile {

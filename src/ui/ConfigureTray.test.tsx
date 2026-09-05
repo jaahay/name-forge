@@ -38,16 +38,32 @@ function renderConfigureTray(
 }
 
 describe('ConfigureTray criteria surface', () => {
-  it('keeps the four essential cast controls visible before any disclosure', () => {
+  it('keeps the essential cast controls visible before any disclosure with one Roles entry point', () => {
     const html = renderConfigureTray();
     const firstDisclosure = html.indexOf('<details');
 
     expect(firstDisclosure).toBeGreaterThan(0);
-    for (const label of ['Cast size', 'Style pack', 'Cast role mix', 'Cast variation']) {
+    for (const label of ['Cast size', 'Style pack', 'Roles', 'Cast variation', 'Configure roles']) {
       const labelIndex = html.indexOf(label);
       expect(labelIndex).toBeGreaterThan(0);
       expect(labelIndex).toBeLessThan(firstDisclosure);
     }
+    expect(html).toContain('aria-label="Configure roles, Off"');
+    expect(html).not.toContain('Cast role mix');
+  });
+
+  it('summarizes active role intent without exposing its child controls on the criteria surface', () => {
+    const html = renderConfigureTray({
+      rolePreset: 'classic-ensemble',
+      roleInfluence: 'light',
+      slotRoleOverrides: { 1: 'villain', 4: 'mentor' },
+    });
+
+    expect(html).toContain('Classic ensemble · Light · 2 customized');
+    expect(html).toContain('aria-label="Configure roles, Classic ensemble · Light · 2 customized"');
+    expect(html).not.toContain('Role influence');
+    expect(html).not.toContain('Slot role overrides');
+    expect(html).not.toContain('Generation influence');
   });
 
   it('offers Cast variation as centered spread rather than rarity-direction presets', () => {
@@ -77,29 +93,30 @@ describe('ConfigureTray criteria surface', () => {
     expect(html).not.toContain('Advanced tuning');
   });
 
-  it('puts common optional controls in More', () => {
+  it('puts common optional controls in More without separating role influence from Roles', () => {
     const html = renderConfigureTray();
     const moreStart = html.indexOf('<summary>More</summary>');
     const advancedStart = html.indexOf('<summary>Advanced</summary>');
     const moreHtml = html.slice(moreStart, advancedStart);
 
-    for (const label of ['Name format', 'Role influence', 'Familiar', 'Readable']) {
+    for (const label of ['Name format', 'Familiar', 'Readable']) {
       expect(moreHtml).toContain(label);
     }
-    for (const label of ['Compact', 'Spelling', 'Generation seed']) {
+    for (const label of ['Role influence', 'Generation influence', 'Compact', 'Spelling', 'Generation seed']) {
       expect(moreHtml).not.toContain(label);
     }
   });
 
-  it('puts specialist controls and slot overrides directly in Advanced', () => {
+  it('keeps specialist semantic controls in Advanced without remote role overrides', () => {
     const html = renderConfigureTray({ rolePreset: 'classic-ensemble' });
     const advancedStart = html.indexOf('<summary>Advanced</summary>');
     const advancedHtml = html.slice(advancedStart);
 
-    expect(advancedHtml).toContain('aria-label="Slot role overrides"');
     for (const label of ['Compact', 'Style', 'Spelling', 'Generation seed']) {
       expect(advancedHtml).toContain(label);
     }
+    expect(advancedHtml).not.toContain('Slot role overrides');
+    expect(advancedHtml).not.toContain('Use role mix');
     expect((advancedHtml.match(/<details/g) ?? []).length).toBe(0);
     expect(advancedHtml).not.toContain('Advanced tuning');
   });

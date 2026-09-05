@@ -127,7 +127,9 @@
 }
 
 .configure-close:focus-visible,
-.configure-trigger:focus-visible {
+.configure-trigger:focus-visible,
+.configure-role-button:focus-visible,
+.roles-back-button:focus-visible {
   outline: 2px solid rgba(240, 184, 95, 0.78);
   outline-offset: 0.18rem;
 }
@@ -154,6 +156,193 @@
 
 .configure-sections .actions {
   align-self: stretch;
+}
+
+.configure-role-entry {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.7rem;
+  align-items: center;
+  min-width: 0;
+}
+
+.configure-role-summary {
+  display: grid;
+  gap: 0.16rem;
+  min-width: 0;
+}
+
+.configure-role-summary > span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.configure-role-summary > strong {
+  color: var(--text);
+  font-size: 0.82rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.configure-role-button {
+  width: auto;
+  min-height: 2.65rem;
+  padding-inline: 0.75rem;
+  white-space: nowrap;
+}
+
+.configure-roles-sections {
+  padding-top: 0.7rem;
+}
+
+.roles-configuration {
+  display: grid;
+  gap: 0.78rem;
+  min-width: 0;
+}
+
+.roles-back-button {
+  justify-self: start;
+  width: auto;
+  min-height: 2.65rem;
+  padding-inline: 0.72rem;
+}
+
+.roles-configuration-section,
+.roles-guide {
+  min-width: 0;
+  padding: 0.82rem;
+  border: 1px solid rgba(240, 184, 95, 0.14);
+  border-radius: 0.82rem;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.roles-configuration-section {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.roles-section-heading {
+  display: flex;
+  gap: 0.75rem;
+  align-items: end;
+  justify-content: space-between;
+}
+
+.roles-section-heading > div {
+  display: grid;
+  gap: 0.12rem;
+}
+
+.roles-section-heading .eyebrow {
+  margin: 0;
+}
+
+.roles-section-heading h3,
+.roles-guide-item h4 {
+  margin: 0;
+  color: var(--text);
+}
+
+.roles-section-heading h3 {
+  font-size: 0.96rem;
+}
+
+.roles-section-heading > span {
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.roles-configuration-section .section-note,
+.roles-guide .section-note,
+.roles-empty-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.42;
+}
+
+.roles-empty-note {
+  padding: 0.66rem 0.7rem;
+  border: 1px dashed rgba(240, 184, 95, 0.2);
+  border-radius: 0.68rem;
+}
+
+.roles-member-navigation {
+  display: none;
+}
+
+.roles-slot-list {
+  display: grid;
+  gap: 0.42rem;
+  max-height: min(42dvh, 22rem);
+  padding-right: 0.2rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.roles-slot-row {
+  display: grid;
+  grid-template-columns: minmax(4.2rem, 0.34fr) minmax(0, 1fr);
+  gap: 0.6rem;
+  align-items: center;
+  padding: 0.38rem 0;
+}
+
+.roles-slot-row > span {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.roles-slot-row select {
+  min-width: 0;
+}
+
+.roles-guide > summary {
+  cursor: pointer;
+  color: var(--text);
+  font-weight: 850;
+}
+
+.roles-guide-body,
+.roles-guide-list {
+  display: grid;
+  gap: 0.68rem;
+}
+
+.roles-guide-body {
+  padding-top: 0.74rem;
+}
+
+.roles-guide-item {
+  display: grid;
+  gap: 0.28rem;
+  padding-top: 0.64rem;
+  border-top: 1px solid rgba(240, 184, 95, 0.12);
+}
+
+.roles-guide-item:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.roles-guide-item h4 {
+  font-size: 0.82rem;
+}
+
+.roles-guide-item p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.74rem;
+  line-height: 1.4;
+}
+
+.roles-guide-item strong {
+  color: var(--text);
 }
 
 /* Adaptive rail heading */
@@ -336,5 +525,60 @@
     height: 100dvh;
     border: 0;
     border-radius: 0;
+  }
+
+  .configure-role-entry {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .configure-role-button,
+  .roles-back-button {
+    width: 100%;
+  }
+
+  .roles-member-navigation {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .roles-member-nav-button {
+    width: auto;
+    min-height: 2.65rem;
+    padding-inline: 0.7rem;
+  }
+
+  .roles-member-position {
+    color: var(--muted);
+    font-size: 0.74rem;
+    font-weight: 850;
+    text-align: center;
+  }
+
+  .roles-slot-list {
+    display: flex;
+    gap: 0;
+    max-height: none;
+    padding-right: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .roles-slot-list::-webkit-scrollbar {
+    display: none;
+  }
+
+  .roles-slot-row {
+    flex: 0 0 100%;
+    min-width: 100%;
+    grid-template-columns: minmax(0, 1fr);
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    padding: 0.5rem 0.1rem;
   }
 }
