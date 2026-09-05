@@ -232,13 +232,37 @@ export function resolveEffectiveCastRoleOverride(
   return slotRole === resolveInheritedCastRole(settings, index)?.role ? undefined : slotRole;
 }
 
-export function configuredRoleOverrideCount(settings: FictionCastSettings): number {
+export function canonicalizeCastRoleOverrides(settings: FictionCastSettings): SlotRoleOverrides | undefined {
+  const preset = settings.rolePreset ?? 'none';
+  if (preset === 'none') return settings.slotRoleOverrides;
+
   const castSize = normalizedCastSize(settings.castSize);
-  let count = 0;
+  const canonical: SlotRoleOverrides = {};
   for (let index = 0; index < castSize; index += 1) {
-    if (resolveEffectiveCastRoleOverride(settings, index)) count += 1;
+    const role = resolveEffectiveCastRoleOverride(settings, index);
+    if (role) canonical[index] = role;
   }
-  return count;
+  return Object.keys(canonical).length > 0 ? canonical : undefined;
+}
+
+export function withCastRolePreset(
+  settings: FictionCastSettings,
+  rolePreset: CastRolePresetKind,
+): FictionCastSettings {
+  const previousCanonical = canonicalizeCastRoleOverrides(settings);
+  const nextSettings: FictionCastSettings = {
+    ...settings,
+    rolePreset,
+    slotRoleOverrides: previousCanonical,
+  };
+  return {
+    ...nextSettings,
+    slotRoleOverrides: canonicalizeCastRoleOverrides(nextSettings),
+  };
+}
+
+export function configuredRoleOverrideCount(settings: FictionCastSettings): number {
+  return Object.keys(canonicalizeCastRoleOverrides(settings) ?? {}).length;
 }
 
 export function withCastRoleOverride(
@@ -247,9 +271,9 @@ export function withCastRoleOverride(
   role: CastRole | undefined,
 ): SlotRoleOverrides | undefined {
   const castSize = normalizedCastSize(settings.castSize);
-  if (index < 0 || index >= castSize) return settings.slotRoleOverrides;
+  if (index < 0 || index >= castSize) return canonicalizeCastRoleOverrides(settings);
 
-  const nextRoles: SlotRoleOverrides = { ...(settings.slotRoleOverrides ?? {}) };
+  const nextRoles: SlotRoleOverrides = { ...(canonicalizeCastRoleOverrides(settings) ?? {}) };
   const inheritedRole = resolveInheritedCastRole(settings, index)?.role;
   const effectiveRole = role && role !== inheritedRole ? role : undefined;
 
