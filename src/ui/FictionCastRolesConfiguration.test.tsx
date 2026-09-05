@@ -38,12 +38,12 @@ describe('FictionCastRolesConfiguration', () => {
     expect(fictionCastRolesSummary({ ...settings, rolePreset: 'none' })).toBe('Off');
   });
 
-  it('keeps assignment, generation influence, and every supported preset slot together', () => {
+  it('keeps assignment, generation influence, and all 24 supported preset slots together', () => {
     const html = renderRoles({
-      castSize: 12,
+      castSize: 24,
       rolePreset: 'classic-ensemble',
       roleInfluence: 'light',
-      slotRoleOverrides: { 1: 'villain', 9: 'mentor' },
+      slotRoleOverrides: { 1: 'villain', 17: 'mentor' },
     });
 
     expect(html).toContain('id="roles-influence-title"');
@@ -52,19 +52,19 @@ describe('FictionCastRolesConfiguration', () => {
       expect(html).toContain(`>${option}</option>`);
     }
     expect(html).toContain('id="roles-members-title"');
-    expect(html).toContain('>12 members</span>');
-    expect((html.match(/aria-label="Role for slot /g) ?? []).length).toBe(12);
-    expect(html).toContain('aria-label="Role for slot 12"');
+    expect(html).toContain('>24 members</span>');
+    expect((html.match(/aria-label="Role for slot /g) ?? []).length).toBe(24);
+    expect(html).toContain('aria-label="Role for slot 24"');
     expect(html).toContain('Use role mix — Protagonist');
     expect(html).toContain('Use role mix — Sidekick');
     expect(html).toContain('<summary>Role guide</summary>');
     expect(html).toContain('not claims about how real people or story roles inherently sound');
     expect(fictionCastRolesSummary({
       ...settings,
-      castSize: 12,
+      castSize: 24,
       rolePreset: 'classic-ensemble',
       roleInfluence: 'light',
-      slotRoleOverrides: { 1: 'villain', 9: 'mentor' },
+      slotRoleOverrides: { 1: 'villain', 17: 'mentor' },
     })).toBe('Classic ensemble · Light · 2 customized');
   });
 
