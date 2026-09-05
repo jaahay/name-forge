@@ -2,7 +2,12 @@ import { FormEvent, useState } from 'react';
 import { generateEnsemble, type LockedNameSlot } from './fictionCast/ensemble';
 import { retainedLockedNameIdsAfterSettingsChange } from './fictionCast/lockPolicy';
 import type { FictionCastRememberedCast } from './fictionCast/rememberedCast';
-import type { FictionCastGeneratedEnsemble, FictionCastSettings } from './fictionCast/types';
+import { withCastRolePreset } from './fictionCast/roles';
+import type {
+  CastRolePresetKind,
+  FictionCastGeneratedEnsemble,
+  FictionCastSettings,
+} from './fictionCast/types';
 import {
   addNameHistoryEntries,
   clearNameHistory,
@@ -93,7 +98,9 @@ export default function App({ rememberedCasts = [] }: AppProps = {}) {
   }
 
   function updateSetting<K extends keyof FictionCastSettings>(key: K, value: FictionCastSettings[K]) {
-    const nextSettings = { ...settings, [key]: value };
+    const nextSettings = key === 'rolePreset'
+      ? withCastRolePreset(settings, value as CastRolePresetKind)
+      : { ...settings, [key]: value };
     detachRememberedCast();
     setSettings(nextSettings);
     setLockedNameIds((current) => retainedLockedNameIdsAfterSettingsChange(
