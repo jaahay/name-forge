@@ -23,7 +23,7 @@ const settings: FictionCastSettings = {
 };
 
 describe('rerollSelectedCastName', () => {
-  it('replaces one slot while preserving every non-target composed identity and unaffected lock', () => {
+  it('replaces one Mixed slot, including its materialized format, while preserving every non-target identity and unaffected lock', () => {
     const registry = createDefaultRegistry();
     const before = generateEnsemble(settings, registry);
     const targetIndex = 1;
@@ -57,12 +57,84 @@ describe('rerollSelectedCastName', () => {
     expect(result.replacementId).toBe(replacement.id);
     expect(result.replacementId).not.toBe(target.id);
     expect(replacement.role?.role).toBe(target.role?.role);
-    expect(replacement.identity.format.kind).toBe(target.identity.format.kind);
+    expect(replacement.identity.format.kind).not.toBe(target.identity.format.kind);
     expect(result.committedSettings.seed).toBe('selected-reroll-after');
     expect(result.lockedNameIds).toEqual(lockedNameIds);
     expect(result.lockedNameIds.has(result.replacementId)).toBe(false);
     expect('historyArtifacts' in result).toBe(false);
     expect(result.ensemble.diagnostics).not.toBe(before.diagnostics);
+  });
+
+  it('keeps an explicitly selected non-Mixed format fixed on targeted reroll', () => {
+    const registry = createDefaultRegistry();
+    const explicitSettings: FictionCastSettings = { ...settings, nameFormat: 'given-family' };
+    const before = generateEnsemble(explicitSettings, registry);
+    const targetIndex = 1;
+    const target = before.names[targetIndex];
+
+    if (!target) throw new Error('Expected a generated target name.');
+    expect(target.identity.format.kind).toBe('given-family');
+
+    const result = rerollSelectedCastName(
+      before,
+      target.id,
+      new Set(),
+      'selected-explicit-format-reroll-after',
+      registry,
+    );
+
+    expect(result).toBeDefined();
+    if (!result) throw new Error('Expected explicit-format selected-name reroll to succeed.');
+
+    const replacement = result.ensemble.names[targetIndex];
+    expect(replacement).toBeDefined();
+    if (!replacement) throw new Error('Expected replacement name in the target slot.');
+
+    expect(replacement.identity.format.kind).toBe('given-family');
+    before.names.forEach((name, index) => {
+      if (index !== targetIndex) expect(result.ensemble.names[index]).toEqual(name);
+    });
+  });
+
+  it('preplans a Mixed reroll against preserved formats on both sides of the target', () => {
+    const registry = createDefaultRegistry();
+    const mixedBefore = generateEnsemble({ ...settings, castSize: 3 }, registry);
+    const fixedNeighbors = generateEnsemble({
+      ...settings,
+      castSize: 3,
+      seed: 'selected-reroll-fixed-neighbors',
+      nameFormat: 'given-family',
+    }, registry);
+    const target = mixedBefore.names[1];
+    const left = fixedNeighbors.names[0];
+    const right = fixedNeighbors.names[2];
+
+    if (!target || !left || !right) throw new Error('Expected three-name reroll fixtures.');
+
+    const before = {
+      ...mixedBefore,
+      names: [left, target, right],
+    };
+    const result = rerollSelectedCastName(
+      before,
+      target.id,
+      new Set(),
+      'selected-reroll-neighbor-aware',
+      registry,
+    );
+
+    expect(result).toBeDefined();
+    if (!result) throw new Error('Expected neighbor-aware selected-name reroll to succeed.');
+
+    const replacement = result.ensemble.names[1];
+    expect(replacement).toBeDefined();
+    if (!replacement) throw new Error('Expected replacement name in the middle slot.');
+
+    expect(result.ensemble.names[0]).toEqual(left);
+    expect(result.ensemble.names[2]).toEqual(right);
+    expect(left.identity.format.kind).toBe('given-family');
+    expect(right.identity.format.kind).toBe('given-family');
+    expect(replacement.identity.format.kind).not.toBe('given-family');
   });
 
   it('refreshes composed-identity collision notes from the post-reroll active roster', () => {

@@ -10,7 +10,11 @@ import {
   resolveFictionCastComponentGenerationContext,
   supportingComponentKindForFormat,
 } from './componentGenerationContext';
-import { createNameIdentity, requiresSupportingName, resolveMaterializedFormatKind } from './identity';
+import {
+  resolveMaterializedFormatPlan,
+  type MaterializedNameFormatKind,
+} from './formatSelection';
+import { createNameIdentity, requiresSupportingName } from './identity';
 import { rarityBandForNovelty } from './rarity';
 import { isRoleInfluenceActive, resolveCastRole, resolveRoleInfluence } from './roles';
 import { combineFictionCastOverallFit, scoreFictionCastRoleFit } from './scoring';
@@ -69,8 +73,14 @@ function withRoleInfluence(
   };
 }
 
-function withNameIdentity(candidate: UncomposedFictionCastName, settings: FictionCastSettings, registry: SourceRegistry, index: number, attempt: number): FictionCastGeneratedName {
-  const formatKind = resolveMaterializedFormatKind(settings.nameFormat, index);
+function withNameIdentity(
+  candidate: UncomposedFictionCastName,
+  settings: FictionCastSettings,
+  registry: SourceRegistry,
+  index: number,
+  attempt: number,
+  formatKind: MaterializedNameFormatKind,
+): FictionCastGeneratedName {
   const supportingKind = supportingComponentKindForFormat(formatKind);
   const supportingIndex = index + 1000;
   const supportingContext = supportingKind
@@ -141,6 +151,14 @@ export function generateEnsemble(settings: FictionCastSettings, registry: Source
   const pack = registry.getStylePack(settings.stylePackId);
   const selected: FictionCastGeneratedName[] = [];
   const lockedNames = lockedSlotMap(lockedSlots, castSize);
+  const lockedFormats = new Map<number, MaterializedNameFormatKind>();
+  for (const [index, lockedName] of lockedNames) lockedFormats.set(index, lockedName.identity.format.kind);
+  const materializedFormats = resolveMaterializedFormatPlan(
+    safeSettings.nameFormat,
+    safeSettings.seed,
+    castSize,
+    lockedFormats,
+  );
 
   for (let index = 0; index < castSize; index += 1) {
     const lockedName = lockedNames.get(index);
@@ -149,6 +167,8 @@ export function generateEnsemble(settings: FictionCastSettings, registry: Source
       continue;
     }
 
+    const formatKind = materializedFormats[index];
+    if (!formatKind) throw new Error(`Fiction Cast has no materialized format for slot ${index}.`);
     const role = resolveCastRole(safeSettings, index);
     const primaryContext = resolveFictionCastComponentGenerationContext(safeSettings, role, 'given', index);
     const rarityBand = rarityBandForNovelty(primaryContext.settings.novelty);
@@ -172,7 +192,12 @@ export function generateEnsemble(settings: FictionCastSettings, registry: Source
           variationDelta: primaryContext.semanticIntent.variationDelta,
         },
       };
-      return withEnsembleFit(withNameIdentity(baseName, safeSettings, registry, index, attempt), selected, safeSettings, index);
+      return withEnsembleFit(
+        withNameIdentity(baseName, safeSettings, registry, index, attempt, formatKind),
+        selected,
+        safeSettings,
+        index,
+      );
     });
     candidates.sort((left, right) => right.contextualScores.overallFit - left.contextualScores.overallFit);
     selected.push(candidates[0]);

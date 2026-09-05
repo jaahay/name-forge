@@ -1,20 +1,16 @@
 import type {
   GeneratedName,
   GeneratedNamePart,
-  NameFormatKind,
   NameFormatRule,
   NameIdentity,
   NameIdentityPhrasePart,
 } from '../engine/types';
+import type { MaterializedNameFormatKind } from './identityFormat';
 import {
   fictionCastEpithetLexemes,
   fictionCastTitleLexemes,
   type FictionCastIdentityLexeme,
 } from './identityLexicon';
-
-export type MaterializedNameFormatKind = Exclude<NameFormatKind, 'mixed'>;
-
-const mixedFormatSequence: MaterializedNameFormatKind[] = ['given-only', 'given-family', 'initials-family', 'title-name', 'epithet-place'];
 
 const formatRules: Record<MaterializedNameFormatKind, NameFormatRule> = {
   'given-only': { id: 'format:given-only', kind: 'given-only', label: 'Given name only' },
@@ -23,11 +19,6 @@ const formatRules: Record<MaterializedNameFormatKind, NameFormatRule> = {
   'title-name': { id: 'format:title-name', kind: 'title-name', label: 'Title + name' },
   'epithet-place': { id: 'format:epithet-place', kind: 'epithet-place', label: 'Epithet/place-style name' },
 };
-
-export function resolveMaterializedFormatKind(format: NameFormatKind | undefined, index: number): MaterializedNameFormatKind {
-  if (!format || format === 'mixed') return mixedFormatSequence[index % mixedFormatSequence.length];
-  return format;
-}
 
 export function requiresSupportingName(format: MaterializedNameFormatKind): boolean {
   return format === 'given-family' || format === 'initials-family' || format === 'epithet-place';
