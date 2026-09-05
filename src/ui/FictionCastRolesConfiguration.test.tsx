@@ -20,6 +20,13 @@ function renderRoles(overrides: Partial<FictionCastSettings> = {}): string {
   );
 }
 
+function slotSelectMarkup(html: string, slot: number): string {
+  const start = html.indexOf(`aria-label="Role for slot ${slot}"`);
+  if (start < 0) return '';
+  const end = html.indexOf('</select>', start);
+  return end < 0 ? html.slice(start) : html.slice(start, end + '</select>'.length);
+}
+
 describe('FictionCastRolesConfiguration', () => {
   it('makes Off an unambiguous assignment state without child shaping controls', () => {
     const html = renderRoles({
@@ -55,6 +62,10 @@ describe('FictionCastRolesConfiguration', () => {
     expect(html).toContain('>24 members</span>');
     expect((html.match(/aria-label="Role for slot /g) ?? []).length).toBe(24);
     expect(html).toContain('aria-label="Role for slot 24"');
+    expect(html).toContain('aria-label="Cast member navigation"');
+    expect(html).toContain('aria-label="Previous cast member"');
+    expect(html).toContain('aria-label="Next cast member"');
+    expect(html).toContain('1 of 24');
     expect(html).toContain('Use role mix — Protagonist');
     expect(html).toContain('Use role mix — Sidekick');
     expect(html).toContain('<summary>Role guide</summary>');
@@ -68,6 +79,23 @@ describe('FictionCastRolesConfiguration', () => {
     })).toBe('Classic ensemble · Light · 2 customized');
   });
 
+  it('does not offer or count an inherited role as a preset customization', () => {
+    const renderedSettings: FictionCastSettings = {
+      ...settings,
+      castSize: 4,
+      rolePreset: 'classic-ensemble',
+      roleInfluence: 'light',
+      slotRoleOverrides: { 0: 'protagonist', 1: 'villain' },
+    };
+    const html = renderRoles(renderedSettings);
+    const firstSlot = slotSelectMarkup(html, 1);
+
+    expect(firstSlot).toContain('Use role mix — Protagonist');
+    expect(firstSlot).not.toContain('value="protagonist"');
+    expect(firstSlot).toContain('value="rival"');
+    expect(fictionCastRolesSummary(renderedSettings)).toBe('Classic ensemble · Light · 1 customized');
+  });
+
   it('gives Custom explicit unassigned semantics and withholds influence until a role exists', () => {
     const html = renderRoles({
       castSize: 4,
@@ -79,6 +107,7 @@ describe('FictionCastRolesConfiguration', () => {
     expect(html).toContain('Custom assigns only the members you choose');
     expect(html).toContain('Unassigned members have no role');
     expect((html.match(/>Unassigned<\/option>/g) ?? []).length).toBe(4);
+    expect(slotSelectMarkup(html, 1)).toContain('value="protagonist"');
     expect(html).toContain('Assign at least one cast member before choosing generation influence');
     expect(html).not.toContain('<span>Generation influence</span>');
     expect(fictionCastRolesSummary({
