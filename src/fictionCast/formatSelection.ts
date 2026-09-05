@@ -1,7 +1,6 @@
 import { createSeededRandom } from '../engine/random';
 import type { NameFormatKind } from '../engine/types';
-
-export type MaterializedNameFormatKind = Exclude<NameFormatKind, 'mixed'>;
+import type { MaterializedNameFormatKind } from './identityFormat';
 
 const mixedFormatOptions: readonly MaterializedNameFormatKind[] = [
   'given-only',
