@@ -5,19 +5,6 @@ import type {
   FictionCastSettings,
 } from './types';
 
-const globalGenerationSettingKeys = {
-  castSize: true,
-  semanticBaseline: true,
-  stylePackId: true,
-  nameFormat: true,
-  castVariation: true,
-} satisfies Record<
-  Exclude<keyof FictionCastSettings, 'seed' | 'rolePreset' | 'roleInfluence' | 'slotRoleOverrides'>,
-  true
->;
-
-void globalGenerationSettingKeys;
-
 function sameSemanticBaseline(
   left: FictionCastSemanticBaseline,
   right: FictionCastSemanticBaseline,
