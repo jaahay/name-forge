@@ -1,14 +1,17 @@
-import { useEffect, useRef, type FormEvent, type KeyboardEvent } from 'react';
-import { castRoleOptions, castRolePresetOptions, roleInfluenceOptions } from '../fictionCast/roles';
+import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import {
   fictionCastSemanticBaselineFromSettings,
   withFictionCastSemanticControl,
   type FictionCastSemanticControlValue,
 } from '../fictionCast/semanticIntent';
-import type { CastRole, CastRolePresetKind, FictionCastSettings, RoleInfluenceLevel } from '../fictionCast/types';
+import type { FictionCastSettings } from '../fictionCast/types';
 import { castVariationOptions, type FictionCastVariation } from '../fictionCast/variation';
 import type { NameFormatKind, StylePackSummary } from '../engine/types';
 import { resolveConfigureFocusTarget, shouldCloseConfigureOnKey } from './configureBehavior';
+import {
+  FictionCastRolesConfiguration,
+  fictionCastRolesSummary,
+} from './FictionCastRolesConfiguration';
 import type { NamingModeConfig } from './modes';
 import { advancedScoreControls, primaryScoreControls, type ControlKey } from './presentation';
 import { ScoreControl } from './ScoreControl';
@@ -39,19 +42,11 @@ interface ConfigureTrayProps {
   onClearLockedNames: () => void;
 }
 
+type ConfigureView = 'criteria' | 'roles';
+
 function clampCastSize(value: number): number {
   if (Number.isNaN(value)) return 1;
   return Math.max(1, Math.min(24, Math.round(value)));
-}
-
-function updateSlotRole(currentRoles: FictionCastSettings['slotRoleOverrides'], index: number, role: CastRole | ''): FictionCastSettings['slotRoleOverrides'] {
-  const nextRoles = { ...(currentRoles ?? {}) };
-  if (role === '') {
-    delete nextRoles[index];
-    return nextRoles;
-  }
-  nextRoles[index] = role;
-  return nextRoles;
 }
 
 function labelForFormat(value: NameFormatKind | undefined): string {
@@ -76,12 +71,14 @@ export function ConfigureTray({
 }: ConfigureTrayProps) {
   const triggerRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const rolesTriggerRef = useRef<HTMLButtonElement>(null);
+  const rolesBackButtonRef = useRef<HTMLButtonElement>(null);
   const wasOpenRef = useRef(false);
+  const previousViewRef = useRef<ConfigureView>('criteria');
+  const [configureView, setConfigureView] = useState<ConfigureView>('criteria');
   const castSize = clampCastSize(settings.castSize);
   const semanticBaseline = fictionCastSemanticBaselineFromSettings(settings);
-  const slotRoleCount = Math.max(0, Math.min(castSize, 8));
-  const hasRoleMix = (settings.rolePreset ?? 'none') !== 'none';
-  const selectedRoleInfluence = roleInfluenceOptions.find((option) => option.value === (settings.roleInfluence ?? 'off'));
+  const rolesSummary = fictionCastRolesSummary(settings);
   const summarySettings = committedSettings ?? settings;
   const summaryStylePack = stylePacks.find((pack) => pack.id === summarySettings.stylePackId)?.label ?? summarySettings.stylePackId;
   const summaryItems = [summaryStylePack, `${clampCastSize(summarySettings.castSize)} names`, labelForFormat(summarySettings.nameFormat)];
@@ -89,6 +86,7 @@ export function ConfigureTray({
   const castSizeLabel = `${mode.shortLabel} size`;
   const launcherGenerateLabel = hasGeneratedCast ? 'Regenerate' : 'Start cast';
   const drawerGenerateLabel = hasGeneratedCast ? 'Generate' : 'Start cast';
+  const isRolesView = configureView === 'roles';
 
   useEffect(() => {
     const focusTarget = resolveConfigureFocusTarget(wasOpenRef.current, isOpen);
@@ -101,17 +99,38 @@ export function ConfigureTray({
   }, [isOpen]);
 
   useEffect(() => {
+    if (!isOpen) {
+      previousViewRef.current = 'criteria';
+      if (configureView !== 'criteria') setConfigureView('criteria');
+      return;
+    }
+
+    const previousView = previousViewRef.current;
+    if (previousView !== configureView) {
+      if (configureView === 'roles') rolesBackButtonRef.current?.focus();
+      else rolesTriggerRef.current?.focus();
+    }
+    previousViewRef.current = configureView;
+  }, [configureView, isOpen]);
+
+  useEffect(() => {
     if (!isOpen) return undefined;
 
     function closeOnEscape(event: globalThis.KeyboardEvent) {
       if (!shouldCloseConfigureOnKey(event.key)) return;
       event.preventDefault();
+      setConfigureView('criteria');
       onClose();
     }
 
     window.addEventListener('keydown', closeOnEscape);
     return () => window.removeEventListener('keydown', closeOnEscape);
   }, [isOpen, onClose]);
+
+  function closeConfigure() {
+    setConfigureView('criteria');
+    onClose();
+  }
 
   function updateCastSize(value: number) {
     onUpdateSetting('castSize', clampCastSize(value));
@@ -156,9 +175,11 @@ export function ConfigureTray({
         >
           <header className="configure-drawer-header">
             <div className="configure-drawer-heading">
-              <p className="eyebrow">Tune cast</p>
-              <h2 id="fiction-cast-configure-title">Configure criteria</h2>
-              <p className="configure-current-settings">{summaryItems.join(' · ')}</p>
+              <p className="eyebrow">{isRolesView ? 'Configure' : 'Tune cast'}</p>
+              <h2 id="fiction-cast-configure-title">{isRolesView ? 'Roles' : 'Configure criteria'}</h2>
+              <p className="configure-current-settings">
+                {isRolesView ? 'Assignment · generation influence · cast members' : summaryItems.join(' · ')}
+              </p>
             </div>
             <button
               ref={closeButtonRef}
@@ -166,101 +187,101 @@ export function ConfigureTray({
               className="secondary configure-close"
               aria-label="Close configure"
               title="Close configure"
-              onClick={onClose}
+              onClick={closeConfigure}
             >
               ×
             </button>
           </header>
 
-          <div className="configure-sections">
-            <section className="control-section configure-essentials" aria-labelledby="configure-essentials-title">
-              <div className="control-section-body">
-                <p id="configure-essentials-title" className="eyebrow">Essentials</p>
-                <label>
-                  <span>{castSizeLabel}</span>
-                  <div className="cast-size-control">
-                    <button type="button" className="stepper-button" onClick={() => updateCastSize(castSize - 1)} aria-label="Decrease cast size">-</button>
-                    <input type="number" min="1" max="24" value={castSize} onChange={(event) => updateCastSize(Number(event.target.value))} />
-                    <button type="button" className="stepper-button" onClick={() => updateCastSize(castSize + 1)} aria-label="Increase cast size">+</button>
-                  </div>
-                </label>
-                <label>
-                  <span>Style pack</span>
-                  <select value={settings.stylePackId} onChange={(event) => onUpdateSetting('stylePackId', event.target.value)}>
-                    {stylePacks.map((pack) => <option key={pack.id} value={pack.id}>{pack.label}</option>)}
-                  </select>
-                </label>
-                <label>
-                  <span>Cast role mix</span>
-                  <select value={settings.rolePreset ?? 'none'} onChange={(event) => onUpdateSetting('rolePreset', event.target.value as CastRolePresetKind)}>
-                    {castRolePresetOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-                  </select>
-                </label>
-                <label>
-                  <span>Cast variation</span>
-                  <select value={settings.castVariation ?? 'balanced'} onChange={(event) => onUpdateSetting('castVariation', event.target.value as FictionCastVariation)}>
-                    {castVariationOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-                  </select>
-                </label>
-              </div>
-            </section>
-
-            <details className="control-section">
-              <summary>More</summary>
-              <div className="control-section-body">
-                <label>
-                  <span>Name format</span>
-                  <select value={settings.nameFormat ?? 'given-only'} onChange={(event) => onUpdateSetting('nameFormat', event.target.value as NameFormatKind)}>
-                    {formatOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-                  </select>
-                </label>
-                <label>
-                  <span>Role influence</span>
-                  <select value={settings.roleInfluence ?? 'off'} onChange={(event) => onUpdateSetting('roleInfluence', event.target.value as RoleInfluenceLevel)}>
-                    {roleInfluenceOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-                  </select>
-                  <small>{selectedRoleInfluence?.help}</small>
-                </label>
-                {primaryScoreControls.map((control) => (
-                  <ScoreControl key={control.key} control={control} value={semanticBaseline[control.key]} onChange={updateSemanticControl} />
-                ))}
-              </div>
-            </details>
-
-            <details className="control-section">
-              <summary>Advanced</summary>
-              <div className="control-section-body">
-                {hasRoleMix ? (
-                  <div className="slot-role-grid" aria-label="Slot role overrides">
-                    {Array.from({ length: slotRoleCount }, (_, index) => (
-                      <label key={`slot-role-${index + 1}`}>
-                        <span>Slot {index + 1}</span>
-                        <select value={settings.slotRoleOverrides?.[index] ?? ''} onChange={(event) => onUpdateSetting('slotRoleOverrides', updateSlotRole(settings.slotRoleOverrides, index, event.target.value as CastRole | ''))}>
-                          <option value="">Use role mix</option>
-                          {castRoleOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-                        </select>
-                      </label>
-                    ))}
-                  </div>
-                ) : null}
-                {advancedScoreControls.map((control) => (
-                  <ScoreControl key={control.key} control={control} value={semanticBaseline[control.key]} onChange={updateSemanticControl} />
-                ))}
-                <label className="seed-control">
-                  <span>Generation seed</span>
-                  <input value={settings.seed} onChange={(event) => onUpdateSetting('seed', event.target.value)} onBlur={onCommitSettings} onKeyDown={commitSeedOnEnter} />
-                </label>
-              </div>
-            </details>
-
-            <div className="actions" aria-label="Generation actions">
-              <button type="submit">{drawerGenerateLabel}</button>
-              <button type="button" className="secondary" onClick={onRandomizeCriteria}>Randomize criteria</button>
-              {hasLockedNames ? (
-                <p className="lock-status">{lockedCount} locked. Generate keeps locked names and rerolls the rest. <button type="button" className="anchor-button" onClick={onClearLockedNames}>Clear</button></p>
-              ) : null}
+          {isRolesView ? (
+            <div className="configure-sections configure-roles-sections">
+              <FictionCastRolesConfiguration
+                settings={settings}
+                onUpdateSetting={onUpdateSetting}
+                onBack={() => setConfigureView('criteria')}
+                backButtonRef={rolesBackButtonRef}
+              />
             </div>
-          </div>
+          ) : (
+            <div className="configure-sections">
+              <section className="control-section configure-essentials" aria-labelledby="configure-essentials-title">
+                <div className="control-section-body">
+                  <p id="configure-essentials-title" className="eyebrow">Essentials</p>
+                  <label>
+                    <span>{castSizeLabel}</span>
+                    <div className="cast-size-control">
+                      <button type="button" className="stepper-button" onClick={() => updateCastSize(castSize - 1)} aria-label="Decrease cast size">-</button>
+                      <input type="number" min="1" max="24" value={castSize} onChange={(event) => updateCastSize(Number(event.target.value))} />
+                      <button type="button" className="stepper-button" onClick={() => updateCastSize(castSize + 1)} aria-label="Increase cast size">+</button>
+                    </div>
+                  </label>
+                  <label>
+                    <span>Style pack</span>
+                    <select value={settings.stylePackId} onChange={(event) => onUpdateSetting('stylePackId', event.target.value)}>
+                      {stylePacks.map((pack) => <option key={pack.id} value={pack.id}>{pack.label}</option>)}
+                    </select>
+                  </label>
+                  <div className="configure-role-entry">
+                    <div className="configure-role-summary">
+                      <span>Roles</span>
+                      <strong>{rolesSummary}</strong>
+                    </div>
+                    <button
+                      ref={rolesTriggerRef}
+                      type="button"
+                      className="secondary configure-role-button"
+                      aria-label={`Configure roles, ${rolesSummary}`}
+                      onClick={() => setConfigureView('roles')}
+                    >
+                      Configure roles
+                    </button>
+                  </div>
+                  <label>
+                    <span>Cast variation</span>
+                    <select value={settings.castVariation ?? 'balanced'} onChange={(event) => onUpdateSetting('castVariation', event.target.value as FictionCastVariation)}>
+                      {castVariationOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                    </select>
+                  </label>
+                </div>
+              </section>
+
+              <details className="control-section">
+                <summary>More</summary>
+                <div className="control-section-body">
+                  <label>
+                    <span>Name format</span>
+                    <select value={settings.nameFormat ?? 'given-only'} onChange={(event) => onUpdateSetting('nameFormat', event.target.value as NameFormatKind)}>
+                      {formatOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                    </select>
+                  </label>
+                  {primaryScoreControls.map((control) => (
+                    <ScoreControl key={control.key} control={control} value={semanticBaseline[control.key]} onChange={updateSemanticControl} />
+                  ))}
+                </div>
+              </details>
+
+              <details className="control-section">
+                <summary>Advanced</summary>
+                <div className="control-section-body">
+                  {advancedScoreControls.map((control) => (
+                    <ScoreControl key={control.key} control={control} value={semanticBaseline[control.key]} onChange={updateSemanticControl} />
+                  ))}
+                  <label className="seed-control">
+                    <span>Generation seed</span>
+                    <input value={settings.seed} onChange={(event) => onUpdateSetting('seed', event.target.value)} onBlur={onCommitSettings} onKeyDown={commitSeedOnEnter} />
+                  </label>
+                </div>
+              </details>
+
+              <div className="actions" aria-label="Generation actions">
+                <button type="submit">{drawerGenerateLabel}</button>
+                <button type="button" className="secondary" onClick={onRandomizeCriteria}>Randomize criteria</button>
+                {hasLockedNames ? (
+                  <p className="lock-status">{lockedCount} locked. Generate keeps locked names and rerolls the rest. <button type="button" className="anchor-button" onClick={onClearLockedNames}>Clear</button></p>
+                ) : null}
+              </div>
+            </div>
+          )}
         </form>
       ) : null}
     </>

@@ -1,5 +1,6 @@
 import { FormEvent, useState } from 'react';
 import { generateEnsemble, type LockedNameSlot } from './fictionCast/ensemble';
+import { retainedLockedNameIdsAfterSettingsChange } from './fictionCast/lockPolicy';
 import type { FictionCastRememberedCast } from './fictionCast/rememberedCast';
 import type { FictionCastGeneratedEnsemble, FictionCastSettings } from './fictionCast/types';
 import {
@@ -92,8 +93,15 @@ export default function App({ rememberedCasts = [] }: AppProps = {}) {
   }
 
   function updateSetting<K extends keyof FictionCastSettings>(key: K, value: FictionCastSettings[K]) {
+    const nextSettings = { ...settings, [key]: value };
     detachRememberedCast();
-    setSettings((current) => ({ ...current, [key]: value }));
+    setSettings(nextSettings);
+    setLockedNameIds((current) => retainedLockedNameIdsAfterSettingsChange(
+      ensemble,
+      current,
+      settings,
+      nextSettings,
+    ));
   }
 
   function commitGeneration(nextSettings: FictionCastSettings, nextLockedNameIds = lockedNameIds) {
@@ -118,8 +126,15 @@ export default function App({ rememberedCasts = [] }: AppProps = {}) {
 
   function randomizeCriteria() {
     const randomizedSettings = randomizeScoreSettings(settings);
+    const retainedLocks = retainedLockedNameIdsAfterSettingsChange(
+      ensemble,
+      lockedNameIds,
+      settings,
+      randomizedSettings,
+    );
     setSettings(randomizedSettings);
-    if (ensemble) commitGeneration(randomizedSettings);
+    if (ensemble) commitGeneration(randomizedSettings, retainedLocks);
+    else setLockedNameIds(retainedLocks);
   }
 
   function rerollSelectedName(id: string): string | undefined {
