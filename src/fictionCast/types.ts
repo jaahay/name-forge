@@ -1,11 +1,6 @@
-import type { IdentityAuditionPhrase } from '../engine/identityAudition';
-import type {
-  GeneratedName,
-  NameFormatKind,
-  NameIdentity,
-  ReadabilityDiagnostic,
-  StylePackSummary,
-} from '../engine/types';
+import type { GeneratedName, NameFormatKind, ReadabilityDiagnostic, StylePackSummary } from '../engine/types';
+import type { IdentityAuditionPhrase } from './identityAudition';
+import type { FictionCastMaterializedIdentity } from './identityTypes';
 import type { FictionCastRarityBand } from './rarity';
 import type { FictionCastVariation } from './variation';
 
@@ -79,13 +74,13 @@ export interface FictionCastResolvedIntentEvidence {
  * One Fiction Cast product identity composed around an unchanged primitive
  * sound-backed generated name. The compound display identity owns no aggregate
  * sound/spelling evidence; callers reach that evidence through `primaryName` or
- * through the generated parts retained by `identity`.
+ * through generated components retained by `identity`.
  */
 export interface FictionCastGeneratedName {
   readonly id: string;
   readonly displayName: string;
   readonly primaryName: GeneratedName;
-  readonly identity: NameIdentity;
+  readonly identity: FictionCastMaterializedIdentity;
   readonly identityAudition: IdentityAuditionPhrase;
   readonly readabilityDiagnostics: ReadabilityDiagnostic[];
   readonly role?: CastRoleAssignment;
