@@ -93,12 +93,16 @@ describe('Fiction Cast identity determinism', () => {
       slotIndex: 2,
       candidateAttempt: 4,
     };
-    const firstIdentity = createNameIdentity(first, undefined, 'title-name', context);
-    const secondIdentity = createNameIdentity(second, undefined, 'title-name', context);
+    const firstTitleIdentity = createNameIdentity(first, undefined, 'title-name', context);
+    const secondTitleIdentity = createNameIdentity(second, undefined, 'title-name', context);
+    const firstEpithetIdentity = createNameIdentity(first, first, 'epithet-place', context);
+    const secondEpithetIdentity = createNameIdentity(second, first, 'epithet-place', context);
 
     expect(first.name).not.toBe(second.name);
-    expect(lexicalComponent(secondIdentity).lexemeId).toBe(lexicalComponent(firstIdentity).lexemeId);
-    expect(firstIdentity.format.version).toBe(1);
+    expect(lexicalComponent(secondTitleIdentity).lexemeId).toBe(lexicalComponent(firstTitleIdentity).lexemeId);
+    expect(lexicalComponent(secondEpithetIdentity).lexemeId).toBe(lexicalComponent(firstEpithetIdentity).lexemeId);
+    expect(firstTitleIdentity.format.version).toBe(1);
+    expect(firstEpithetIdentity.format.version).toBe(1);
   });
 
   it('keeps derived initials deterministic from their retained source rather than independent randomness', () => {
