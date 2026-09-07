@@ -142,16 +142,18 @@ Real-world personal naming also carries cultural-sensitivity, plausibility, and 
 
 The emerging identity-component model should distinguish reusable structural concerns from domain-owned meaning.
 
-Potentially reusable structural classifications include:
+Potentially reusable structural concerns include:
 
-- independently generated semantic name material;
-- finite lexical material;
-- derived material;
-- literal or grammatical material;
+- generated-component provenance;
+- finite lexical-component provenance;
+- derived-component provenance and source dependency;
+- separate literal / grammatical phrase material;
 - deterministic materialization;
-- provenance and source relationships;
+- component-instance addressability;
 - ordered composition;
 - persistence and reroll semantics.
+
+This does **not** imply one universal four-way component union. In the current #252 design, generated, lexical, and derived are independently addressable component classes, while literal/grammar material remains separate phrase structure.
 
 Domain vocabularies remain domain-owned. For example:
 
@@ -219,7 +221,7 @@ The richer Fiction Cast identity-component requirements should remain Fiction Ca
 In particular, #252 should prefer a design where:
 
 - current complete formats are curated compositions, not the permanent ontology;
-- generated, lexical, derived, and literal material retain distinct provenance;
+- generated, lexical, and derived components retain distinct provenance while literal/grammar remains separate phrase material;
 - semantic component roles remain Fiction Cast vocabulary rather than leaking into the generic singular-name engine;
 - adding one new component does not require enumerating every complete identity permutation;
 - a narrower future domain could reuse structural component mechanics without inheriting Fiction Cast-specific roles;
