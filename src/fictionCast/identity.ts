@@ -1,4 +1,9 @@
+import { selectFromOptions } from '../engine/deterministicSelection';
 import type { GeneratedName } from '../engine/types';
+import {
+  componentMaterializationSeed,
+  type FictionCastIdentityMaterializationContext,
+} from './identityDeterminism';
 import type { MaterializedNameFormatKind } from './identityFormat';
 import {
   fictionCastEpithetLexemes,
@@ -21,12 +26,16 @@ const TITLE_INVENTORY_ID = 'fiction-cast:titles:v1';
 const EPITHET_INVENTORY_ID = 'fiction-cast:epithets:v1';
 
 const formatRules: Record<MaterializedNameFormatKind, FictionCastIdentityStructure> = {
-  'given-only': { id: 'format:given-only', kind: 'given-only', label: 'Given name only' },
-  'given-family': { id: 'format:given-family', kind: 'given-family', label: 'Given + family name' },
-  'initials-family': { id: 'format:initials-family', kind: 'initials-family', label: 'Initials + family name' },
-  'title-name': { id: 'format:title-name', kind: 'title-name', label: 'Title + name' },
-  'epithet-place': { id: 'format:epithet-place', kind: 'epithet-place', label: 'Epithet/place-style name' },
+  'given-only': { id: 'format:given-only', version: 1, kind: 'given-only', label: 'Given name only' },
+  'given-family': { id: 'format:given-family', version: 1, kind: 'given-family', label: 'Given + family name' },
+  'initials-family': { id: 'format:initials-family', version: 1, kind: 'initials-family', label: 'Initials + family name' },
+  'title-name': { id: 'format:title-name', version: 1, kind: 'title-name', label: 'Title + name' },
+  'epithet-place': { id: 'format:epithet-place', version: 1, kind: 'epithet-place', label: 'Epithet/place-style name' },
 };
+
+export function identityStructureForFormat(format: MaterializedNameFormatKind): FictionCastIdentityStructure {
+  return formatRules[format];
+}
 
 export function requiresSupportingName(format: MaterializedNameFormatKind): boolean {
   return format === 'given-family' || format === 'initials-family' || format === 'epithet-place';
@@ -99,23 +108,18 @@ function createIdentity(
   };
 }
 
-function fingerprint(value: string): number {
-  return [...value].reduce((total, character, index) => total + character.charCodeAt(0) * (index + 1), 0);
-}
-
 function pickLexeme(
   options: readonly FictionCastIdentityLexeme[],
-  key: string,
+  seed: string,
   role: FictionCastIdentityLexeme['kind'],
 ): FictionCastIdentityLexeme {
   const matchingOptions = options.filter((option) => option.kind === role);
-  const selected = matchingOptions[fingerprint(key) % matchingOptions.length];
 
-  if (!selected) {
+  if (matchingOptions.length === 0) {
     throw new Error(`Fiction Cast has no ${role} lexemes available for identity construction.`);
   }
 
-  return selected;
+  return selectFromOptions(matchingOptions, seed);
 }
 
 function initialsFor(name: string): string {
@@ -130,23 +134,26 @@ export function createNameIdentity(
   given: GeneratedName,
   supportingName: GeneratedName | undefined,
   format: MaterializedNameFormatKind,
+  materializationContext: FictionCastIdentityMaterializationContext,
 ): FictionCastMaterializedIdentity {
-  const rule = formatRules[format];
+  const rule = identityStructureForFormat(format);
   const givenComponent = createGeneratedComponent('component:given:0', 'given', given);
   const familyComponent = supportingName
     ? createGeneratedComponent('component:family:0', 'family', supportingName)
     : undefined;
   const initialComponent = createInitialComponent(givenComponent);
-  const titleLexeme = pickLexeme(fictionCastTitleLexemes, given.name, 'title');
-  const epithetLexeme = pickLexeme(fictionCastEpithetLexemes, given.name, 'epithet');
-  const titleComponent = createLexicalComponent('component:title:0', 'title', titleLexeme, TITLE_INVENTORY_ID);
-  const epithetComponent = createLexicalComponent('component:epithet:0', 'epithet', epithetLexeme, EPITHET_INVENTORY_ID);
 
   if (format === 'given-only') {
     return createIdentity(givenComponent.value, rule, [givenComponent], [phrasePart(givenComponent)]);
   }
 
   if (format === 'title-name') {
+    const titleLexeme = pickLexeme(
+      fictionCastTitleLexemes,
+      componentMaterializationSeed(materializationContext, rule, 'component:title:0'),
+      'title',
+    );
+    const titleComponent = createLexicalComponent('component:title:0', 'title', titleLexeme, TITLE_INVENTORY_ID);
     return createIdentity(
       `${titleComponent.value} ${givenComponent.value}`,
       rule,
@@ -156,6 +163,12 @@ export function createNameIdentity(
   }
 
   if (format === 'epithet-place') {
+    const epithetLexeme = pickLexeme(
+      fictionCastEpithetLexemes,
+      componentMaterializationSeed(materializationContext, rule, 'component:epithet:0'),
+      'epithet',
+    );
+    const epithetComponent = createLexicalComponent('component:epithet:0', 'epithet', epithetLexeme, EPITHET_INVENTORY_ID);
     const placeSource = supportingName ?? given;
     const placeComponent = createGeneratedComponent('component:place:0', 'place', placeSource);
     return createIdentity(
