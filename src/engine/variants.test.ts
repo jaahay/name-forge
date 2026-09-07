@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { stylePacks } from '../data/stylePacks';
-import { renderIdentityAuditionPhrase } from './identityAudition';
+import { renderIdentityAuditionPhrase } from '../fictionCast/identityAudition';
 import { createCastExportPayload, serializeCastAsMarkdown } from '../fictionCast/export';
 import { createNameIdentity } from '../fictionCast/identity';
 import type { FictionCastGeneratedEnsemble, FictionCastGeneratedName } from '../fictionCast/types';
