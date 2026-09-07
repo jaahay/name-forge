@@ -43,7 +43,6 @@ export type VariantKind = 'listed' | 'generated';
 export type NameVariantRelationship = 'same_pronunciation' | 'near_pronunciation' | 'orthographic_variant' | 'regional_variant' | 'historical_variant' | 'transliteration' | 'cognate' | 'diminutive' | 'nickname' | 'creative_respelling' | 'alias';
 export type NameVariantConfidence = 'low' | 'medium' | 'high';
 export type SourceKind = 'style-pack' | 'algorithm' | 'listed-source' | 'remote-pack';
-export type NameFormatKind = 'given-only' | 'given-family' | 'initials-family' | 'title-name' | 'epithet-place' | 'mixed';
 export type ReadabilityDiagnosticSeverity = 'notice' | 'warning';
 export type ReadabilityDiagnosticScope = 'name' | 'cast';
 
