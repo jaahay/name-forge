@@ -1,4 +1,5 @@
-import type { GenerationSettings, NameFormatKind } from '../engine/types';
+import type { GenerationSettings } from '../engine/types';
+import type { MaterializedNameFormatKind } from './identityFormat';
 import {
   resolveFictionCastSemanticIntent,
   type ResolvedFictionCastSemanticIntent,
@@ -6,7 +7,7 @@ import {
 import type { CastRoleAssignment, FictionCastSettings } from './types';
 
 export type FictionCastSoundComponentKind = 'given' | 'family' | 'place';
-export type MaterializedComponentFormat = Exclude<NameFormatKind, 'mixed'>;
+export type MaterializedComponentFormat = MaterializedNameFormatKind;
 
 export interface FictionCastComponentGenerationContext {
   readonly kind: FictionCastSoundComponentKind;
