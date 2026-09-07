@@ -76,8 +76,41 @@ describe('cast export serialization', () => {
     expect(firstName.sound.spellingCandidates.filter((candidate) => candidate.selected)).toEqual([firstName.sound.selectedSpelling]);
     expect(firstName.generationPlan.syllableCount).toBe(primaryName.generationPlan.syllableCount);
     expect(firstName.generationPlan.rarityBand).toBe(sourceName.rarityBand);
-    expect(firstName.parts.length).toBeGreaterThan(0);
+    expect(firstName.components).toHaveLength(sourceName.identity.components.length);
+    expect(firstName.phraseParts).toEqual(sourceName.identity.phraseParts);
+    expect('parts' in firstName).toBe(false);
     expect(firstName.warnings).toEqual([]);
+  });
+
+  it('exports retained identity components separately from the rendered phrase structure', () => {
+    const ensemble = generateEnsemble({
+      ...settings,
+      castSize: 1,
+      nameFormat: 'initials-family',
+      seed: 'export-initials-family',
+    }, createDefaultRegistry());
+    const payload = createCastExportPayload(ensemble);
+    const [name] = payload.names;
+    expect(name).toBeDefined();
+    if (!name) throw new Error('Expected an exported initials + family identity.');
+
+    expect(name.components).toHaveLength(3);
+    const generatedGiven = name.components.find((component) => component.kind === 'generated' && component.role === 'given');
+    const derivedInitial = name.components.find((component) => component.kind === 'derived');
+    const generatedFamily = name.components.find((component) => component.kind === 'generated' && component.role === 'family');
+    expect(generatedGiven).toBeDefined();
+    expect(derivedInitial).toBeDefined();
+    expect(generatedFamily).toBeDefined();
+    if (!generatedGiven || !derivedInitial || !generatedFamily) throw new Error('Expected generated given, derived initial, and generated family components.');
+
+    expect(derivedInitial.kind).toBe('derived');
+    if (derivedInitial.kind !== 'derived') throw new Error('Expected a derived initial component.');
+    expect(derivedInitial.sourceComponentIds).toEqual([generatedGiven.id]);
+    expect(name.phraseParts).toEqual([
+      { kind: 'component', componentId: derivedInitial.id },
+      { kind: 'component', componentId: generatedFamily.id },
+    ]);
+    expect(name.phraseParts).not.toContainEqual({ kind: 'component', componentId: generatedGiven.id });
   });
 
   it('renders a Markdown export with score, variation, selected sound, spelling candidates, variants, role influence, and seed', () => {
@@ -101,7 +134,8 @@ describe('cast export serialization', () => {
     expect(markdown).toContain('- Role influence: Protagonist clarity (light;');
     expect(markdown).toContain('- Overall fit:');
     expect(markdown).toContain('- Format:');
-    expect(markdown).toContain('- Parts:');
+    expect(markdown).toContain('- Components:');
+    expect(markdown).not.toContain('- Parts:');
     expect(markdown).toContain('- Sound: /');
     expect(markdown).toContain('- Selected spelling:');
     expect(markdown).toContain('- Spelling candidates:');

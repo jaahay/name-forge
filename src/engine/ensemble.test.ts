@@ -122,7 +122,7 @@ describe('generateEnsemble role and variation controls', () => {
     }
   });
 
-  it('preserves modeled sounds and generation profiles for every sound-backed part of a composed identity', () => {
+  it('preserves modeled sounds and generation profiles for every generated component of a composed identity', () => {
     const registry = createDefaultRegistry();
     const ensemble = generateEnsemble({ ...baseSettings, castSize: 1, nameFormat: 'epithet-place', seed: 'identity-audition-evidence' }, registry);
     const name = ensemble.names[0];
@@ -130,18 +130,18 @@ describe('generateEnsemble role and variation controls', () => {
     expect(name.identity.format.kind).toBe('epithet-place');
     expect(name.identityAudition.identityText).toBe(name.displayName);
 
-    const generatedParts = name.identity.parts.filter((part) => part.generation);
-    expect(generatedParts.map((part) => part.role)).toEqual(['given', 'place']);
-    expect(generatedParts).toHaveLength(2);
-    for (const part of generatedParts) {
-      expect(part.generation?.soundProfile.targets).toBeDefined();
-      expect(part.generation?.sound.sequence.segments.length).toBeGreaterThan(0);
-      expect(part.generation?.spelling.text).toBe(part.value);
+    const generatedComponents = name.identity.components.filter((component) => component.kind === 'generated');
+    expect(generatedComponents.map((component) => component.role)).toEqual(['given', 'place']);
+    expect(generatedComponents).toHaveLength(2);
+    for (const component of generatedComponents) {
+      expect(component.generatedName.soundProfile.targets).toBeDefined();
+      expect(component.generatedName.sound.sequence.segments.length).toBeGreaterThan(0);
+      expect(component.generatedName.spelling.text).toBe(component.value);
     }
-    expect(generatedParts[0]?.generation?.soundProfile).toBe(name.primaryName.soundProfile);
-    expect(generatedParts[0]?.generation?.sound).toBe(name.primaryName.sound);
-    expect(generatedParts[0]?.generation?.spelling).toBe(name.primaryName.spelling);
-    expect(generatedParts[1]?.generation?.soundProfile).not.toBeUndefined();
+    expect(generatedComponents[0]?.generatedName.soundProfile).toBe(name.primaryName.soundProfile);
+    expect(generatedComponents[0]?.generatedName.sound).toBe(name.primaryName.sound);
+    expect(generatedComponents[0]?.generatedName.spelling).toBe(name.primaryName.spelling);
+    expect(generatedComponents[1]?.generatedName.soundProfile).not.toBeUndefined();
 
     const soundParts = name.identityAudition.parts.filter((part) => part.kind === 'sound');
     expect(soundParts).toHaveLength(2);

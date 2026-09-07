@@ -190,93 +190,105 @@ describe('generateEnsemble', () => {
     const name = onlyNameFor({ nameFormat: 'given-only' });
     const identity = name.identity;
     expect(identity.format.kind).toBe('given-only');
-    expect(identity.parts).toHaveLength(1);
-    const [givenPart] = identity.parts;
-    expect(givenPart).toBeDefined();
-    if (!givenPart) throw new Error('Expected given name part.');
-    expect(givenPart.role).toBe('given');
-    expect(name.displayName).toBe(givenPart.value);
-    expect(name.primaryName.name).toBe(givenPart.value);
-    expect(identity.displayName).toBe(givenPart.value);
-    expect(givenPart.sourceNameId).toBe(name.primaryName.id);
+    expect(identity.components).toHaveLength(1);
+    const [givenComponent] = identity.components;
+    expect(givenComponent).toBeDefined();
+    if (!givenComponent || givenComponent.kind !== 'generated') throw new Error('Expected generated given component.');
+    expect(givenComponent.role).toBe('given');
+    expect(name.displayName).toBe(givenComponent.value);
+    expect(name.primaryName.name).toBe(givenComponent.value);
+    expect(identity.displayName).toBe(givenComponent.value);
+    expect(givenComponent.generatedName.id).toBe(name.primaryName.id);
   });
 
-  it('formats generated given and family parts through an identity frame', () => {
+  it('formats generated given and family components through an identity frame', () => {
     const name = onlyNameFor({ nameFormat: 'given-family' });
     const identity = name.identity;
     expect(identity.format.kind).toBe('given-family');
-    expect(identity.parts).toHaveLength(2);
-    const [givenPart, familyPart] = identity.parts;
-    expect(givenPart).toBeDefined();
-    expect(familyPart).toBeDefined();
-    if (!givenPart || !familyPart) throw new Error('Expected given and family name parts.');
-    expect(givenPart.role).toBe('given');
-    expect(familyPart.role).toBe('family');
-    expect(name.displayName).toBe(`${givenPart.value} ${familyPart.value}`);
-    expect(name.primaryName.name).toBe(givenPart.value);
-    expect(givenPart.sourceNameId).not.toBe(familyPart.sourceNameId);
-    expect(familyPart.sourceName).toBe(familyPart.value);
+    expect(identity.components).toHaveLength(2);
+    const [givenComponent, familyComponent] = identity.components;
+    if (givenComponent?.kind !== 'generated' || familyComponent?.kind !== 'generated') {
+      throw new Error('Expected generated given and family components.');
+    }
+    expect(givenComponent.role).toBe('given');
+    expect(familyComponent.role).toBe('family');
+    expect(name.displayName).toBe(`${givenComponent.value} ${familyComponent.value}`);
+    expect(name.primaryName.name).toBe(givenComponent.value);
+    expect(givenComponent.generatedName.id).not.toBe(familyComponent.generatedName.id);
+    expect(familyComponent.generatedName.name).toBe(familyComponent.value);
   });
 
-  it('formats deterministic initialed bylines from generated parts', () => {
+  it('retains the generated personal source behind deterministic initialed bylines', () => {
     const first = onlyNameFor({ nameFormat: 'initials-family' });
     const second = onlyNameFor({ nameFormat: 'initials-family' });
     const identity = first.identity;
-    const repeatedIdentity = second.identity;
-    expect(identity.displayName).toBe(repeatedIdentity.displayName);
+    expect(identity.displayName).toBe(second.identity.displayName);
     expect(identity.format.kind).toBe('initials-family');
-    expect(identity.parts).toHaveLength(2);
-    const [initialPart, familyPart] = identity.parts;
-    expect(initialPart).toBeDefined();
-    expect(familyPart).toBeDefined();
-    if (!initialPart || !familyPart) throw new Error('Expected initial and family name parts.');
-    expect(initialPart.role).toBe('initial');
-    expect(familyPart.role).toBe('family');
-    expect(initialPart.value).toMatch(/^[A-Z]\.$/);
-    expect(first.displayName).toBe(`${initialPart.value} ${familyPart.value}`);
-    expect(initialPart.sourceNameId).not.toBe(familyPart.sourceNameId);
+    expect(identity.components).toHaveLength(3);
+    const [givenComponent, initialComponent, familyComponent] = identity.components;
+    if (givenComponent?.kind !== 'generated' || initialComponent?.kind !== 'derived' || familyComponent?.kind !== 'generated') {
+      throw new Error('Expected generated given, derived initial, and generated family components.');
+    }
+    expect(givenComponent.role).toBe('given');
+    expect(initialComponent.role).toBe('given');
+    expect(familyComponent.role).toBe('family');
+    expect(initialComponent.value).toMatch(/^[A-Z]\.$/);
+    expect(initialComponent.derivation.ruleId).toBe('initials');
+    expect(initialComponent.derivation.sourceComponentIds).toEqual([givenComponent.id]);
+    expect(first.displayName).toBe(`${initialComponent.value} ${familyComponent.value}`);
+    expect(identity.phraseParts).toEqual([
+      { kind: 'component', componentId: initialComponent.id },
+      { kind: 'component', componentId: familyComponent.id },
+    ]);
   });
 
-  it('formats titled identities from product-owned lexemes and generated name material', () => {
+  it('formats titled identities from lexical provenance and generated name material', () => {
     const first = onlyNameFor({ nameFormat: 'title-name' });
     const second = onlyNameFor({ nameFormat: 'title-name' });
     const identity = first.identity;
-    const repeatedIdentity = second.identity;
-    expect(identity.displayName).toBe(repeatedIdentity.displayName);
+    expect(identity.displayName).toBe(second.identity.displayName);
     expect(identity.format.kind).toBe('title-name');
-    expect(identity.parts).toHaveLength(2);
-    const [titlePart, givenPart] = identity.parts;
-    expect(titlePart).toBeDefined();
-    expect(givenPart).toBeDefined();
-    if (!titlePart || !givenPart) throw new Error('Expected title and given name parts.');
-    expect(titlePart.role).toBe('title');
-    expect(givenPart.role).toBe('given');
-    expect(fictionCastTitleLexemes.map((lexeme) => lexeme.text)).toContain(titlePart.value);
-    expect(first.displayName).toBe(`${titlePart.value} ${givenPart.value}`);
-    expect(titlePart.sourceNameId).toBe(givenPart.sourceNameId);
+    expect(identity.components).toHaveLength(2);
+    const [titleComponent, givenComponent] = identity.components;
+    if (titleComponent?.kind !== 'lexical' || givenComponent?.kind !== 'generated') {
+      throw new Error('Expected lexical title and generated given components.');
+    }
+    expect(titleComponent.role).toBe('title');
+    expect(givenComponent.role).toBe('given');
+    expect(fictionCastTitleLexemes.map((lexeme) => lexeme.text)).toContain(titleComponent.value);
+    expect(first.displayName).toBe(`${titleComponent.value} ${givenComponent.value}`);
+    expect(titleComponent.lexemeId).toMatch(/^title:/);
+    expect(titleComponent.inventoryId).toBe('fiction-cast:titles:v1');
+    expect('generatedName' in titleComponent).toBe(false);
   });
 
-  it('formats deterministic place-style identities from generated support material and product-owned epithets', () => {
+  it('formats deterministic place-style identities with generated and lexical provenance', () => {
     const first = onlyNameFor({ nameFormat: 'epithet-place' });
     const second = onlyNameFor({ nameFormat: 'epithet-place' });
     const identity = first.identity;
-    const repeatedIdentity = second.identity;
-    expect(identity.displayName).toBe(repeatedIdentity.displayName);
+    expect(identity.displayName).toBe(second.identity.displayName);
     expect(identity.format.kind).toBe('epithet-place');
-    expect(identity.parts).toHaveLength(3);
-    const [givenPart, epithetPart, placePart] = identity.parts;
-    expect(givenPart).toBeDefined();
-    expect(epithetPart).toBeDefined();
-    expect(placePart).toBeDefined();
-    if (!givenPart || !epithetPart || !placePart) throw new Error('Expected given, epithet, and place name parts.');
-    expect(givenPart.role).toBe('given');
-    expect(epithetPart.role).toBe('epithet');
-    expect(placePart.role).toBe('place');
-    expect(fictionCastEpithetLexemes.map((lexeme) => lexeme.text)).toContain(epithetPart.value);
-    expect(placePart.value).toMatch(/^[A-Z][A-Za-z]+$/);
-    expect(first.displayName).toBe(`${givenPart.value} ${epithetPart.value} of ${placePart.value}`);
-    expect(givenPart.sourceNameId).not.toBe(placePart.sourceNameId);
-    expect(placePart.sourceName).toBe(placePart.value);
+    expect(identity.components).toHaveLength(3);
+    const [givenComponent, epithetComponent, placeComponent] = identity.components;
+    if (givenComponent?.kind !== 'generated' || epithetComponent?.kind !== 'lexical' || placeComponent?.kind !== 'generated') {
+      throw new Error('Expected generated given, lexical epithet, and generated place components.');
+    }
+    expect(givenComponent.role).toBe('given');
+    expect(epithetComponent.role).toBe('epithet');
+    expect(placeComponent.role).toBe('place');
+    expect(fictionCastEpithetLexemes.map((lexeme) => lexeme.text)).toContain(epithetComponent.value);
+    expect(epithetComponent.inventoryId).toBe('fiction-cast:epithets:v1');
+    expect('generatedName' in epithetComponent).toBe(false);
+    expect(placeComponent.value).toMatch(/^[A-Z][A-Za-z]+$/);
+    expect(first.displayName).toBe(`${givenComponent.value} ${epithetComponent.value} of ${placeComponent.value}`);
+    expect(givenComponent.generatedName.id).not.toBe(placeComponent.generatedName.id);
+    expect(placeComponent.generatedName.name).toBe(placeComponent.value);
+    expect(identity.phraseParts).toEqual([
+      { kind: 'component', componentId: givenComponent.id },
+      { kind: 'component', componentId: epithetComponent.id },
+      { kind: 'literal', value: 'of' },
+      { kind: 'component', componentId: placeComponent.id },
+    ]);
   });
 
   it('materializes Mixed formats reproducibly from the seed with bounded anti-clumping', () => {

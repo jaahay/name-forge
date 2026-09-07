@@ -43,8 +43,6 @@ export type VariantKind = 'listed' | 'generated';
 export type NameVariantRelationship = 'same_pronunciation' | 'near_pronunciation' | 'orthographic_variant' | 'regional_variant' | 'historical_variant' | 'transliteration' | 'cognate' | 'diminutive' | 'nickname' | 'creative_respelling' | 'alias';
 export type NameVariantConfidence = 'low' | 'medium' | 'high';
 export type SourceKind = 'style-pack' | 'algorithm' | 'listed-source' | 'remote-pack';
-export type NameFormatKind = 'given-only' | 'given-family' | 'initials-family' | 'title-name' | 'epithet-place' | 'mixed';
-export type NamePartRole = 'given' | 'family' | 'initial' | 'title' | 'epithet' | 'place';
 export type ReadabilityDiagnosticSeverity = 'notice' | 'warning';
 export type ReadabilityDiagnosticScope = 'name' | 'cast';
 
@@ -57,13 +55,6 @@ export interface NameGenerationPlan { id: string; syllableCount: number; stressP
 export interface NameScores { pronounceability: number; memorability: number; novelty: number; culturalAnchoring: number; orthographicNaturalness: number; styleFit: number; overallFit: number; }
 export interface NameVariantSource { id: string; kind: SourceKind; label: string; detail: string; }
 export interface NameVariant { value: string; kind: VariantKind; relationship: NameVariantRelationship; confidence: NameVariantConfidence; source: NameVariantSource; locale?: string; generated: boolean; ruleId: string; }
-export interface GeneratedNamePartGeneration { soundProfile: SoundProfile; sound: SoundCandidate; spelling: RankedSpellingCandidate; }
-export interface GeneratedNamePart { id: string; role: NamePartRole; value: string; sourceNameId: string; sourceName: string; generation?: GeneratedNamePartGeneration; }
-export interface NameIdentityPartReference { kind: 'part'; partId: string; role: NamePartRole; }
-export interface NameIdentityLiteralPart { kind: 'literal'; value: string; }
-export type NameIdentityPhrasePart = NameIdentityPartReference | NameIdentityLiteralPart;
-export interface NameFormatRule { id: string; kind: Exclude<NameFormatKind, 'mixed'>; label: string; }
-export interface NameIdentity { displayName: string; format: NameFormatRule; parts: GeneratedNamePart[]; phraseParts: readonly NameIdentityPhrasePart[]; }
 /** One singular sound-backed generated name. `name` is exactly the selected spelling described by this result's sound/spelling evidence. */
 export interface GeneratedName { id: string; name: string; soundProfile: SoundProfile; sound: SoundCandidate; spelling: RankedSpellingCandidate; spellingCandidates: readonly RankedSpellingCandidate[]; generationPlan: NameGenerationPlan; scores: NameScores; variants: NameVariant[]; readabilityDiagnostics: ReadabilityDiagnostic[]; }
 export interface SpellingVariantRule { id: string; label: string; from: string; to: string; maxApplications?: number; sourceKind: SourceKind; relationship?: NameVariantRelationship; confidence?: NameVariantConfidence; }

@@ -3,7 +3,6 @@ import { castReadabilityDiagnostics, diagnoseNameReadability, readabilitySummary
 import { generateFamilyName } from '../naming/familyName';
 import { generateGivenName } from '../naming/givenName';
 import { generatePlaceName } from '../naming/placeName';
-import { renderIdentityAuditionPhrase } from '../engine/identityAudition';
 import type { GeneratedName, GenerationSettings } from '../engine/types';
 import type { SourceRegistry } from '../engine/registry';
 import {
@@ -15,6 +14,7 @@ import {
   type MaterializedNameFormatKind,
 } from './formatSelection';
 import { createNameIdentity, requiresSupportingName } from './identity';
+import { renderIdentityAuditionPhrase } from './identityAudition';
 import { rarityBandForNovelty } from './rarity';
 import { isRoleInfluenceActive, resolveCastRole, resolveRoleInfluence } from './roles';
 import { combineFictionCastOverallFit, scoreFictionCastRoleFit } from './scoring';
