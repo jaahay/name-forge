@@ -1,18 +1,26 @@
-import type {
-  GeneratedName,
-  GeneratedNamePart,
-  NameFormatRule,
-  NameIdentity,
-  NameIdentityPhrasePart,
-} from '../engine/types';
+import type { GeneratedName } from '../engine/types';
 import type { MaterializedNameFormatKind } from './identityFormat';
 import {
   fictionCastEpithetLexemes,
   fictionCastTitleLexemes,
   type FictionCastIdentityLexeme,
 } from './identityLexicon';
+import type {
+  FictionCastDerivedIdentityComponent,
+  FictionCastGeneratedIdentityComponent,
+  FictionCastGeneratedIdentityRole,
+  FictionCastIdentityComponent,
+  FictionCastIdentityPhrasePart,
+  FictionCastIdentityStructure,
+  FictionCastLexicalIdentityComponent,
+  FictionCastLexicalIdentityRole,
+  FictionCastMaterializedIdentity,
+} from './identityTypes';
 
-const formatRules: Record<MaterializedNameFormatKind, NameFormatRule> = {
+const TITLE_INVENTORY_ID = 'fiction-cast:titles:v1';
+const EPITHET_INVENTORY_ID = 'fiction-cast:epithets:v1';
+
+const formatRules: Record<MaterializedNameFormatKind, FictionCastIdentityStructure> = {
   'given-only': { id: 'format:given-only', kind: 'given-only', label: 'Given name only' },
   'given-family': { id: 'format:given-family', kind: 'given-family', label: 'Given + family name' },
   'initials-family': { id: 'format:initials-family', kind: 'initials-family', label: 'Initials + family name' },
@@ -24,40 +32,69 @@ export function requiresSupportingName(format: MaterializedNameFormatKind): bool
   return format === 'given-family' || format === 'initials-family' || format === 'epithet-place';
 }
 
-function isSoundBackedRole(role: GeneratedNamePart['role']): role is 'given' | 'family' | 'place' {
-  return role === 'given' || role === 'family' || role === 'place';
-}
-
-function createPart(role: GeneratedNamePart['role'], value: string, sourceName: GeneratedName): GeneratedNamePart {
+function createGeneratedComponent(
+  id: string,
+  role: FictionCastGeneratedIdentityRole,
+  generatedName: GeneratedName,
+): FictionCastGeneratedIdentityComponent {
   return {
-    id: `${sourceName.id}:${role}`,
+    id,
+    kind: 'generated',
     role,
-    value,
-    sourceNameId: sourceName.id,
-    sourceName: sourceName.name,
-    ...(isSoundBackedRole(role) && value === sourceName.name ? {
-      generation: {
-        soundProfile: sourceName.soundProfile,
-        sound: sourceName.sound,
-        spelling: sourceName.spelling,
-      },
-    } : {}),
+    value: generatedName.name,
+    generatedName,
   };
 }
 
-function phrasePart(part: GeneratedNamePart): NameIdentityPhrasePart {
-  return { kind: 'part', partId: part.id, role: part.role };
+function createLexicalComponent(
+  id: string,
+  role: FictionCastLexicalIdentityRole,
+  lexeme: FictionCastIdentityLexeme,
+  inventoryId: string,
+): FictionCastLexicalIdentityComponent {
+  return {
+    id,
+    kind: 'lexical',
+    role,
+    value: lexeme.text,
+    lexemeId: lexeme.id,
+    inventoryId,
+  };
 }
 
-function literalPart(value: string): NameIdentityPhrasePart {
+function createInitialComponent(
+  source: FictionCastGeneratedIdentityComponent,
+): FictionCastDerivedIdentityComponent {
+  return {
+    id: 'component:given:0:initials',
+    kind: 'derived',
+    role: 'given',
+    value: initialsFor(source.value),
+    derivation: {
+      ruleId: 'initials',
+      sourceComponentIds: [source.id],
+    },
+  };
+}
+
+function phrasePart(component: FictionCastIdentityComponent): FictionCastIdentityPhrasePart {
+  return { kind: 'component', componentId: component.id };
+}
+
+function literalPart(value: string): FictionCastIdentityPhrasePart {
   return { kind: 'literal', value };
 }
 
-function createIdentity(displayName: string, format: NameFormatRule, parts: GeneratedNamePart[], phraseParts: NameIdentityPhrasePart[]): NameIdentity {
+function createIdentity(
+  displayName: string,
+  format: FictionCastIdentityStructure,
+  components: FictionCastIdentityComponent[],
+  phraseParts: FictionCastIdentityPhrasePart[],
+): FictionCastMaterializedIdentity {
   return {
     displayName,
     format,
-    parts,
+    components,
     phraseParts,
   };
 }
@@ -66,7 +103,11 @@ function fingerprint(value: string): number {
   return [...value].reduce((total, character, index) => total + character.charCodeAt(0) * (index + 1), 0);
 }
 
-function pickLexeme(options: readonly FictionCastIdentityLexeme[], key: string, role: FictionCastIdentityLexeme['kind']): FictionCastIdentityLexeme {
+function pickLexeme(
+  options: readonly FictionCastIdentityLexeme[],
+  key: string,
+  role: FictionCastIdentityLexeme['kind'],
+): FictionCastIdentityLexeme {
   const matchingOptions = options.filter((option) => option.kind === role);
   const selected = matchingOptions[fingerprint(key) % matchingOptions.length];
 
@@ -78,43 +119,68 @@ function pickLexeme(options: readonly FictionCastIdentityLexeme[], key: string, 
 }
 
 function initialsFor(name: string): string {
-  return name.split(/[\s-]+/).filter((part) => part.length > 0).map((part) => `${part.charAt(0).toUpperCase()}.`).join(' ');
+  return name
+    .split(/[\s-]+/)
+    .filter((part) => part.length > 0)
+    .map((part) => `${part.charAt(0).toUpperCase()}.`)
+    .join(' ');
 }
 
-export function createNameIdentity(given: GeneratedName, supportingName: GeneratedName | undefined, format: MaterializedNameFormatKind): NameIdentity {
+export function createNameIdentity(
+  given: GeneratedName,
+  supportingName: GeneratedName | undefined,
+  format: MaterializedNameFormatKind,
+): FictionCastMaterializedIdentity {
   const rule = formatRules[format];
-  const givenPart = createPart('given', given.name, given);
-  const familyPart = supportingName ? createPart('family', supportingName.name, supportingName) : undefined;
-  const initialPart = createPart('initial', initialsFor(given.name), given);
+  const givenComponent = createGeneratedComponent('component:given:0', 'given', given);
+  const familyComponent = supportingName
+    ? createGeneratedComponent('component:family:0', 'family', supportingName)
+    : undefined;
+  const initialComponent = createInitialComponent(givenComponent);
   const titleLexeme = pickLexeme(fictionCastTitleLexemes, given.name, 'title');
   const epithetLexeme = pickLexeme(fictionCastEpithetLexemes, given.name, 'epithet');
-  const titlePart = createPart('title', titleLexeme.text, given);
-  const epithetPart = createPart('epithet', epithetLexeme.text, given);
+  const titleComponent = createLexicalComponent('component:title:0', 'title', titleLexeme, TITLE_INVENTORY_ID);
+  const epithetComponent = createLexicalComponent('component:epithet:0', 'epithet', epithetLexeme, EPITHET_INVENTORY_ID);
 
   if (format === 'given-only') {
-    return createIdentity(givenPart.value, rule, [givenPart], [phrasePart(givenPart)]);
+    return createIdentity(givenComponent.value, rule, [givenComponent], [phrasePart(givenComponent)]);
   }
 
   if (format === 'title-name') {
-    return createIdentity(`${titlePart.value} ${givenPart.value}`, rule, [titlePart, givenPart], [phrasePart(titlePart), phrasePart(givenPart)]);
+    return createIdentity(
+      `${titleComponent.value} ${givenComponent.value}`,
+      rule,
+      [titleComponent, givenComponent],
+      [phrasePart(titleComponent), phrasePart(givenComponent)],
+    );
   }
 
   if (format === 'epithet-place') {
     const placeSource = supportingName ?? given;
-    const placePart = createPart('place', placeSource.name, placeSource);
+    const placeComponent = createGeneratedComponent('component:place:0', 'place', placeSource);
     return createIdentity(
-      `${givenPart.value} ${epithetPart.value} of ${placePart.value}`,
+      `${givenComponent.value} ${epithetComponent.value} of ${placeComponent.value}`,
       rule,
-      [givenPart, epithetPart, placePart],
-      [phrasePart(givenPart), phrasePart(epithetPart), literalPart('of'), phrasePart(placePart)],
+      [givenComponent, epithetComponent, placeComponent],
+      [phrasePart(givenComponent), phrasePart(epithetComponent), literalPart('of'), phrasePart(placeComponent)],
     );
   }
 
-  const safeFamilyPart = familyPart ?? createPart('family', given.name, given);
+  const safeFamilyComponent = familyComponent ?? createGeneratedComponent('component:family:0', 'family', given);
 
   if (format === 'initials-family') {
-    return createIdentity(`${initialPart.value} ${safeFamilyPart.value}`, rule, [initialPart, safeFamilyPart], [phrasePart(initialPart), phrasePart(safeFamilyPart)]);
+    return createIdentity(
+      `${initialComponent.value} ${safeFamilyComponent.value}`,
+      rule,
+      [givenComponent, initialComponent, safeFamilyComponent],
+      [phrasePart(initialComponent), phrasePart(safeFamilyComponent)],
+    );
   }
 
-  return createIdentity(`${givenPart.value} ${safeFamilyPart.value}`, rule, [givenPart, safeFamilyPart], [phrasePart(givenPart), phrasePart(safeFamilyPart)]);
+  return createIdentity(
+    `${givenComponent.value} ${safeFamilyComponent.value}`,
+    rule,
+    [givenComponent, safeFamilyComponent],
+    [phrasePart(givenComponent), phrasePart(safeFamilyComponent)],
+  );
 }
