@@ -117,7 +117,11 @@ function fixtureName(): FictionCastGeneratedName {
     variants: generateVariants('Aveline', pack, { orthographicWeirdness: 0.5 }),
     readabilityDiagnostics: [],
   };
-  const identity = createNameIdentity(primaryName, undefined, 'given-only');
+  const identity = createNameIdentity(primaryName, undefined, 'given-only', {
+    castSeed: 'variant-contract-test',
+    slotIndex: 0,
+    candidateAttempt: 0,
+  });
 
   return {
     id: 'name-1',
