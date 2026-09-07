@@ -1,4 +1,5 @@
-import type { GeneratedName, NameFormatKind, ReadabilityDiagnostic, StylePackSummary } from '../engine/types';
+import type { GeneratedName, ReadabilityDiagnostic, StylePackSummary } from '../engine/types';
+import type { FictionCastNameFormatKind } from './identityFormat';
 import type { IdentityAuditionPhrase } from './identityAudition';
 import type { FictionCastMaterializedIdentity } from './identityTypes';
 import type { FictionCastRarityBand } from './rarity';
@@ -44,7 +45,7 @@ export interface FictionCastSettings {
   readonly semanticBaseline: FictionCastSemanticBaseline;
   readonly stylePackId: string;
   readonly seed: string;
-  readonly nameFormat?: NameFormatKind;
+  readonly nameFormat?: FictionCastNameFormatKind;
   readonly rolePreset?: CastRolePresetKind;
   readonly roleInfluence?: RoleInfluenceLevel;
   readonly slotRoleOverrides?: SlotRoleOverrides;
