@@ -19,7 +19,7 @@ The target model separates:
 ```text
 semantic component role
   x
-materialization class
+component materialization class
   -> materialized identity component
 
 materialized components
@@ -46,6 +46,31 @@ The current format enum creates a second scaling pressure. Adding richer identit
 
 #252 should remove those pressures before new identity families are added.
 
+## Existing ownership boundary
+
+Fiction Cast composition behavior is already correctly owned under `src/fictionCast/`. This design is **not** a request to relocate existing ensemble/identity orchestration merely for directory purity.
+
+The accepted architecture remains:
+
+```text
+Fiction Cast surface
+  -> semantic naming capabilities
+  -> generateName(...)
+  -> singular GeneratedName values
+
+singular GeneratedName values
+  + Fiction Cast lexical / derived / literal material
+  -> Fiction Cast composed identity
+```
+
+That is consistent with Decisions 0005 and 0006: `generateName(...)` owns one sound-backed lexical name; semantic naming capabilities own reusable naming meaning; Fiction Cast owns the composition and lifecycle of the aggregate result.
+
+#252 refines the **surface-owned materialized identity/provenance contract**. It should only move or narrow existing shared structural types when they encode Fiction Cast vocabulary that a genuinely shared layer does not need.
+
+A lower helper may remain outside Fiction Cast when its contract is truly role-agnostic—for example, traversal or rendering over resolved text plus optional sound evidence. Shared mechanics should not need to understand `epithet`, `title`, `given-family`, or other Fiction Cast-specific meaning merely to perform that lower operation.
+
+`src/fictionCast/` is already the domain module. If callers eventually benefit from one public domain entry point, prefer a curated `src/fictionCast/index.ts` that exposes only the intended contract. Do not replace the directory with one monolithic `fictionCast.ts`, and do not use indiscriminate `export *` re-exports as a substitute for deciding the boundary.
+
 ## Terminology
 
 ### Identity structure
@@ -66,7 +91,7 @@ The current `mixed` value is not itself a materialized identity structure. It is
 
 ### Identity component
 
-A **materialized identity component** is a semantic value retained as part of the resolved identity.
+A **materialized identity component** is an independently addressable semantic value retained as part of the resolved identity.
 
 Examples:
 
@@ -81,15 +106,15 @@ Examples:
 
 The displayed phrase is assembled from references to materialized components plus grammar/literals such as `of`, punctuation, or fixed connective text.
 
-A literal has materialization semantics, but it should not be promoted into the identity's independently addressable component inventory merely because it appears in the rendered phrase.
+A literal participates in the materialized phrase representation, but it is **not** an identity component merely because it appears in the rendered phrase. It ordinarily needs no independently addressable component ID or component provenance record.
 
 This preserves the existing Inspector principle:
 
 > **Enumerate independent generated artifacts, not every textual fragment of the displayed identity.**
 
-## Materialization classes
+## Identity-component classes and phrase material
 
-The initial ontology has four materialization classes.
+The initial ontology has **three independently addressable identity-component classes**. Literal/grammar material is represented separately in phrase structure.
 
 ### 1. Generated name component
 
@@ -119,6 +144,8 @@ Examples:
 
 A lexical component retains lexical provenance such as the selected lexeme ID and inventory/source identity. It must not masquerade as an independently generated name merely because its selection happened while composing one.
 
+A lexical value may itself contain multiple rendered words, such as the current epithet lexeme `the Ashen`. Whether a token such as `the` is retained inside one lexical value or represented as separate phrase grammar is a declared structure/inventory decision, not something inferred from token count.
+
 ### 3. Derived component
 
 A value mechanically derived from retained source material under an explicit derivation rule.
@@ -133,9 +160,9 @@ Examples:
 
 A derived component retains the derivation rule and source provenance required to explain the value. It does not receive independent generated-name evidence unless an explicit future mechanism genuinely generates it independently.
 
-### 4. Literal / grammar material
+### Phrase literal / grammar material
 
-Structure-owned text used to render the identity phrase.
+Structure-owned text used only to render the identity phrase.
 
 Examples:
 
@@ -144,11 +171,11 @@ Examples:
 - fixed connectors such as a future `called` / `known as` construction;
 - other structure grammar that is not itself an identity value.
 
-Literals belong in the materialized phrase and persistence representation, but they are not independently generated artifacts and ordinarily do not need stable component IDs.
+Literals belong in the materialized phrase and persistence representation, but they are **not a fourth identity-component class** and ordinarily do not need stable component IDs.
 
 ## Semantic roles are orthogonal to materialization class
 
-The component class must not determine the semantic role.
+The component class must not determine the semantic role, and representational form must not be smuggled back into the semantic-role axis.
 
 For example:
 
@@ -159,7 +186,8 @@ Daywoj
 
 D.
   class: derived
-  role: primary personal representation
+  role: primary personal
+  derivation: initial
 
 Archivist
   class: lexical
@@ -169,6 +197,8 @@ Morvane
   class: generated
   role: place
 ```
+
+`D.` and `Daywoj` can therefore carry the same broad semantic role while remaining different component instances with different materialization/provenance semantics. The initial-ness of `D.` belongs to its derivation rule, not to a supposedly universal semantic role named `initial`.
 
 The same broad semantic concept can also have more than one legitimate materialization strategy in different structures.
 
@@ -200,9 +230,11 @@ This is a requirements vocabulary, not a requirement to add every value to one r
 
 Implementation should add supported roles as concrete structures need them. TypeScript exhaustiveness is desirable: adding a new semantic role should force deliberate answers where that role changes provenance, generation, audition, style, locking, reroll, persistence, or Inspector behavior.
 
+A narrower future domain must be able to define a narrower vocabulary without importing Fiction Cast roles such as epithet, house, or regnal identity merely because it reuses some structural mechanics.
+
 ## Proposed materialized identity shape
 
-The first implementation should remain Fiction Cast-owned rather than introducing a universal cross-product identity framework.
+The first implementation should remain Fiction Cast-owned rather than introducing a universal cross-product identity framework or shared heterogeneous `NamePart` abstraction.
 
 Conceptually:
 
@@ -226,12 +258,15 @@ interface FictionCastMaterializedIdentity {
 
 The exact TypeScript names are implementation choices. The important contract is:
 
-1. materialization class is explicit;
-2. semantic role is explicit;
+1. component materialization class is explicit;
+2. semantic role is explicit and independent from class;
 3. generated, lexical, and derived provenance have different shapes;
 4. phrase order is separate from component inventory;
-5. literals do not become fake generated components;
-6. hidden/support source components may be retained without requiring them to appear directly in the displayed phrase.
+5. literals remain phrase material rather than fake components;
+6. hidden/support source components may be retained without requiring them to appear directly in the displayed phrase;
+7. the representation belongs to Fiction Cast unless a smaller role-agnostic structural primitive is independently demonstrated.
+
+This remains consistent with Decision 0006's rule that composition uses concrete values. The component union is the Fiction Cast surface's resolved aggregate representation; it is not a replacement for `GeneratedName`, semantic naming capabilities, or the generic one-name generation path.
 
 ### Generated component provenance
 
@@ -274,7 +309,7 @@ A future derivation may depend on retained source material that is not itself re
 
 ## Current structures under the new model
 
-The current shipped structures already exercise every materialization class and should be the migration fixture for the new model.
+The current shipped structures collectively exercise all three component classes plus literal phrase material and should be the migration fixture for the new model.
 
 ### Given only
 
@@ -315,15 +350,15 @@ D. Bayr
 Components:
 
 - `Daywoj` — generated, primary personal source;
-- `D.` — derived from `Daywoj`;
+- `D.` — derived, primary personal, from `Daywoj` by the initial derivation rule;
 - `Bayr` — generated, family.
 
 Phrase:
 
-- derived initial;
+- derived initial representation;
 - family.
 
-This is an important correction to the current shape: the underlying independently generated personal name remains part of provenance even though the phrase renders only its initial.
+This is an important correction to the current shape: the underlying independently generated personal name remains part of provenance even though the phrase renders only its derived initial.
 
 Inspector should therefore still be able to enumerate `Daywoj` and `Bayr` as the genuinely generated artifacts. `D.` is construction/derivation evidence, not a third generated name.
 
@@ -361,7 +396,7 @@ Phrase:
 
 - primary personal;
 - epithet;
-- literal `of`;
+- literal phrase part `of`;
 - place.
 
 ## Richer identity cases
@@ -388,6 +423,7 @@ Semantic role must not imply uniqueness.
 
 At minimum:
 
+- primary personal source and a derived representation of it may coexist;
 - additional personal names may repeat;
 - aliases/by-names may eventually repeat;
 - titles/honorifics may eventually appear more than once in some structures;
@@ -399,6 +435,7 @@ A structure may declare instance keys such as conceptually:
 
 ```text
 personal:primary
+personal:primary:initial
 personal:additional:0
 personal:additional:1
 family:0
@@ -409,11 +446,11 @@ The exact key syntax is not a public contract. The requirement is stable address
 
 ## Deterministic materialization
 
-Same resolved settings + seed + structure definition/version must reproduce the same materialized identity.
+Same resolved settings + seed + structure definition/version must reproduce the same materialized identity under the active deterministic contract.
 
 Component choice should be driven by explicit deterministic context, not by incidental fingerprints of another component's displayed text unless that dependency is part of the declared semantic rule.
 
-In particular, future lexical selection should prefer a stable component-instance seed namespace over patterns such as selecting a title by hashing the generated given-name spelling. That gives each materialized choice an explicit causal input and makes later component-level reroll semantics possible without inventing hidden dependencies.
+In particular, future lexical selection should prefer a stable component-instance seed namespace over patterns such as selecting a title by hashing the generated given-name spelling. That gives each independently materialized choice an explicit causal input and makes later component-level reroll semantics possible without inventing hidden dependencies.
 
 Conceptually:
 
@@ -428,6 +465,8 @@ cast seed
 Generated-name components still delegate their own internal determinism to the semantic naming callback / `generateName(...)` boundary.
 
 This requirement does not promise that future algorithm versions will reproduce historical results from seed alone. Remembered/persisted casts must retain the resolved materialized identity rather than reinterpret old results against new component definitions.
+
+The current `FictionCastRememberedCast` already retains the complete `FictionCastGeneratedEnsemble`, which is the correct ownership direction: once the richer materialized identity is part of that result, remembered casts can retain the resolved identity rather than introducing a seed-only reconstruction contract.
 
 ## Structure definitions and versioning
 
@@ -461,7 +500,7 @@ A future advanced component-oriented control may be justified by concrete workfl
 
 ## Naming style
 
-The four materialization classes participate in Naming style differently.
+The three component classes and phrase material participate in Naming style differently.
 
 ### Generated components
 
@@ -475,7 +514,7 @@ May select from style-scoped Fiction Cast inventories or deliberately shared inv
 
 Inherit their form from explicit source material and derivation rules. They do not receive independent style influence unless the derivation rule itself is style-scoped.
 
-### Literals
+### Phrase literals
 
 Belong to structure grammar. A literal may differ by style/structure only when that is an explicit composition decision. Do not treat every connector as a generated or independently scored style value.
 
@@ -518,7 +557,9 @@ Lexical, derived, and literal material remain text-oriented unless a separate ex
 
 A derivation such as an initial or future patronymic must not automatically inherit the source component's sound sequence merely because it is derived from that source.
 
-Whole-identity audition remains a surface composition over the materialized phrase. Pronunciation authority remains separately governed by #222.
+Whole-identity and component audition presentation remains Fiction Cast-owned, consistent with the existing architecture. A lower phrase renderer may remain shared only if it is genuinely role-agnostic and consumes resolved phrase/text/sound evidence rather than Fiction Cast roles or structure names.
+
+Pronunciation authority remains separately governed by #222.
 
 ## Locks and reroll
 
@@ -593,17 +634,23 @@ Adding one supported component should normally require:
 4. add it to one or more curated identity structures;
 5. add focused fixtures/tests.
 
-It should **not** require bespoke rewrites of generic identity traversal, phrase rendering, Inspector provenance classification, audition classification, persistence traversal, and every existing structure merely because one component was added.
+It should **not** require bespoke rewrites of role-agnostic identity traversal, phrase rendering, Inspector provenance classification, audition classification, persistence traversal, and every existing structure merely because one component was added.
 
 Conversely, do not create `registerIdentityComponent(...)`, arbitrary materializer callbacks, a plugin registry, or a universal grammar DSL merely to make a new role appear zero-touch.
 
 TypeScript exhaustiveness is a feature here: a genuinely new semantic capability should make the compiler surface places where product semantics need an explicit decision.
 
+The portability test remains:
+
+> Can a narrower domain reuse any genuinely shared structural mechanics without dragging Fiction Cast's fantastical semantic vocabulary along with it?
+
+Passing that test does not require extracting the shared mechanics during #252. It requires that the Fiction Cast design not make future extraction impossible or semantically dishonest.
+
 ## First implementation decomposition
 
 The recommended bounded sequence after this design is accepted is:
 
-### A. Migrate current identities onto explicit component provenance
+### A. #255 — Migrate current identities onto explicit component provenance
 
 Without adding new user-visible identity structures:
 
@@ -612,23 +659,28 @@ Without adding new user-visible identity structures:
 - migrate all five current materialized structures;
 - retain the underlying generated personal source for `initials-family`;
 - stop assigning fake generated-name provenance to title/epithet lexical values;
-- make Inspector/audition consume materialization class rather than infer it from role/string equality;
+- make Inspector/audition consume explicit materialization truth rather than infer it from role/string equality;
 - keep `primaryName` as the current compatibility/scoring anchor;
-- preserve existing Configure behavior.
+- preserve existing Configure behavior;
+- do not reorganize already-correct Fiction Cast orchestration merely for directory purity;
+- add a curated `src/fictionCast/index.ts` only if the implementation produces a real public-boundary benefit.
 
 This slice proves the ontology against production behavior before expanding it.
 
-### B. Make component selection deterministically explicit
+### B. #256 — Make component selection deterministically explicit
+
+As a separate follow-up because it may deliberately change same-seed visible lexical choices:
 
 - give lexical/component selections explicit deterministic component-instance seed namespaces;
 - remove incidental lexical dependence on another component's spelling where no semantic dependency exists;
-- retain enough structure/version material for remembered identities to preserve resolved meaning.
+- retain enough structure/version material for remembered identities to preserve resolved meaning;
+- document any intentional deterministic-contract migration.
 
-This may be combined with A if the resulting diff remains bounded and deterministic-compatibility expectations are explicit.
+Do not preserve accidental string-fingerprint coupling merely to keep old same-seed lexical output, but do not hide that behavior change inside the provenance migration either.
 
-### C. Add the first richer generated structure: additional personal name
+### C. #257 — Add the first richer generated structure: additional personal name
 
-Prefer additional/middle personal naming as the first new structure because it exercises:
+Prefer additional-personal naming as the first new structure because it exercises:
 
 - repeated generated semantic component roles;
 - multiple independently generated artifacts in one identity;
@@ -638,14 +690,13 @@ Prefer additional/middle personal naming as the first new structure because it e
 
 without first requiring a new derivation language or relationship model.
 
-Potential examples:
+Potential example:
 
 ```text
 Daywoj Aven Bayr
-Daywoj Aven
 ```
 
-The exact visible structures require a separate bounded implementation issue.
+The user-facing label may be `Middle name` only where that wording accurately describes the selected structure/style; the underlying role should remain the broader additional-personal concept.
 
 ### D. Add richer lexical/derivation families only after the component contract proves stable
 
@@ -666,24 +717,34 @@ The design is successful when all of these statements can be true without specia
 
 1. `Daywoj Bayr` contains two independently generated name components.
 2. `D. Bayr` still retains Daywoj as the generated source of `D.` and does not call the initial a generated name.
-3. `Archivist Daywoj` identifies Archivist as a lexical selection rather than attributing it to Daywoj's generated-name evidence.
-4. `Daywoj the Ashen of Morvane` distinguishes two generated components, one lexical component, and one literal.
-5. two additional personal names can coexist without inventing two new complete format ontologies.
-6. a future patronymic can retain derivation provenance without masquerading as an independent generated artifact.
-7. a future narrower personal-name domain could reuse any proven structural mechanics without importing Fiction Cast roles such as epithet or fantasy house.
-8. Product/Company/Place examples do not force changes to Fiction Cast semantic-role vocabulary merely to validate the component classes.
-9. no hierarchy/graph framework is required to explain identity composition.
-10. adding one new supported component does not require a universal plugin or grammar framework.
+3. `D.` can remain semantically primary-personal while its initial form is expressed by derivation semantics rather than a separate universal `initial` role.
+4. `Archivist Daywoj` identifies Archivist as a lexical selection rather than attributing it to Daywoj's generated-name evidence.
+5. `Daywoj the Ashen of Morvane` distinguishes two generated components, one lexical component, and one literal phrase part.
+6. two additional personal names can coexist without inventing two new complete format ontologies.
+7. a future patronymic can retain derivation provenance without masquerading as an independent generated artifact.
+8. a future narrower personal-name domain could reuse any proven structural mechanics without importing Fiction Cast roles such as epithet or fantasy house.
+9. Product/Company/Place examples do not force changes to Fiction Cast semantic-role vocabulary merely to validate the component classes.
+10. no hierarchy/graph framework is required to explain identity composition.
+11. adding one new supported component does not require a universal plugin or grammar framework.
+12. the design remains consistent with the existing singular `GeneratedName` boundary and surface-owned composition decisions.
 
-## Open decisions
+## Resolved and remaining implementation decisions
 
-The following should be settled during the first implementation decomposition rather than guessed here:
+The design pass resolves these points:
 
-- whether the first concrete component union lives directly in `src/fictionCast` or whether an already-proven tiny structural base can remain in a neutral module without importing Fiction Cast roles;
+- Fiction Cast composition remains under the existing `src/fictionCast/` domain ownership;
+- the materialized identity has three independently addressable component classes: generated, lexical, derived;
+- literals/grammar are separate phrase material, not a fourth component class;
+- representational forms such as an initial belong in derivation semantics rather than forcing a separate semantic role;
+- deterministic lexical reseeding is a separate follow-up (#256), not hidden inside the provenance migration (#255);
+- a curated `src/fictionCast/index.ts` is optional and should be introduced only if it clarifies a real public boundary.
+
+The following implementation choices remain deliberately open for #255 / #256:
+
 - whether generated components retain the complete `GeneratedName` object or a lossless/provenance-preserving reference/projection;
-- the minimum structure-version field required for durable remembered casts;
+- the smallest structure-version field required for durable remembered casts;
 - whether component-instance keys are persisted or remain deterministic implementation metadata;
-- whether the first migration should rename `format` to `structure` immediately or preserve compatibility terminology behind a Fiction Cast adapter;
-- whether deterministic lexical reseeding belongs in the provenance migration slice or a separate follow-up because it changes same-seed output relative to the current implementation.
+- whether the first migration renames `format` to `structure` immediately or preserves compatibility terminology behind a Fiction Cast adapter;
+- whether any existing phrase/traversal types can remain genuinely shared after Fiction Cast-specific role/format assumptions are removed.
 
-None of these open decisions changes the central ontology: semantic role and materialization class remain separate, phrase grammar remains separate from component inventory, and richer identity expansion should proceed through curated structures over explicit provenance.
+None of these remaining choices changes the central ontology: semantic role and materialization class remain separate, phrase grammar remains separate from component inventory, singular generated-name evidence remains singular, and richer identity expansion should proceed through curated structures over explicit Fiction Cast provenance.
