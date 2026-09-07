@@ -54,6 +54,7 @@ export type FictionCastIdentityPhrasePart = FictionCastIdentityComponentReferenc
 
 export interface FictionCastIdentityStructure {
   readonly id: string;
+  readonly version: number;
   readonly kind: MaterializedNameFormatKind;
   readonly label: string;
 }
