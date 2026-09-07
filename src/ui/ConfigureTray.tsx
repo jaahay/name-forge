@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
+import type { FictionCastNameFormatKind } from '../fictionCast/identityFormat';
 import {
   fictionCastSemanticBaselineFromSettings,
   withFictionCastSemanticControl,
@@ -6,7 +7,7 @@ import {
 } from '../fictionCast/semanticIntent';
 import type { FictionCastSettings } from '../fictionCast/types';
 import { castVariationOptions, type FictionCastVariation } from '../fictionCast/variation';
-import type { NameFormatKind, StylePackSummary } from '../engine/types';
+import type { StylePackSummary } from '../engine/types';
 import { resolveConfigureFocusTarget, shouldCloseConfigureOnKey } from './configureBehavior';
 import {
   FictionCastRolesConfiguration,
@@ -16,7 +17,7 @@ import type { NamingModeConfig } from './modes';
 import { advancedScoreControls, primaryScoreControls, type ControlKey } from './presentation';
 import { ScoreControl } from './ScoreControl';
 
-export const formatOptions: Array<{ value: NameFormatKind; label: string }> = [
+export const formatOptions: Array<{ value: FictionCastNameFormatKind; label: string }> = [
   { value: 'mixed', label: 'Mixed cast formats' },
   { value: 'given-only', label: 'Given name only' },
   { value: 'given-family', label: 'Given + family' },
@@ -49,7 +50,7 @@ function clampCastSize(value: number): number {
   return Math.max(1, Math.min(24, Math.round(value)));
 }
 
-function labelForFormat(value: NameFormatKind | undefined): string {
+function labelForFormat(value: FictionCastNameFormatKind | undefined): string {
   return formatOptions.find((option) => option.value === (value ?? 'given-only'))?.label ?? 'Given name only';
 }
 
@@ -250,7 +251,7 @@ export function ConfigureTray({
                 <div className="control-section-body">
                   <label>
                     <span>Name format</span>
-                    <select value={settings.nameFormat ?? 'given-only'} onChange={(event) => onUpdateSetting('nameFormat', event.target.value as NameFormatKind)}>
+                    <select value={settings.nameFormat ?? 'given-only'} onChange={(event) => onUpdateSetting('nameFormat', event.target.value as FictionCastNameFormatKind)}>
                       {formatOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                     </select>
                   </label>
