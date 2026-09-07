@@ -1,6 +1,5 @@
 import { createSeededRandom } from '../engine/random';
-import type { NameFormatKind } from '../engine/types';
-import type { MaterializedNameFormatKind } from './identityFormat';
+import type { FictionCastNameFormatKind, MaterializedNameFormatKind } from './identityFormat';
 
 export type { MaterializedNameFormatKind } from './identityFormat';
 
@@ -31,7 +30,7 @@ function wouldCreateThreeFormatRun(
 }
 
 export function resolveMaterializedFormatPlan(
-  format: NameFormatKind | undefined,
+  format: FictionCastNameFormatKind | undefined,
   seed: string,
   castSize: number,
   lockedFormats: ReadonlyMap<number, MaterializedNameFormatKind> = new Map(),
