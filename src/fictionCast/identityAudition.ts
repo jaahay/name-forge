@@ -42,7 +42,7 @@ export interface IdentityAuditionTextPart extends IdentityAuditionBasePart {
   readonly speechSource: 'identity-text';
   readonly displaySource: 'identity-text';
   readonly componentId: string;
-  readonly componentKind: 'lexical' | 'derived';
+  readonly componentKind: FictionCastIdentityComponent['kind'];
 }
 
 export interface IdentityAuditionLiteralPart extends IdentityAuditionBasePart {
@@ -72,7 +72,7 @@ function componentById(identity: FictionCastMaterializedIdentity): ReadonlyMap<s
   return new Map(identity.components.map((component) => [component.id, component]));
 }
 
-function renderTextPart(index: number, component: Exclude<FictionCastIdentityComponent, FictionCastGeneratedIdentityComponent>): IdentityAuditionTextPart {
+function renderTextPart(index: number, component: FictionCastIdentityComponent): IdentityAuditionTextPart {
   return {
     index,
     kind: 'text',
@@ -129,21 +129,6 @@ function renderIdentityPart(
       sourceName: component.generatedName.name,
       transcription: component.generatedName.sound.transcription,
       cue,
-    };
-  }
-
-  if (component.kind === 'generated') {
-    return {
-      index,
-      kind: 'text',
-      role: component.role,
-      value: component.value,
-      speechText: component.value,
-      displayText: component.value,
-      speechSource: 'identity-text',
-      displaySource: 'identity-text',
-      componentId: component.id,
-      componentKind: 'derived',
     };
   }
 
