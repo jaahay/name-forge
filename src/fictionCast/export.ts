@@ -1,10 +1,21 @@
 import type { SoundProfile } from '../engine/soundProfile';
 import type { GeneratedName, NameGenerationPlan, NameVariant, ReadabilityDiagnostic } from '../engine/types';
+import type { FictionCastIdentityComponent } from './identityTypes';
 import type { FictionCastRarityBand } from './rarity';
 import { fictionCastBaselineGenerationSettings } from './semanticIntent';
 import type { FictionCastGeneratedEnsemble, FictionCastGeneratedName, FictionCastSettings, RoleInfluenceMetadata } from './types';
 
-export interface ExportedNamePart { role: string; value: string; sourceName: string; }
+export interface ExportedNamePart {
+  role: string;
+  value: string;
+  kind: FictionCastIdentityComponent['kind'];
+  sourceName?: string;
+  sourceNameId?: string;
+  lexemeId?: string;
+  inventoryId?: string;
+  derivationRuleId?: string;
+  sourceComponentIds?: string[];
+}
 export interface ExportedRoleInfluence { level: RoleInfluenceMetadata['level']; profileId: string; label: string; effects: string[]; }
 export interface ExportedReadabilityDiagnostic { id: string; severity: ReadabilityDiagnostic['severity']; label: string; detail: string; }
 export interface ExportedNameVariant { value: string; kind: NameVariant['kind']; relationship: NameVariant['relationship']; confidence: NameVariant['confidence']; generated: boolean; ruleId: string; sourceId: string; sourceKind: NameVariant['source']['kind']; sourceLabel: string; locale?: string; }
@@ -41,6 +52,35 @@ function exportSound(name: GeneratedName): ExportedSound {
   const spellingCandidates = name.spellingCandidates.map((candidate) => exportSpellingCandidate(candidate, name.spelling));
   const selectedSpelling = exportSpellingCandidate(name.spelling, name.spelling);
   return { profile: name.soundProfile, transcription: name.sound.transcription, selectedSpelling: { ...selectedSpelling, selected: true }, spellingCandidates };
+}
+function exportIdentityComponent(component: FictionCastIdentityComponent): ExportedNamePart {
+  if (component.kind === 'generated') {
+    return {
+      kind: component.kind,
+      role: component.role,
+      value: component.value,
+      sourceName: component.generatedName.name,
+      sourceNameId: component.generatedName.id,
+    };
+  }
+
+  if (component.kind === 'lexical') {
+    return {
+      kind: component.kind,
+      role: component.role,
+      value: component.value,
+      lexemeId: component.lexemeId,
+      inventoryId: component.inventoryId,
+    };
+  }
+
+  return {
+    kind: component.kind,
+    role: component.role,
+    value: component.value,
+    derivationRuleId: component.derivation.ruleId,
+    sourceComponentIds: [...component.derivation.sourceComponentIds],
+  };
 }
 function diagnosticText(diagnostics: ExportedReadabilityDiagnostic[]): string { return diagnostics.length === 0 ? 'None' : diagnostics.map((diagnostic) => diagnostic.label + ': ' + diagnostic.detail).join('; '); }
 function relationshipLabel(relationship: ExportedNameVariant['relationship']): string { return relationship.replace(/_/g, ' '); }
@@ -88,7 +128,7 @@ function exportName(name: FictionCastGeneratedName, seed: string): ExportedName 
     sound: exportSound(primaryName),
     generationPlan: { syllableCount: generationPlan.syllableCount, stressPattern: generationPlan.stressPattern, rhythm: generationPlan.rhythm, rarityBand: name.rarityBand, texture: generationPlan.texture, targetNovelty: generationPlan.targetNovelty, targetLength: generationPlan.targetLength },
     format: name.identity.format.label,
-    parts: name.identity.parts.map((part) => ({ role: part.role, value: part.value, sourceName: part.sourceName })),
+    parts: name.identity.components.map(exportIdentityComponent),
     variants: exportVariants(primaryName.variants),
     seed,
     warnings: name.readabilityDiagnostics.filter((diagnostic) => diagnostic.severity === 'warning').map((diagnostic) => diagnostic.label),
