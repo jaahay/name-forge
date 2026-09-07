@@ -13,7 +13,11 @@ import {
   resolveMaterializedFormatPlan,
   type MaterializedNameFormatKind,
 } from './formatSelection';
-import { createNameIdentity, requiresSupportingName } from './identity';
+import {
+  componentMaterializationSeed,
+  type FictionCastIdentityMaterializationContext,
+} from './identityDeterminism';
+import { createNameIdentity, identityStructureForFormat, requiresSupportingName } from './identity';
 import { renderIdentityAuditionPhrase } from './identityAudition';
 import { rarityBandForNovelty } from './rarity';
 import { isRoleInfluenceActive, resolveCastRole, resolveRoleInfluence } from './roles';
@@ -41,6 +45,16 @@ function endingKey(name: string): string { const normalized = name.toLowerCase()
 function cadenceKey(name: FictionCastGeneratedName): string { return `${name.primaryName.generationPlan.stressPattern}:${name.primaryName.generationPlan.syllableCount}:${name.primaryName.generationPlan.rhythm}`; }
 function countRepeated(values: string[]): number { const seen = new Set<string>(); let repeated = 0; for (const value of values) { if (seen.has(value)) repeated += 1; seen.add(value); } return repeated; }
 function roleSeedSegment(settings: FictionCastSettings, role?: CastRoleAssignment): string { return role && isRoleInfluenceActive(settings) ? `:role-${role.role}` : ''; }
+function generatedComponentSeed(
+  settings: FictionCastSettings,
+  role: CastRoleAssignment | undefined,
+  materializationContext: FictionCastIdentityMaterializationContext,
+  formatKind: MaterializedNameFormatKind,
+  componentInstanceKey: string,
+): string {
+  const structure = identityStructureForFormat(formatKind);
+  return `${componentMaterializationSeed(materializationContext, structure, componentInstanceKey)}${roleSeedSegment(settings, role)}`;
+}
 function ensembleFitScore(candidate: FictionCastGeneratedName, selected: FictionCastGeneratedName[]): number { const initials = new Set(selected.map((name) => name.displayName.charAt(0).toLowerCase())); const endings = new Set(selected.map((name) => endingKey(name.displayName))); const cadences = new Set(selected.map(cadenceKey)); const names = new Set(selected.map((name) => name.displayName.toLowerCase())); const penalty = (initials.has(candidate.displayName.charAt(0).toLowerCase()) ? 0.24 : 0) + (endings.has(endingKey(candidate.displayName)) ? 0.22 : 0) + (cadences.has(cadenceKey(candidate)) ? 0.16 : 0) + (names.has(candidate.displayName.toLowerCase()) ? 1 : 0); return clamp(1 - penalty); }
 function withEnsembleFit(candidate: FictionCastGeneratedName, selected: FictionCastGeneratedName[], settings: FictionCastSettings, slotIndex: number): FictionCastGeneratedName {
   const ensembleFit = ensembleFitScore(candidate, selected);
@@ -78,20 +92,31 @@ function withNameIdentity(
   settings: FictionCastSettings,
   registry: SourceRegistry,
   index: number,
-  attempt: number,
   formatKind: MaterializedNameFormatKind,
+  materializationContext: FictionCastIdentityMaterializationContext,
 ): FictionCastGeneratedName {
   const supportingKind = supportingComponentKindForFormat(formatKind);
   const supportingIndex = index + 1000;
   const supportingContext = supportingKind
     ? resolveFictionCastComponentGenerationContext(settings, candidate.role, supportingKind, index)
     : undefined;
-  const supportingOptions = supportingContext
+  const supportingComponentKey = supportingKind === 'family'
+    ? 'component:family:0'
+    : supportingKind === 'place'
+      ? 'component:place:0'
+      : undefined;
+  const supportingOptions = supportingContext && supportingComponentKey
     ? {
       settings: supportingContext.settings,
       registry,
       determinism: {
-        seed: `${settings.seed}${roleSeedSegment(settings, candidate.role)}:slot-${index}:supporting-${attempt}`,
+        seed: generatedComponentSeed(
+          settings,
+          candidate.role,
+          materializationContext,
+          formatKind,
+          supportingComponentKey,
+        ),
         resultIndex: supportingIndex,
       },
       preferences: supportingContext.preferences,
@@ -104,7 +129,7 @@ function withNameIdentity(
         ? generatePlaceName(supportingOptions)
         : undefined
     : undefined;
-  const identity = createNameIdentity(candidate.primaryName, supportingName, formatKind);
+  const identity = createNameIdentity(candidate.primaryName, supportingName, formatKind, materializationContext);
   const identityAudition = renderIdentityAuditionPhrase(identity);
   const safeDisplaySlug = identity.displayName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   return {
@@ -173,11 +198,22 @@ export function generateEnsemble(settings: FictionCastSettings, registry: Source
     const primaryContext = resolveFictionCastComponentGenerationContext(safeSettings, role, 'given', index);
     const rarityBand = rarityBandForNovelty(primaryContext.settings.novelty);
     const candidates = Array.from({ length: 16 }, (_, attempt) => {
+      const materializationContext: FictionCastIdentityMaterializationContext = {
+        castSeed: safeSettings.seed,
+        slotIndex: index,
+        candidateAttempt: attempt,
+      };
       const generated = generateGivenName({
         settings: primaryContext.settings,
         registry,
         determinism: {
-          seed: `${safeSettings.seed}${roleSeedSegment(safeSettings, role)}:slot-${index}:attempt-${attempt}`,
+          seed: generatedComponentSeed(
+            safeSettings,
+            role,
+            materializationContext,
+            formatKind,
+            'component:given:0',
+          ),
           resultIndex: index,
         },
         preferences: primaryContext.preferences,
@@ -193,7 +229,7 @@ export function generateEnsemble(settings: FictionCastSettings, registry: Source
         },
       };
       return withEnsembleFit(
-        withNameIdentity(baseName, safeSettings, registry, index, attempt, formatKind),
+        withNameIdentity(baseName, safeSettings, registry, index, formatKind, materializationContext),
         selected,
         safeSettings,
         index,
