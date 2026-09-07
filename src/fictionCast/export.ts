@@ -1,21 +1,20 @@
 import type { SoundProfile } from '../engine/soundProfile';
 import type { GeneratedName, NameGenerationPlan, NameVariant, ReadabilityDiagnostic } from '../engine/types';
-import type { FictionCastIdentityComponent } from './identityTypes';
+import type { FictionCastIdentityComponent, FictionCastIdentityPhrasePart } from './identityTypes';
 import type { FictionCastRarityBand } from './rarity';
 import { fictionCastBaselineGenerationSettings } from './semanticIntent';
 import type { FictionCastGeneratedEnsemble, FictionCastGeneratedName, FictionCastSettings, RoleInfluenceMetadata } from './types';
 
-export interface ExportedNamePart {
+interface ExportedIdentityComponentBase {
+  id: string;
   role: string;
   value: string;
-  kind: FictionCastIdentityComponent['kind'];
-  sourceName?: string;
-  sourceNameId?: string;
-  lexemeId?: string;
-  inventoryId?: string;
-  derivationRuleId?: string;
-  sourceComponentIds?: string[];
 }
+export interface ExportedGeneratedIdentityComponent extends ExportedIdentityComponentBase { kind: 'generated'; generatedNameId: string; generatedName: string; }
+export interface ExportedLexicalIdentityComponent extends ExportedIdentityComponentBase { kind: 'lexical'; lexemeId: string; inventoryId: string; }
+export interface ExportedDerivedIdentityComponent extends ExportedIdentityComponentBase { kind: 'derived'; derivationRuleId: string; sourceComponentIds: string[]; }
+export type ExportedIdentityComponent = ExportedGeneratedIdentityComponent | ExportedLexicalIdentityComponent | ExportedDerivedIdentityComponent;
+export type ExportedIdentityPhrasePart = { kind: 'component'; componentId: string } | { kind: 'literal'; value: string };
 export interface ExportedRoleInfluence { level: RoleInfluenceMetadata['level']; profileId: string; label: string; effects: string[]; }
 export interface ExportedReadabilityDiagnostic { id: string; severity: ReadabilityDiagnostic['severity']; label: string; detail: string; }
 export interface ExportedNameVariant { value: string; kind: NameVariant['kind']; relationship: NameVariant['relationship']; confidence: NameVariant['confidence']; generated: boolean; ruleId: string; sourceId: string; sourceKind: NameVariant['source']['kind']; sourceLabel: string; locale?: string; }
@@ -24,7 +23,7 @@ export interface ExportedSelectedSpelling extends ExportedSpellingCandidate { se
 export interface ExportedSound { profile: SoundProfile; transcription: string; selectedSpelling: ExportedSelectedSpelling; spellingCandidates: ExportedSpellingCandidate[]; }
 export type ExportedNameScores = Omit<GeneratedName['scores'], 'overallFit'> & { ensembleFit: number; roleFit: number; overallFit: number; };
 export type ExportedGenerationPlan = Pick<NameGenerationPlan, 'syllableCount' | 'stressPattern' | 'rhythm' | 'texture' | 'targetNovelty' | 'targetLength'> & { rarityBand: FictionCastRarityBand; };
-export interface ExportedName { id: string; name: string; role?: string; roleInfluence?: ExportedRoleInfluence; readabilityDiagnostics: ExportedReadabilityDiagnostic[]; score: number; scores: ExportedNameScores; sound: ExportedSound; generationPlan: ExportedGenerationPlan; format: string; parts: ExportedNamePart[]; variants: ExportedNameVariant[]; seed: string; warnings: string[]; }
+export interface ExportedName { id: string; name: string; role?: string; roleInfluence?: ExportedRoleInfluence; readabilityDiagnostics: ExportedReadabilityDiagnostic[]; score: number; scores: ExportedNameScores; sound: ExportedSound; generationPlan: ExportedGenerationPlan; format: string; components: ExportedIdentityComponent[]; phraseParts: ExportedIdentityPhrasePart[]; variants: ExportedNameVariant[]; seed: string; warnings: string[]; }
 export interface ExportedFictionCastSettings {
   castSize: number;
   novelty: number;
@@ -53,19 +52,21 @@ function exportSound(name: GeneratedName): ExportedSound {
   const selectedSpelling = exportSpellingCandidate(name.spelling, name.spelling);
   return { profile: name.soundProfile, transcription: name.sound.transcription, selectedSpelling: { ...selectedSpelling, selected: true }, spellingCandidates };
 }
-function exportIdentityComponent(component: FictionCastIdentityComponent): ExportedNamePart {
+function exportIdentityComponent(component: FictionCastIdentityComponent): ExportedIdentityComponent {
   if (component.kind === 'generated') {
     return {
+      id: component.id,
       kind: component.kind,
       role: component.role,
       value: component.value,
-      sourceName: component.generatedName.name,
-      sourceNameId: component.generatedName.id,
+      generatedName: component.generatedName.name,
+      generatedNameId: component.generatedName.id,
     };
   }
 
   if (component.kind === 'lexical') {
     return {
+      id: component.id,
       kind: component.kind,
       role: component.role,
       value: component.value,
@@ -75,12 +76,18 @@ function exportIdentityComponent(component: FictionCastIdentityComponent): Expor
   }
 
   return {
+    id: component.id,
     kind: component.kind,
     role: component.role,
     value: component.value,
     derivationRuleId: component.derivation.ruleId,
     sourceComponentIds: [...component.derivation.sourceComponentIds],
   };
+}
+function exportIdentityPhrasePart(part: FictionCastIdentityPhrasePart): ExportedIdentityPhrasePart {
+  return part.kind === 'component'
+    ? { kind: 'component', componentId: part.componentId }
+    : { kind: 'literal', value: part.value };
 }
 function diagnosticText(diagnostics: ExportedReadabilityDiagnostic[]): string { return diagnostics.length === 0 ? 'None' : diagnostics.map((diagnostic) => diagnostic.label + ': ' + diagnostic.detail).join('; '); }
 function relationshipLabel(relationship: ExportedNameVariant['relationship']): string { return relationship.replace(/_/g, ' '); }
@@ -128,7 +135,8 @@ function exportName(name: FictionCastGeneratedName, seed: string): ExportedName 
     sound: exportSound(primaryName),
     generationPlan: { syllableCount: generationPlan.syllableCount, stressPattern: generationPlan.stressPattern, rhythm: generationPlan.rhythm, rarityBand: name.rarityBand, texture: generationPlan.texture, targetNovelty: generationPlan.targetNovelty, targetLength: generationPlan.targetLength },
     format: name.identity.format.label,
-    parts: name.identity.components.map(exportIdentityComponent),
+    components: name.identity.components.map(exportIdentityComponent),
+    phraseParts: name.identity.phraseParts.map(exportIdentityPhrasePart),
     variants: exportVariants(primaryName.variants),
     seed,
     warnings: name.readabilityDiagnostics.filter((diagnostic) => diagnostic.severity === 'warning').map((diagnostic) => diagnostic.label),
@@ -145,9 +153,9 @@ export function serializeCastAsMarkdown(ensemble: FictionCastGeneratedEnsemble):
   const lines = ['# Name Forge Cast Export', '', 'Seed: `' + ensemble.settings.seed + '`', 'Style pack: ' + ensemble.sourcePack.label, 'Cast size: ' + ensemble.names.length, 'Cast variation: ' + (ensemble.settings.castVariation ?? 'balanced'), 'Role influence: ' + (ensemble.settings.roleInfluence ?? 'off'), '', '## Ensemble balance', '', ensemble.diagnostics.summary, ensemble.diagnostics.readabilitySummary, ''];
   ensemble.names.forEach((name, index) => {
     const exported = exportName(name, ensemble.settings.seed);
-    const partText = exported.parts.length > 0 ? exported.parts.map((part) => part.role + ': ' + part.value).join('; ') : 'Single generated name';
+    const componentText = exported.components.length > 0 ? exported.components.map((component) => component.kind + ' ' + component.role + ': ' + component.value).join('; ') : 'None';
     const roleInfluenceText = exported.roleInfluence ? exported.roleInfluence.label + ' (' + exported.roleInfluence.level + '; ' + exported.roleInfluence.effects.join(', ') + ')' : 'Off';
-    lines.push('## ' + (index + 1) + '. ' + exported.name, '', '- Role: ' + (exported.role ?? 'Unassigned'), '- Role influence: ' + roleInfluenceText, '- Overall fit: ' + exported.score.toFixed(2), '- Format: ' + exported.format, '- Parts: ' + partText, '- Sound: ' + exported.sound.transcription + ' (' + soundProfileSummary(exported.sound.profile) + ')', '- Selected spelling: ' + exported.sound.selectedSpelling.text + ' (rank ' + exported.sound.selectedSpelling.rank + ', score ' + exported.sound.selectedSpelling.score.toFixed(2) + ')', '- Spelling candidates: ' + spellingCandidateText(exported.sound.spellingCandidates), '- Generation plan: ' + generationPlanSummary(name.primaryName.generationPlan, name.rarityBand), '- Readability notes: ' + diagnosticText(exported.readabilityDiagnostics), '- Variants: ' + variantText(exported.variants), '- Warnings: ' + (exported.warnings.length > 0 ? exported.warnings.join(', ') : 'none'), '');
+    lines.push('## ' + (index + 1) + '. ' + exported.name, '', '- Role: ' + (exported.role ?? 'Unassigned'), '- Role influence: ' + roleInfluenceText, '- Overall fit: ' + exported.score.toFixed(2), '- Format: ' + exported.format, '- Components: ' + componentText, '- Sound: ' + exported.sound.transcription + ' (' + soundProfileSummary(exported.sound.profile) + ')', '- Selected spelling: ' + exported.sound.selectedSpelling.text + ' (rank ' + exported.sound.selectedSpelling.rank + ', score ' + exported.sound.selectedSpelling.score.toFixed(2) + ')', '- Spelling candidates: ' + spellingCandidateText(exported.sound.spellingCandidates), '- Generation plan: ' + generationPlanSummary(name.primaryName.generationPlan, name.rarityBand), '- Readability notes: ' + diagnosticText(exported.readabilityDiagnostics), '- Variants: ' + variantText(exported.variants), '- Warnings: ' + (exported.warnings.length > 0 ? exported.warnings.join(', ') : 'none'), '');
   });
   return lines.join('\n').trimEnd() + '\n';
 }
