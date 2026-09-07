@@ -26,7 +26,8 @@ type GeneratedComponentRole = 'given' | 'family' | 'place';
 type AuditionCue = ReturnType<typeof renderAuditionCue>;
 
 interface GeneratedComponentEvidence {
-  readonly sourceNameId: string;
+  readonly componentId: string;
+  readonly generatedNameId: string;
   readonly value: string;
   readonly role: GeneratedComponentRole;
   readonly cue: AuditionCue;
@@ -35,7 +36,7 @@ interface GeneratedComponentEvidence {
 
 interface ComponentSelection {
   readonly nameId: string;
-  readonly sourceNameId: string;
+  readonly componentId: string;
 }
 
 let componentSpeechPlaybackToken = 0;
@@ -102,30 +103,20 @@ function InfoDisclosure({ label, children }: { label: string; children: ReactNod
   );
 }
 
-function isGeneratedComponentRole(role: string): role is GeneratedComponentRole {
-  return role === 'given' || role === 'family' || role === 'place';
-}
-
 function generatedComponents(name: FictionCastGeneratedName): GeneratedComponentEvidence[] {
-  const primaryCue = renderAuditionCue(name.primaryName.sound.sequence);
-  const components: GeneratedComponentEvidence[] = [{
-    sourceNameId: name.primaryName.id,
-    value: name.primaryName.name,
-    role: 'given',
-    cue: primaryCue,
-    transcription: name.primaryName.sound.transcription,
-  }];
-  const seen = new Set([name.primaryName.id]);
+  const components: GeneratedComponentEvidence[] = [];
+  const seenGeneratedNames = new Set<string>();
 
-  for (const part of name.identity.parts) {
-    if (!part.generation || !isGeneratedComponentRole(part.role) || seen.has(part.sourceNameId)) continue;
-    seen.add(part.sourceNameId);
+  for (const component of name.identity.components) {
+    if (component.kind !== 'generated' || seenGeneratedNames.has(component.generatedName.id)) continue;
+    seenGeneratedNames.add(component.generatedName.id);
     components.push({
-      sourceNameId: part.sourceNameId,
-      value: part.sourceName,
-      role: part.role,
-      cue: renderAuditionCue(part.generation.sound.sequence),
-      transcription: part.generation.sound.transcription,
+      componentId: component.id,
+      generatedNameId: component.generatedName.id,
+      value: component.generatedName.name,
+      role: component.role,
+      cue: renderAuditionCue(component.generatedName.sound.sequence),
+      transcription: component.generatedName.sound.transcription,
     });
   }
 
@@ -145,10 +136,10 @@ function GeneratedComponents({
   name: FictionCastGeneratedName;
   components: GeneratedComponentEvidence[];
   selectedComponentId: string;
-  onSelectComponent: (sourceNameId: string) => void;
+  onSelectComponent: (componentId: string) => void;
 }) {
   const browserSpeechAvailable = canUseBrowserSpeech();
-  const selectedComponent = components.find((component) => component.sourceNameId === selectedComponentId) ?? components[0];
+  const selectedComponent = components.find((component) => component.componentId === selectedComponentId) ?? components[0];
   if (!selectedComponent) return null;
 
   const detailId = componentDetailId(name);
@@ -161,17 +152,17 @@ function GeneratedComponents({
         {components.map((component) => {
           const roleLabel = labelFor(component.role);
           const playLabel = `Play approximate browser voice for ${component.value}`;
-          const selected = component.sourceNameId === selectedComponent.sourceNameId;
+          const selected = component.componentId === selectedComponent.componentId;
 
           return (
-            <li key={component.sourceNameId}>
+            <li key={component.componentId}>
               <button
                 type="button"
                 className="inspector-generated-component-focus"
                 aria-controls={detailId}
                 aria-pressed={selected}
                 aria-label={`Inspect ${roleLabel.toLowerCase()} component ${component.value}`}
-                onClick={() => onSelectComponent(component.sourceNameId)}
+                onClick={() => onSelectComponent(component.componentId)}
               >
                 <strong>{component.value}</strong>
               </button>
@@ -328,7 +319,7 @@ function technicalConstruction(name: FictionCastGeneratedName) {
         <section className="inspector-detail-group">
           <h3>Composition</h3>
           <ul className="inspector-name-parts">
-            {identity.parts.map((part) => <li key={part.id}><span>{part.value}</span><em>{part.role}</em></li>)}
+            {identity.components.map((component) => <li key={component.id}><span>{component.value}</span><em>{component.role}</em></li>)}
           </ul>
         </section>
       </div>
@@ -360,18 +351,26 @@ export function NameInspector({
   onRerollName,
   onToggleLockedName,
 }: NameInspectorProps) {
-  const primaryNameIsVisible = name.identity.parts.some((part) => (
-    part.sourceNameId === name.primaryName.id && part.value === name.primaryName.name
+  const primaryComponent = name.identity.components.find((component) => (
+    component.kind === 'generated'
+      && component.generatedName.id === name.primaryName.id
+      && component.value === name.primaryName.name
+  ));
+  const primaryNameIsVisible = primaryComponent !== undefined && name.identity.phraseParts.some((phrasePart) => (
+    phrasePart.kind === 'component' && phrasePart.componentId === primaryComponent.id
   ));
   const components = generatedComponents(name);
+  const defaultComponentId = components.find((component) => component.generatedNameId === name.primaryName.id)?.componentId
+    ?? components[0]?.componentId
+    ?? '';
   const [componentSelection, setComponentSelection] = useState<ComponentSelection>({
     nameId: name.id,
-    sourceNameId: name.primaryName.id,
+    componentId: defaultComponentId,
   });
   const selectedComponentId = componentSelection.nameId === name.id
-    && components.some((component) => component.sourceNameId === componentSelection.sourceNameId)
-    ? componentSelection.sourceNameId
-    : components[0]?.sourceNameId ?? name.primaryName.id;
+    && components.some((component) => component.componentId === componentSelection.componentId)
+    ? componentSelection.componentId
+    : defaultComponentId;
 
   return (
     <NameArtifactInspector
@@ -390,7 +389,7 @@ export function NameInspector({
           name={name}
           components={components}
           selectedComponentId={selectedComponentId}
-          onSelectComponent={(sourceNameId) => setComponentSelection({ nameId: name.id, sourceNameId })}
+          onSelectComponent={(componentId) => setComponentSelection({ nameId: name.id, componentId })}
         />
       )}
       detailsLabel="Details"
