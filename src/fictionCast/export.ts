@@ -70,7 +70,7 @@ function exportIdentityComponent(component: FictionCastIdentityComponent): Expor
       role: component.role,
       value: component.value,
       lexemeId: component.lexemeId,
-      inventoryId,
+      inventoryId: component.inventoryId,
     };
   }
 
