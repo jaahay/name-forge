@@ -6,7 +6,7 @@ import {
 } from './semanticIntent';
 import type { CastRoleAssignment, FictionCastSettings } from './types';
 
-export type FictionCastSoundComponentKind = 'given' | 'family' | 'place';
+export type FictionCastSoundComponentKind = 'given' | 'additional-personal' | 'family' | 'place';
 export type MaterializedComponentFormat = MaterializedNameFormatKind;
 
 export interface FictionCastComponentGenerationContext {
@@ -17,7 +17,7 @@ export interface FictionCastComponentGenerationContext {
 }
 
 export function supportingComponentKindForFormat(format: MaterializedComponentFormat): FictionCastSoundComponentKind | undefined {
-  if (format === 'given-family' || format === 'initials-family') return 'family';
+  if (format === 'given-family' || format === 'given-additional-family' || format === 'initials-family') return 'family';
   if (format === 'epithet-place') return 'place';
   return undefined;
 }
