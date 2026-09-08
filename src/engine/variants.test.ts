@@ -58,53 +58,13 @@ function fixtureName(): FictionCastGeneratedName {
       version: 1 as const,
       segments: ['a', 'v', 'e', 'l', 'i', 'n'] as const,
       syllables: [
-        {
-          start: 0,
-          end: 2,
-          onset: [],
-          nucleus: [0],
-          coda: [1],
-          shape: 'CVC' as const,
-          weight: 'heavy' as const,
-          sonorityProfile: 'falling' as const,
-          stress: 'unspecified' as const,
-          stressSource: 'unspecified' as const,
-        },
-        {
-          start: 2,
-          end: 4,
-          onset: [],
-          nucleus: [2],
-          coda: [3],
-          shape: 'CVC' as const,
-          weight: 'heavy' as const,
-          sonorityProfile: 'falling' as const,
-          stress: 'unspecified' as const,
-          stressSource: 'unspecified' as const,
-        },
-        {
-          start: 4,
-          end: 6,
-          onset: [],
-          nucleus: [4],
-          coda: [5],
-          shape: 'CVC' as const,
-          weight: 'heavy' as const,
-          sonorityProfile: 'falling' as const,
-          stress: 'unspecified' as const,
-          stressSource: 'unspecified' as const,
-        },
+        { start: 0, end: 2, onset: [], nucleus: [0], coda: [1], shape: 'CVC' as const, weight: 'heavy' as const, sonorityProfile: 'falling' as const, stress: 'unspecified' as const, stressSource: 'unspecified' as const },
+        { start: 2, end: 4, onset: [], nucleus: [2], coda: [3], shape: 'CVC' as const, weight: 'heavy' as const, sonorityProfile: 'falling' as const, stress: 'unspecified' as const, stressSource: 'unspecified' as const },
+        { start: 4, end: 6, onset: [], nucleus: [4], coda: [5], shape: 'CVC' as const, weight: 'heavy' as const, sonorityProfile: 'falling' as const, stress: 'unspecified' as const, stressSource: 'unspecified' as const },
       ],
     },
   };
-  const spelling = {
-    contract: 'SpellingCandidate' as const,
-    version: 1 as const,
-    text: 'Aveline',
-    mappings: [],
-    rank: 1,
-    score: 1,
-  };
+  const spelling = { contract: 'SpellingCandidate' as const, version: 1 as const, text: 'Aveline', mappings: [], rank: 1, score: 1 };
   const primaryName: GeneratedName = {
     id: 'generated-name-1',
     name: 'Aveline',
@@ -117,10 +77,7 @@ function fixtureName(): FictionCastGeneratedName {
     variants: generateVariants('Aveline', pack, { orthographicWeirdness: 0.5 }),
     readabilityDiagnostics: [],
   };
-  const identity = createNameIdentity(primaryName, undefined, 'given-only', {
-    castSeed: 'variant-contract-test',
-    slotIndex: 0,
-  });
+  const identity = createNameIdentity(primaryName, undefined, 'given-only', { castSeed: 'variant-contract-test', slotIndex: 0 });
 
   return {
     id: 'name-1',
@@ -128,11 +85,6 @@ function fixtureName(): FictionCastGeneratedName {
     primaryName,
     identity,
     identityAudition: renderIdentityAuditionPhrase(identity),
-    contextualScores: {
-      ensembleFit: 0.6,
-      roleFit: 0.5,
-      overallFit: 0.72,
-    },
     rarityBand: 'uncommon',
     readabilityDiagnostics: [],
   };
@@ -142,23 +94,11 @@ function fixtureEnsemble(): FictionCastGeneratedEnsemble {
   return {
     settings: {
       castSize: 1,
-      semanticBaseline: {
-        familiarity: 'balanced',
-        readability: 'balanced',
-        compactness: 'balanced',
-        styleAnchoring: 'balanced',
-        spellingDistinctiveness: 'balanced',
-      },
+      semanticBaseline: { familiarity: 'balanced', readability: 'balanced', compactness: 'balanced', styleAnchoring: 'balanced', spellingDistinctiveness: 'balanced' },
       stylePackId: pack.id,
       seed: 'variant-contract-test',
     },
-    sourcePack: {
-      id: pack.id,
-      label: pack.label,
-      description: pack.description,
-      source: pack.source,
-      style: pack.style,
-    },
+    sourcePack: { id: pack.id, label: pack.label, description: pack.description, source: pack.source, style: pack.style },
     names: [fixtureName()],
     diagnostics: {
       repeatedInitials: 0,
@@ -181,36 +121,8 @@ describe('variant metadata', () => {
 
     expect(variants).toHaveLength(3);
     expect(variants.map((variant) => variant.value)).toEqual(['Avelyn', 'Avelina', 'Avelyne']);
-
-    expect(variants[0]).toMatchObject({
-      value: 'Avelyn',
-      kind: 'listed',
-      relationship: 'orthographic_variant',
-      confidence: 'high',
-      generated: false,
-      locale: pack.localeHint,
-      ruleId: 'listed-style-pack-alternate',
-      source: {
-        id: `${pack.id}:listedVariants`,
-        kind: 'listed-source',
-        label: 'Listed alternate',
-      },
-    });
-
-    expect(variants[2]).toMatchObject({
-      value: 'Avelyne',
-      kind: 'generated',
-      relationship: 'orthographic_variant',
-      confidence: 'medium',
-      generated: true,
-      locale: pack.localeHint,
-      ruleId: 'i-to-y',
-      source: {
-        id: `${pack.id}:i-to-y`,
-        kind: 'algorithm',
-        label: 'Medial i to y',
-      },
-    });
+    expect(variants[0]).toMatchObject({ value: 'Avelyn', kind: 'listed', relationship: 'orthographic_variant', confidence: 'high', generated: false, locale: pack.localeHint, ruleId: 'listed-style-pack-alternate', source: { id: `${pack.id}:listedVariants`, kind: 'listed-source', label: 'Listed alternate' } });
+    expect(variants[2]).toMatchObject({ value: 'Avelyne', kind: 'generated', relationship: 'orthographic_variant', confidence: 'medium', generated: true, locale: pack.localeHint, ruleId: 'i-to-y', source: { id: `${pack.id}:i-to-y`, kind: 'algorithm', label: 'Medial i to y' } });
   });
 
   it('includes variant relationship metadata in JSON and Markdown exports', () => {
@@ -219,18 +131,7 @@ describe('variant metadata', () => {
 
     expect(payload.sourcePack.source).toEqual(pack.source);
     expect(payload.sourcePack.style).toEqual(pack.style);
-    expect(payload.names[0].variants[0]).toEqual({
-      value: 'Avelyn',
-      kind: 'listed',
-      relationship: 'orthographic_variant',
-      confidence: 'high',
-      generated: false,
-      ruleId: 'listed-style-pack-alternate',
-      sourceId: `${pack.id}:listedVariants`,
-      sourceKind: 'listed-source',
-      sourceLabel: 'Listed alternate',
-      locale: pack.localeHint,
-    });
+    expect(payload.names[0].variants[0]).toEqual({ value: 'Avelyn', kind: 'listed', relationship: 'orthographic_variant', confidence: 'high', generated: false, ruleId: 'listed-style-pack-alternate', sourceId: `${pack.id}:listedVariants`, sourceKind: 'listed-source', sourceLabel: 'Listed alternate', locale: pack.localeHint });
 
     const markdown = serializeCastAsMarkdown(ensemble);
     expect(markdown).toContain('Avelyn (orthographic variant, high confidence, listed, british-literary-fantasy:listedVariants)');
