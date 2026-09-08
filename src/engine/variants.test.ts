@@ -120,7 +120,6 @@ function fixtureName(): FictionCastGeneratedName {
   const identity = createNameIdentity(primaryName, undefined, 'given-only', {
     castSeed: 'variant-contract-test',
     slotIndex: 0,
-    candidateAttempt: 0,
   });
 
   return {
