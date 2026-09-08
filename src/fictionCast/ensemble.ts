@@ -197,46 +197,41 @@ export function generateEnsemble(settings: FictionCastSettings, registry: Source
     const role = resolveCastRole(safeSettings, index);
     const primaryContext = resolveFictionCastComponentGenerationContext(safeSettings, role, 'given', index);
     const rarityBand = rarityBandForNovelty(primaryContext.settings.novelty);
-    const candidates = Array.from({ length: 16 }, (_, attempt) => {
-      const materializationContext: FictionCastIdentityMaterializationContext = {
-        castSeed: safeSettings.seed,
-        slotIndex: index,
-        candidateAttempt: attempt,
-      };
-      const generated = generateGivenName({
-        settings: primaryContext.settings,
-        registry,
-        determinism: {
-          seed: generatedComponentSeed(
-            safeSettings,
-            role,
-            materializationContext,
-            formatKind,
-            'component:given:0',
-          ),
-          resultIndex: index,
-        },
-        preferences: primaryContext.preferences,
-      });
-      const baseName: UncomposedFictionCastName = {
-        ...withRoleInfluence(generated, primaryContext.settings, safeSettings, role),
-        role,
-        rarityBand,
-        resolvedIntentEvidence: {
-          baseline: { ...primaryContext.semanticIntent.baseline },
-          castVariation: safeSettings.castVariation ?? 'balanced',
-          variationDelta: primaryContext.semanticIntent.variationDelta,
-        },
-      };
-      return withEnsembleFit(
-        withNameIdentity(baseName, safeSettings, registry, index, formatKind, materializationContext),
-        selected,
-        safeSettings,
-        index,
-      );
+    const materializationContext: FictionCastIdentityMaterializationContext = {
+      castSeed: safeSettings.seed,
+      slotIndex: index,
+    };
+    const generated = generateGivenName({
+      settings: primaryContext.settings,
+      registry,
+      determinism: {
+        seed: generatedComponentSeed(
+          safeSettings,
+          role,
+          materializationContext,
+          formatKind,
+          'component:given:0',
+        ),
+        resultIndex: index,
+      },
+      preferences: primaryContext.preferences,
     });
-    candidates.sort((left, right) => right.contextualScores.overallFit - left.contextualScores.overallFit);
-    selected.push(candidates[0]);
+    const baseName: UncomposedFictionCastName = {
+      ...withRoleInfluence(generated, primaryContext.settings, safeSettings, role),
+      role,
+      rarityBand,
+      resolvedIntentEvidence: {
+        baseline: { ...primaryContext.semanticIntent.baseline },
+        castVariation: safeSettings.castVariation ?? 'balanced',
+        variationDelta: primaryContext.semanticIntent.variationDelta,
+      },
+    };
+    selected.push(withEnsembleFit(
+      withNameIdentity(baseName, safeSettings, registry, index, formatKind, materializationContext),
+      selected,
+      safeSettings,
+      index,
+    ));
   }
 
   return { settings: safeSettings, sourcePack: { id: pack.id, label: pack.label, description: pack.description, source: pack.source, style: pack.style }, names: selected, diagnostics: diagnosticsFor(selected, castSize) };
