@@ -60,16 +60,6 @@ export const advancedScoreControls = [
     ],
   }),
   defineScoreControl({
-    key: 'styleAnchoring',
-    label: 'Style',
-    help: 'Choose how faithfully names follow the selected style pack.',
-    choices: [
-      { label: 'Loose', value: 'loose' },
-      { label: 'Balanced', value: 'balanced' },
-      { label: 'Faithful', value: 'faithful' },
-    ],
-  }),
-  defineScoreControl({
     key: 'spellingDistinctiveness',
     label: 'Spelling',
     help: 'Choose whether spellings stay conventional or become distinctive.',
