@@ -3,6 +3,7 @@ import type { FictionCastNameFormatKind, MaterializedNameFormatKind } from './id
 
 export type { MaterializedNameFormatKind } from './identityFormat';
 
+// Explicit default Mixed vocabulary. Richer structures remain opt-in until separately admitted.
 const mixedFormatOptions: readonly MaterializedNameFormatKind[] = [
   'given-only',
   'given-family',
