@@ -3,7 +3,6 @@ import type { FictionCastIdentityStructure } from './identityTypes';
 export interface FictionCastIdentityMaterializationContext {
   readonly castSeed: string;
   readonly slotIndex: number;
-  readonly candidateAttempt: number;
 }
 
 export function componentMaterializationSeed(
@@ -16,7 +15,6 @@ export function componentMaterializationSeed(
     'fiction-cast',
     'identity',
     `slot-${context.slotIndex}`,
-    `candidate-${context.candidateAttempt}`,
     structure.id,
     `v${structure.version}`,
     componentInstanceKey,
