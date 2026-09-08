@@ -3,7 +3,7 @@ import { castReadabilityDiagnostics, diagnoseNameReadability, readabilitySummary
 import { generateFamilyName } from '../naming/familyName';
 import { generateGivenName } from '../naming/givenName';
 import { generatePlaceName } from '../naming/placeName';
-import type { GeneratedName, GenerationSettings } from '../engine/types';
+import type { GeneratedName } from '../engine/types';
 import type { SourceRegistry } from '../engine/registry';
 import {
   resolveFictionCastComponentGenerationContext,
@@ -21,10 +21,8 @@ import { createNameIdentity, identityStructureForFormat, requiresSupportingName 
 import { renderIdentityAuditionPhrase } from './identityAudition';
 import { rarityBandForNovelty } from './rarity';
 import { isRoleInfluenceActive, resolveCastRole, resolveRoleInfluence } from './roles';
-import { combineFictionCastOverallFit, scoreFictionCastRoleFit } from './scoring';
 import type {
   CastRoleAssignment,
-  FictionCastContextualScores,
   FictionCastGeneratedEnsemble,
   FictionCastGeneratedName,
   FictionCastSettings,
@@ -36,7 +34,6 @@ export interface LockedNameSlot { index: number; name: FictionCastGeneratedName;
 interface ContextualizedPrimaryName {
   readonly primaryName: GeneratedName;
   readonly roleInfluence?: RoleInfluenceMetadata;
-  readonly contextualScores: FictionCastContextualScores;
 }
 
 type UncomposedFictionCastName = ContextualizedPrimaryName & Pick<FictionCastGeneratedName, 'role' | 'rarityBand' | 'resolvedIntentEvidence'>;
@@ -55,35 +52,16 @@ function generatedComponentSeed(
   const structure = identityStructureForFormat(formatKind);
   return `${componentMaterializationSeed(materializationContext, structure, componentInstanceKey)}${roleSeedSegment(settings, role)}`;
 }
-function ensembleFitScore(candidate: FictionCastGeneratedName, selected: FictionCastGeneratedName[]): number { const initials = new Set(selected.map((name) => name.displayName.charAt(0).toLowerCase())); const endings = new Set(selected.map((name) => endingKey(name.displayName))); const cadences = new Set(selected.map(cadenceKey)); const names = new Set(selected.map((name) => name.displayName.toLowerCase())); const penalty = (initials.has(candidate.displayName.charAt(0).toLowerCase()) ? 0.24 : 0) + (endings.has(endingKey(candidate.displayName)) ? 0.22 : 0) + (cadences.has(cadenceKey(candidate)) ? 0.16 : 0) + (names.has(candidate.displayName.toLowerCase()) ? 1 : 0); return clamp(1 - penalty); }
-function withEnsembleFit(candidate: FictionCastGeneratedName, selected: FictionCastGeneratedName[], settings: FictionCastSettings, slotIndex: number): FictionCastGeneratedName {
-  const ensembleFit = ensembleFitScore(candidate, selected);
-  const scoringSettings = resolveFictionCastComponentGenerationContext(settings, candidate.role, 'given', slotIndex).settings;
-  const contextualScores = {
-    ...candidate.contextualScores,
-    ensembleFit,
-    overallFit: combineFictionCastOverallFit(candidate.primaryName.scores, { ensembleFit, roleFit: candidate.contextualScores.roleFit }, scoringSettings, candidate.roleInfluence?.level),
-  };
-  return { ...candidate, contextualScores };
-}
 
 function withRoleInfluence(
   candidate: GeneratedName,
-  generationSettings: GenerationSettings,
   settings: FictionCastSettings,
   role?: CastRoleAssignment,
 ): ContextualizedPrimaryName {
   const roleInfluence = resolveRoleInfluence(settings, role);
-  const roleFit = scoreFictionCastRoleFit(candidate.name, candidate.generationPlan, roleInfluence);
-  const contextualScores = {
-    ensembleFit: 0.72,
-    roleFit,
-    overallFit: combineFictionCastOverallFit(candidate.scores, { ensembleFit: 0.72, roleFit }, generationSettings, roleInfluence?.level),
-  };
   return {
     primaryName: candidate,
     ...(roleInfluence === undefined ? {} : { roleInfluence }),
-    contextualScores,
   };
 }
 
@@ -142,7 +120,6 @@ function withNameIdentity(
     role: candidate.role,
     ...(candidate.roleInfluence === undefined ? {} : { roleInfluence: candidate.roleInfluence }),
     resolvedIntentEvidence: candidate.resolvedIntentEvidence,
-    contextualScores: candidate.contextualScores,
     rarityBand: candidate.rarityBand,
   };
 }
@@ -217,7 +194,7 @@ export function generateEnsemble(settings: FictionCastSettings, registry: Source
       preferences: primaryContext.preferences,
     });
     const baseName: UncomposedFictionCastName = {
-      ...withRoleInfluence(generated, primaryContext.settings, safeSettings, role),
+      ...withRoleInfluence(generated, safeSettings, role),
       role,
       rarityBand,
       resolvedIntentEvidence: {
@@ -226,12 +203,7 @@ export function generateEnsemble(settings: FictionCastSettings, registry: Source
         variationDelta: primaryContext.semanticIntent.variationDelta,
       },
     };
-    selected.push(withEnsembleFit(
-      withNameIdentity(baseName, safeSettings, registry, index, formatKind, materializationContext),
-      selected,
-      safeSettings,
-      index,
-    ));
+    selected.push(withNameIdentity(baseName, safeSettings, registry, index, formatKind, materializationContext));
   }
 
   return { settings: safeSettings, sourcePack: { id: pack.id, label: pack.label, description: pack.description, source: pack.source, style: pack.style }, names: selected, diagnostics: diagnosticsFor(selected, castSize) };

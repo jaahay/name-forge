@@ -21,9 +21,8 @@ export interface ExportedNameVariant { value: string; kind: NameVariant['kind'];
 export interface ExportedSpellingCandidate { text: string; rank: number; score: number; selected: boolean; }
 export interface ExportedSelectedSpelling extends ExportedSpellingCandidate { selected: true; }
 export interface ExportedSound { profile: SoundProfile; transcription: string; selectedSpelling: ExportedSelectedSpelling; spellingCandidates: ExportedSpellingCandidate[]; }
-export type ExportedNameScores = Omit<GeneratedName['scores'], 'overallFit'> & { ensembleFit: number; roleFit: number; overallFit: number; };
 export type ExportedGenerationPlan = Pick<NameGenerationPlan, 'syllableCount' | 'stressPattern' | 'rhythm' | 'texture' | 'targetNovelty' | 'targetLength'> & { rarityBand: FictionCastRarityBand; };
-export interface ExportedName { id: string; name: string; role?: string; roleInfluence?: ExportedRoleInfluence; readabilityDiagnostics: ExportedReadabilityDiagnostic[]; score: number; scores: ExportedNameScores; sound: ExportedSound; generationPlan: ExportedGenerationPlan; format: string; components: ExportedIdentityComponent[]; phraseParts: ExportedIdentityPhrasePart[]; variants: ExportedNameVariant[]; seed: string; warnings: string[]; }
+export interface ExportedName { id: string; name: string; role?: string; roleInfluence?: ExportedRoleInfluence; readabilityDiagnostics: ExportedReadabilityDiagnostic[]; sound: ExportedSound; generationPlan: ExportedGenerationPlan; format: string; components: ExportedIdentityComponent[]; phraseParts: ExportedIdentityPhrasePart[]; variants: ExportedNameVariant[]; seed: string; warnings: string[]; }
 export interface ExportedFictionCastSettings {
   castSize: number;
   novelty: number;
@@ -118,20 +117,12 @@ function exportSettings(settings: FictionCastSettings): ExportedFictionCastSetti
 function exportName(name: FictionCastGeneratedName, seed: string): ExportedName {
   const primaryName = name.primaryName;
   const generationPlan = primaryName.generationPlan;
-  const scores: ExportedNameScores = {
-    ...primaryName.scores,
-    ensembleFit: name.contextualScores.ensembleFit,
-    roleFit: name.contextualScores.roleFit,
-    overallFit: name.contextualScores.overallFit,
-  };
   return {
     id: name.id,
     name: name.displayName,
     role: name.role?.label,
     roleInfluence: exportRoleInfluence(name.roleInfluence),
     readabilityDiagnostics: exportReadabilityDiagnostics(name.readabilityDiagnostics),
-    score: name.contextualScores.overallFit,
-    scores,
     sound: exportSound(primaryName),
     generationPlan: { syllableCount: generationPlan.syllableCount, stressPattern: generationPlan.stressPattern, rhythm: generationPlan.rhythm, rarityBand: name.rarityBand, texture: generationPlan.texture, targetNovelty: generationPlan.targetNovelty, targetLength: generationPlan.targetLength },
     format: name.identity.format.label,
@@ -155,7 +146,7 @@ export function serializeCastAsMarkdown(ensemble: FictionCastGeneratedEnsemble):
     const exported = exportName(name, ensemble.settings.seed);
     const componentText = exported.components.length > 0 ? exported.components.map((component) => component.kind + ' ' + component.role + ': ' + component.value).join('; ') : 'None';
     const roleInfluenceText = exported.roleInfluence ? exported.roleInfluence.label + ' (' + exported.roleInfluence.level + '; ' + exported.roleInfluence.effects.join(', ') + ')' : 'Off';
-    lines.push('## ' + (index + 1) + '. ' + exported.name, '', '- Role: ' + (exported.role ?? 'Unassigned'), '- Role influence: ' + roleInfluenceText, '- Overall fit: ' + exported.score.toFixed(2), '- Format: ' + exported.format, '- Components: ' + componentText, '- Sound: ' + exported.sound.transcription + ' (' + soundProfileSummary(exported.sound.profile) + ')', '- Selected spelling: ' + exported.sound.selectedSpelling.text + ' (rank ' + exported.sound.selectedSpelling.rank + ', score ' + exported.sound.selectedSpelling.score.toFixed(2) + ')', '- Spelling candidates: ' + spellingCandidateText(exported.sound.spellingCandidates), '- Generation plan: ' + generationPlanSummary(name.primaryName.generationPlan, name.rarityBand), '- Readability notes: ' + diagnosticText(exported.readabilityDiagnostics), '- Variants: ' + variantText(exported.variants), '- Warnings: ' + (exported.warnings.length > 0 ? exported.warnings.join(', ') : 'none'), '');
+    lines.push('## ' + (index + 1) + '. ' + exported.name, '', '- Role: ' + (exported.role ?? 'Unassigned'), '- Role influence: ' + roleInfluenceText, '- Format: ' + exported.format, '- Components: ' + componentText, '- Sound: ' + exported.sound.transcription + ' (' + soundProfileSummary(exported.sound.profile) + ')', '- Selected spelling: ' + exported.sound.selectedSpelling.text + ' (rank ' + exported.sound.selectedSpelling.rank + ', score ' + exported.sound.selectedSpelling.score.toFixed(2) + ')', '- Spelling candidates: ' + spellingCandidateText(exported.sound.spellingCandidates), '- Generation plan: ' + generationPlanSummary(name.primaryName.generationPlan, name.rarityBand), '- Readability notes: ' + diagnosticText(exported.readabilityDiagnostics), '- Variants: ' + variantText(exported.variants), '- Warnings: ' + (exported.warnings.length > 0 ? exported.warnings.join(', ') : 'none'), '');
   });
   return lines.join('\n').trimEnd() + '\n';
 }

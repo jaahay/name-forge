@@ -68,7 +68,7 @@ describe('generateEnsemble role and variation controls', () => {
     expect(ensemble.names[0].primaryName).toEqual(expected);
   });
 
-  it('keeps intrinsic scores and plans separate from Fiction Cast contextual metadata', () => {
+  it('keeps intrinsic scores and plans separate from Fiction Cast metadata', () => {
     const registry = createDefaultRegistry();
     const ensemble = generateEnsemble({ ...baseSettings, castSize: 2, rolePreset: 'classic-ensemble', roleInfluence: 'light' }, registry);
 
@@ -77,12 +77,7 @@ describe('generateEnsemble role and variation controls', () => {
       expect('roleFit' in name.primaryName.scores).toBe(false);
       expect('roleInfluence' in name.primaryName.generationPlan).toBe(false);
       expect(name.roleInfluence?.level).toBe('light');
-      expect(name.contextualScores.ensembleFit).toBeGreaterThanOrEqual(0);
-      expect(name.contextualScores.ensembleFit).toBeLessThanOrEqual(1);
-      expect(name.contextualScores.roleFit).toBeGreaterThanOrEqual(0);
-      expect(name.contextualScores.roleFit).toBeLessThanOrEqual(1);
-      expect(name.contextualScores.overallFit).toBeGreaterThanOrEqual(0);
-      expect(name.contextualScores.overallFit).toBeLessThanOrEqual(1);
+      expect('contextualScores' in name).toBe(false);
     }
   });
 

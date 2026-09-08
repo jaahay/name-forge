@@ -59,11 +59,8 @@ describe('cast export serialization', () => {
     expect(firstName.role).toBe('Protagonist');
     expect(firstName.roleInfluence?.level).toBe('light');
     expect(firstName.roleInfluence?.profileId).toBe('role-profile:protagonist');
-    expect(firstName.score).toBe(sourceName.contextualScores.overallFit);
-    expect(firstName.scores.overallFit).toBe(sourceName.contextualScores.overallFit);
-    expect(firstName.scores.ensembleFit).toBe(sourceName.contextualScores.ensembleFit);
-    expect(firstName.scores.roleFit).toBe(sourceName.contextualScores.roleFit);
-    expect(firstName.scores.pronounceability).toBe(primaryName.scores.pronounceability);
+    expect('score' in firstName).toBe(false);
+    expect('scores' in firstName).toBe(false);
     expect(firstName.sound.profile).toEqual(primaryName.soundProfile);
     expect(firstName.sound.transcription).toBe(primaryName.sound.transcription);
     expect(firstName.sound.selectedSpelling.text).toBe(primaryName.spelling.text);
@@ -113,7 +110,7 @@ describe('cast export serialization', () => {
     expect(name.phraseParts).not.toContainEqual({ kind: 'component', componentId: generatedGiven.id });
   });
 
-  it('renders a Markdown export with score, variation, selected sound, spelling candidates, variants, role influence, and seed', () => {
+  it('renders a Markdown export with variation, selected sound, spelling candidates, variants, role influence, and seed', () => {
     const ensemble = exportableEnsemble();
     const markdown = serializeCastAsMarkdown(ensemble);
     const [sourceName] = ensemble.names;
@@ -132,7 +129,7 @@ describe('cast export serialization', () => {
     expect(markdown).toContain('## 1.');
     expect(markdown).toContain('- Role: Protagonist');
     expect(markdown).toContain('- Role influence: Protagonist clarity (light;');
-    expect(markdown).toContain('- Overall fit:');
+    expect(markdown).not.toContain('- Overall fit:');
     expect(markdown).toContain('- Format:');
     expect(markdown).toContain('- Components:');
     expect(markdown).not.toContain('- Parts:');

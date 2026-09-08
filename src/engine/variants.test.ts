@@ -128,11 +128,6 @@ function fixtureName(): FictionCastGeneratedName {
     primaryName,
     identity,
     identityAudition: renderIdentityAuditionPhrase(identity),
-    contextualScores: {
-      ensembleFit: 0.6,
-      roleFit: 0.5,
-      overallFit: 0.72,
-    },
     rarityBand: 'uncommon',
     readabilityDiagnostics: [],
   };

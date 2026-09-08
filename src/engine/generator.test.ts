@@ -42,7 +42,6 @@ describe('generateEnsemble', () => {
     const first = generateEnsemble(settings, registry);
     const second = generateEnsemble(settings, registry);
     expect(second.names.map((name) => name.displayName)).toEqual(first.names.map((name) => name.displayName));
-    expect(second.names.map((name) => name.contextualScores.overallFit)).toEqual(first.names.map((name) => name.contextualScores.overallFit));
     expect(second.names.map((name) => name.primaryName.soundProfile)).toEqual(first.names.map((name) => name.primaryName.soundProfile));
     expect(second.names.map((name) => name.primaryName.sound.transcription)).toEqual(first.names.map((name) => name.primaryName.sound.transcription));
     expect(second.names.map((name) => name.primaryName.spelling.text)).toEqual(first.names.map((name) => name.primaryName.spelling.text));
@@ -99,7 +98,7 @@ describe('generateEnsemble', () => {
     expect(generateName(options)).toEqual(generateName(options));
   });
 
-  it('returns intrinsic name scores plus Fiction Cast contextual fit signals', () => {
+  it('returns intrinsic generated-name evidence without adding Fiction Cast fit scores', () => {
     const ensemble = generateEnsemble(settings, createDefaultRegistry());
     expect(ensemble.names).toHaveLength(settings.castSize);
     for (const name of ensemble.names) {
@@ -124,9 +123,7 @@ describe('generateEnsemble', () => {
       expect(primaryName.scores.styleFit).toBeGreaterThan(0);
       expect('ensembleFit' in primaryName.scores).toBe(false);
       expect('roleFit' in primaryName.scores).toBe(false);
-      expect(name.contextualScores.ensembleFit).toBeGreaterThanOrEqual(0);
-      expect(name.contextualScores.roleFit).toBeGreaterThanOrEqual(0);
-      expect(name.contextualScores.overallFit).toBeGreaterThanOrEqual(0);
+      expect('contextualScores' in name).toBe(false);
     }
   });
 
@@ -143,7 +140,6 @@ describe('generateEnsemble', () => {
     const roleLabeled = generateEnsemble({ ...settings, rolePreset: 'classic-ensemble', roleInfluence: 'off' }, createDefaultRegistry());
 
     expect(roleLabeled.names.map((name) => name.displayName)).toEqual(roleNeutral.names.map((name) => name.displayName));
-    expect(roleLabeled.names.map((name) => name.contextualScores.overallFit)).toEqual(roleNeutral.names.map((name) => name.contextualScores.overallFit));
 
     const [firstName] = roleLabeled.names;
     expect(firstName).toBeDefined();
@@ -151,7 +147,6 @@ describe('generateEnsemble', () => {
     expect(firstName.role?.role).toBe('protagonist');
     expect(firstName.roleInfluence).toBeUndefined();
     expect('roleInfluence' in firstName.primaryName.generationPlan).toBe(false);
-    expect(firstName.contextualScores.roleFit).toBe(0.72);
   });
 
   it('applies deterministic role influence when enabled', () => {
@@ -173,9 +168,7 @@ describe('generateEnsemble', () => {
     expect(lightName.roleInfluence?.profileId).toBe('role-profile:protagonist');
     expect(lightName.roleInfluence?.label).toBe('Protagonist clarity');
     expect('roleInfluence' in lightName.primaryName.generationPlan).toBe(false);
-    expect(lightName.contextualScores.roleFit).toBeGreaterThan(0);
     expect(strongName.roleInfluence?.level).toBe('strong');
-    expect(strongName.contextualScores.roleFit).toBeGreaterThan(0);
   });
 
   it('uses classic MMO rarity bands as Fiction Cast metadata', () => {
