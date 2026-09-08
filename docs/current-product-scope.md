@@ -102,20 +102,20 @@ A `FictionCastGeneratedName` contains:
 - a surface result ID and `displayName`;
 - a materialized identity and phrase structure;
 - an unchanged singular `primaryName: GeneratedName`;
-- generation evidence for generated supporting components;
+- generation evidence for every independently generated identity component;
 - role and rarity metadata;
-- contextual role/ensemble scoring;
+- retained generation-time intent evidence;
 - readability evidence;
 - whole-identity audition data.
 
-Fiction Cast composes generated given, family, and place names with surface-owned lexical and literal material. Current identity formats include given-only, given-family, initials-family, title-name, and epithet-place.
+Fiction Cast composes generated primary personal, additional personal, family, and place names with surface-owned lexical, derived, and literal material. Current identity formats include given-only, given-family, given + additional name + family, initials-family, title-name, and epithet-place. The richer additional-personal structure is currently an explicit format choice and is not silently included in Mixed.
 
 Current Fiction Cast capabilities include:
 
-- deterministic ensemble generation;
-- cast size, format, role mix, role influence, rarity, and tuning controls;
+- deterministic ensemble generation with one materialized identity per resolved slot intent;
+- cast size, format, role assignment, role shaping, Cast variation, and semantic tuning controls;
 - slot locks and selected-name reroll;
-- surface-owned contextual scoring and internal ensemble diagnostics;
+- surface-owned deterministic cast diagnostics without an aggregate Fiction Cast quality/fit score;
 - conditional collision notes over composed visible identities;
 - Cast-ID navigation from the name rail and collision notes into the selected-name inspector;
 - whole-identity and per-generated-component browser audition;
@@ -123,7 +123,7 @@ Current Fiction Cast capabilities include:
 
 Fiction Cast collision notes are deliberately narrow. They report supported deterministic relationships on the composed `displayName` only when they identify concrete identities the user can inspect; they do not grade cast quality or surface primary-name sound analysis as if it described the whole composed identity.
 
-Fiction Cast export is surface-owned and currently serializes the composed display identity together with relevant primary-name sound, spelling, generation-plan, variant, and score evidence. It carries no public schema-version branding.
+Fiction Cast export is surface-owned and currently serializes the composed display identity together with component provenance and relevant primary-name sound, spelling, generation-plan, variant, and readability evidence. It carries no aggregate Fiction Cast fit score and no public schema-version branding.
 
 ### Fiction Cast history
 
