@@ -1,8 +1,12 @@
 import { describe, expect, it } from 'vitest';
+import { resolveFictionCastComponentGenerationContext } from '../fictionCast/componentGenerationContext';
 import { generateEnsemble } from '../fictionCast/ensemble';
+import { identityStructureForFormat } from '../fictionCast/identity';
+import { componentMaterializationSeed } from '../fictionCast/identityDeterminism';
 import { rarityBandForNovelty } from '../fictionCast/rarity';
 import { resolveFictionCastSemanticIntent } from '../fictionCast/semanticIntent';
 import type { FictionCastSettings } from '../fictionCast/types';
+import { generateGivenName } from '../naming/givenName';
 import { createDefaultRegistry } from './registry';
 
 const baseSettings: FictionCastSettings = {
@@ -36,6 +40,32 @@ describe('generateEnsemble role and variation controls', () => {
 
     expect(second.names.map((name) => name.role)).toEqual(first.names.map((name) => name.role));
     expect(first.names.map((name) => name.role?.role)).toEqual(['protagonist', 'rival', 'mentor', 'sidekick']);
+  });
+
+  it('materializes an unlocked slot directly from its declared component address', () => {
+    const registry = createDefaultRegistry();
+    const settings = {
+      ...baseSettings,
+      castSize: 1,
+      seed: 'direct-slot-materialization',
+      nameFormat: 'given-only' as const,
+    };
+    const generationContext = resolveFictionCastComponentGenerationContext(settings, undefined, 'given', 0);
+    const seed = componentMaterializationSeed(
+      { castSeed: settings.seed, slotIndex: 0 },
+      identityStructureForFormat('given-only'),
+      'component:given:0',
+    );
+    const expected = generateGivenName({
+      settings: generationContext.settings,
+      registry,
+      determinism: { seed, resultIndex: 0 },
+      preferences: generationContext.preferences,
+    });
+
+    const ensemble = generateEnsemble(settings, registry);
+
+    expect(ensemble.names[0].primaryName).toEqual(expected);
   });
 
   it('keeps intrinsic scores and plans separate from Fiction Cast contextual metadata', () => {
