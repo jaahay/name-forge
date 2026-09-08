@@ -40,11 +40,10 @@ function derivedComponent(identity: ReturnType<typeof createNameIdentity>) {
 }
 
 describe('Fiction Cast identity determinism', () => {
-  it('builds stable component namespaces from explicit materialization context', () => {
+  it('builds stable component namespaces from declared materialization context', () => {
     const context: FictionCastIdentityMaterializationContext = {
       castSeed: 'cast-seed',
       slotIndex: 3,
-      candidateAttempt: 5,
     };
     const structure = identityStructureForFormat('given-family');
     const primary = componentMaterializationSeed(context, structure, 'component:given:0');
@@ -54,16 +53,15 @@ describe('Fiction Cast identity determinism', () => {
     expect(primary).toBe(componentMaterializationSeed(context, structure, 'component:given:0'));
     expect(new Set([primary, family, repeatedGiven]).size).toBe(3);
     expect(primary).toContain('slot-3');
-    expect(primary).toContain('candidate-5');
     expect(primary).toContain('format:given-family');
     expect(primary).toContain('v1');
+    expect(primary).not.toContain('candidate-');
   });
 
   it('changes the component namespace when structure version changes', () => {
     const context: FictionCastIdentityMaterializationContext = {
       castSeed: 'versioned-cast',
       slotIndex: 0,
-      candidateAttempt: 0,
     };
     const structure = identityStructureForFormat('title-name');
     const nextVersion = { ...structure, version: structure.version + 1 };
@@ -91,7 +89,6 @@ describe('Fiction Cast identity determinism', () => {
     const context: FictionCastIdentityMaterializationContext = {
       castSeed: 'lexical-context',
       slotIndex: 2,
-      candidateAttempt: 4,
     };
     const firstTitleIdentity = createNameIdentity(first, undefined, 'title-name', context);
     const secondTitleIdentity = createNameIdentity(second, undefined, 'title-name', context);
@@ -109,14 +106,12 @@ describe('Fiction Cast identity determinism', () => {
     const given = generatedName('derived-source:given');
     const family = generatedName('derived-source:family', 1);
     const first = createNameIdentity(given, family, 'initials-family', {
-      castSeed: 'derived-cast',
+      castSeed: 'derived-cast:first',
       slotIndex: 1,
-      candidateAttempt: 0,
     });
     const second = createNameIdentity(given, family, 'initials-family', {
-      castSeed: 'derived-cast',
-      slotIndex: 1,
-      candidateAttempt: 9,
+      castSeed: 'derived-cast:second',
+      slotIndex: 9,
     });
 
     expect(derivedComponent(second)).toEqual(derivedComponent(first));
