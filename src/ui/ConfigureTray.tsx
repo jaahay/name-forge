@@ -218,7 +218,7 @@ export function ConfigureTray({
                     </div>
                   </label>
                   <label>
-                    <span>Style pack</span>
+                    <span>Naming idiom</span>
                     <select value={settings.stylePackId} onChange={(event) => onUpdateSetting('stylePackId', event.target.value)}>
                       {stylePacks.map((pack) => <option key={pack.id} value={pack.id}>{pack.label}</option>)}
                     </select>
