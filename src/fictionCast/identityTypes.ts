@@ -1,8 +1,8 @@
 import type { GeneratedName } from '../engine/types';
 import type { MaterializedNameFormatKind } from './identityFormat';
 
-export type FictionCastIdentityRole = 'given' | 'family' | 'title' | 'epithet' | 'place';
-export type FictionCastGeneratedIdentityRole = 'given' | 'family' | 'place';
+export type FictionCastIdentityRole = 'given' | 'additional-personal' | 'family' | 'title' | 'epithet' | 'place';
+export type FictionCastGeneratedIdentityRole = 'given' | 'additional-personal' | 'family' | 'place';
 export type FictionCastLexicalIdentityRole = 'title' | 'epithet';
 export type FictionCastDerivedIdentityRole = 'given';
 
