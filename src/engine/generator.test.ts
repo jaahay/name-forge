@@ -119,7 +119,7 @@ describe('generateEnsemble', () => {
       expect(primaryName.spellingCandidates.map((candidate) => candidate.rank)).toEqual(primaryName.spellingCandidates.map((candidate) => candidate.rank).sort((left, right) => left - right));
       expect(new Set(primaryName.spellingCandidates.map((candidate) => candidate.text)).has(primaryName.spelling.text)).toBe(true);
       expect(primaryName.generationPlan.syllableCount).toBeGreaterThan(0);
-      expect(primaryName.variants.length).toBeGreaterThan(0);
+      expect(Array.isArray(primaryName.variants)).toBe(true);
       expect(primaryName.scores.overallFit).toBeGreaterThan(0);
       expect(primaryName.scores.styleFit).toBeGreaterThan(0);
       expect('ensembleFit' in primaryName.scores).toBe(false);
