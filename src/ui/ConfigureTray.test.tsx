@@ -43,13 +43,14 @@ describe('ConfigureTray criteria surface', () => {
     const firstDisclosure = html.indexOf('<details');
 
     expect(firstDisclosure).toBeGreaterThan(0);
-    for (const label of ['Cast size', 'Style pack', 'Roles', 'Cast variation', 'Configure roles']) {
+    for (const label of ['Cast size', 'Naming idiom', 'Roles', 'Cast variation', 'Configure roles']) {
       const labelIndex = html.indexOf(label);
       expect(labelIndex).toBeGreaterThan(0);
       expect(labelIndex).toBeLessThan(firstDisclosure);
     }
     expect(html).toContain('aria-label="Configure roles, Off"');
     expect(html).not.toContain('Cast role mix');
+    expect(html).not.toContain('Style pack');
   });
 
   it('summarizes active role intent without exposing its child controls on the criteria surface', () => {
@@ -107,14 +108,17 @@ describe('ConfigureTray criteria surface', () => {
     }
   });
 
-  it('keeps specialist semantic controls in Advanced without remote role overrides', () => {
+  it('keeps specialist semantic controls in Advanced without a separate idiom-adherence axis', () => {
     const html = renderConfigureTray({ rolePreset: 'classic-ensemble' });
     const advancedStart = html.indexOf('<summary>Advanced</summary>');
     const advancedHtml = html.slice(advancedStart);
 
-    for (const label of ['Compact', 'Style', 'Spelling', 'Generation seed']) {
+    for (const label of ['Compact', 'Spelling', 'Generation seed']) {
       expect(advancedHtml).toContain(label);
     }
+    expect(advancedHtml).not.toContain('<legend>Style</legend>');
+    expect(advancedHtml).not.toContain('Loose');
+    expect(advancedHtml).not.toContain('Faithful');
     expect(advancedHtml).not.toContain('Slot role overrides');
     expect(advancedHtml).not.toContain('Use role mix');
     expect((advancedHtml.match(/<details/g) ?? []).length).toBe(0);
@@ -126,20 +130,23 @@ describe('ConfigureTray criteria surface', () => {
     const criteriaStart = html.indexOf('<summary>More</summary>');
     const criteriaHtml = html.slice(criteriaStart);
 
-    for (const label of ['Familiar', 'Readable', 'Compact', 'Style', 'Spelling']) {
+    for (const label of ['Familiar', 'Readable', 'Compact', 'Spelling']) {
       expect(criteriaHtml).toContain(`<legend>${label}</legend>`);
     }
-    for (const choice of ['Unusual', 'Familiar', 'Tricky', 'Clear', 'Extended', 'Compact', 'Loose', 'Faithful', 'Conventional', 'Distinctive']) {
+    for (const choice of ['Unusual', 'Familiar', 'Tricky', 'Clear', 'Extended', 'Compact', 'Conventional', 'Distinctive']) {
       expect(criteriaHtml).toContain(`<span>${choice}</span>`);
     }
 
-    expect((criteriaHtml.match(/class="semantic-score-options"/g) ?? []).length).toBe(5);
-    expect((criteriaHtml.match(/type="radio"/g) ?? []).length).toBe(15);
+    expect((criteriaHtml.match(/class="semantic-score-options"/g) ?? []).length).toBe(4);
+    expect((criteriaHtml.match(/type="radio"/g) ?? []).length).toBe(12);
     expect(criteriaHtml).toContain('name="score-familiarity"');
     expect(criteriaHtml).toContain('name="score-readability"');
     expect(criteriaHtml).toContain('name="score-compactness"');
-    expect(criteriaHtml).toContain('name="score-styleAnchoring"');
     expect(criteriaHtml).toContain('name="score-spellingDistinctiveness"');
+    expect(criteriaHtml).not.toContain('name="score-styleAnchoring"');
+    expect(criteriaHtml).not.toContain('<legend>Style</legend>');
+    expect(criteriaHtml).not.toContain('<span>Loose</span>');
+    expect(criteriaHtml).not.toContain('<span>Faithful</span>');
     expect(html).not.toContain('type="range"');
     expect(criteriaHtml).not.toContain('type="number"');
     expect(criteriaHtml).not.toContain('<datalist');
