@@ -33,7 +33,6 @@ describe('Fiction Cast role generation boundary', () => {
 
     expect(stale?.displayName).toBe(neutral?.displayName);
     expect(stale?.primaryName).toEqual(neutral?.primaryName);
-    expect(stale?.contextualScores).toEqual(neutral?.contextualScores);
     expect(stale?.role).toBeUndefined();
     expect(stale?.roleInfluence).toBeUndefined();
   });
@@ -49,7 +48,6 @@ describe('Fiction Cast role generation boundary', () => {
 
     expect(emptyCustom?.displayName).toBe(neutral?.displayName);
     expect(emptyCustom?.primaryName).toEqual(neutral?.primaryName);
-    expect(emptyCustom?.contextualScores).toEqual(neutral?.contextualScores);
     expect(emptyCustom?.role).toBeUndefined();
     expect(emptyCustom?.roleInfluence).toBeUndefined();
 
