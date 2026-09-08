@@ -21,7 +21,7 @@ interface NameInspectorProps {
   onToggleLockedName: (id: string) => void;
 }
 
-type GeneratedComponentRole = 'given' | 'family' | 'place';
+type GeneratedComponentRole = 'given' | 'additional-personal' | 'family' | 'place';
 
 type AuditionCue = ReturnType<typeof renderAuditionCue>;
 
