@@ -28,17 +28,28 @@ const EPITHET_INVENTORY_ID = 'fiction-cast:epithets:v1';
 const formatRules: Record<MaterializedNameFormatKind, FictionCastIdentityStructure> = {
   'given-only': { id: 'format:given-only', version: 1, kind: 'given-only', label: 'Given name only' },
   'given-family': { id: 'format:given-family', version: 1, kind: 'given-family', label: 'Given + family name' },
+  'given-additional-family': { id: 'format:given-additional-family', version: 1, kind: 'given-additional-family', label: 'Given + additional name + family' },
   'initials-family': { id: 'format:initials-family', version: 1, kind: 'initials-family', label: 'Initials + family name' },
   'title-name': { id: 'format:title-name', version: 1, kind: 'title-name', label: 'Title + name' },
   'epithet-place': { id: 'format:epithet-place', version: 1, kind: 'epithet-place', label: 'Epithet/place-style name' },
 };
+
+export interface FictionCastIdentityGeneratedInputs {
+  readonly primaryPersonal: GeneratedName;
+  readonly additionalPersonal?: readonly GeneratedName[];
+  readonly family?: GeneratedName;
+  readonly place?: GeneratedName;
+}
 
 export function identityStructureForFormat(format: MaterializedNameFormatKind): FictionCastIdentityStructure {
   return formatRules[format];
 }
 
 export function requiresSupportingName(format: MaterializedNameFormatKind): boolean {
-  return format === 'given-family' || format === 'initials-family' || format === 'epithet-place';
+  return format === 'given-family'
+    || format === 'given-additional-family'
+    || format === 'initials-family'
+    || format === 'epithet-place';
 }
 
 function createGeneratedComponent(
@@ -131,15 +142,17 @@ function initialsFor(name: string): string {
 }
 
 export function createNameIdentity(
-  given: GeneratedName,
-  supportingName: GeneratedName | undefined,
+  inputs: FictionCastIdentityGeneratedInputs,
   format: MaterializedNameFormatKind,
   materializationContext: FictionCastIdentityMaterializationContext,
 ): FictionCastMaterializedIdentity {
   const rule = identityStructureForFormat(format);
-  const givenComponent = createGeneratedComponent('component:given:0', 'given', given);
-  const familyComponent = supportingName
-    ? createGeneratedComponent('component:family:0', 'family', supportingName)
+  const givenComponent = createGeneratedComponent('component:given:0', 'given', inputs.primaryPersonal);
+  const additionalPersonalComponents = (inputs.additionalPersonal ?? []).map((generatedName, index) => (
+    createGeneratedComponent(`component:additional-personal:${index}`, 'additional-personal', generatedName)
+  ));
+  const familyComponent = inputs.family
+    ? createGeneratedComponent('component:family:0', 'family', inputs.family)
     : undefined;
   const initialComponent = createInitialComponent(givenComponent);
 
@@ -169,7 +182,7 @@ export function createNameIdentity(
       'epithet',
     );
     const epithetComponent = createLexicalComponent('component:epithet:0', 'epithet', epithetLexeme, EPITHET_INVENTORY_ID);
-    const placeSource = supportingName ?? given;
+    const placeSource = inputs.place ?? inputs.primaryPersonal;
     const placeComponent = createGeneratedComponent('component:place:0', 'place', placeSource);
     return createIdentity(
       `${givenComponent.value} ${epithetComponent.value} of ${placeComponent.value}`,
@@ -179,7 +192,21 @@ export function createNameIdentity(
     );
   }
 
-  const safeFamilyComponent = familyComponent ?? createGeneratedComponent('component:family:0', 'family', given);
+  const safeFamilyComponent = familyComponent ?? createGeneratedComponent('component:family:0', 'family', inputs.primaryPersonal);
+
+  if (format === 'given-additional-family') {
+    if (additionalPersonalComponents.length !== 1) {
+      throw new Error('Given + additional name + family requires exactly one additional personal name.');
+    }
+    const [additionalPersonalComponent] = additionalPersonalComponents;
+    if (!additionalPersonalComponent) throw new Error('Expected one additional personal component.');
+    return createIdentity(
+      `${givenComponent.value} ${additionalPersonalComponent.value} ${safeFamilyComponent.value}`,
+      rule,
+      [givenComponent, additionalPersonalComponent, safeFamilyComponent],
+      [phrasePart(givenComponent), phrasePart(additionalPersonalComponent), phrasePart(safeFamilyComponent)],
+    );
+  }
 
   if (format === 'initials-family') {
     return createIdentity(
