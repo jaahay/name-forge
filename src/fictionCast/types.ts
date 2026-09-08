@@ -52,12 +52,6 @@ export interface FictionCastSettings {
   readonly castVariation?: FictionCastVariation;
 }
 
-export interface FictionCastContextualScores {
-  readonly ensembleFit: number;
-  readonly roleFit: number;
-  readonly overallFit: number;
-}
-
 /**
  * Surface-owned generation-time intent evidence. Retaining this on the result
  * keeps later inspection from re-resolving an older identity against changed
@@ -87,7 +81,6 @@ export interface FictionCastGeneratedName {
   readonly role?: CastRoleAssignment;
   readonly roleInfluence?: RoleInfluenceMetadata;
   readonly resolvedIntentEvidence?: FictionCastResolvedIntentEvidence;
-  readonly contextualScores: FictionCastContextualScores;
   readonly rarityBand: FictionCastRarityBand;
 }
 
