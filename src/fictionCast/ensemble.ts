@@ -107,7 +107,34 @@ function withNameIdentity(
         ? generatePlaceName(supportingOptions)
         : undefined
     : undefined;
-  const identity = createNameIdentity(candidate.primaryName, supportingName, formatKind, materializationContext);
+
+  const additionalPersonalContext = formatKind === 'given-additional-family'
+    ? resolveFictionCastComponentGenerationContext(settings, candidate.role, 'additional-personal', index)
+    : undefined;
+  const additionalPersonalName = additionalPersonalContext
+    ? generateGivenName({
+      settings: additionalPersonalContext.settings,
+      registry,
+      determinism: {
+        seed: generatedComponentSeed(
+          settings,
+          candidate.role,
+          materializationContext,
+          formatKind,
+          'component:additional-personal:0',
+        ),
+        resultIndex: index + 2000,
+      },
+      preferences: additionalPersonalContext.preferences,
+    })
+    : undefined;
+
+  const identity = createNameIdentity({
+    primaryPersonal: candidate.primaryName,
+    ...(additionalPersonalName ? { additionalPersonal: [additionalPersonalName] } : {}),
+    ...(supportingKind === 'family' && supportingName ? { family: supportingName } : {}),
+    ...(supportingKind === 'place' && supportingName ? { place: supportingName } : {}),
+  }, formatKind, materializationContext);
   const identityAudition = renderIdentityAuditionPhrase(identity);
   const safeDisplaySlug = identity.displayName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   return {

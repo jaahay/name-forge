@@ -22,6 +22,12 @@ describe('resolveMaterializedFormatPlan', () => {
     }
   });
 
+  it('keeps richer additional-personal identities opt-in rather than silently adding them to Mixed', () => {
+    const plan = resolveMaterializedFormatPlan('mixed', 'mixed-opt-in-boundary', 200);
+
+    expect(plan).not.toContain('given-additional-family');
+  });
+
   it('uses locked formats on both sides when anti-clumping an unlocked slot', () => {
     const rightLocked = resolveMaterializedFormatPlan(
       'mixed',

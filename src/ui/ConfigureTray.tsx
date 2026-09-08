@@ -21,6 +21,7 @@ export const formatOptions: Array<{ value: FictionCastNameFormatKind; label: str
   { value: 'mixed', label: 'Mixed cast formats' },
   { value: 'given-only', label: 'Given name only' },
   { value: 'given-family', label: 'Given + family' },
+  { value: 'given-additional-family', label: 'Given + additional name + family' },
   { value: 'initials-family', label: 'Initials + family' },
   { value: 'title-name', label: 'Title + name' },
   { value: 'epithet-place', label: 'Epithet/place-style' },

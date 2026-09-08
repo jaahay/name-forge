@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { generateEnsemble } from '../fictionCast/ensemble';
+import type { MaterializedNameFormatKind } from '../fictionCast/identityFormat';
 import { fictionCastEpithetLexemes, fictionCastTitleLexemes } from '../fictionCast/identityLexicon';
 import type { FictionCastRarityBand } from '../fictionCast/rarity';
 import { fictionCastBaselineGenerationSettings } from '../fictionCast/semanticIntent';
@@ -286,7 +287,7 @@ describe('generateEnsemble', () => {
 
   it('materializes Mixed formats reproducibly from the seed with bounded anti-clumping', () => {
     const registry = createDefaultRegistry();
-    const supportedFormats = ['given-only', 'given-family', 'initials-family', 'title-name', 'epithet-place'] as const;
+    const supportedFormats: readonly MaterializedNameFormatKind[] = ['given-only', 'given-family', 'initials-family', 'title-name', 'epithet-place'];
     const mixedSettings: FictionCastSettings = {
       ...settings,
       castSize: 24,
@@ -316,7 +317,7 @@ describe('generateEnsemble', () => {
 
   it('lets new seeds change both Mixed slot order and relative format counts', () => {
     const registry = createDefaultRegistry();
-    const supportedFormats = ['given-only', 'given-family', 'initials-family', 'title-name', 'epithet-place'] as const;
+    const supportedFormats: readonly MaterializedNameFormatKind[] = ['given-only', 'given-family', 'initials-family', 'title-name', 'epithet-place'];
     const formatsForSeed = (seed: string) => generateEnsemble({
       ...settings,
       castSize: 12,

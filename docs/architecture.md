@@ -30,7 +30,7 @@ product surface
 
 A product surface owns its UX, settings, state, composition grammar, aggregate behavior, persistence, and presentation. Semantic naming capabilities translate domain-specific preferences into the generic singular generation boundary. The sound and spelling layers remain reusable mechanics.
 
-Fiction Cast is one such surface. It composes generated given, family, and place names with surface-owned lexical material and literals. Game NPC is a singular-name surface over the shared request/generation path.
+Fiction Cast is one such surface. It composes generated primary personal, additional personal, family, and place components with surface-owned lexical, derived, and literal material. Additional personal names currently reuse the given-name semantic generation capability rather than introducing a generic `middleName` concept. Game NPC is a singular-name surface over the shared request/generation path.
 
 ## Singular generation and provenance
 
@@ -77,7 +77,7 @@ The reusable semantic layer currently exposes:
 
 Each callback resolves its semantic preferences and delegates lexical-name synthesis to `generateName(...)`. The semantic invocation boundary carries shared settings/source context, one seed, result addressability, and typed preferences.
 
-Given, family, and place are first-class domain concepts even when their current lower mechanics are equivalent. Their semantic wrappers provide stable caller boundaries without duplicating the sound or spelling implementation.
+Given, family, and place are first-class domain concepts even when their current lower mechanics are equivalent. Their semantic wrappers provide stable caller boundaries without duplicating the sound or spelling implementation. Fiction Cast may reuse a capability for more than one surface-owned component role when the generation semantics are intentionally the same; the component role remains surface-owned provenance.
 
 ## Surface composition
 
@@ -86,12 +86,15 @@ Composition belongs to the surface whose grammar gives the parts meaning.
 Fiction Cast currently supports identity forms such as:
 
 ```text
-given-only      := given
-given-family    := given family
-initials-family := initials family
-title-name      := title given
-epithet-place   := given epithet "of" place
+given-only               := primary-personal
+given-family             := primary-personal family
+given-additional-family  := primary-personal additional-personal family
+initials-family          := initials family
+title-name               := title primary-personal
+epithet-place            := primary-personal epithet "of" place
 ```
+
+The richer additional-personal form is currently an explicit structure choice. It is not automatically part of the default Mixed structure-selection vocabulary.
 
 `FictionCastGeneratedName` is the composed Fiction Cast result. It owns:
 
@@ -99,10 +102,10 @@ epithet-place   := given epithet "of" place
 - `displayName`;
 - the materialized identity and phrase structure;
 - whole-identity audition data;
-- Cast role, rarity, readability, and contextual scoring;
+- Cast role, rarity, readability, and retained generation-time intent evidence;
 - `primaryName: GeneratedName`.
 
-Generated supporting parts retain their own generation evidence on the identity part that owns them. Titles, epithets, initials, and literals remain explicit surface material.
+Every independently generated identity component retains its own generated-name evidence. Titles, epithets, initials, and literals remain explicit surface material with provenance appropriate to how they were materialized.
 
 A composed display therefore remains distinct from any one generated component. Its surface identity can contain several independently generated names plus non-generated material.
 
@@ -242,7 +245,7 @@ src/
     Fiction Cast settings and results
     identity grammar and lexical material
     ensemble generation
-    roles, rarity, contextual scoring
+    roles, rarity, deterministic cast diagnostics
     whole-identity/component audition
     surface export
     primary-name analysis/addressability adapter

@@ -28,11 +28,13 @@ Naming style
   + explicit slot override where present
   -> effective slot intent
   -> semantic given/family/place generation
-  -> identity composition
-  -> ensemble candidate selection
+  -> deterministic identity composition
+  -> descriptive cast diagnostics
 ```
 
 This preserves the existing architectural rule that Fiction Cast owns its UX, composition, and aggregate behavior while singular generated-name synthesis continues through reusable semantic naming capabilities and `generateName(...)`.
+
+Generation should realize the resolved user intent directly. Descriptive diagnostics may explain the resulting cast, but they should not silently select among multiple complete identities through an opaque aggregate quality score.
 
 ## Why a surface-owned semantic-intent layer is needed
 
@@ -146,7 +148,7 @@ Cast roles answer which story-role context is assigned to each slot.
 
 Role shaping answers how strongly that assigned context may adjust generation.
 
-When Role shaping is Off, role assignment may remain visible context but must not affect generation or role-weighted selection.
+When Role shaping is Off, role assignment may remain visible context but must not affect generation.
 
 When no role is assigned, Role shaping has no object to act on and should not appear independently actionable.
 
@@ -306,43 +308,44 @@ Where possible, distinctive spelling pressure should operate in spelling generat
 
 ## Identity structure
 
-The current Fiction Cast identity forms are a bounded initial vocabulary:
+The current Fiction Cast identity forms remain a bounded vocabulary rather than the permanent ontology:
 
 ```text
 given-only
 given-family
+given-additional-family
 initials-family
 title-name
 epithet-place
 ```
 
-The current `mixed` value is a deterministic cycle through those forms rather than a direct user-selected structural policy.
+`given-additional-family` is the first richer identity-component structure. It contains independently generated primary-personal, additional-personal, and family components. The semantic ontology term is `additional-personal`; the product may use plainer structure wording such as “Given + additional name + family.”
 
-For the current bounded product, prefer an understandable identity-structure choice such as a single form or a clearly described varied-forms policy.
+The current `mixed` value is a deterministic structure-selection policy over an explicit eligible subset. Adding a new materialized structure does not automatically make it Mixed-eligible. Richer structures should be admitted deliberately rather than by enum membership.
 
-Do not use #233 to define the permanent identity ontology.
+For the current bounded product, prefer an understandable identity-structure choice such as a single curated structure or a clearly described varied-forms policy.
 
-Middle names, multiple personal names, houses/clans, patronymics, aliases, dynastic forms, richer honorifics, locatives, and similar expansion require a subsequent bounded identity-component requirements issue.
+Do not turn the component ontology into a checkbox matrix, arbitrary ordering system, drag/drop builder, or user-authored grammar merely because the runtime can represent more component instances.
 
-That later work should first decide what kinds of values exist—generated semantic names, finite lexical values, derived values, and literals—before expanding complete format permutations.
+Further expansion—multiple visible additional personal names, houses/clans, patronymics, aliases, dynastic forms, richer honorifics, locatives, and similar structures—requires a separate bounded product decision.
 
-## Ensemble distinctness is not Cast variation
+## Cast differentiation is evidence, not hidden selection
 
-Cast variation and ensemble distinctness solve different problems.
+Cast variation and cast-level differentiation describe different concerns.
 
-Cast variation controls intentional spread around the user's Familiar baseline.
+Cast variation causally controls intentional spread around the user's Familiar baseline.
 
-Ensemble selection should independently apply modest always-on pressure against confusingly similar roster members, such as exact duplicate display identities or strongly repeated initials/endings/cadences where those heuristics are supported.
+After generation, Fiction Cast may report concrete deterministic observations such as repeated initials, endings, cadences, or exact visible identities when those observations help the user inspect the cast. Those diagnostics do not define an aggregate quality score and do not silently choose a different generated identity.
 
 Conceptually:
 
 ```text
 Naming style + user baseline -> coherence
 Cast variation -> controlled spread
-ensemble selection -> avoid confusingly similar cast members
+generated cast -> descriptive relationship/collision evidence
 ```
 
-Do not force the user to increase Cast variation merely to obtain distinguishable identities.
+If a future workflow genuinely needs automatic differentiation or optimization, that should be introduced as an explicit product intent with a declared causal contract. Do not reintroduce a hidden candidate tournament merely to make a heuristic score larger.
 
 ## Configure information architecture
 
@@ -367,7 +370,7 @@ Expected behavior:
 
 - Cast size remains a quantity control, not a mode switch;
 - Cast variation resolves to zero spread;
-- ensemble distinctness has no cross-name work to perform;
+- cast-level relationship diagnostics have no cross-name work to perform;
 - one Role and Role shaping remain meaningful;
 - Naming style, Familiar, Readable, Compact, Style adherence, Spelling, identity structure, and seed remain meaningful where their causal contracts support it;
 - no separate Fantasy/Fiction Character surface is required by this model.
@@ -407,11 +410,12 @@ The preferred bounded sequence after #233 reaches a requirements conclusion is:
    - group dependent controls together;
    - reevaluate disclosure placement after causal semantics are real.
 
-6. **Current identity-structure cleanup**
-   - replace or clarify the opaque `mixed` presentation without expanding the identity domain;
-   - then open the separate identity-component requirements issue before broader composed-identity expansion.
+6. **Identity-component expansion**
+   - keep curated structures separate from the component ontology;
+   - add richer structures only when they solve concrete naming jobs;
+   - admit richer structures to Mixed deliberately rather than automatically.
 
-Keep Inspector score-label changes, alternate-spelling vertical rhythm, provider-backed TTS, and first-run Configure container behavior out of this causal-model implementation sequence unless a bounded child explicitly owns them.
+Keep alternate-spelling vertical rhythm, provider-backed TTS, and first-run Configure container behavior out of this causal-model implementation sequence unless a bounded child explicitly owns them.
 
 ## Confidence and open decisions
 
@@ -422,9 +426,9 @@ High-confidence architectural conclusions:
 - Familiar and Cast variation should represent center and spread rather than two competing rarity systems;
 - StylePack must remain bounded;
 - generated-name style and Fiction Cast finite lexical style can be associated at the product layer without collapsing their ownership;
-- ensemble distinctness is separate from Cast variation;
+- cast diagnostics are evidence rather than a hidden identity-selection authority;
 - cast size 1 should remain the same surface;
-- the current five identity forms must not become the permanent identity ontology by accident.
+- current identity structures must not become the permanent identity ontology by accident.
 
 Still-open product or implementation constants:
 
@@ -456,4 +460,5 @@ An implementation derived from this record should satisfy all of the following:
 - StylePack cannot subsume unrelated Configure domains;
 - finite identity vocabulary remains surface-owned and can be style-associated without entering sound generation;
 - Compact and Spelling act on the mechanics their labels describe rather than inheriting unrelated historical score semantics;
-- the current identity-structure control is improved without prematurely defining the future identity-component domain.
+- identity-structure choices remain curated without prematurely defining a universal identity grammar;
+- cast diagnostics remain explanatory and do not become an undeclared quality optimizer.

@@ -23,6 +23,7 @@ const settings: FictionCastSettings = {
 describe('Fiction Cast component generation context', () => {
   it('maps compound formats to semantic supporting component kinds', () => {
     expect(supportingComponentKindForFormat('given-family')).toBe('family');
+    expect(supportingComponentKindForFormat('given-additional-family')).toBe('family');
     expect(supportingComponentKindForFormat('initials-family')).toBe('family');
     expect(supportingComponentKindForFormat('epithet-place')).toBe('place');
     expect(supportingComponentKindForFormat('given-only')).toBeUndefined();
@@ -33,18 +34,22 @@ describe('Fiction Cast component generation context', () => {
     const slotIndex = 2;
     const expectedVariationDelta = resolveFictionCastVariationDelta(settings, slotIndex);
     const given = resolveFictionCastComponentGenerationContext(settings, undefined, 'given', slotIndex);
+    const additionalPersonal = resolveFictionCastComponentGenerationContext(settings, undefined, 'additional-personal', slotIndex);
     const family = resolveFictionCastComponentGenerationContext(settings, undefined, 'family', slotIndex);
     const place = resolveFictionCastComponentGenerationContext(settings, undefined, 'place', slotIndex);
 
     expect(given.kind).toBe('given');
+    expect(additionalPersonal.kind).toBe('additional-personal');
     expect(family.kind).toBe('family');
     expect(place.kind).toBe('place');
     expect(given.semanticIntent.baseline).toEqual(settings.semanticBaseline);
     expect(given.semanticIntent.variationDelta).toBe(expectedVariationDelta);
     expect(given.settings.novelty).toBeCloseTo(0.48 + expectedVariationDelta);
+    expect(additionalPersonal.settings).toEqual(given.settings);
     expect(family.settings).toEqual(given.settings);
     expect(place.settings).toEqual(given.settings);
     expect(given.preferences).toEqual({});
+    expect(additionalPersonal.preferences).toEqual({});
     expect(family.preferences).toEqual({});
     expect(place.preferences).toEqual({});
   });

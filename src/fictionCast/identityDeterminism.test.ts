@@ -45,15 +45,16 @@ describe('Fiction Cast identity determinism', () => {
       castSeed: 'cast-seed',
       slotIndex: 3,
     };
-    const structure = identityStructureForFormat('given-family');
+    const structure = identityStructureForFormat('given-additional-family');
     const primary = componentMaterializationSeed(context, structure, 'component:given:0');
+    const additional = componentMaterializationSeed(context, structure, 'component:additional-personal:0');
+    const repeatedAdditional = componentMaterializationSeed(context, structure, 'component:additional-personal:1');
     const family = componentMaterializationSeed(context, structure, 'component:family:0');
-    const repeatedGiven = componentMaterializationSeed(context, structure, 'component:given:1');
 
     expect(primary).toBe(componentMaterializationSeed(context, structure, 'component:given:0'));
-    expect(new Set([primary, family, repeatedGiven]).size).toBe(3);
+    expect(new Set([primary, additional, repeatedAdditional, family]).size).toBe(4);
     expect(primary).toContain('slot-3');
-    expect(primary).toContain('format:given-family');
+    expect(primary).toContain('format:given-additional-family');
     expect(primary).toContain('v1');
     expect(primary).not.toContain('candidate-');
   });
@@ -90,10 +91,10 @@ describe('Fiction Cast identity determinism', () => {
       castSeed: 'lexical-context',
       slotIndex: 2,
     };
-    const firstTitleIdentity = createNameIdentity(first, undefined, 'title-name', context);
-    const secondTitleIdentity = createNameIdentity(second, undefined, 'title-name', context);
-    const firstEpithetIdentity = createNameIdentity(first, first, 'epithet-place', context);
-    const secondEpithetIdentity = createNameIdentity(second, first, 'epithet-place', context);
+    const firstTitleIdentity = createNameIdentity({ primaryPersonal: first }, 'title-name', context);
+    const secondTitleIdentity = createNameIdentity({ primaryPersonal: second }, 'title-name', context);
+    const firstEpithetIdentity = createNameIdentity({ primaryPersonal: first, place: first }, 'epithet-place', context);
+    const secondEpithetIdentity = createNameIdentity({ primaryPersonal: second, place: first }, 'epithet-place', context);
 
     expect(first.name).not.toBe(second.name);
     expect(lexicalComponent(secondTitleIdentity).lexemeId).toBe(lexicalComponent(firstTitleIdentity).lexemeId);
@@ -105,11 +106,11 @@ describe('Fiction Cast identity determinism', () => {
   it('keeps derived initials deterministic from their retained source rather than independent randomness', () => {
     const given = generatedName('derived-source:given');
     const family = generatedName('derived-source:family', 1);
-    const first = createNameIdentity(given, family, 'initials-family', {
+    const first = createNameIdentity({ primaryPersonal: given, family }, 'initials-family', {
       castSeed: 'derived-cast:first',
       slotIndex: 1,
     });
-    const second = createNameIdentity(given, family, 'initials-family', {
+    const second = createNameIdentity({ primaryPersonal: given, family }, 'initials-family', {
       castSeed: 'derived-cast:second',
       slotIndex: 9,
     });
