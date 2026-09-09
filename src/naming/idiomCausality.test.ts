@@ -21,7 +21,7 @@ function contrastivePack(
   nucleus: SoundSegmentId,
   coda: SoundSegmentId,
 ): StylePack {
-  const weight = 1_000_000;
+  const multiplier = 1_000_000;
 
   return {
     ...basePack,
@@ -37,17 +37,18 @@ function contrastivePack(
       label: id,
       summary: `Contrastive test idiom ${id}`,
     },
-    phonotactics: {
-      ...basePack.phonotactics,
-      onsets: [{ value: onset, weight }],
-      nuclei: [{ value: nucleus, weight }],
-      codas: [{ value: coda, weight }],
+    soundBias: {
+      segmentMultipliers: {
+        onset: [{ segmentId: onset, multiplier }],
+        nucleus: [{ segmentId: nucleus, multiplier }],
+        coda: [{ segmentId: coda, multiplier }],
+      },
     },
   };
 }
 
 describe('naming idiom causality', () => {
-  it('holds explicit generation intent constant while selected pack phonotactics change sound realization', () => {
+  it('holds explicit generation intent constant while explicit idiom sound multipliers change realization', () => {
     const liquidPack = contrastivePack('contrastive-liquid', 'l', 'a', 'r');
     const crispPack = contrastivePack('contrastive-crisp', 'k', 'i', 'l');
 
@@ -69,14 +70,34 @@ describe('naming idiom causality', () => {
     expect(liquid.sound.sequence.segments).not.toEqual(crisp.sound.sequence.segments);
   });
 
-  it('compiles only pack entries that are valid sound segments for the declared syllable role', () => {
+  it('compiles authored sound multipliers without inferring them from legacy phonotactic strings', () => {
     const generated = generateName({ settings, pack: basePack, seed: 'idiom-built-in', index: 0 });
     const preferences = generated.soundProfile.phonotactics.segmentPreferences;
 
-    expect(preferences?.onset).toContainEqual({ segmentId: 'th', weight: 4 });
-    expect(preferences?.nucleus).toContainEqual({ segmentId: 'ae', weight: 2 });
-    expect(preferences?.coda).toContainEqual({ segmentId: 'n', weight: 3 });
+    expect(preferences?.onset).toContainEqual({ segmentId: 'th', weight: 1.2 });
+    expect(preferences?.nucleus).toContainEqual({ segmentId: 'ae', weight: 1.1 });
+    expect(preferences?.coda).toContainEqual({ segmentId: 'n', weight: 1.2 });
     expect(preferences?.onset.some((preference) => preference.segmentId === ('br' as SoundSegmentId))).toBe(false);
+  });
+
+  it('does not treat legacy phonotactic weight magnitude as hidden idiom strength', () => {
+    const scaledLegacyPack: StylePack = {
+      ...basePack,
+      phonotactics: {
+        ...basePack.phonotactics,
+        onsets: basePack.phonotactics.onsets.map((entry) => ({ ...entry, weight: entry.weight * 100 })),
+        nuclei: basePack.phonotactics.nuclei.map((entry) => ({ ...entry, weight: entry.weight * 100 })),
+        codas: basePack.phonotactics.codas.map((entry) => ({ ...entry, weight: entry.weight * 100 })),
+      },
+    };
+
+    const baseline = generateName({ settings, pack: basePack, seed: 'idiom-legacy-weight-scale', index: 0 });
+    const scaled = generateName({ settings, pack: scaledLegacyPack, seed: 'idiom-legacy-weight-scale', index: 0 });
+
+    expect(scaled.soundProfile).toEqual(baseline.soundProfile);
+    expect(scaled.sound).toEqual(baseline.sound);
+    expect(scaled.spelling).toEqual(baseline.spelling);
+    expect(scaled.name).toBe(baseline.name);
   });
 
   it('does not treat legacy cultural anchoring as hidden idiom strength', () => {
