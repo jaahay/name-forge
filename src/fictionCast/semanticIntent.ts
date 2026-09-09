@@ -42,11 +42,9 @@ const compactnessMemorability = {
   compact: 0.65,
 } as const;
 
-const styleAnchoringCulturalAnchoring = {
-  loose: 0.35,
-  balanced: 0.62,
-  faithful: 0.82,
-} as const;
+// The generic engine still carries culturalAnchoring for compatibility and
+// scoring. Fiction Cast no longer exposes or stores it as user intent.
+const FICTION_CAST_COMPATIBILITY_CULTURAL_ANCHORING = 0.62;
 
 const spellingDistinctivenessWeirdness = {
   conventional: 0.28,
@@ -65,7 +63,7 @@ export function fictionCastBaselineGenerationSettings(settings: FictionCastSetti
     novelty: familiarityNovelty[baseline.familiarity],
     pronounceability: readabilityPronounceability[baseline.readability],
     memorability: compactnessMemorability[baseline.compactness],
-    culturalAnchoring: styleAnchoringCulturalAnchoring[baseline.styleAnchoring],
+    culturalAnchoring: FICTION_CAST_COMPATIBILITY_CULTURAL_ANCHORING,
     orthographicWeirdness: spellingDistinctivenessWeirdness[baseline.spellingDistinctiveness],
     stylePackId: settings.stylePackId,
     seed: settings.seed,
