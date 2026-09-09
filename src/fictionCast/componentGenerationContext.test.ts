@@ -12,7 +12,6 @@ const settings: FictionCastSettings = {
     familiarity: 'balanced',
     readability: 'clear',
     compactness: 'compact',
-    styleAnchoring: 'balanced',
     spellingDistinctiveness: 'conventional',
   },
   stylePackId: 'british-literary-fantasy',
