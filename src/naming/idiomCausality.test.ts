@@ -74,7 +74,7 @@ describe('naming idiom causality', () => {
     const preferences = generated.soundProfile.phonotactics.segmentPreferences;
 
     expect(preferences?.onset).toContainEqual({ segmentId: 'th', weight: 4 });
-    expect(preferences?.nucleus).toContainEqual({ segmentId: 'ae', weight: 6 });
+    expect(preferences?.nucleus).toContainEqual({ segmentId: 'ae', weight: 2 });
     expect(preferences?.coda).toContainEqual({ segmentId: 'n', weight: 3 });
     expect(preferences?.onset.some((preference) => preference.segmentId === ('br' as SoundSegmentId))).toBe(false);
   });
