@@ -276,7 +276,7 @@ function whatShapedThisName(
             <div><dt>Familiar</dt><dd>{labelFor(baseline.familiarity)}</dd></div>
             <div><dt>Readable</dt><dd>{labelFor(baseline.readability)}</dd></div>
             <div><dt>Compact</dt><dd>{labelFor(baseline.compactness)}</dd></div>
-            <div><dt>Naming style</dt><dd>{stylePackLabel}</dd></div>
+            <div><dt>Naming idiom</dt><dd>{stylePackLabel}</dd></div>
             <div><dt>Spelling</dt><dd>{labelFor(baseline.spellingDistinctiveness)}</dd></div>
           </dl>
         </section>
