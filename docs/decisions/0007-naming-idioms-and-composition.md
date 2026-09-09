@@ -6,6 +6,8 @@ Accepted for the #249 product vocabulary and immediate Fiction Cast control mode
 
 This decision does not implement multi-idiom composition. It defines the semantic boundary so later composition can be added without redefining today's selector or reusing the overloaded term `style`.
 
+Where older working design records still refer to `Naming style`, `Style adherence`, or `Loose · Balanced · Faithful` as unresolved #249 product semantics, this ADR supersedes that language. Those records remain useful for their other domain decisions unless separately superseded.
+
 ## Context
 
 `Style` is overloaded in Name Forge.
