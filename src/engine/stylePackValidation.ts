@@ -1,3 +1,4 @@
+import { starterSoundInventory, type SoundSegmentId } from './starterSoundInventory';
 import type { AssetKind, NameVariantConfidence, NameVariantRelationship, SourceChannel, SourceDescriptor, SourceKind, SourceValidationIssue, StyleDescriptor, StylePack, StylePackSourceDescriptor, StylePackValidationResult, WeightedValue } from './types';
 
 const sourceChannels: SourceChannel[] = ['built-in', 'user-authored', 'local-file', 'package', 'remote-http', 'remote-api'];
@@ -91,7 +92,30 @@ function validateWeightedValues(path: string, values: Array<WeightedValue<string
 
 function validateStringArray(path: string, values: string[]): SourceValidationIssue[] {
   if (values.length === 0) return [issue(path, 'String array must not be empty.')];
-  return values.flatMap((value, index) => (hasText(value) ? [] : [issue(`${path}.${index}`, 'String array entries must not be blank.')]));
+  return values.flatMap((value, index) => (hasText(value) ? [] : [issue(`${path}.${index}`, 'String array entries must not be blank.')])) ;
+}
+
+function validateSoundBias(pack: StylePack): SourceValidationIssue[] {
+  const multipliers = pack.soundBias?.segmentMultipliers;
+  if (!multipliers) return [];
+
+  return (['onset', 'nucleus', 'coda'] as const).flatMap((role) => multipliers[role].flatMap((entry, index) => {
+    const path = `soundBias.segmentMultipliers.${role}.${index}`;
+    const segmentId = entry.segmentId as string;
+    const issues: SourceValidationIssue[] = [];
+    if (!Object.prototype.hasOwnProperty.call(starterSoundInventory, segmentId)) {
+      issues.push(issue(`${path}.segmentId`, `Unknown sound segment: ${segmentId}.`));
+    } else {
+      const segment = starterSoundInventory[segmentId as SoundSegmentId];
+      if (!segment.syllableRoles.includes(role)) {
+        issues.push(issue(`${path}.segmentId`, `Sound segment ${segmentId} cannot be used as ${role}.`));
+      }
+    }
+    if (!Number.isFinite(entry.multiplier) || entry.multiplier <= 0) {
+      issues.push(issue(`${path}.multiplier`, 'Sound segment multiplier must be a positive finite number.'));
+    }
+    return issues;
+  }));
 }
 
 function validateListedVariants(pack: StylePack): SourceValidationIssue[] {
@@ -134,6 +158,7 @@ export function validateStylePack(pack: StylePack): StylePackValidationResult {
     ...(!hasText(pack.version) ? [issue('version', 'Style pack version is required.')] : []),
     ...(!hasText(pack.localeHint) ? [issue('localeHint', 'Style pack locale hint is required.')] : []),
     ...validateStringArray('culturalAnchors', pack.culturalAnchors),
+    ...validateSoundBias(pack),
     ...validateWeightedValues('phonotactics.onsets', pack.phonotactics.onsets),
     ...validateWeightedValues('phonotactics.nuclei', pack.phonotactics.nuclei),
     ...validateWeightedValues('phonotactics.codas', pack.phonotactics.codas),
