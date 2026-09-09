@@ -78,4 +78,26 @@ describe('naming idiom causality', () => {
     expect(preferences?.coda).toContainEqual({ segmentId: 'n', weight: 3 });
     expect(preferences?.onset.some((preference) => preference.segmentId === ('br' as SoundSegmentId))).toBe(false);
   });
+
+  it('does not treat legacy cultural anchoring as hidden idiom strength', () => {
+    const low = generateName({
+      settings: { ...settings, culturalAnchoring: 0 },
+      pack: basePack,
+      seed: 'idiom-legacy-anchoring',
+      index: 0,
+    });
+    const high = generateName({
+      settings: { ...settings, culturalAnchoring: 1 },
+      pack: basePack,
+      seed: 'idiom-legacy-anchoring',
+      index: 0,
+    });
+
+    expect(high.generationPlan).toEqual(low.generationPlan);
+    expect(high.soundProfile).toEqual(low.soundProfile);
+    expect(high.sound).toEqual(low.sound);
+    expect(high.spelling).toEqual(low.spelling);
+    expect(high.name).toBe(low.name);
+    expect(high.variants).toEqual(low.variants);
+  });
 });
