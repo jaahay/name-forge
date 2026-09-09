@@ -42,12 +42,12 @@ export const stylePacks: StylePack[] = [{
   culturalAnchors: ['Albion', 'Arthurian romance', 'Victorian novels', 'border ballads'],
   soundBias: {
     segmentMultipliers: {
-      onset: ['b', 'd', 'f', 'g', 'h', 'l', 'm', 'n', 'p', 'r', 's', 't', 'th', 'v', 'w', 'y'].map((segmentId) => ({ segmentId, multiplier: 1.2 })),
+      onset: (['b', 'd', 'f', 'g', 'h', 'l', 'm', 'n', 'p', 'r', 's', 't', 'th', 'v', 'w', 'y'] as const).map((segmentId) => ({ segmentId, multiplier: 1.2 })),
       nucleus: [
-        ...['a', 'e', 'i', 'o', 'u'].map((segmentId) => ({ segmentId, multiplier: 1.25 })),
+        ...(['a', 'e', 'i', 'o', 'u'] as const).map((segmentId) => ({ segmentId, multiplier: 1.25 })),
         { segmentId: 'ae', multiplier: 1.1 },
       ],
-      coda: ['d', 'l', 'm', 'n', 'r', 's', 'th', 'v'].map((segmentId) => ({ segmentId, multiplier: 1.2 })),
+      coda: (['d', 'l', 'm', 'n', 'r', 's', 'th', 'v'] as const).map((segmentId) => ({ segmentId, multiplier: 1.2 })),
     },
   },
   phonotactics: {
