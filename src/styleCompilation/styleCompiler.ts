@@ -1,4 +1,12 @@
-import type { SoundProfile, SoundProfileCadence, SoundProfileLength, SoundProfileTexture } from '../engine/soundProfile';
+import type {
+  SoundProfile,
+  SoundProfileCadence,
+  SoundProfileLength,
+  SoundProfileSegmentPreferences,
+  SoundProfileTexture,
+} from '../engine/soundProfile';
+import { getSoundSegment, starterSoundInventory, type SoundSegmentId } from '../engine/starterSoundInventory';
+import type { StylePack, WeightedValue } from '../engine/types';
 
 export interface StyleCompiler<Style> {
   compile(style: Style): SoundProfile;
@@ -7,6 +15,7 @@ export interface StyleCompiler<Style> {
 type StyleFeel = 'balanced' | 'gentle' | 'strong' | 'lyrical';
 type StyleDistinctiveness = 'familiar' | 'balanced' | 'distinctive';
 type NormalizedStyleInput = Required<StyleInput>;
+type SegmentRole = keyof SoundProfileSegmentPreferences;
 
 export interface StyleInput {
   readonly feel?: StyleFeel;
@@ -53,7 +62,38 @@ function normalizeStyleInput(input: StyleInput): NormalizedStyleInput {
   };
 }
 
-function compilePhonotactics(style: NormalizedStyleInput): SoundProfile['phonotactics'] {
+function isSoundSegmentId(value: string): value is SoundSegmentId {
+  return Object.prototype.hasOwnProperty.call(starterSoundInventory, value);
+}
+
+function compileSegmentPreferences(
+  values: readonly WeightedValue[],
+  role: SegmentRole,
+): SoundProfileSegmentPreferences[SegmentRole] {
+  return values.flatMap(({ value, weight }) => {
+    if (!isSoundSegmentId(value)) return [];
+    if (!getSoundSegment(value).syllableRoles.includes(role)) return [];
+    return [{ segmentId: value, weight }];
+  });
+}
+
+function compilePackSegmentPreferences(pack: StylePack | undefined): SoundProfileSegmentPreferences | undefined {
+  if (!pack) return undefined;
+
+  const preferences: SoundProfileSegmentPreferences = {
+    onset: compileSegmentPreferences(pack.phonotactics.onsets, 'onset'),
+    nucleus: compileSegmentPreferences(pack.phonotactics.nuclei, 'nucleus'),
+    coda: compileSegmentPreferences(pack.phonotactics.codas, 'coda'),
+  };
+
+  if (preferences.onset.length === 0 && preferences.nucleus.length === 0 && preferences.coda.length === 0) {
+    return undefined;
+  }
+
+  return preferences;
+}
+
+function compilePhonotactics(style: NormalizedStyleInput, pack?: StylePack): SoundProfile['phonotactics'] {
   const base: SoundProfile['phonotactics'] = {
     preferredSyllableShapes: ['CV', 'CVC', 'CVL'],
     onsetWeight: 0.72,
@@ -63,25 +103,23 @@ function compilePhonotactics(style: NormalizedStyleInput): SoundProfile['phonota
     clusterTolerance: 0.22,
   };
 
+  let resolved = base;
+
   if (style.feel === 'gentle') {
-    return {
+    resolved = {
       ...base,
       codaWeight: 0.32,
       liquidWeight: 0.46,
       clusterTolerance: 0.14,
     };
-  }
-
-  if (style.feel === 'strong') {
-    return {
+  } else if (style.feel === 'strong') {
+    resolved = {
       ...base,
       codaWeight: 0.58,
       clusterTolerance: 0.36,
     };
-  }
-
-  if (style.feel === 'lyrical') {
-    return {
+  } else if (style.feel === 'lyrical') {
+    resolved = {
       ...base,
       preferredSyllableShapes: ['CV', 'CVL', 'V'],
       liquidWeight: 0.52,
@@ -90,10 +128,11 @@ function compilePhonotactics(style: NormalizedStyleInput): SoundProfile['phonota
     };
   }
 
-  return base;
+  const segmentPreferences = compilePackSegmentPreferences(pack);
+  return segmentPreferences ? { ...resolved, segmentPreferences } : resolved;
 }
 
-export function compileStyle(input: StyleInput = {}): SoundProfile {
+export function compileStyle(input: StyleInput = {}, pack?: StylePack): SoundProfile {
   const style = normalizeStyleInput(input);
 
   return {
@@ -104,7 +143,7 @@ export function compileStyle(input: StyleInput = {}): SoundProfile {
       distinctiveness: distinctivenessTargets[style.distinctiveness],
       cadences: cadencesByLength[style.length],
     },
-    phonotactics: compilePhonotactics(style),
+    phonotactics: compilePhonotactics(style, pack),
   };
 }
 
