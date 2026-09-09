@@ -14,7 +14,6 @@ const settings: FictionCastSettings = {
     familiarity: 'balanced',
     readability: 'clear',
     compactness: 'compact',
-    styleAnchoring: 'balanced',
     spellingDistinctiveness: 'conventional',
   },
   stylePackId: 'british-literary-fantasy',
@@ -148,10 +147,6 @@ describe('NameInspector', () => {
     const generatedSettings: FictionCastSettings = {
       ...settings,
       castSize: 3,
-      semanticBaseline: {
-        ...settings.semanticBaseline,
-        styleAnchoring: 'faithful',
-      },
       castVariation: 'wide',
       rolePreset: 'classic-ensemble',
       roleInfluence: 'light',
@@ -166,7 +161,8 @@ describe('NameInspector', () => {
     expect(html).toContain('<dt>Familiar</dt><dd>Balanced</dd>');
     expect(html).toContain('<dt>Readable</dt><dd>Clear</dd>');
     expect(html).toContain('<dt>Compact</dt><dd>Compact</dd>');
-    expect(html).toContain('<dt>Naming style</dt><dd>British literary fantasy</dd>');
+    expect(html).toContain('<dt>Naming idiom</dt><dd>British literary fantasy</dd>');
+    expect(html).not.toContain('<dt>Naming style</dt>');
     expect(html).toContain('<dt>Spelling</dt><dd>Conventional</dd>');
     expect(html).toContain('<dt>Cast variation</dt><dd>Wide ·');
     expect(html).toContain('<dt>Role shaping</dt>');
