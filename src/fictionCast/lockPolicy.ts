@@ -12,7 +12,6 @@ function sameSemanticBaseline(
   return left.familiarity === right.familiarity
     && left.readability === right.readability
     && left.compactness === right.compactness
-    && left.styleAnchoring === right.styleAnchoring
     && left.spellingDistinctiveness === right.spellingDistinctiveness;
 }
 
