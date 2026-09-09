@@ -1,5 +1,6 @@
 import type { SoundCandidate } from './soundGenerator';
 import type { SoundProfile } from './soundProfile';
+import type { SoundSegmentId } from './starterSoundInventory';
 import type { RankedSpellingCandidate } from './spellingGenerator';
 import type { SourceDescriptor, SourceValidationIssue, StylePackValidationResult } from './sourceTypes';
 import type { StyleDescriptor, StylePackSourceDescriptor } from './stylePackTypes';
@@ -50,6 +51,8 @@ export interface ReadabilityDiagnostic { id: string; scope: ReadabilityDiagnosti
 export interface NameGenerationSettings { novelty: number; pronounceability: number; memorability: number; culturalAnchoring: number; orthographicWeirdness: number; preferredTexture?: NameTexture; spellingSelectionPreference?: SpellingSelectionPreference; }
 export interface GenerationSettings extends NameGenerationSettings { stylePackId: string; seed: string; }
 export interface WeightedValue<T = string> { value: T; weight: number; }
+export interface SoundSegmentMultiplier { segmentId: SoundSegmentId; multiplier: number; }
+export interface SoundSegmentMultipliers { onset: Array<SoundSegmentMultiplier>; nucleus: Array<SoundSegmentMultiplier>; coda: Array<SoundSegmentMultiplier>; }
 export interface NameGenerationPlanPreferences { strength: number; syllableCounts?: Array<WeightedValue<number>>; textures?: Array<WeightedValue<NameTexture>>; }
 export interface NameGenerationPlan { id: string; syllableCount: number; stressPattern: string; rhythm: string; shape: string[]; texture: NameTexture; targetNovelty: number; targetLength: 'short' | 'medium' | 'long'; }
 export interface NameScores { pronounceability: number; memorability: number; novelty: number; culturalAnchoring: number; orthographicNaturalness: number; styleFit: number; overallFit: number; }
@@ -59,5 +62,5 @@ export interface NameVariant { value: string; kind: VariantKind; relationship: N
 export interface GeneratedName { id: string; name: string; soundProfile: SoundProfile; sound: SoundCandidate; spelling: RankedSpellingCandidate; spellingCandidates: readonly RankedSpellingCandidate[]; generationPlan: NameGenerationPlan; scores: NameScores; variants: NameVariant[]; readabilityDiagnostics: ReadabilityDiagnostic[]; }
 export interface SpellingVariantRule { id: string; label: string; from: string; to: string; maxApplications?: number; sourceKind: SourceKind; relationship?: NameVariantRelationship; confidence?: NameVariantConfidence; }
 export interface StylePackSummary { id: string; label: string; description: string; source: StylePackSourceDescriptor; style: StyleDescriptor; }
-export interface StylePack extends StylePackSummary { version: string; localeHint: string; culturalAnchors: string[]; phonotactics: { onsets: Array<WeightedValue>; nuclei: Array<WeightedValue>; codas: Array<WeightedValue>; preferredEndings: Array<WeightedValue>; rareGraphemes: string[]; forbiddenFragments: string[]; }; formBias: { syllableCounts: Array<WeightedValue<number>>; textures: Array<WeightedValue<NameTexture>>; }; listedVariants: Record<string, string[]>; variantRules: SpellingVariantRule[]; }
+export interface StylePack extends StylePackSummary { version: string; localeHint: string; culturalAnchors: string[]; soundBias?: { segmentMultipliers: SoundSegmentMultipliers; }; phonotactics: { onsets: Array<WeightedValue>; nuclei: Array<WeightedValue>; codas: Array<WeightedValue>; preferredEndings: Array<WeightedValue>; rareGraphemes: string[]; forbiddenFragments: string[]; }; formBias: { syllableCounts: Array<WeightedValue<number>>; textures: Array<WeightedValue<NameTexture>>; }; listedVariants: Record<string, string[]>; variantRules: SpellingVariantRule[]; }
 export interface NameSourceProvider { id: string; label: string; kind: SourceKind; source: SourceDescriptor; listStylePacks(): StylePackSummary[]; getStylePack(id: string): StylePack | undefined; validateStylePack(id: string): StylePackValidationResult | undefined; }
