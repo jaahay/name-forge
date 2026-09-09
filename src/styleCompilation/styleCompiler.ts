@@ -5,8 +5,7 @@ import type {
   SoundProfileSegmentPreferences,
   SoundProfileTexture,
 } from '../engine/soundProfile';
-import { getSoundSegment, starterSoundInventory, type SoundSegmentId } from '../engine/starterSoundInventory';
-import type { StylePack, WeightedValue } from '../engine/types';
+import type { StylePack } from '../engine/types';
 
 export interface StyleCompiler<Style> {
   compile(style: Style): SoundProfile;
@@ -15,7 +14,6 @@ export interface StyleCompiler<Style> {
 type StyleFeel = 'balanced' | 'gentle' | 'strong' | 'lyrical';
 type StyleDistinctiveness = 'familiar' | 'balanced' | 'distinctive';
 type NormalizedStyleInput = Required<StyleInput>;
-type SegmentRole = keyof SoundProfileSegmentPreferences;
 
 export interface StyleInput {
   readonly feel?: StyleFeel;
@@ -62,28 +60,14 @@ function normalizeStyleInput(input: StyleInput): NormalizedStyleInput {
   };
 }
 
-function isSoundSegmentId(value: string): value is SoundSegmentId {
-  return Object.prototype.hasOwnProperty.call(starterSoundInventory, value);
-}
-
-function compileSegmentPreferences(
-  values: readonly WeightedValue[],
-  role: SegmentRole,
-): SoundProfileSegmentPreferences[SegmentRole] {
-  return values.flatMap(({ value, weight }) => {
-    if (!isSoundSegmentId(value)) return [];
-    if (!getSoundSegment(value).syllableRoles.includes(role)) return [];
-    return [{ segmentId: value, weight }];
-  });
-}
-
 function compilePackSegmentPreferences(pack: StylePack | undefined): SoundProfileSegmentPreferences | undefined {
-  if (!pack) return undefined;
+  const multipliers = pack?.soundBias?.segmentMultipliers;
+  if (!multipliers) return undefined;
 
   const preferences: SoundProfileSegmentPreferences = {
-    onset: compileSegmentPreferences(pack.phonotactics.onsets, 'onset'),
-    nucleus: compileSegmentPreferences(pack.phonotactics.nuclei, 'nucleus'),
-    coda: compileSegmentPreferences(pack.phonotactics.codas, 'coda'),
+    onset: multipliers.onset.map(({ segmentId, multiplier }) => ({ segmentId, weight: multiplier })),
+    nucleus: multipliers.nucleus.map(({ segmentId, multiplier }) => ({ segmentId, weight: multiplier })),
+    coda: multipliers.coda.map(({ segmentId, multiplier }) => ({ segmentId, weight: multiplier })),
   };
 
   if (preferences.onset.length === 0 && preferences.nucleus.length === 0 && preferences.coda.length === 0) {
