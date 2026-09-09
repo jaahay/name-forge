@@ -42,7 +42,7 @@ describe('semantic Fiction Cast criteria', () => {
     }
   });
 
-  it('keeps the cast-level shuffle on supported semantic values without randomizing legacy style anchoring', () => {
+  it('keeps the cast-level shuffle on supported semantic values without a hidden idiom-adherence axis', () => {
     const defaults = fictionCastMode.defaultSettings('test-style');
     const randomized = randomizeScoreSettings(defaults);
     const baseline = fictionCastSemanticBaselineFromSettings(randomized);
@@ -51,6 +51,6 @@ describe('semantic Fiction Cast criteria', () => {
       const supportedValues = control.choices.map((choice) => choice.value);
       expect(supportedValues).toContain(baseline[control.key]);
     }
-    expect(baseline.styleAnchoring).toBe(defaults.semanticBaseline.styleAnchoring);
+    expect('styleAnchoring' in baseline).toBe(false);
   });
 });
