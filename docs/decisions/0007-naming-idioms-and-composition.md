@@ -139,6 +139,32 @@ FictionCast Naming idiom
 
 This ADR does not require an immediate repository-wide rename of `StylePack`. If the core generation API later adopts `Style` for the complete generation specification, the lower source type should be renamed deliberately rather than allowing both meanings to coexist indefinitely.
 
+### Resolved mechanics remain below idiom identity
+
+An idiom should be compiled into the lower mechanics values that need its contribution. Lower generators should not learn the product concept itself.
+
+For sound generation, the boundary is:
+
+```text
+Naming idiom / StylePack
+  + explicit generation intent
+  -> style compilation
+  -> SoundProfile
+  -> generateSound(...)
+```
+
+`generateSound(...)` remains unaware of `Naming idiom`, `StylePack`, Fiction Cast, or future composition syntax. A future idiom composition for sound should therefore resolve its compatible contributions into one `SoundProfile` before sound generation.
+
+### Current bounded sound causality
+
+`StylePack.formBias` already supplies causal planning pressure for syllable count and texture.
+
+The current #249 implementation additionally compiles pack onset, nucleus, and coda entries into `SoundProfile.phonotactics.segmentPreferences` when an entry is an exact supported atomic sound-segment ID for the declared syllable role. Sound generation applies those resolved values as soft multiplicative preferences while retaining the generic sound inventory and other resolved mechanics.
+
+This rule is intentionally conservative. Existing pack strings such as multi-segment clusters or orthographic sequences are not guessed, decomposed, or treated as atomic sounds merely because they occur in a historical `phonotactics` list. Unsupported entries remain non-causal until a typed sequence/cluster mechanism represents their intended sound semantics explicitly.
+
+The same boundary also prevents this sound slice from claiming more than it implements. `preferredEndings`, `rareGraphemes`, and other spelling-oriented pack material do not become sound mechanics by implication. Idiom-specific orthographic realization needs its own legitimate spelling mechanics rather than being smuggled into `SoundProfile`.
+
 ## Immediate product migration
 
 For the current Fiction Cast surface:
@@ -155,6 +181,8 @@ Before expanding the idiom catalog materially, selection must be causally meanin
 
 With seed, identity structure, semantic controls, cast variation, and roles held constant, switching between deliberately contrastive idioms should produce materially different but internally coherent output traceable to idiom-owned mechanics.
 
+The implementation should test this contract with deliberately contrastive test idioms rather than requiring a second production idiom merely to prove plumbing. Production idioms should be added only when their source data and product purpose justify them.
+
 This is evidence that the idiom affects generation. It is not a human-facing quality, authenticity, or faithfulness score.
 
 ## Non-goals
@@ -166,6 +194,8 @@ This is evidence that the idiom affects generation. It is not a human-facing qua
 - no universal identity grammar;
 - no implicit identity-structure selection;
 - no requirement to rename every historical engine `StylePack` symbol in the same slice;
+- no guessed conversion of historical string clusters into atomic sound segments;
+- no claim that sound-segment causality completes idiom-specific spelling mechanics;
 - no reintroduction of aggregate candidate optimization.
 
 ## Consequences
@@ -173,3 +203,5 @@ This is evidence that the idiom affects generation. It is not a human-facing qua
 The product vocabulary becomes less ambiguous: an idiom is a bounded creative naming source, while the complete generation request remains a separate concept.
 
 Removing the current adherence control also reduces false causality. Future mixing, relative contribution, and avoidance can be designed as genuine idiom composition instead of being forced into a single `Loose · Balanced · Faithful` dimension.
+
+The mechanics boundary is also clearer: idiom identity is resolved above reusable generators, while `SoundProfile` carries the sound-domain contribution actually needed by `generateSound(...)`. Other idiom domains, such as spelling or finite Fiction Cast lexical inventories, may resolve through their own bounded mechanics rather than being forced through sound generation.
