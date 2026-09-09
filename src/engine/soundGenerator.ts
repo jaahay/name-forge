@@ -131,6 +131,14 @@ function textureWeight(texture: SoundProfileTexture, sonority: SonorityClass): n
   return 1;
 }
 
+function segmentPreferenceWeight(
+  id: SoundSegmentId,
+  role: 'onset' | 'nucleus' | 'coda',
+  profile: SoundProfile,
+): number {
+  return profile.phonotactics.segmentPreferences?.[role].find((preference) => preference.segmentId === id)?.weight ?? 1;
+}
+
 function onsetWeight(id: SoundSegmentId, profile: SoundProfile): number {
   const segment = getSoundSegment(id);
   let weight = textureWeight(profile.targets.texture, segment.sonority);
@@ -140,7 +148,7 @@ function onsetWeight(id: SoundSegmentId, profile: SoundProfile): number {
   if (segment.sonority === 'nasal') weight += 0.45;
   if (segment.category === 'consonant' && segment.voicing === 'voiced') weight += 0.15;
 
-  return weight;
+  return weight * segmentPreferenceWeight(id, 'onset', profile);
 }
 
 function nucleusWeight(id: SoundSegmentId, profile: SoundProfile): number {
@@ -156,7 +164,7 @@ function nucleusWeight(id: SoundSegmentId, profile: SoundProfile): number {
   }
   if (id === 'schwa') weight += (1 - profile.targets.distinctiveness) * 0.65;
 
-  return weight;
+  return weight * segmentPreferenceWeight(id, 'nucleus', profile);
 }
 
 function codaWeight(id: SoundSegmentId, profile: SoundProfile): number {
@@ -167,7 +175,7 @@ function codaWeight(id: SoundSegmentId, profile: SoundProfile): number {
   if (segment.sonority === 'nasal') weight += 0.55;
   if (segment.sonority === 'obstruent') weight += profile.phonotactics.clusterTolerance;
 
-  return weight;
+  return weight * segmentPreferenceWeight(id, 'coda', profile);
 }
 
 function pickWeightedSegment(
