@@ -40,6 +40,16 @@ export const stylePacks: StylePack[] = [{
   version: '0.1.0',
   localeHint: 'fictional-en-GB-literary',
   culturalAnchors: ['Albion', 'Arthurian romance', 'Victorian novels', 'border ballads'],
+  soundBias: {
+    segmentMultipliers: {
+      onset: ['b', 'd', 'f', 'g', 'h', 'l', 'm', 'n', 'p', 'r', 's', 't', 'th', 'v', 'w', 'y'].map((segmentId) => ({ segmentId, multiplier: 1.2 })),
+      nucleus: [
+        ...['a', 'e', 'i', 'o', 'u'].map((segmentId) => ({ segmentId, multiplier: 1.25 })),
+        { segmentId: 'ae', multiplier: 1.1 },
+      ],
+      coda: ['d', 'l', 'm', 'n', 'r', 's', 'th', 'v'].map((segmentId) => ({ segmentId, multiplier: 1.2 })),
+    },
+  },
   phonotactics: {
     onsets: ['', 'b', 'br', 'c', 'cl', 'd', 'dr', 'f', 'g', 'gw', 'h', 'l', 'm', 'n', 'p', 'r', 's', 't', 'th', 'v', 'w', 'y'].map((value, index) => ({ value, weight: index === 0 ? 3 : 4 })),
     nuclei: ['a', 'ae', 'e', 'ea', 'i', 'ia', 'o', 'oo', 'u', 'y'].map((value) => ({ value, weight: value.length === 1 ? 6 : 2 })),
