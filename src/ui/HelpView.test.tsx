@@ -19,7 +19,7 @@ describe('HelpView', () => {
       expect(html).toContain(`>${topic[1]}</a>`);
     }
 
-    expect(html).toContain('There is no separate adherence');
+    expect(html).toContain('no separate adherence, influence, or strength setting');
     expect(html).toContain('not a cultural-authenticity claim');
     expect(html).toContain('Browser playback is an approximate voice draft');
     expect(html).toContain('Configure → Roles → Role guide');
