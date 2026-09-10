@@ -13,14 +13,12 @@ export type SlotRoleOverrides = Partial<Record<number, CastRole>>;
 export type FictionCastFamiliarity = 'unusual' | 'balanced' | 'familiar';
 export type FictionCastReadability = 'tricky' | 'balanced' | 'clear';
 export type FictionCastCompactness = 'extended' | 'balanced' | 'compact';
-export type FictionCastStyleAnchoring = 'loose' | 'balanced' | 'faithful';
 export type FictionCastSpellingDistinctiveness = 'conventional' | 'balanced' | 'distinctive';
 
 export interface FictionCastSemanticBaseline {
   readonly familiarity: FictionCastFamiliarity;
   readonly readability: FictionCastReadability;
   readonly compactness: FictionCastCompactness;
-  readonly styleAnchoring: FictionCastStyleAnchoring;
   readonly spellingDistinctiveness: FictionCastSpellingDistinctiveness;
 }
 

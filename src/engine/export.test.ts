@@ -10,7 +10,6 @@ const settings: FictionCastSettings = {
     familiarity: 'balanced',
     readability: 'clear',
     compactness: 'compact',
-    styleAnchoring: 'balanced',
     spellingDistinctiveness: 'conventional',
   },
   stylePackId: 'british-literary-fantasy',
@@ -122,7 +121,8 @@ describe('cast export serialization', () => {
 
     expect(markdown).toContain('# Name Forge Cast Export');
     expect(markdown).toContain('Seed: `export-test-seed`');
-    expect(markdown).toContain('Style pack: British literary fantasy');
+    expect(markdown).toContain('Naming idiom: British literary fantasy');
+    expect(markdown).not.toContain('Style pack:');
     expect(markdown).toContain('Cast variation: wide');
     expect(markdown).toContain('Role influence: light');
     expect(markdown).toContain('## Ensemble balance');

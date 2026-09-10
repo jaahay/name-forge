@@ -141,7 +141,6 @@ function fixtureEnsemble(): FictionCastGeneratedEnsemble {
         familiarity: 'balanced',
         readability: 'balanced',
         compactness: 'balanced',
-        styleAnchoring: 'balanced',
         spellingDistinctiveness: 'balanced',
       },
       stylePackId: pack.id,

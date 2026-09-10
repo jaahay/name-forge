@@ -75,7 +75,7 @@ const roleGuidanceText: Record<CastRole, Pick<CastRoleGuidance, 'storyMeaning' |
   },
   outsider: {
     storyMeaning: 'A character marked by distance from the group, setting, culture, or established order.',
-    namingDirection: 'More unusual forms with looser anchoring and a greater tolerance for distinctive texture.',
+    namingDirection: 'More unusual forms with a greater tolerance for distinctive texture.',
   },
   villain: {
     storyMeaning: 'An antagonistic force whose choices or goals place them in sustained conflict with others.',
@@ -98,7 +98,7 @@ export interface CastRolePreferenceProfile {
   role: CastRole;
   label: string;
   effects: string[];
-  settingShifts: Partial<Pick<NameGenerationSettings, 'novelty' | 'pronounceability' | 'memorability' | 'culturalAnchoring' | 'orthographicWeirdness'>>;
+  settingShifts: Partial<Pick<NameGenerationSettings, 'novelty' | 'pronounceability' | 'memorability' | 'orthographicWeirdness'>>;
   syllableCounts: Array<WeightedValue<number>>;
   textures: Array<WeightedValue<NameTexture>>;
   targetLengths: Array<WeightedValue<'short' | 'medium' | 'long'>>;
@@ -115,7 +115,7 @@ const rolePreferenceProfiles: Record<CastRole, CastRolePreferenceProfile> = {
   protagonist: {
     id: 'role-profile:protagonist', role: 'protagonist', label: 'Protagonist clarity',
     effects: ['slightly memorable', 'balanced texture', 'clear medium length'],
-    settingShifts: { memorability: 0.08, culturalAnchoring: 0.03, orthographicWeirdness: -0.02 },
+    settingShifts: { memorability: 0.08, orthographicWeirdness: -0.02 },
     syllableCounts: [{ value: 2, weight: 2.2 }, { value: 3, weight: 2.8 }, { value: 4, weight: 0.7 }],
     textures: [{ value: 'balanced', weight: 2.4 }, { value: 'soft', weight: 1.4 }, { value: 'liquid', weight: 1.1 }],
     targetLengths: [{ value: 'short', weight: 1.1 }, { value: 'medium', weight: 2.6 }, { value: 'long', weight: 0.8 }],
@@ -132,8 +132,8 @@ const rolePreferenceProfiles: Record<CastRole, CastRolePreferenceProfile> = {
   },
   mentor: {
     id: 'role-profile:mentor', role: 'mentor', label: 'Mentor gravitas',
-    effects: ['more anchored', 'slightly longer', 'liquid or balanced texture'],
-    settingShifts: { novelty: -0.04, pronounceability: 0.03, culturalAnchoring: 0.09, orthographicWeirdness: -0.03 },
+    effects: ['slightly longer', 'liquid or balanced texture'],
+    settingShifts: { novelty: -0.04, pronounceability: 0.03, orthographicWeirdness: -0.03 },
     syllableCounts: [{ value: 2, weight: 1 }, { value: 3, weight: 2.2 }, { value: 4, weight: 1.8 }],
     textures: [{ value: 'liquid', weight: 2.1 }, { value: 'balanced', weight: 1.9 }, { value: 'soft', weight: 1.2 }],
     targetLengths: [{ value: 'short', weight: 0.5 }, { value: 'medium', weight: 1.8 }, { value: 'long', weight: 2.1 }],
@@ -151,7 +151,7 @@ const rolePreferenceProfiles: Record<CastRole, CastRolePreferenceProfile> = {
   guardian: {
     id: 'role-profile:guardian', role: 'guardian', label: 'Guardian solidity',
     effects: ['grounded', 'stable cadence', 'hard or balanced texture'],
-    settingShifts: { pronounceability: 0.02, culturalAnchoring: 0.05, memorability: 0.03 },
+    settingShifts: { pronounceability: 0.02, memorability: 0.03 },
     syllableCounts: [{ value: 2, weight: 1.8 }, { value: 3, weight: 2.2 }, { value: 4, weight: 1.1 }],
     textures: [{ value: 'hard', weight: 2 }, { value: 'balanced', weight: 2 }, { value: 'liquid', weight: 0.8 }],
     targetLengths: [{ value: 'short', weight: 0.7 }, { value: 'medium', weight: 2.2 }, { value: 'long', weight: 1.4 }],
@@ -159,8 +159,8 @@ const rolePreferenceProfiles: Record<CastRole, CastRolePreferenceProfile> = {
   },
   outsider: {
     id: 'role-profile:outsider', role: 'outsider', label: 'Outsider strangeness',
-    effects: ['more novel', 'less anchored', 'unusual texture'],
-    settingShifts: { novelty: 0.12, culturalAnchoring: -0.02, orthographicWeirdness: 0.08, pronounceability: -0.02 },
+    effects: ['more novel', 'unusual texture'],
+    settingShifts: { novelty: 0.12, orthographicWeirdness: 0.08, pronounceability: -0.02 },
     syllableCounts: [{ value: 2, weight: 1 }, { value: 3, weight: 2.1 }, { value: 4, weight: 1.7 }],
     textures: [{ value: 'liquid', weight: 2 }, { value: 'hard', weight: 1.8 }, { value: 'balanced', weight: 0.8 }],
     targetLengths: [{ value: 'short', weight: 0.7 }, { value: 'medium', weight: 1.7 }, { value: 'long', weight: 1.9 }],
@@ -169,7 +169,7 @@ const rolePreferenceProfiles: Record<CastRole, CastRolePreferenceProfile> = {
   villain: {
     id: 'role-profile:villain', role: 'villain', label: 'Villain severity',
     effects: ['harder', 'darker novelty', 'longer or sharper silhouette'],
-    settingShifts: { novelty: 0.09, pronounceability: -0.03, culturalAnchoring: 0.03, orthographicWeirdness: 0.07 },
+    settingShifts: { novelty: 0.09, pronounceability: -0.03, orthographicWeirdness: 0.07 },
     syllableCounts: [{ value: 2, weight: 1.2 }, { value: 3, weight: 2.1 }, { value: 4, weight: 1.8 }],
     textures: [{ value: 'hard', weight: 3 }, { value: 'balanced', weight: 1 }, { value: 'liquid', weight: 0.6 }],
     targetLengths: [{ value: 'short', weight: 0.6 }, { value: 'medium', weight: 1.7 }, { value: 'long', weight: 2.2 }],
@@ -334,7 +334,6 @@ export function roleInfluencedGenerationSettings(
     novelty: clamp(settings.novelty + (profile.settingShifts.novelty ?? 0) * influence.strength),
     pronounceability: clamp(settings.pronounceability + (profile.settingShifts.pronounceability ?? 0) * influence.strength),
     memorability: clamp(settings.memorability + (profile.settingShifts.memorability ?? 0) * influence.strength),
-    culturalAnchoring: clamp(settings.culturalAnchoring + (profile.settingShifts.culturalAnchoring ?? 0) * influence.strength),
     orthographicWeirdness: clamp(settings.orthographicWeirdness + (profile.settingShifts.orthographicWeirdness ?? 0) * influence.strength),
   };
 }

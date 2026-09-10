@@ -1,4 +1,11 @@
-import type { SoundProfile, SoundProfileCadence, SoundProfileLength, SoundProfileTexture } from '../engine/soundProfile';
+import type {
+  SoundProfile,
+  SoundProfileCadence,
+  SoundProfileLength,
+  SoundProfileSegmentPreferences,
+  SoundProfileTexture,
+} from '../engine/soundProfile';
+import type { StylePack } from '../engine/types';
 
 export interface StyleCompiler<Style> {
   compile(style: Style): SoundProfile;
@@ -53,7 +60,24 @@ function normalizeStyleInput(input: StyleInput): NormalizedStyleInput {
   };
 }
 
-function compilePhonotactics(style: NormalizedStyleInput): SoundProfile['phonotactics'] {
+function compilePackSegmentPreferences(pack: StylePack | undefined): SoundProfileSegmentPreferences | undefined {
+  const multipliers = pack?.soundBias?.segmentMultipliers;
+  if (!multipliers) return undefined;
+
+  const preferences: SoundProfileSegmentPreferences = {
+    onset: multipliers.onset.map(({ segmentId, multiplier }) => ({ segmentId, weight: multiplier })),
+    nucleus: multipliers.nucleus.map(({ segmentId, multiplier }) => ({ segmentId, weight: multiplier })),
+    coda: multipliers.coda.map(({ segmentId, multiplier }) => ({ segmentId, weight: multiplier })),
+  };
+
+  if (preferences.onset.length === 0 && preferences.nucleus.length === 0 && preferences.coda.length === 0) {
+    return undefined;
+  }
+
+  return preferences;
+}
+
+function compilePhonotactics(style: NormalizedStyleInput, pack?: StylePack): SoundProfile['phonotactics'] {
   const base: SoundProfile['phonotactics'] = {
     preferredSyllableShapes: ['CV', 'CVC', 'CVL'],
     onsetWeight: 0.72,
@@ -63,25 +87,23 @@ function compilePhonotactics(style: NormalizedStyleInput): SoundProfile['phonota
     clusterTolerance: 0.22,
   };
 
+  let resolved = base;
+
   if (style.feel === 'gentle') {
-    return {
+    resolved = {
       ...base,
       codaWeight: 0.32,
       liquidWeight: 0.46,
       clusterTolerance: 0.14,
     };
-  }
-
-  if (style.feel === 'strong') {
-    return {
+  } else if (style.feel === 'strong') {
+    resolved = {
       ...base,
       codaWeight: 0.58,
       clusterTolerance: 0.36,
     };
-  }
-
-  if (style.feel === 'lyrical') {
-    return {
+  } else if (style.feel === 'lyrical') {
+    resolved = {
       ...base,
       preferredSyllableShapes: ['CV', 'CVL', 'V'],
       liquidWeight: 0.52,
@@ -90,10 +112,11 @@ function compilePhonotactics(style: NormalizedStyleInput): SoundProfile['phonota
     };
   }
 
-  return base;
+  const segmentPreferences = compilePackSegmentPreferences(pack);
+  return segmentPreferences ? { ...resolved, segmentPreferences } : resolved;
 }
 
-export function compileStyle(input: StyleInput = {}): SoundProfile {
+export function compileStyle(input: StyleInput = {}, pack?: StylePack): SoundProfile {
   const style = normalizeStyleInput(input);
 
   return {
@@ -104,7 +127,7 @@ export function compileStyle(input: StyleInput = {}): SoundProfile {
       distinctiveness: distinctivenessTargets[style.distinctiveness],
       cadences: cadencesByLength[style.length],
     },
-    phonotactics: compilePhonotactics(style),
+    phonotactics: compilePhonotactics(style, pack),
   };
 }
 

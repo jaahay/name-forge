@@ -17,7 +17,6 @@ const settings: FictionCastSettings = {
     familiarity: 'balanced',
     readability: 'clear',
     compactness: 'compact',
-    styleAnchoring: 'balanced',
     spellingDistinctiveness: 'conventional',
   },
   stylePackId: 'british-literary-fantasy',
@@ -39,7 +38,6 @@ describe('Fiction Cast semantic intent', () => {
       familiarity: 'balanced',
       readability: 'clear',
       compactness: 'compact',
-      styleAnchoring: 'balanced',
       spellingDistinctiveness: 'conventional',
     });
     for (const engineKey of ['novelty', 'pronounceability', 'memorability', 'culturalAnchoring', 'orthographicWeirdness']) {
@@ -96,7 +94,7 @@ describe('Fiction Cast semantic intent', () => {
     expect(resolved.generationSettings.novelty).toBeCloseTo(0.48 + variationDelta - 0.04);
     expect(resolved.generationSettings.pronounceability).toBeCloseTo(0.75);
     expect(resolved.generationSettings.memorability).toBeCloseTo(0.65);
-    expect(resolved.generationSettings.culturalAnchoring).toBeCloseTo(0.71);
+    expect(resolved.generationSettings.culturalAnchoring).toBeCloseTo(0.62);
     expect(resolved.generationSettings.orthographicWeirdness).toBeCloseTo(0.25);
     expect(resolved.planningPreferences).toEqual({
       preferenceStrength: 1,

@@ -5,7 +5,7 @@ import { scoreControls } from './presentation';
 import { randomizeScoreSettings } from './score';
 
 describe('semantic Fiction Cast criteria', () => {
-  it('defines three clear stable choices for each scalar criterion', () => {
+  it('defines three clear stable choices for each current product criterion', () => {
     expect(scoreControls.map((control) => ({
       label: control.label,
       choices: control.choices.map((choice) => choice.label),
@@ -13,7 +13,6 @@ describe('semantic Fiction Cast criteria', () => {
       { label: 'Familiar', choices: ['Unusual', 'Balanced', 'Familiar'] },
       { label: 'Readable', choices: ['Tricky', 'Balanced', 'Clear'] },
       { label: 'Compact', choices: ['Extended', 'Balanced', 'Compact'] },
-      { label: 'Style', choices: ['Loose', 'Balanced', 'Faithful'] },
       { label: 'Spelling', choices: ['Conventional', 'Balanced', 'Distinctive'] },
     ]);
 
@@ -43,7 +42,7 @@ describe('semantic Fiction Cast criteria', () => {
     }
   });
 
-  it('keeps the cast-level shuffle on supported semantic values', () => {
+  it('keeps the cast-level shuffle on supported semantic values without a hidden idiom-adherence axis', () => {
     const defaults = fictionCastMode.defaultSettings('test-style');
     const randomized = randomizeScoreSettings(defaults);
     const baseline = fictionCastSemanticBaselineFromSettings(randomized);
@@ -52,5 +51,6 @@ describe('semantic Fiction Cast criteria', () => {
       const supportedValues = control.choices.map((choice) => choice.value);
       expect(supportedValues).toContain(baseline[control.key]);
     }
+    expect('styleAnchoring' in baseline).toBe(false);
   });
 });

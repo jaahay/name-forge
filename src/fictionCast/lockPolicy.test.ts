@@ -13,7 +13,6 @@ const baseSettings: FictionCastSettings = {
     familiarity: 'balanced',
     readability: 'clear',
     compactness: 'balanced',
-    styleAnchoring: 'balanced',
     spellingDistinctiveness: 'conventional',
   },
   stylePackId: 'british-literary-fantasy',

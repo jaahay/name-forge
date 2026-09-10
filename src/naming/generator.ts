@@ -40,16 +40,25 @@ function spellingDistinctivenessFor(settings: NameGenerationSettings): StyleInpu
   return 'balanced';
 }
 
-function compileSoundProfileForName(settings: NameGenerationSettings, plan: NameGenerationPlan): SoundProfile {
+function compileSoundProfileForName(
+  settings: NameGenerationSettings,
+  plan: NameGenerationPlan,
+  pack: StylePack,
+): SoundProfile {
   return compileStyle({
     feel: feelFor(plan),
     length: plan.targetLength,
     distinctiveness: spellingDistinctivenessFor(settings),
-  });
+  }, pack);
 }
 
-function generateNameCandidate(plan: NameGenerationPlan, settings: NameGenerationSettings, random: SeededRandom): NameGenerationCandidate {
-  const soundProfile = compileSoundProfileForName(settings, plan);
+function generateNameCandidate(
+  plan: NameGenerationPlan,
+  pack: StylePack,
+  settings: NameGenerationSettings,
+  random: SeededRandom,
+): NameGenerationCandidate {
+  const soundProfile = compileSoundProfileForName(settings, plan, pack);
   const sound = generateSound(soundProfile, random);
   const rankedSpellings = generateRankedSpellingCandidates(sound, soundProfile);
   const selection = selectRankedSpellingCandidate(rankedSpellings.candidates, settings);
@@ -63,7 +72,7 @@ function generateNameCandidate(plan: NameGenerationPlan, settings: NameGeneratio
 }
 
 function materializeGeneratedName(plan: NameGenerationPlan, pack: StylePack, settings: NameGenerationSettings, random: SeededRandom, index: number): GeneratedName {
-  const candidate = generateNameCandidate(plan, settings, random);
+  const candidate = generateNameCandidate(plan, pack, settings, random);
   const baseName = candidate.selectedSpelling.text;
   const scores = scoreName(baseName, plan, pack, settings);
   const variants = generateVariants(baseName, pack, settings);

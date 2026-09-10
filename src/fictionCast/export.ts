@@ -141,7 +141,7 @@ export function createCastExportPayload(ensemble: FictionCastGeneratedEnsemble):
 export function serializeCastAsJson(ensemble: FictionCastGeneratedEnsemble): string { return JSON.stringify(createCastExportPayload(ensemble), null, 2) + '\n'; }
 
 export function serializeCastAsMarkdown(ensemble: FictionCastGeneratedEnsemble): string {
-  const lines = ['# Name Forge Cast Export', '', 'Seed: `' + ensemble.settings.seed + '`', 'Style pack: ' + ensemble.sourcePack.label, 'Cast size: ' + ensemble.names.length, 'Cast variation: ' + (ensemble.settings.castVariation ?? 'balanced'), 'Role influence: ' + (ensemble.settings.roleInfluence ?? 'off'), '', '## Ensemble balance', '', ensemble.diagnostics.summary, ensemble.diagnostics.readabilitySummary, ''];
+  const lines = ['# Name Forge Cast Export', '', 'Seed: `' + ensemble.settings.seed + '`', 'Naming idiom: ' + ensemble.sourcePack.label, 'Cast size: ' + ensemble.names.length, 'Cast variation: ' + (ensemble.settings.castVariation ?? 'balanced'), 'Role influence: ' + (ensemble.settings.roleInfluence ?? 'off'), '', '## Ensemble balance', '', ensemble.diagnostics.summary, ensemble.diagnostics.readabilitySummary, ''];
   ensemble.names.forEach((name, index) => {
     const exported = exportName(name, ensemble.settings.seed);
     const componentText = exported.components.length > 0 ? exported.components.map((component) => component.kind + ' ' + component.role + ': ' + component.value).join('; ') : 'None';

@@ -37,7 +37,6 @@ export const fictionCastMode: FictionCastModeConfig = {
       familiarity: 'balanced',
       readability: 'clear',
       compactness: 'compact',
-      styleAnchoring: 'balanced',
       spellingDistinctiveness: 'conventional',
     },
     stylePackId,
