@@ -1,0 +1,186 @@
+/* Contextual guidance and Help surface. Keep disclosure chrome small and content-led. */
+
+.configure-field {
+  display: grid;
+  gap: 0.38rem;
+  color: #dacdb7;
+  font-size: 0.82rem;
+  font-weight: 750;
+}
+
+.control-label-row {
+  display: flex;
+  gap: 0.38rem;
+  align-items: center;
+  justify-content: flex-start;
+  min-width: 0;
+}
+
+.control-label-row > label {
+  display: block;
+  min-width: 0;
+}
+
+.contextual-help {
+  display: inline-block;
+  min-width: 0;
+  font-weight: 500;
+}
+
+.contextual-help > summary {
+  display: inline-grid;
+  place-items: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  padding: 0;
+  border: 1px solid rgba(240, 184, 95, 0.24);
+  border-radius: 999px;
+  color: #d6c5a8;
+  background: rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+  list-style: none;
+}
+
+.contextual-help > summary::-webkit-details-marker {
+  display: none;
+}
+
+.contextual-help > summary::marker {
+  content: '';
+}
+
+.contextual-help > summary:hover,
+.contextual-help[open] > summary {
+  border-color: rgba(240, 184, 95, 0.54);
+  color: #f8d99f;
+  background: rgba(240, 184, 95, 0.11);
+}
+
+.contextual-help > summary:focus-visible {
+  outline: 2px solid rgba(240, 184, 95, 0.78);
+  outline-offset: 0.16rem;
+}
+
+.contextual-help-glyph {
+  display: block;
+  border: 0;
+  font-size: 0.78rem;
+  font-weight: 950;
+  font-style: normal;
+  line-height: 1;
+}
+
+.contextual-help-body {
+  margin-top: 0.42rem;
+  padding: 0.58rem 0.64rem;
+  border: 1px solid rgba(240, 184, 95, 0.14);
+  border-radius: 0.68rem;
+  color: #cdbfa8;
+  background: rgba(255, 255, 255, 0.045);
+  font-size: 0.74rem;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+.contextual-help-body p {
+  margin: 0;
+}
+
+.help-view {
+  display: grid;
+  gap: 1.25rem;
+  width: min(920px, 100%);
+  margin: 0 auto;
+  padding: clamp(1rem, 3vw, 1.8rem);
+}
+
+.help-heading {
+  max-width: 720px;
+}
+
+.help-heading h1 {
+  margin-bottom: 0.5rem;
+  color: #f7f0e3;
+  font-size: clamp(1.7rem, 3vw, 2.4rem);
+}
+
+.help-heading > p:last-child {
+  margin-bottom: 0;
+  color: #d6c5a8;
+}
+
+.help-topic-nav {
+  display: flex;
+  gap: 0.48rem;
+  flex-wrap: wrap;
+  padding-bottom: 0.2rem;
+}
+
+.help-topic-nav a {
+  border: 1px solid rgba(240, 184, 95, 0.18);
+  border-radius: 999px;
+  padding: 0.45rem 0.64rem;
+  color: #d6c5a8;
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.help-topic-nav a:hover,
+.help-topic-nav a:focus-visible {
+  border-color: rgba(240, 184, 95, 0.5);
+  color: #f8d99f;
+  outline: none;
+}
+
+.help-topic-nav a:focus-visible {
+  box-shadow: 0 0 0 2px rgba(240, 184, 95, 0.34);
+}
+
+.help-sections {
+  display: grid;
+  gap: 1rem;
+}
+
+.help-section {
+  scroll-margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(240, 184, 95, 0.14);
+}
+
+.help-section h2 {
+  margin-bottom: 0.4rem;
+  color: #f8d99f;
+  font-size: 1.05rem;
+}
+
+.help-section p {
+  max-width: 760px;
+  margin-bottom: 0.55rem;
+  color: #cdbfa8;
+  line-height: 1.55;
+}
+
+.help-section p:last-child {
+  margin-bottom: 0;
+}
+
+.help-section strong {
+  color: #f2efe6;
+}
+
+@media (max-width: 700px) {
+  .contextual-help-body {
+    font-size: 0.76rem;
+  }
+
+  .help-topic-nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .help-topic-nav a {
+    text-align: center;
+  }
+}
