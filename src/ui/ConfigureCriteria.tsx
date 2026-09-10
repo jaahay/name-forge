@@ -103,13 +103,13 @@ export function ConfigureCriteria({
           <div className="configure-field">
             <div className="control-label-row">
               <label htmlFor="fiction-cast-naming-idiom">Naming idiom</label>
-              <ContextualHelp id="naming-idiom-help" label="Naming idiom">
-                <p>A creative naming source for characteristic tendencies. It works alongside your other settings; there is no separate idiom adherence or strength control.</p>
-              </ContextualHelp>
             </div>
             <select id="fiction-cast-naming-idiom" value={settings.stylePackId} onChange={(event) => onUpdateSetting('stylePackId', event.target.value)}>
               {stylePacks.map((pack) => <option key={pack.id} value={pack.id}>{pack.label}</option>)}
             </select>
+            <ContextualHelp id="naming-idiom-help" label="Naming idiom">
+              <p>Shapes the characteristic sound and form of generated names. Your other settings still apply independently; there is no separate idiom adherence or strength control.</p>
+            </ContextualHelp>
           </div>
           <div className="configure-role-entry">
             <div className="configure-role-summary">
@@ -129,13 +129,13 @@ export function ConfigureCriteria({
           <div className="configure-field">
             <div className="control-label-row">
               <label htmlFor="fiction-cast-variation">Cast variation</label>
-              <ContextualHelp id="cast-variation-help" label="Cast variation">
-                <p>Controls how widely cast members vary around the Familiar baseline. It does not replace or rewrite Familiar.</p>
-              </ContextualHelp>
             </div>
             <select id="fiction-cast-variation" value={settings.castVariation ?? 'balanced'} onChange={(event) => onUpdateSetting('castVariation', event.target.value as FictionCastVariation)}>
               {castVariationOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
             </select>
+            <ContextualHelp id="cast-variation-help" label="Cast variation">
+              <p>Controls how similar or varied names feel across the cast. Familiar still controls how conventional each individual name feels.</p>
+            </ContextualHelp>
           </div>
         </div>
       </section>
@@ -164,11 +164,11 @@ export function ConfigureCriteria({
           <div className="configure-field seed-control">
             <div className="control-label-row">
               <label htmlFor="fiction-cast-generation-seed">Generation seed</label>
-              <ContextualHelp id="generation-seed-help" label="Generation seed">
-                <p>The same resolved settings and seed reproduce the same result. Generate chooses a fresh seed; editing this field applies an explicit seed to an existing cast.</p>
-              </ContextualHelp>
             </div>
             <input id="fiction-cast-generation-seed" value={settings.seed} onChange={(event) => onUpdateSetting('seed', event.target.value)} onBlur={onCommitSettings} onKeyDown={commitSeedOnEnter} />
+            <ContextualHelp id="generation-seed-help" label="Generation seed">
+              <p>Use the same settings and seed to reproduce the same result. Generate chooses a fresh seed; enter one here when you want an exact replay.</p>
+            </ContextualHelp>
           </div>
         </div>
       </details>
