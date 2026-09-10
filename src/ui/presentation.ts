@@ -5,7 +5,7 @@ import type {
   FictionCastSemanticControlValue,
 } from '../fictionCast/semanticIntent';
 
-export type AppView = 'generator' | 'recent-names' | 'changelog' | 'about';
+export type AppView = 'generator' | 'recent-names' | 'changelog' | 'help' | 'about';
 
 export type ControlKey = FictionCastSemanticControlKey;
 
