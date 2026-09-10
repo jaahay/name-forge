@@ -30,9 +30,9 @@ The first Fiction Cast placements are intentionally limited to:
 - **Cast variation** — spread around the Familiar baseline rather than a replacement for that baseline;
 - **Generation seed** — deterministic replay behavior and the distinction between an explicit seed and Generate choosing a fresh seed.
 
-The disclosure is keyboard and touch operable, has an explicit accessible name and relationship to its content, and keeps focus on the invoking control. Its content overlays the local surface rather than forcing a large layout shift.
+The disclosure is keyboard and touch operable, has an explicit accessible name and relationship to its content, and keeps focus on the invoking control. Its explanation stays in the local field flow so it remains visible inside scrolling configuration surfaces instead of becoming a clipped pseudo-popover.
 
-The info control owns its one circular hit target. The inner `i` glyph does not draw a second circle.
+The info control is sized consistently with nearby Configure chrome and owns its one circular hit target. The inner `i` glyph does not draw a second circle.
 
 ### Tier 3 — operational Help
 
@@ -62,6 +62,8 @@ Guidance must describe product semantics at the layer that owns them.
 
 The existing detailed Fiction Cast Role guide remains the role-specific source. The general Help surface explains how Roles behave operationally rather than duplicating every role profile.
 
+User-facing Help should translate internal architecture into observable product behavior. Terms that are useful in ADRs or implementation contracts are not automatically appropriate teaching vocabulary for users.
+
 ## Consequences
 
 Primary naming workflows remain sparse while opaque concepts still have accessible explanations.
@@ -69,6 +71,8 @@ Primary naming workflows remain sparse while opaque concepts still have accessib
 New info controls require a concrete local interpretation problem. The existence of the reusable disclosure component is not itself justification for adding one.
 
 Longer explanations gain one predictable home, reducing the pressure to turn About, Configure, or Inspector into documentation surfaces.
+
+Contextual explanations may expand their local field when opened. That small, explicit layout change is preferable to clipping or introducing a general-purpose portal/popover system for short guidance.
 
 ## Non-goals
 
