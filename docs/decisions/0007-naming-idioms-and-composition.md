@@ -161,7 +161,9 @@ Naming idiom / StylePack
 
 `StylePack.formBias` already supplies causal planning pressure for syllable count and texture.
 
-The current #249 implementation additionally compiles pack onset, nucleus, and coda entries into `SoundProfile.phonotactics.segmentPreferences` when an entry is an exact supported atomic sound-segment ID for the declared syllable role. Sound generation applies those resolved values as soft multiplicative preferences while retaining the generic sound inventory and other resolved mechanics.
+The current #249 implementation adds an explicit typed sound contribution at `StylePack.soundBias.segmentMultipliers`. Each entry names a supported atomic sound-segment ID for a declared syllable role and a positive finite multiplier, where `1` is neutral. Style compilation resolves those authored contributions into `SoundProfile.phonotactics.segmentPreferences`; sound generation then multiplies the generic inventory weight by the resolved role-specific preference.
+
+This contract deliberately does **not** reinterpret the historical weighted `phonotactics` string lists as sound multipliers. Those lists mix atomic segments, multi-segment clusters, orthographic-looking sequences, and empty structural values, and their numeric weights were not authored against a neutral-multiplier scale. Scaling their legacy weight magnitudes therefore must not strengthen or weaken idiom sound pressure.
 
 This rule is intentionally conservative. Existing pack strings such as multi-segment clusters or orthographic sequences are not guessed, decomposed, or treated as atomic sounds merely because they occur in a historical `phonotactics` list. Unsupported entries remain non-causal until a typed sequence/cluster mechanism represents their intended sound semantics explicitly.
 
@@ -175,11 +177,12 @@ For the current Fiction Cast surface:
 - the Advanced `Style` control and `Loose · Balanced · Faithful` choices are removed from the visible product;
 - no replacement strength/influence control is added;
 - the selected idiom remains an explicit generation input;
-- legacy `styleAnchoring` / `culturalAnchoring` fields may remain temporarily as compatibility mechanics, but they are no longer product semantics and must not be described as idiom fidelity.
+- `styleAnchoring` is removed from Fiction Cast semantic intent, lock invalidation, randomization, and role shaping;
+- generic `culturalAnchoring` may remain temporarily as a fixed compatibility value below the Fiction Cast semantic boundary, but it is not user intent, idiom fidelity, or a hidden idiom-strength control.
 
 ## Acceptance bar for idiom causality
 
-Before expanding the idiom catalog materially, selection must be causally meaningful.
+Before exposing additional production idioms materially, selection must be causally meaningful.
 
 With seed, identity structure, semantic controls, cast variation, and roles held constant, switching between deliberately contrastive idioms should produce materially different but internally coherent output traceable to idiom-owned mechanics.
 
