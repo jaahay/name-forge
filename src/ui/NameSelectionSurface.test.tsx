@@ -66,6 +66,27 @@ describe('NameSelectionSurface adaptive rail', () => {
     expect(html).toContain('Active workspace');
   });
 
+  it('keeps unavailable edge navigation focusable while exposing its disabled state semantically', () => {
+    const ensemble = generateEnsemble(settings, createDefaultRegistry());
+    const firstName = ensemble.names[0];
+    if (!firstName) throw new Error('Expected a generated fixture name.');
+
+    const html = renderToStaticMarkup(
+      <NameSelectionSurface
+        ensemble={ensemble}
+        lockedNameIds={new Set()}
+        selectedNameId={firstName.id}
+        onSelectName={() => {}}
+      >
+        <div>Active workspace</div>
+      </NameSelectionSurface>,
+    );
+
+    expect(html).toContain('aria-label="Previous cast name" aria-controls="active-name-workspace" aria-disabled="true"');
+    expect(html).toContain('aria-label="Next cast name" aria-controls="active-name-workspace" aria-disabled="false"');
+    expect(html).not.toContain('disabled=""');
+  });
+
   it('maps Left/Right and Home/End to immediate peer navigation with edge wrapping', () => {
     expect(nameRailTargetIndex('ArrowRight', 0, 3)).toBe(1);
     expect(nameRailTargetIndex('ArrowRight', 2, 3)).toBe(0);
