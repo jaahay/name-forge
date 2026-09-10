@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { HelpView } from './HelpView';
 
 describe('HelpView', () => {
-  it('provides stable operational help topics without reviving retired product semantics', () => {
+  it('provides stable operational help topics without reviving retired or internal product semantics', () => {
     const html = renderToStaticMarkup(<HelpView />);
 
     for (const topic of [
@@ -19,17 +19,26 @@ describe('HelpView', () => {
       expect(html).toContain(`>${topic[1]}</a>`);
     }
 
-    expect(html).toContain('no separate adherence, influence, or strength setting');
-    expect(html).toContain('not a cultural-authenticity claim');
+    expect(html).toContain('no separate adherence or strength setting for an idiom');
+    expect(html).toContain('not cultural');
     expect(html).toContain('Browser playback is an approximate voice draft');
     expect(html).toContain('Configure → Roles → Role guide');
-    expect(html).toContain('Changing intent that affects a locked slot');
-    expect(html).toContain('Titles, epithets, initials, particles, and other literals');
+    expect(html).toContain('If you change a setting that would change a locked name');
+    expect(html).toContain('titles, epithets, initials, and particles');
 
-    expect(html).not.toContain('Naming style');
-    expect(html).not.toContain('Style pack');
-    expect(html).not.toContain('Loose');
-    expect(html).not.toContain('Faithful');
-    expect(html).not.toContain('authenticity score');
+    for (const internalOrRetiredPhrase of [
+      'Naming style',
+      'Style pack',
+      'Loose',
+      'Faithful',
+      'authenticity score',
+      'bounded creative source',
+      'independently declared intent',
+      'generated sound evidence',
+      'compatible generation intent',
+      'singular generated-name engine',
+    ]) {
+      expect(html).not.toContain(internalOrRetiredPhrase);
+    }
   });
 });
