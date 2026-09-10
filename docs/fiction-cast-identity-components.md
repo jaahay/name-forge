@@ -4,6 +4,8 @@
 
 Working design record for #252 under Fiction Cast requirements #233 / #212.
 
+Naming-idiom semantics are governed by [`decisions/0007-naming-idioms-and-composition.md`](decisions/0007-naming-idioms-and-composition.md), #249, and PR #263. This record keeps the component ontology while using that settled terminology and causal boundary.
+
 This document defines the bounded identity-component model that should precede broader Fiction Cast identity expansion. It is intentionally more concrete than the strategy-level [`naming-systems-product-thesis.md`](naming-systems-product-thesis.md), while remaining a requirements/design record rather than an authorization to implement every component described here.
 
 The current implementation focus remains Fiction Cast. Product, company, place, software, and real-person naming are used only as adversarial architecture checks where they help distinguish structural mechanics from Fiction Cast vocabulary.
@@ -140,7 +142,7 @@ Examples:
 - epithet;
 - rank or office term;
 - future bounded house/clan marker;
-- future style-scoped identity vocabulary.
+- future idiom-scoped identity vocabulary.
 
 A lexical component retains lexical provenance such as the selected lexeme ID and inventory/source identity. It must not masquerade as an independently generated name merely because its selection happened while composing one.
 
@@ -205,7 +207,7 @@ The same broad semantic concept can also have more than one legitimate materiali
 A house/clan identity is a useful example:
 
 - the house name itself might be an independently generated name;
-- a house marker such as `House` may be lexical or literal depending on the structure/style contract;
+- a house marker such as `House` may be lexical or literal depending on the structure/idiom contract;
 - a dynastic adjective may be derived from another retained name.
 
 Therefore do not encode assumptions such as `house always means lexical` or `alias always means generated` into the structural component machinery.
@@ -228,7 +230,7 @@ The component mechanism should be capable of representing at least these Fiction
 
 This is a requirements vocabulary, not a requirement to add every value to one runtime union immediately.
 
-Implementation should add supported roles as concrete structures need them. TypeScript exhaustiveness is desirable: adding a new semantic role should force deliberate answers where that role changes provenance, generation, audition, style, locking, reroll, persistence, or Inspector behavior.
+Implementation should add supported roles as concrete structures need them. TypeScript exhaustiveness is desirable: adding a new semantic role should force deliberate answers where that role changes provenance, generation, audition, idiom participation, locking, reroll, persistence, or Inspector behavior.
 
 A narrower future domain must be able to define a narrower vocabulary without importing Fiction Cast roles such as epithet, house, or regnal identity merely because it reuses some structural mechanics.
 
@@ -498,27 +500,27 @@ Do not expose an arbitrary drag-and-drop component grammar, universal component 
 
 A future advanced component-oriented control may be justified by concrete workflows, but #252 does not require one.
 
-## Naming style
+## Naming idiom
 
-The three component classes and phrase material participate in Naming style differently.
+The three component classes and phrase material participate in the selected Naming idiom differently.
 
 ### Generated components
 
-Use the selected naming style through the semantic generated-name capability. True Style adherence from #249 may strengthen or relax style-owned generated-name priors while preserving independent baseline intent.
+Use the selected Naming idiom through the semantic generated-name capability. Selecting an idiom activates its supported bounded tendencies; there is no separate adherence, influence, or strength scalar. Familiar, Readable, Compact, Spelling, Cast variation, Roles, identity structure, and seed remain independently declared intent. See ADR 0007 and #249 / PR #263.
 
 ### Lexical components
 
-May select from style-scoped Fiction Cast inventories or deliberately shared inventories. Their style contract remains surface-owned; they do not need to become generated-name `StylePack` data.
+May select from idiom-scoped Fiction Cast inventories or deliberately shared inventories. Their idiom relationship remains surface-owned; they do not need to become generated-name `StylePack` data.
 
 ### Derived components
 
-Inherit their form from explicit source material and derivation rules. They do not receive independent style influence unless the derivation rule itself is style-scoped.
+Inherit their form from explicit source material and derivation rules. They do not receive independent idiom influence unless the derivation rule itself is idiom-scoped.
 
 ### Phrase literals
 
-Belong to structure grammar. A literal may differ by style/structure only when that is an explicit composition decision. Do not treat every connector as a generated or independently scored style value.
+Belong to structure grammar. A literal may differ by idiom/structure only when that is an explicit composition decision. Do not treat every connector as a generated or independently scored idiom value.
 
-This provides the component-level boundary #249 needs to define visible identity coherence without allowing Naming style to override unrelated Fiction Cast intent.
+This provides the component-level boundary needed for visible identity coherence without allowing Naming idiom selection to override unrelated Fiction Cast intent.
 
 ## Inspector and provenance
 
@@ -630,7 +632,7 @@ Adding one supported component should normally require:
 
 1. define/enable its Fiction Cast semantic role;
 2. define how that component materializes as generated, lexical, or derived;
-3. define provenance/style/audition semantics that differ from class defaults, if any;
+3. define provenance/idiom/audition semantics that differ from class defaults, if any;
 4. add it to one or more curated identity structures;
 5. add focused fixtures/tests.
 
@@ -696,7 +698,7 @@ Potential example:
 Daywoj Aven Bayr
 ```
 
-The user-facing label may be `Middle name` only where that wording accurately describes the selected structure/style; the underlying role should remain the broader additional-personal concept.
+The user-facing label may be `Middle name` only where that wording accurately describes the selected structure/idiom; the underlying role should remain the broader additional-personal concept.
 
 ### D. Add richer lexical/derivation families only after the component contract proves stable
 
