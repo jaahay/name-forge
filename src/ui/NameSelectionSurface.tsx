@@ -208,7 +208,7 @@ export function NameSelectionSurface({
               className="secondary"
               aria-label="Previous cast name"
               aria-controls="active-name-workspace"
-              disabled={previousIndex === undefined}
+              aria-disabled={previousIndex === undefined}
               onClick={() => selectAdjacent(previousIndex)}
             >
               Previous
@@ -218,7 +218,7 @@ export function NameSelectionSurface({
               className="secondary"
               aria-label="Next cast name"
               aria-controls="active-name-workspace"
-              disabled={nextIndex === undefined}
+              aria-disabled={nextIndex === undefined}
               onClick={() => selectAdjacent(nextIndex)}
             >
               Next
