@@ -31,15 +31,15 @@ function renderCriteria(overrides: Partial<FictionCastSettings> = {}): string {
 }
 
 describe('Configure criteria surface', () => {
-  it('keeps the essential cast controls visible before any disclosure with one Roles entry point', () => {
+  it('keeps the essential cast controls visible before secondary groups with one Roles entry point', () => {
     const html = renderCriteria();
-    const firstDisclosure = html.indexOf('<details');
+    const firstSecondaryGroup = html.indexOf('<details class="control-section"');
 
-    expect(firstDisclosure).toBeGreaterThan(0);
+    expect(firstSecondaryGroup).toBeGreaterThan(0);
     for (const label of ['Cast size', 'Naming idiom', 'Roles', 'Cast variation', 'Configure roles']) {
       const labelIndex = html.indexOf(label);
       expect(labelIndex).toBeGreaterThan(0);
-      expect(labelIndex).toBeLessThan(firstDisclosure);
+      expect(labelIndex).toBeLessThan(firstSecondaryGroup);
     }
     expect(html).toContain('aria-label="Configure roles, Off"');
     expect(html).not.toContain('Cast role mix');
@@ -62,8 +62,8 @@ describe('Configure criteria surface', () => {
 
   it('offers Cast variation as centered spread rather than rarity-direction presets', () => {
     const html = renderCriteria();
-    const variationStart = html.indexOf('Cast variation');
-    const variationHtml = html.slice(variationStart, html.indexOf('</label>', variationStart));
+    const variationStart = html.indexOf('id="fiction-cast-variation"');
+    const variationHtml = html.slice(variationStart, html.indexOf('</select>', variationStart));
 
     for (const option of ['Tight', 'Balanced', 'Wide']) {
       expect(variationHtml).toContain(`>${option}</option>`);
@@ -76,7 +76,7 @@ describe('Configure criteria surface', () => {
   it('uses exactly two initially closed secondary groups', () => {
     const html = renderCriteria();
 
-    expect((html.match(/<details/g) ?? []).length).toBe(2);
+    expect((html.match(/<details class="control-section"/g) ?? []).length).toBe(2);
     expect(html).toContain('<summary>More</summary>');
     expect(html).toContain('<summary>Advanced</summary>');
     expect(html).not.toContain('<details class="control-section" open');
@@ -85,6 +85,25 @@ describe('Configure criteria surface', () => {
     expect(html).not.toContain('Criteria signals');
     expect(html).not.toContain('Run options');
     expect(html).not.toContain('Advanced tuning');
+  });
+
+  it('limits contextual help to the three genuinely opaque controls in this slice', () => {
+    const html = renderCriteria();
+
+    expect((html.match(/<details class="contextual-help"/g) ?? []).length).toBe(3);
+    for (const label of ['Naming idiom', 'Cast variation', 'Generation seed']) {
+      expect(html).toContain(`aria-label="About ${label}"`);
+    }
+
+    expect(html).toContain('no separate idiom adherence or strength control');
+    expect(html).toContain('similar or varied names feel across the cast');
+    expect(html).toContain('Use the same settings and seed to reproduce the same result');
+    expect(html).not.toContain('aria-label="About Cast size"');
+    expect(html).not.toContain('aria-label="About Roles"');
+    expect(html).not.toContain('aria-label="About Familiar"');
+    expect(html).not.toContain('aria-label="About Readable"');
+    expect(html).not.toContain('aria-label="About Compact"');
+    expect(html).not.toContain('aria-label="About Spelling"');
   });
 
   it('puts common optional controls in More without separating role influence from Roles', () => {
@@ -114,7 +133,7 @@ describe('Configure criteria surface', () => {
     expect(advancedHtml).not.toContain('Faithful');
     expect(advancedHtml).not.toContain('Slot role overrides');
     expect(advancedHtml).not.toContain('Use role mix');
-    expect((advancedHtml.match(/<details/g) ?? []).length).toBe(0);
+    expect((advancedHtml.match(/<details class="control-section"/g) ?? []).length).toBe(0);
     expect(advancedHtml).not.toContain('Advanced tuning');
   });
 

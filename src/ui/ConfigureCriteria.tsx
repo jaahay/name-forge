@@ -8,6 +8,7 @@ import {
 import type { FictionCastSettings } from '../fictionCast/types';
 import { castVariationOptions, type FictionCastVariation } from '../fictionCast/variation';
 import type { StylePackSummary } from '../engine/types';
+import { ContextualHelp } from './ContextualHelp';
 import { fictionCastRolesSummary } from './FictionCastRolesConfiguration';
 import type { NamingModeConfig } from './modes';
 import { advancedScoreControls, primaryScoreControls, type ControlKey } from './presentation';
@@ -99,12 +100,17 @@ export function ConfigureCriteria({
               <button type="button" className="stepper-button" onClick={() => updateCastSize(castSize + 1)} aria-label="Increase cast size">+</button>
             </div>
           </label>
-          <label>
-            <span>Naming idiom</span>
-            <select value={settings.stylePackId} onChange={(event) => onUpdateSetting('stylePackId', event.target.value)}>
+          <div className="configure-field">
+            <div className="control-label-row">
+              <label htmlFor="fiction-cast-naming-idiom">Naming idiom</label>
+            </div>
+            <select id="fiction-cast-naming-idiom" value={settings.stylePackId} onChange={(event) => onUpdateSetting('stylePackId', event.target.value)}>
               {stylePacks.map((pack) => <option key={pack.id} value={pack.id}>{pack.label}</option>)}
             </select>
-          </label>
+            <ContextualHelp id="naming-idiom-help" label="Naming idiom">
+              <p>Shapes the characteristic sound and form of generated names. Your other settings still apply independently; there is no separate idiom adherence or strength control.</p>
+            </ContextualHelp>
+          </div>
           <div className="configure-role-entry">
             <div className="configure-role-summary">
               <span>Roles</span>
@@ -120,12 +126,17 @@ export function ConfigureCriteria({
               Configure roles
             </button>
           </div>
-          <label>
-            <span>Cast variation</span>
-            <select value={settings.castVariation ?? 'balanced'} onChange={(event) => onUpdateSetting('castVariation', event.target.value as FictionCastVariation)}>
+          <div className="configure-field">
+            <div className="control-label-row">
+              <label htmlFor="fiction-cast-variation">Cast variation</label>
+            </div>
+            <select id="fiction-cast-variation" value={settings.castVariation ?? 'balanced'} onChange={(event) => onUpdateSetting('castVariation', event.target.value as FictionCastVariation)}>
               {castVariationOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
             </select>
-          </label>
+            <ContextualHelp id="cast-variation-help" label="Cast variation">
+              <p>Controls how similar or varied names feel across the cast. Familiar still controls how conventional each individual name feels.</p>
+            </ContextualHelp>
+          </div>
         </div>
       </section>
 
@@ -150,10 +161,15 @@ export function ConfigureCriteria({
           {advancedScoreControls.map((control) => (
             <ScoreControl key={control.key} control={control} value={semanticBaseline[control.key]} onChange={updateSemanticControl} />
           ))}
-          <label className="seed-control">
-            <span>Generation seed</span>
-            <input value={settings.seed} onChange={(event) => onUpdateSetting('seed', event.target.value)} onBlur={onCommitSettings} onKeyDown={commitSeedOnEnter} />
-          </label>
+          <div className="configure-field seed-control">
+            <div className="control-label-row">
+              <label htmlFor="fiction-cast-generation-seed">Generation seed</label>
+            </div>
+            <input id="fiction-cast-generation-seed" value={settings.seed} onChange={(event) => onUpdateSetting('seed', event.target.value)} onBlur={onCommitSettings} onKeyDown={commitSeedOnEnter} />
+            <ContextualHelp id="generation-seed-help" label="Generation seed">
+              <p>Use the same settings and seed to reproduce the same result. Generate chooses a fresh seed; enter one here when you want an exact replay.</p>
+            </ContextualHelp>
+          </div>
         </div>
       </details>
 

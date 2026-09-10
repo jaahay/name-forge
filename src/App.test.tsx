@@ -20,13 +20,14 @@ const rememberedCast: FictionCastRememberedCast = {
 };
 
 describe('App', () => {
-  it('opens Fiction Cast as a quiet new-cast workspace', () => {
+  it('opens Fiction Cast as a quiet new-cast workspace with predictable Help navigation', () => {
     const html = renderToString(<App />);
 
     for (const expected of [
       'Name Forge',
       'Fiction Cast',
       'Recent names',
+      '>Help</button>',
       '>Configure</button>',
       '>Start cast</button>',
     ]) {
