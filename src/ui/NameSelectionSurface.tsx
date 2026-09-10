@@ -39,6 +39,17 @@ export function nameRailTargetIndex(key: string, currentIndex: number, count: nu
   }
 }
 
+export function adjacentNameIndex(
+  currentIndex: number,
+  count: number,
+  direction: 'previous' | 'next',
+): number | undefined {
+  if (count <= 0 || currentIndex < 0 || currentIndex >= count) return undefined;
+
+  const targetIndex = currentIndex + (direction === 'previous' ? -1 : 1);
+  return targetIndex >= 0 && targetIndex < count ? targetIndex : undefined;
+}
+
 export function nameRailWheelDelta(
   deltaX: number,
   deltaY: number,
@@ -123,7 +134,16 @@ export function NameSelectionSurface({
     updateRailOverflow();
   }
 
+  const selectedIndex = ensemble.names.findIndex((name) => name.id === selectedNameId);
+  const previousIndex = adjacentNameIndex(selectedIndex, ensemble.names.length, 'previous');
+  const nextIndex = adjacentNameIndex(selectedIndex, ensemble.names.length, 'next');
   const activeTabId = selectedNameId ? `name-rail-tab-${selectedNameId}` : undefined;
+
+  function selectAdjacent(targetIndex: number | undefined) {
+    if (targetIndex === undefined) return;
+    const targetName = ensemble.names[targetIndex];
+    if (targetName) onSelectName(targetName.id);
+  }
 
   return (
     <div className="results-layout inspector-rail-layout">
@@ -182,6 +202,28 @@ export function NameSelectionSurface({
           role="tabpanel"
           aria-labelledby={activeTabId}
         >
+          <nav className="active-name-navigation" aria-label="Adjacent cast names">
+            <button
+              type="button"
+              className="secondary"
+              aria-label="Previous cast name"
+              aria-controls="active-name-workspace"
+              aria-disabled={previousIndex === undefined}
+              onClick={() => selectAdjacent(previousIndex)}
+            >
+              Previous
+            </button>
+            <button
+              type="button"
+              className="secondary"
+              aria-label="Next cast name"
+              aria-controls="active-name-workspace"
+              aria-disabled={nextIndex === undefined}
+              onClick={() => selectAdjacent(nextIndex)}
+            >
+              Next
+            </button>
+          </nav>
           {children}
         </div>
       </div>
