@@ -56,6 +56,8 @@ describe('GeneratorView cast lifecycle', () => {
     expect(html).toContain('>New Cast</button>');
     expect(html).toContain('>Court cast</button>');
     expect(html).toContain('>Start cast</button>');
+    expect(html).toContain('workspace workbench new-cast-workbench');
+    expect(html).not.toContain('generated-cast-workbench');
     expect(html).not.toContain('aria-current="page"');
     expect(html).not.toContain('>Regenerate</button>');
     expect(html).not.toContain('aria-label="Generation summary"');
@@ -71,11 +73,13 @@ describe('GeneratorView cast lifecycle', () => {
     const html = renderGenerator(ensemble, rememberedCast.id);
 
     for (const expected of [
+      'workspace workbench generated-cast-workbench',
       'aria-label="Start a new cast"',
       '>Court cast</button>',
       '>Regenerate</button>',
       '>Names</h2>',
       'aria-label="Generated cast"',
+      'aria-label="Adjacent cast names"',
       'role="tablist"',
       'role="tabpanel"',
       'Inspect',
