@@ -96,8 +96,8 @@ describe('Configure criteria surface', () => {
     }
 
     expect(html).toContain('no separate idiom adherence or strength control');
-    expect(html).toContain('vary around the Familiar baseline');
-    expect(html).toContain('same resolved settings and seed reproduce the same result');
+    expect(html).toContain('similar or varied names feel across the cast');
+    expect(html).toContain('Use the same settings and seed to reproduce the same result');
     expect(html).not.toContain('aria-label="About Cast size"');
     expect(html).not.toContain('aria-label="About Roles"');
     expect(html).not.toContain('aria-label="About Familiar"');
