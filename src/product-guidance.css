@@ -1,6 +1,7 @@
 /* Contextual guidance and Help surface. Keep disclosure chrome small and content-led. */
 
 .configure-field {
+  position: relative;
   display: grid;
   gap: 0.38rem;
   color: #dacdb7;
@@ -14,6 +15,8 @@
   align-items: center;
   justify-content: flex-start;
   min-width: 0;
+  min-height: 2.2rem;
+  padding-right: 2.55rem;
 }
 
 .control-label-row > label {
@@ -22,17 +25,21 @@
 }
 
 .contextual-help {
-  position: relative;
-  display: inline-block;
+  position: static;
+  display: block;
   min-width: 0;
+  margin-top: -0.38rem;
   font-weight: 500;
 }
 
 .contextual-help > summary {
+  position: absolute;
+  top: 0;
+  right: 0;
   display: inline-grid;
   place-items: center;
-  width: 1.9rem;
-  height: 1.9rem;
+  width: 2.2rem;
+  height: 2.2rem;
   padding: 0;
   border: 1px solid rgba(240, 184, 95, 0.24);
   border-radius: 999px;
@@ -72,17 +79,13 @@
 }
 
 .contextual-help-body {
-  position: absolute;
-  top: calc(100% + 0.38rem);
-  left: 0;
-  z-index: 20;
-  width: min(20rem, calc(100vw - 3rem));
+  width: 100%;
+  margin-top: 0.38rem;
   padding: 0.58rem 0.64rem;
-  border: 1px solid rgba(240, 184, 95, 0.2);
+  border: 1px solid rgba(240, 184, 95, 0.16);
   border-radius: 0.68rem;
   color: #cdbfa8;
-  background: rgba(31, 24, 18, 0.99);
-  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.34);
+  background: rgba(255, 255, 255, 0.04);
   font-size: 0.74rem;
   font-weight: 500;
   line-height: 1.45;
