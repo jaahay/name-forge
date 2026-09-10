@@ -14,8 +14,7 @@ export function HelpView() {
         <p className="eyebrow">Help</p>
         <h1 id="help-title">Using Name Forge</h1>
         <p>
-          Most controls are intended to stand on their own. This guide covers the operational concepts that need more context
-          than a label or short inline note can responsibly provide.
+          Most controls should explain themselves. This guide covers the few concepts where a short label is not enough.
         </p>
       </div>
 
@@ -27,76 +26,71 @@ export function HelpView() {
         <section id="help-roles" className="help-section" aria-labelledby="help-roles-title">
           <h2 id="help-roles-title">Roles and generation influence</h2>
           <p>
-            Roles assign story context to cast slots. <strong>Generation influence</strong> controls whether and how strongly an
-            assigned role shapes that slot's naming tendencies. With influence off, a role remains context only; an unassigned
-            slot has no role shaping to apply.
+            Roles add story context to cast members. <strong>Generation influence</strong> controls how much an assigned role changes
+            the generated name. With influence off, the role is context only.
           </p>
           <p>
-            The role-specific creative directions live in <strong>Configure → Roles → Role guide</strong>. Those directions are
-            fictional naming prompts, not claims that real people or story roles inherently sound a certain way.
+            See <strong>Configure → Roles → Role guide</strong> for the creative direction behind each role. Those directions are
+            fictional prompts, not claims that real people or story roles inherently sound a certain way.
           </p>
         </section>
 
         <section id="help-naming-idiom" className="help-section" aria-labelledby="help-naming-idiom-title">
           <h2 id="help-naming-idiom-title">Naming idiom</h2>
           <p>
-            A Naming idiom is a bounded creative source for characteristic naming tendencies such as sound, form, and spelling
-            where those mechanics are supported. It contributes to generation; it is not the complete generation request and it
-            is not a cultural-authenticity claim.
+            A Naming idiom shapes the characteristic sound and form of generated names. Your other settings still apply
+            independently.
           </p>
           <p>
-            Familiar, Readable, Compact, Spelling, Cast variation, Roles, identity structure, and seed remain independently
-            declared intent. Selecting an idiom does not silently rewrite those controls, and there is no separate adherence,
-            influence, or strength setting for the idiom.
+            There is no separate adherence or strength setting for an idiom. It describes a creative direction, not cultural
+            authenticity.
           </p>
         </section>
 
         <section id="help-generation" className="help-section" aria-labelledby="help-generation-title">
           <h2 id="help-generation-title">Deterministic generation and reroll</h2>
           <p>
-            Generation is deterministic from the resolved settings and seed: reuse the same generation inputs and seed to
-            reproduce the same result. <strong>Start cast</strong> and <strong>Generate</strong> deliberately choose a fresh seed.
+            The same settings and seed produce the same result. <strong>Start cast</strong> and <strong>Generate</strong> choose a
+            fresh seed so you get a new result.
           </p>
           <p>
-            For an existing cast, editing <strong>Generation seed</strong> and leaving the field applies that seed to the current
-            settings. Rerolling one selected, unlocked identity uses a fresh seed while preserving the other cast slots.
+            Enter a Generation seed when you want to reproduce a result. Rerolling one selected, unlocked name gives that slot a
+            new result while preserving the rest of the cast.
           </p>
         </section>
 
         <section id="help-audition" className="help-section" aria-labelledby="help-audition-title">
           <h2 id="help-audition-title">Browser audition and pronunciation</h2>
           <p>
-            Browser playback is an approximate voice draft. It is useful for hearing a possible reading, but the browser's speech
-            engine is not pronunciation authority and may render an invented name differently from the generated sound evidence.
+            Browser playback is an approximate voice draft. It can help you hear a possible reading, but your browser's speech
+            engine may pronounce an invented name differently from Name Forge's sound guide.
           </p>
           <p>
-            The visible sound guide and retained sound evidence describe generated intent. They should not be read as a universal
-            claim about how every person, accent, or speech system will pronounce the name.
+            The sound guide shows the intended reading generated by Name Forge. Neither it nor browser playback is a claim that
+            every person, accent, or speech system will pronounce the name the same way.
           </p>
         </section>
 
         <section id="help-locking" className="help-section" aria-labelledby="help-locking-title">
           <h2 id="help-locking-title">Locking names</h2>
           <p>
-            A lock preserves an identity while compatible generation intent remains unchanged. Generate keeps locked names and
-            regenerates the rest; a locked selected name cannot be targeted by reroll until it is unlocked.
+            Locked names stay in place when you generate again. An unlocked name can be rerolled on its own.
           </p>
           <p>
-            Changing intent that affects a locked slot—such as its Naming idiom, semantic tuning, identity structure, variation,
-            or applicable role shaping—releases that lock rather than silently rebinding the old name to new intent.
+            If you change a setting that would change a locked name, Name Forge unlocks it rather than pretending the old name
+            matches the new settings.
           </p>
         </section>
 
         <section id="help-components" className="help-section" aria-labelledby="help-components-title">
-          <h2 id="help-components-title">Generated and composed identity material</h2>
+          <h2 id="help-components-title">Identity components</h2>
           <p>
-            Fiction Cast can build one visible identity from several kinds of material. Generated given, additional, family, or
-            place components retain their own sound and spelling evidence. You can inspect those generated components separately.
+            Some parts of a Fiction Cast identity are generated names and have their own sound and spelling details. You can inspect
+            those generated parts separately.
           </p>
           <p>
-            Titles, epithets, initials, particles, and other literals may instead be selected, derived, or composed by Fiction Cast.
-            Their presence in the visible identity does not imply that each piece came from the singular generated-name engine or
-            has independent generated-name evidence.
+            Other parts—such as titles, epithets, initials, and particles—may be selected or assembled by Fiction Cast. Seeing one
+            in the full identity does not mean every part was independently generated.
           </p>
         </section>
       </div>
