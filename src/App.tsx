@@ -22,6 +22,7 @@ import { AboutView } from './ui/AboutView';
 import { ChangelogView } from './ui/ChangelogView';
 import { GameNpcView } from './ui/GameNpcView';
 import { GeneratorView } from './ui/GeneratorView';
+import { HelpView } from './ui/HelpView';
 import { fictionCastMode, gameNpcMode, type NamingModeId } from './ui/modes';
 import type { AppView } from './ui/presentation';
 import { RecentNamesView } from './ui/RecentNamesView';
@@ -213,6 +214,7 @@ export default function App({ rememberedCasts = [] }: AppProps = {}) {
         <div className="utility-tabs" aria-label="Project links">
           <button type="button" className={currentView === 'recent-names' ? 'tab-button active' : 'tab-button'} onClick={() => setCurrentView('recent-names')}>Recent names</button>
           <button type="button" className={currentView === 'changelog' ? 'tab-button active' : 'tab-button'} onClick={() => setCurrentView('changelog')}>Changelog</button>
+          <button type="button" className={currentView === 'help' ? 'tab-button active' : 'tab-button'} onClick={() => setCurrentView('help')}>Help</button>
           <button type="button" className={currentView === 'about' ? 'tab-button active' : 'tab-button'} onClick={() => setCurrentView('about')}>About</button>
           <a className="tab-link" href={sourceUrl} target="_blank" rel="noreferrer">Source</a>
         </div>
@@ -246,6 +248,8 @@ export default function App({ rememberedCasts = [] }: AppProps = {}) {
         <RecentNamesView entries={history.entries} onClear={clearHistory} />
       ) : currentView === 'changelog' ? (
         <ChangelogView commitHistoryUrl={commitHistoryUrl} />
+      ) : currentView === 'help' ? (
+        <HelpView />
       ) : (
         <AboutView authorSiteUrl={authorSiteUrl} />
       )}
