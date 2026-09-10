@@ -22,6 +22,7 @@
 }
 
 .contextual-help {
+  position: relative;
   display: inline-block;
   min-width: 0;
   font-weight: 500;
@@ -71,12 +72,17 @@
 }
 
 .contextual-help-body {
-  margin-top: 0.42rem;
+  position: absolute;
+  top: calc(100% + 0.38rem);
+  left: 0;
+  z-index: 20;
+  width: min(20rem, calc(100vw - 3rem));
   padding: 0.58rem 0.64rem;
-  border: 1px solid rgba(240, 184, 95, 0.14);
+  border: 1px solid rgba(240, 184, 95, 0.2);
   border-radius: 0.68rem;
   color: #cdbfa8;
-  background: rgba(255, 255, 255, 0.045);
+  background: rgba(31, 24, 18, 0.99);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.34);
   font-size: 0.74rem;
   font-weight: 500;
   line-height: 1.45;
