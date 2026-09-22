@@ -324,22 +324,57 @@
   text-transform: uppercase;
 }
 
+.inspector-alternates-content {
+  display: flex;
+  gap: 0.34rem;
+  flex-wrap: wrap;
+  align-items: center;
+  min-width: 0;
+}
+
 .inspector-alternates ul {
   display: flex;
   gap: 0.34rem;
   flex-wrap: wrap;
+  min-width: 0;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .inspector-alternates li {
+  max-width: 100%;
   border: 1px solid rgba(255, 255, 255, 0.065);
   border-radius: 999px;
   padding: 0.28rem 0.48rem;
   color: #cfc2ae;
   background: rgba(255, 255, 255, 0.035);
   font-size: 0.7rem;
+  overflow-wrap: anywhere;
+}
+
+.inspector-alternates-toggle {
+  width: auto;
+  min-height: 2rem;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.28rem 0.4rem;
+  color: #a99980;
+  background: transparent;
+  box-shadow: none;
+  font-size: 0.68rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.inspector-alternates-toggle:hover {
+  color: #f8d99f;
+  background: rgba(240, 184, 95, 0.055);
+}
+
+.inspector-alternates-toggle:focus-visible {
+  outline: 2px solid rgba(240, 184, 95, 0.78);
+  outline-offset: 2px;
 }
 
 .inspector-promoted {
