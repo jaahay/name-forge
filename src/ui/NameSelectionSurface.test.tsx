@@ -3,7 +3,12 @@ import { describe, expect, it } from 'vitest';
 import { generateEnsemble } from '../fictionCast/ensemble';
 import type { FictionCastSettings } from '../fictionCast/types';
 import { createDefaultRegistry } from '../engine/registry';
-import { NameSelectionSurface, nameRailTargetIndex, nameRailWheelDelta } from './NameSelectionSurface';
+import {
+  NameSelectionSurface,
+  adjacentNameIndex,
+  nameRailTargetIndex,
+  nameRailWheelDelta,
+} from './NameSelectionSurface';
 
 const settings: FictionCastSettings = {
   castSize: 3,
@@ -21,7 +26,7 @@ const settings: FictionCastSettings = {
 };
 
 describe('NameSelectionSurface adaptive rail', () => {
-  it('renders one horizontal tab per cast identity with one active workspace', () => {
+  it('renders one horizontal tab per cast identity with one active workspace and adjacent navigation', () => {
     const ensemble = generateEnsemble(settings, createDefaultRegistry());
     const selectedName = ensemble.names[1];
     const lockedName = ensemble.names[2];
@@ -55,7 +60,31 @@ describe('NameSelectionSurface adaptive rail', () => {
     expect(html).toContain('role="tabpanel"');
     expect(html).toContain('id="active-name-workspace"');
     expect(html).toContain(`aria-labelledby="name-rail-tab-${selectedName.id}"`);
+    expect(html).toContain('aria-label="Adjacent cast names"');
+    expect(html).toContain('aria-label="Previous cast name"');
+    expect(html).toContain('aria-label="Next cast name"');
     expect(html).toContain('Active workspace');
+  });
+
+  it('keeps unavailable edge navigation focusable while exposing its disabled state semantically', () => {
+    const ensemble = generateEnsemble(settings, createDefaultRegistry());
+    const firstName = ensemble.names[0];
+    if (!firstName) throw new Error('Expected a generated fixture name.');
+
+    const html = renderToStaticMarkup(
+      <NameSelectionSurface
+        ensemble={ensemble}
+        lockedNameIds={new Set()}
+        selectedNameId={firstName.id}
+        onSelectName={() => {}}
+      >
+        <div>Active workspace</div>
+      </NameSelectionSurface>,
+    );
+
+    expect(html).toContain('aria-label="Previous cast name" aria-controls="active-name-workspace" aria-disabled="true"');
+    expect(html).toContain('aria-label="Next cast name" aria-controls="active-name-workspace" aria-disabled="false"');
+    expect(html).not.toContain('disabled=""');
   });
 
   it('maps Left/Right and Home/End to immediate peer navigation with edge wrapping', () => {
@@ -66,6 +95,17 @@ describe('NameSelectionSurface adaptive rail', () => {
     expect(nameRailTargetIndex('Home', 2, 3)).toBe(0);
     expect(nameRailTargetIndex('End', 0, 3)).toBe(2);
     expect(nameRailTargetIndex('Enter', 1, 3)).toBeUndefined();
+  });
+
+  it('keeps Previous and Next bounded to logical cast order without wrapping', () => {
+    expect(adjacentNameIndex(0, 3, 'previous')).toBeUndefined();
+    expect(adjacentNameIndex(0, 3, 'next')).toBe(1);
+    expect(adjacentNameIndex(1, 3, 'previous')).toBe(0);
+    expect(adjacentNameIndex(1, 3, 'next')).toBe(2);
+    expect(adjacentNameIndex(2, 3, 'previous')).toBe(1);
+    expect(adjacentNameIndex(2, 3, 'next')).toBeUndefined();
+    expect(adjacentNameIndex(-1, 3, 'next')).toBeUndefined();
+    expect(adjacentNameIndex(0, 0, 'next')).toBeUndefined();
   });
 
   it('does not navigate when the current index or cast size is invalid', () => {

@@ -141,7 +141,11 @@ export function GeneratorView({
         ) : null}
       </section>
 
-      <section className={hasGeneratedCast ? 'workspace workbench' : 'workspace workbench new-cast-workbench'}>
+      <section
+        className={hasGeneratedCast
+          ? 'workspace workbench generated-cast-workbench'
+          : 'workspace workbench new-cast-workbench'}
+      >
         <ConfigureTray
           mode={mode}
           stylePacks={stylePacks}
