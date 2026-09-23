@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { renderAuditionCue } from '../engine/audition';
 import type { NameArtifact } from '../engine/nameArtifact';
 import { analyzeNameArtifact } from '../engine/nameArtifactAnalysis';
@@ -45,6 +45,48 @@ function isSelectedSpelling(candidate: SpellingCandidate, selected: SpellingCand
 
 function sameSoundSpellingMetadataLabel(candidate: SpellingCandidate, selected: SpellingCandidate): string {
   return isSelectedSpelling(candidate, selected) ? `selected; preference rank ${candidate.rank}` : `preference rank ${candidate.rank}`;
+}
+
+const ALTERNATIVE_SPELLING_PREVIEW_LIMIT = 3;
+
+interface AlternativeSpellingsProps {
+  readonly artifactId: string;
+  readonly generatedText: string;
+  readonly candidates: readonly SpellingCandidate[];
+}
+
+function AlternativeSpellings({ artifactId, generatedText, candidates }: AlternativeSpellingsProps) {
+  const [expanded, setExpanded] = useState(false);
+  const shouldCompact = candidates.length > ALTERNATIVE_SPELLING_PREVIEW_LIMIT;
+  const visibleCandidates = shouldCompact && !expanded
+    ? candidates.slice(0, ALTERNATIVE_SPELLING_PREVIEW_LIMIT)
+    : candidates;
+  const remainingCount = Math.max(0, candidates.length - ALTERNATIVE_SPELLING_PREVIEW_LIMIT);
+  const listId = `alternative-spellings-${artifactId}`;
+
+  return (
+    <div className="inspector-alternates inspector-alternates-compact">
+      <span>Alternative spellings</span>
+      <div className="inspector-alternates-content">
+        <ul id={listId} aria-label={`${generatedText} other spellings`}>
+          {visibleCandidates.map((candidate) => (
+            <li key={`${artifactId}-${candidate.rank}-${candidate.text}`}>{candidate.text}</li>
+          ))}
+        </ul>
+        {shouldCompact ? (
+          <button
+            type="button"
+            className="inspector-alternates-toggle"
+            aria-controls={listId}
+            aria-expanded={expanded}
+            onClick={() => setExpanded((current) => !current)}
+          >
+            {expanded ? 'Show less' : `+${remainingCount} more`}
+          </button>
+        ) : null}
+      </div>
+    </div>
+  );
 }
 
 function copyText(value: string) {
@@ -246,12 +288,12 @@ export function NameArtifactInspector({
             </div>
             <p className="inspector-audition-note">Browser playback is an approximate voice draft, not canonical pronunciation.</p>
             {showPronunciationAlternates && otherSpellings.length > 0 ? (
-              <div className="inspector-alternates inspector-alternates-compact">
-                <span>Alternative spellings</span>
-                <ul aria-label={`${generatedText} other spellings`}>
-                  {otherSpellings.map((candidate) => <li key={`${artifact.id}-${candidate.rank}-${candidate.text}`}>{candidate.text}</li>)}
-                </ul>
-              </div>
+              <AlternativeSpellings
+                key={artifact.id}
+                artifactId={artifact.id}
+                generatedText={generatedText}
+                candidates={otherSpellings}
+              />
             ) : null}
           </section>
         </div>

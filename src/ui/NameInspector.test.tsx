@@ -55,7 +55,7 @@ describe('NameInspector integration', () => {
     expect(html).not.toContain(variantValue);
   });
 
-  it('keeps alternative same-sound spellings visible without treating them as variants', () => {
+  it('keeps short alternative spelling sets immediately visible without a disclosure control', () => {
     const name = fixtureName();
     const selected = name.primaryName.spelling;
     const alternative = {
@@ -75,6 +75,39 @@ describe('NameInspector integration', () => {
     const html = renderInspector(withAlternative);
     expect(html).toContain('Alternative spellings');
     expect(html).toContain(alternative.text);
+    expect(html).not.toContain('inspector-alternates-toggle');
+    expect(html).not.toContain('Variants</h3>');
+  });
+
+  it('compacts long alternative spelling sets while preserving deterministic preview order', () => {
+    const name = fixtureName();
+    const selected = name.primaryName.spelling;
+    const alternatives = Array.from({ length: 5 }, (_, index) => ({
+      ...selected,
+      text: `${selected.text}-alt-${index + 1}`,
+      rank: selected.rank + index + 1,
+      score: selected.score - ((index + 1) * 0.01),
+    }));
+    const withAlternatives: FictionCastGeneratedName = {
+      ...name,
+      primaryName: {
+        ...name.primaryName,
+        spellingCandidates: [selected, ...alternatives],
+      },
+    };
+
+    const html = renderInspector(withAlternatives);
+    expect(html).toContain('Alternative spellings');
+    expect(html).toContain('class="inspector-alternates-toggle"');
+    expect(html).toContain('aria-expanded="false"');
+    expect(html).toContain('>+2 more</button>');
+    expect(html.indexOf(alternatives[0].text)).toBeLessThan(html.indexOf(alternatives[1].text));
+    expect(html.indexOf(alternatives[1].text)).toBeLessThan(html.indexOf(alternatives[2].text));
+    expect(html).toContain(alternatives[0].text);
+    expect(html).toContain(alternatives[1].text);
+    expect(html).toContain(alternatives[2].text);
+    expect(html).not.toContain(alternatives[3].text);
+    expect(html).not.toContain(alternatives[4].text);
     expect(html).not.toContain('Variants</h3>');
   });
 });
