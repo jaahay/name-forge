@@ -42,8 +42,8 @@ The accepted dependency direction is:
 product surface
   -> reusable typed semantic callback(s)
      generateGivenName(...)   [implemented]
-     generateFamilyName(...)  [accepted; implementation pending]
-     generatePlaceName(...)   [accepted; implementation pending]
+     generateFamilyName(...)  [implemented]
+     generatePlaceName(...)   [implemented]
   -> generic singular generateName(...)
   -> typed style compilation
   -> pure SoundProfile value
@@ -63,7 +63,7 @@ Not every identity value belongs on that synthesis path. Finite lexical material
 
 The existing `silhouette` property on generated names and artifacts remains compatibility and inspection/scoring evidence. It is backed by `NameGenerationPlan`; callers no longer construct a `NameSilhouette`, and silhouette-shaped generator callbacks are no longer part of the naming API.
 
-The active architecture sequence is tracked by parent checkpoint #198. Review #199 concluded that the engine/interface foundation is **not yet settled** and opened bounded blockers #201, #202, and #203. The checkpoint subsequently refined #202: it should establish the stable semantic invocation contract and add the accepted family/place wrappers while keeping `generateName(...)` as the one lexical-name implementation. Surface-specific requirements work remains gated on resolving or explicitly accepting the foundation blockers.
+Parent checkpoint #198 established the shared naming foundation used by the current product. The Fiction Cast UI/UX requirements boundary was subsequently resolved through #212 and its bounded child issues. New surface behavior should remain surface-owned unless concrete cross-surface reuse demonstrates a shared abstraction; `generateName(...)` remains the one generic lexical-name implementation beneath the semantic callbacks.
 
 See [`docs/decisions/0006-naming-capabilities-and-surface-composition.md`](docs/decisions/0006-naming-capabilities-and-surface-composition.md) for the authoritative capability, finite-vocabulary, and surface-composition rules.
 
@@ -77,7 +77,7 @@ Generated sound, sequence, and spelling values use containment for provenance ra
 
 Start here:
 
-- [`docs/current-product-scope.md`](docs/current-product-scope.md) — active shipped baseline, claim boundaries, deferred work, and the current foundation-checkpoint sequence.
+- [`docs/current-product-scope.md`](docs/current-product-scope.md) — active shipped baseline, claim boundaries, deferred work, and current product direction.
 - [`docs/architecture.md`](docs/architecture.md) — current technical architecture and ownership boundaries.
 - [`docs/decisions/0006-naming-capabilities-and-surface-composition.md`](docs/decisions/0006-naming-capabilities-and-surface-composition.md) — accepted `generateName` / semantic-callback / lexical-inventory / surface-composition hierarchy.
 - [`docs/model-module-contracts.md`](docs/model-module-contracts.md) — executable model shapes, collection semantics, and module seams.
