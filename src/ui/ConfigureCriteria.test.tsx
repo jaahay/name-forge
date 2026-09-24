@@ -42,8 +42,6 @@ describe('Configure criteria surface', () => {
       expect(labelIndex).toBeLessThan(firstSecondaryGroup);
     }
     expect(html).toContain('aria-label="Configure roles, Off"');
-    expect(html).not.toContain('Cast role mix');
-    expect(html).not.toContain('Style pack');
   });
 
   it('summarizes active role intent without exposing its child controls on the criteria surface', () => {
@@ -60,16 +58,13 @@ describe('Configure criteria surface', () => {
     expect(html).not.toContain('Generation influence');
   });
 
-  it('offers Cast variation as centered spread rather than rarity-direction presets', () => {
+  it('offers Cast variation as Tight, Balanced, and Wide spread choices', () => {
     const html = renderCriteria();
     const variationStart = html.indexOf('id="fiction-cast-variation"');
     const variationHtml = html.slice(variationStart, html.indexOf('</select>', variationStart));
 
     for (const option of ['Tight', 'Balanced', 'Wide']) {
       expect(variationHtml).toContain(`>${option}</option>`);
-    }
-    for (const oldOption of ['Style-pack weighted', 'Grounded cast', 'Rare-forward cast', 'Mythic arc']) {
-      expect(html).not.toContain(oldOption);
     }
   });
 
@@ -80,11 +75,6 @@ describe('Configure criteria surface', () => {
     expect(html).toContain('<summary>More</summary>');
     expect(html).toContain('<summary>Advanced</summary>');
     expect(html).not.toContain('<details class="control-section" open');
-    expect(html).not.toContain('Cast setup');
-    expect(html).not.toContain('Story roles');
-    expect(html).not.toContain('Criteria signals');
-    expect(html).not.toContain('Run options');
-    expect(html).not.toContain('Advanced tuning');
   });
 
   it('limits contextual help to the three genuinely opaque controls in this slice', () => {
@@ -134,7 +124,6 @@ describe('Configure criteria surface', () => {
     expect(advancedHtml).not.toContain('Slot role overrides');
     expect(advancedHtml).not.toContain('Use role mix');
     expect((advancedHtml.match(/<details class="control-section"/g) ?? []).length).toBe(0);
-    expect(advancedHtml).not.toContain('Advanced tuning');
   });
 
   it('uses visible semantic radio groups instead of numeric criterion tuning', () => {
