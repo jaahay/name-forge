@@ -99,4 +99,4 @@ Product surfaces may build richer identities around singular generated component
 
 The request/grouping platform is a settled shared foundation, not the current product-design target. New surface behavior should remain surface-owned unless a cross-surface abstraction is demonstrated.
 
-The active Fiction Cast design work is the UI/UX requirements boundary tracked by issue #212. That work may change navigation, inspection, controls, history, Help, export presentation, and other surface behavior without requiring the generic request contract to absorb Fiction Cast semantics.
+Issue #212 resolved the comprehensive Fiction Cast UI/UX requirements boundary through bounded surface work. Future Fiction Cast changes should start from concrete product evidence and remain surface-owned unless a genuinely repeated cross-surface contract demonstrates a shared abstraction.
