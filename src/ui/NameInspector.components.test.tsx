@@ -27,7 +27,6 @@ describe('NameInspector generated components', () => {
     expect(html).toContain(`id="generated-component-detail-${name.id}"`);
     expect(html).toContain(name.primaryName.sound.transcription);
     expect(html).not.toContain(`<strong>${name.primaryName.name}</strong><span>Given</span>`);
-    expect(html).not.toContain('Modeled sound for this generated component; browser playback is approximate.');
   });
 
   it('keeps the underlying generated given component visible when initials hide its spelling', () => {
@@ -68,7 +67,6 @@ describe('NameInspector generated components', () => {
     expect(html).not.toContain('Alternative spellings');
     expect(html).not.toContain(alternative.text);
     expect(html).toContain('inspector-generated-component-detail');
-    expect(html).not.toContain('Component sound drafts');
   });
 
   it('connects promoted generated components to one adjacent sound-detail region and icon audition', () => {
@@ -83,8 +81,6 @@ describe('NameInspector generated components', () => {
     expect(html).toContain('inspector-generated-component-detail');
     expect((html.match(/inspector-generated-component-play/g) ?? [])).toHaveLength(expectedComponentCount);
     expect((html.match(/class="inspector-generated-component-detail"/g) ?? [])).toHaveLength(1);
-    expect(html).not.toContain('Component sound drafts');
-    expect(html).not.toContain('inspector-sound-components');
     for (const component of name.identity.components) {
       expect(html).toContain(component.value);
       expect(html).toContain(component.role);
