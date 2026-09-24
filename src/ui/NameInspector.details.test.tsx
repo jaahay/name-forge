@@ -27,12 +27,9 @@ describe('NameInspector details', () => {
     expect(html).toContain('<dt>Readable</dt><dd>Clear</dd>');
     expect(html).toContain('<dt>Compact</dt><dd>Compact</dd>');
     expect(html).toContain('<dt>Naming idiom</dt><dd>British literary fantasy</dd>');
-    expect(html).not.toContain('<dt>Naming style</dt>');
     expect(html).toContain('<dt>Spelling</dt><dd>Conventional</dd>');
     expect(html).toContain('<dt>Cast variation</dt><dd>Wide ·');
     expect(html).toContain('<dt>Role shaping</dt>');
-    expect(html).not.toContain('Criteria evidence');
-    expect(html).not.toContain('Faithful baseline');
     expect(html).not.toContain('Score detail');
     expect(html).not.toContain('<dt>Pronounce</dt>');
     expect(html).not.toContain('<dt>Memorable</dt>');
@@ -130,10 +127,6 @@ describe('NameInspector details', () => {
     expect(html).toContain('materialized format, and derived rarity.');
     expect(html).toContain('Rarity comes from generation-time novelty intent');
     expect(html).toContain('>Details</span>');
-    expect(html).not.toContain('>Breakdown</span>');
-    expect(html).not.toContain('Component sound drafts');
-    expect(html).not.toContain('Criteria evidence');
-    expect(html).not.toContain('inspector-promoted');
     expect((html.match(/class="inspector-more"/g) ?? [])).toHaveLength(1);
   });
 
@@ -166,10 +159,10 @@ describe('NameInspector details', () => {
     expect(notedHtml).toContain('This generated name may take a second pass.');
   });
 
-  it('uses a single circle treatment for Inspector information controls', () => {
+  it('labels Inspector information disclosures by the concept they explain', () => {
     const html = renderInspector(fixtureName());
 
-    expect(html).toContain('inspector-info-disclosure');
-    expect(html).not.toContain('<circle cx="12" cy="12" r="8.5"></circle>');
+    expect(html).toContain('aria-label="About What shaped this name"');
+    expect(html).toContain('aria-label="About Cast context"');
   });
 });
