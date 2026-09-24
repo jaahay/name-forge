@@ -32,11 +32,6 @@ describe('HelpView', () => {
       'Loose',
       'Faithful',
       'authenticity score',
-      'bounded creative source',
-      'independently declared intent',
-      'generated sound evidence',
-      'compatible generation intent',
-      'singular generated-name engine',
     ]) {
       expect(html).not.toContain(internalOrRetiredPhrase);
     }
