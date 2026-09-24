@@ -180,30 +180,30 @@ Human-perception claims require separate evidence. The current boundary is:
 
 Issue #152 remains the governance boundary for any future human-facing name metric. A metric should enter product work only with a declared population or corpus, an exact construct, validation evidence, limitations, and a concrete user decision it improves.
 
-## Foundation checkpoint
+## Resolved foundation and Fiction Cast requirements
 
-Parent checkpoint #198 is the active gate before a new comprehensive Fiction Cast UI/UX requirements boundary.
+Parent checkpoint #198 established the shared naming foundation. Issue #212 then resolved the comprehensive Fiction Cast UI/UX requirements boundary through bounded implementation and refinement issues.
 
-The current foundation now establishes:
+The current foundation establishes:
 
 - Fiction Cast semantics above generic generation;
 - reusable given/family/place semantic callbacks;
 - one seed-driven singular `generateName(...)` boundary;
 - singular `GeneratedName` and `NameArtifact` evidence;
-- surface-owned Fiction Cast composition and lifecycle concerns.
+- surface-owned Fiction Cast composition, lifecycle, roles, and identity semantics;
+- a names-first Fiction Cast workspace with sparse navigation, progressive inspection, explicit Configure intent, remembered-cast navigation, contextual help, and composed-result export.
 
-After #203 merges, #198 should record the explicit foundation sign-off conclusion. The next comprehensive Fiction Cast requirements pass can then evaluate controls, rarity, roles, presets, tuning, formats, Configure/Inspect behavior, history, help, and visual presentation as product choices rather than inherited architecture.
+Future product changes should start from concrete evidence and remain bounded rather than reopening #198 or #212 as active gates.
 
 ## Deferred product work
 
-The following areas remain available for separately scoped product work after the foundation checkpoint:
+The following areas remain available for separately scoped product work:
 
 - Fiction Cast-specific history;
 - richer reusable grouping semantics where more than one surface demonstrates the same need;
 - explicit per-component tuning controls;
 - Game NPC roster UX;
 - shared lexical inventory implementation;
-- Help/FAQ presentation;
 - broader shell or visual-system redesign;
 - validated human-facing name metrics;
 - provider-backed pronunciation or audio.

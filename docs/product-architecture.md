@@ -37,8 +37,8 @@ PRODUCT SURFACE
             v
 REUSABLE SEMANTIC `-Name` CAPABILITIES
   generateGivenName(...)   [implemented]
-  generateFamilyName(...)  [accepted; implementation pending]
-  generatePlaceName(...)   [accepted; implementation pending]
+  generateFamilyName(...)  [implemented]
+  generatePlaceName(...)   [implemented]
   ...future supported name-bearing semantic kinds
             |
             v
@@ -157,9 +157,7 @@ Fiction Cast is intentionally surface-specific. It currently owns:
 
 Its identity grammar uses semantic parts including given, family, and place names plus lexical titles, epithets, initials, and literals.
 
-Fiction Cast currently routes primary given-name generation through `generateGivenName(...)`. Cast-role semantics are resolved in the Fiction Cast layer into semantic/generic planning pressure before generation; role evidence and role-fit scoring remain surface-owned after generation. The singular primitive does not accept a cast role.
-
-Family/place supporting generation still calls generic `generateName(...)` in the current runtime. Their first-class `generateFamilyName(...)` and `generatePlaceName(...)` wrappers are accepted and pending #202; they may initially preserve the same lower generation behavior while establishing stable semantic caller boundaries. Fiction Cast should consume those wrappers once implemented rather than owning duplicate one-name mechanics.
+Fiction Cast routes generated given, family, and place components through `generateGivenName(...)`, `generateFamilyName(...)`, and `generatePlaceName(...)`. Cast-role semantics are resolved in the Fiction Cast layer into semantic/generic planning pressure before generation; role evidence remains surface-owned after generation. The singular primitive does not accept a cast role.
 
 Fiction Cast itself should remain responsible for what makes a **cast** a cast: roles, locks, composition, roster state, cross-name selection pressure, conditional composed-identity collision notes, and targeted reroll.
 
@@ -262,7 +260,7 @@ Finite lexical selection stays outside this path and should not pretend a static
 Distinguish these concepts:
 
 1. **Singular generic name** — generated through the implemented `generateName(...)` primitive.
-2. **Reusable semantic singular name** — generated through a first-class domain callback such as `generateGivenName(...)`, `generateFamilyName(...)`, or `generatePlaceName(...)`, each delegating to `generateName(...)`; given is implemented and family/place are pending #202.
+2. **Reusable semantic singular name** — generated through a first-class domain callback such as `generateGivenName(...)`, `generateFamilyName(...)`, or `generatePlaceName(...)`, each implemented and delegating to `generateName(...)`.
 3. **Independent set** — implemented shared request behavior for N unrelated names under common shared criteria.
 4. **Surface aggregate** — surface-owned orchestration when multiple names have product-specific relationships.
 5. **Reusable aggregate contract** — only if future evidence shows the same cross-name semantics are needed across multiple surfaces.

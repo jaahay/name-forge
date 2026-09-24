@@ -42,8 +42,8 @@ The accepted dependency direction is:
 product surface
   -> reusable typed semantic callback(s)
      generateGivenName(...)   [implemented]
-     generateFamilyName(...)  [accepted; implementation pending]
-     generatePlaceName(...)   [accepted; implementation pending]
+     generateFamilyName(...)  [implemented]
+     generatePlaceName(...)   [implemented]
   -> generic singular generateName(...)
   -> typed style compilation
   -> pure SoundProfile value
@@ -57,13 +57,13 @@ Distinct mechanics are not required for first-class semantic treatment. The curr
 
 Surface-specific multi-name orchestration may sit above those callbacks when plurality itself has meaningful product semantics. Fiction Cast, for example, may coordinate given/family/place generation, roles, locks, and cross-name pressure without requiring that cast orchestration become a universal grouping API.
 
-`src/naming` exposes the singular `generateName(...)` orchestration boundary and the first implemented semantic callback, `generateGivenName(...)`. The generic primitive materializes an internal `NameGenerationPlan` before style, sound, spelling, scoring, and variants. Product/domain semantics such as Fiction Cast roles are resolved above this boundary into generic planning preferences rather than being accepted by `generateName(...)` itself.
+`src/naming` exposes the singular `generateName(...)` orchestration boundary plus the implemented `generateGivenName(...)`, `generateFamilyName(...)`, and `generatePlaceName(...)` semantic callbacks. The generic primitive materializes an internal `NameGenerationPlan` before style, sound, spelling, scoring, and variants. Product/domain semantics such as Fiction Cast roles are resolved above this boundary into generic planning preferences rather than being accepted by `generateName(...)` itself.
 
 Not every identity value belongs on that synthesis path. Finite lexical material such as particles, honorifics, titles, or generational suffixes should use typed lexical inventories plus a small deterministic `selectFromOptions(...)` mechanic under semantic selectors. Caller-facing typed `options` objects may hide granular language/region/dialect/source details while the underlying inventory preserves them with provenance. Name Forge owns the inventory contract and bundled datasets it ships, not universal linguistic truth for a locale or naming tradition.
 
 The existing `silhouette` property on generated names and artifacts remains compatibility and inspection/scoring evidence. It is backed by `NameGenerationPlan`; callers no longer construct a `NameSilhouette`, and silhouette-shaped generator callbacks are no longer part of the naming API.
 
-The active architecture sequence is tracked by parent checkpoint #198. Review #199 concluded that the engine/interface foundation is **not yet settled** and opened bounded blockers #201, #202, and #203. The checkpoint subsequently refined #202: it should establish the stable semantic invocation contract and add the accepted family/place wrappers while keeping `generateName(...)` as the one lexical-name implementation. Surface-specific requirements work remains gated on resolving or explicitly accepting the foundation blockers.
+Parent checkpoint #198 established the shared naming foundation used by the current product. The Fiction Cast UI/UX requirements boundary was subsequently resolved through #212 and its bounded child issues. New surface behavior should remain surface-owned unless concrete cross-surface reuse demonstrates a shared abstraction; `generateName(...)` remains the one generic lexical-name implementation beneath the semantic callbacks.
 
 See [`docs/decisions/0006-naming-capabilities-and-surface-composition.md`](docs/decisions/0006-naming-capabilities-and-surface-composition.md) for the authoritative capability, finite-vocabulary, and surface-composition rules.
 
@@ -77,7 +77,7 @@ Generated sound, sequence, and spelling values use containment for provenance ra
 
 Start here:
 
-- [`docs/current-product-scope.md`](docs/current-product-scope.md) — active shipped baseline, claim boundaries, deferred work, and the current foundation-checkpoint sequence.
+- [`docs/current-product-scope.md`](docs/current-product-scope.md) — active shipped baseline, claim boundaries, deferred work, and current product direction.
 - [`docs/architecture.md`](docs/architecture.md) — current technical architecture and ownership boundaries.
 - [`docs/decisions/0006-naming-capabilities-and-surface-composition.md`](docs/decisions/0006-naming-capabilities-and-surface-composition.md) — accepted `generateName` / semantic-callback / lexical-inventory / surface-composition hierarchy.
 - [`docs/model-module-contracts.md`](docs/model-module-contracts.md) — executable model shapes, collection semantics, and module seams.
@@ -89,7 +89,7 @@ Historical planning and requirements remain useful context, but they are not the
 
 ## Current product capabilities
 
-Shared capabilities include deterministic seeded replay, exact independent-set generation, singular `generateName(...)` orchestration, reusable `generateGivenName(...)`, sound-first candidate generation, exhaustive supported spelling derivation, ranked spelling retention, deterministic readability observations, browser voice-draft audition, pure artifact analysis, shared inspection, source descriptors, and recent-artifact persistence.
+Shared capabilities include deterministic seeded replay, exact independent-set generation, singular `generateName(...)` orchestration, reusable given/family/place semantic callbacks, sound-first candidate generation, exhaustive supported spelling derivation, ranked spelling retention, deterministic readability observations, browser voice-draft audition, pure artifact analysis, shared inspection, source descriptors, and recent-artifact persistence.
 
 Fiction Cast additionally owns roster generation and balancing, cast-specific roles and formats, locks and targeted reroll, composed identities, provenance-preserving phrase audition, conditional composed-identity collision notes, and JSON/Markdown export.
 

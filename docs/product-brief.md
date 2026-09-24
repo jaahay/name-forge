@@ -23,8 +23,8 @@ PRODUCT SURFACE
             v
 REUSABLE SEMANTIC NAMING CAPABILITIES
   generateGivenName(...)   [implemented]
-  generateFamilyName(...)  [accepted; implementation pending]
-  generatePlaceName(...)   [accepted; implementation pending]
+  generateFamilyName(...)  [implemented]
+  generatePlaceName(...)   [implemented]
   ...as additional name-bearing domains are supported
             |
             v
@@ -85,7 +85,7 @@ generatePlaceName(...)
 
 represent reusable naming-domain semantics. They are built on the single generic singular `generateName(...)` primitive rather than becoming parallel sound generators.
 
-`generateGivenName(...)` is the first implemented semantic capability. `generateFamilyName(...)` and `generatePlaceName(...)` are now accepted first-class semantic wrappers because family and place are stable generated-name roles already supported by the product. They may initially preserve exactly the same lower generation behavior as `generateName(...)`; their value is a typed semantic caller contract, configuration boundary, and future specialization point.
+Given, family, and place are implemented first-class semantic capabilities. `generateGivenName(...)`, `generateFamilyName(...)`, and `generatePlaceName(...)` all delegate to the same singular `generateName(...)` primitive while preserving typed semantic caller contracts, configuration boundaries, and future specialization points.
 
 The same capability can appear in many surfaces. For example, `generatePlaceName(...)` may be useful inside Fiction Cast, a world-building surface, an NPC workflow, or another product. Each surface may expose different controls and feed different typed configuration to the same domain capability.
 
@@ -119,7 +119,7 @@ Primary job:
 
 Fiction Cast owns the surface semantics required by that job: roster construction, roles, locks, targeted reroll, composed identities, conditional composed-identity collision notes, cross-name selection pressure, and cast export.
 
-Fiction Cast primary given-name generation delegates through reusable `generateGivenName(...)`. Family/place supporting generation still uses generic `generateName(...)` in the current runtime, but #202 should add their accepted first-class wrappers while preserving the same singular primitive beneath them. Cast-specific roles, contextual scoring, rarity, composition, and aggregate behavior remain above those one-name mechanics.
+Fiction Cast generated given, family, and place components delegate through the reusable semantic callbacks `generateGivenName(...)`, `generateFamilyName(...)`, and `generatePlaceName(...)`, all above the same singular `generateName(...)` primitive. Cast-specific roles, contextual shaping, composition, and aggregate behavior remain above those one-name mechanics.
 
 The aggregate operation that makes a cast coherent may remain Fiction Cast-specific. That specificity is compatible with a highly reusable lower naming library. Aggregate analysis should appear in the product only when it helps the user locate a concrete naming decision; the surface should report supported deterministic relationships rather than grade the creative quality of the cast.
 
@@ -167,7 +167,7 @@ Product and naming-domain semantics remain above sound mechanics.
 
 The generic singular `generateName(...)` boundary is implemented. It materializes internal `NameGenerationPlan` evidence rather than requiring callers to construct a silhouette. The legacy `silhouette` result/artifact property remains compatibility and inspection/scoring evidence, not a product concept or generation callback.
 
-The architecture is currently in foundation checkpoint #198. Review #199 found the dependency direction sound but the concrete engine/interface foundation not yet settled. Bounded blockers #201, #202, and #203 cover generic/surface type ownership, semantic-callback invocation plumbing plus the accepted family/place wrappers, and primitive-result versus composed-identity meaning. Surface-specific requirements work should follow only after that foundation is explicitly signed off.
+Parent checkpoint #198 established the current shared naming foundation, including generic/surface ownership, semantic callback invocation, and the primitive-result versus composed-identity boundary. Issue #212 subsequently resolved the comprehensive Fiction Cast UI/UX requirements boundary. Future work should proceed through bounded product or architecture issues rather than treating either checkpoint as an active gate.
 
 ## Plural behavior
 
@@ -246,4 +246,4 @@ This document does not by itself authorize:
 - baby-name workflows;
 - broad shell redesign.
 
-Active implementation should begin from [`current-product-scope.md`](current-product-scope.md), accepted decisions, and parent checkpoint #198. The current sequence is to resolve the foundation blockers from #199 as refined by the checkpoint decisions, align stale documentation through #200, and only then decide whether the platform is stable enough to begin a new Fiction Cast UI/UX requirements boundary.
+Active implementation should begin from [`current-product-scope.md`](current-product-scope.md), accepted decisions, and concrete open issues. #198 is the resolved foundation checkpoint and #212 is the resolved Fiction Cast UI/UX requirements record; neither is a standing implementation gate.

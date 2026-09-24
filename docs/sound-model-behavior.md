@@ -28,7 +28,7 @@ The important rules are:
 
 > Product surfaces express and inject naming intent above reusable semantic callbacks; every semantic `-Name` callback delegates lexical-name synthesis to one generic `generateName(...)` primitive; and generated sound comes before spelling.
 
-Given, family, and place are first-class semantic generated-name roles. `generateGivenName(...)` is implemented; family/place wrappers are accepted pending #202 and do not need distinct sound mechanics to justify their semantic API status.
+Given, family, and place are first-class semantic generated-name roles. Given, family, and place are implemented first-class semantic generated-name roles through `generateGivenName(...)`, `generateFamilyName(...)`, and `generatePlaceName(...)`. They do not need distinct sound mechanics to justify their semantic API status.
 
 Spelling, display, browser voice, and future audio providers are projections of the generated sound model. Neither product-surface identity nor semantic name kind belongs inside `SoundProfile` or `generateSound(...)`.
 
@@ -44,7 +44,7 @@ User-facing settings describe the desired feel and product context of the result
 
 These settings are ergonomic. They should not ask the user to know phonology terms.
 
-A product surface owns how the user expresses intent. It derives configuration for one or more reusable semantic naming callbacks. `generateGivenName(...)` is implemented; `generateFamilyName(...)` and `generatePlaceName(...)` are accepted first-class wrappers pending #202. Every semantic `-Name` callback delegates generic one-name orchestration to the singular `generateName(...)` primitive. A wrapper may initially preserve exactly the same lower sound behavior while still owning a stable semantic caller contract.
+A product surface owns how the user expresses intent. It derives configuration for one or more reusable semantic naming callbacks. `generateGivenName(...)`, `generateFamilyName(...)`, and `generatePlaceName(...)` are implemented first-class semantic callbacks. Every semantic `-Name` callback delegates generic one-name orchestration to the singular `generateName(...)` primitive; distinct semantic caller contracts do not require distinct lower sound mechanics.
 
 Typed semantic `options` may facade granular language, region, dialect, inventory/source, or planning details rather than forcing every caller to pass those concerns independently. The underlying typed data may retain that resolution even when the sound engine receives only the resolved mechanics it actually needs.
 
@@ -101,7 +101,7 @@ The containing result establishes the relationship among those values. Nested ge
 
 The current `silhouette` property on `GeneratedName` is compatibility/inspection evidence backed by `NameGenerationPlan`; it is not an input to the singular naming callback.
 
-Checkpoint #199 found that the meaning of this app-facing result is not fully settled once Fiction Cast composes multiple parts: #203 tracks the required separation between one primitive sound-backed result and a composed product identity. This document therefore describes the current representation without declaring that representation a stable future surface contract.
+Issue #203 resolved the primitive-versus-composed result boundary: `GeneratedName` remains one coherent sound-backed generated name, while Fiction Cast represents composed product identities explicitly above it. One top-level sound profile or spelling therefore does not pretend to describe an entire multi-part identity.
 
 ### 6. Identity composition
 
@@ -332,11 +332,11 @@ Phonotactics belong in the resolved `SoundProfile` and `soundGenerator` behavior
 
 ## Near-term direction
 
-The singular `generateName(...)` boundary and first semantic `generateGivenName(...)` capability are implemented. Given, family, and place are all accepted first-class generated-name roles; #202 should narrow the stable semantic invocation contract and add `generateFamilyName(...)` / `generatePlaceName(...)` as wrappers over the same primitive. Their initial sound behavior may remain identical to generic generation.
+The singular `generateName(...)` boundary and the given/family/place semantic callbacks are implemented. Parent checkpoint #198 and completed issues #201, #202, and #203 established the current generic/surface ownership, semantic invocation, and primitive-versus-composed result boundaries.
 
-The typed naming-lexicon / deterministic finite-choice direction is also accepted, but its exact runtime contract and migration of current static lexical lists should remain a separate bounded slice unless #201-#203 directly require it.
+The typed naming-lexicon / deterministic finite-choice direction is also accepted, but its exact runtime contract and migration of current static lexical lists remain separate bounded work.
 
-The current architecture work is checkpoint #198 and its evidence-backed blockers from #199 as refined by subsequent checkpoint decisions. #201 still owns generic/surface settings and role metadata separation; #202 owns semantic invocation and the wrapper family; #203 must stabilize the meaning of a primitive generated-name result versus a composed identity. None of those corrections should push semantic name kind, lexical vocabulary, or product-surface identity down into `SoundProfile` or `generateSound(...)`.
+Future changes should preserve those settled boundaries: semantic name kind, lexical vocabulary, and product-surface identity stay above `SoundProfile` and `generateSound(...)`.
 
 The explicit syllable metadata fields are in the durable sound model. Future work should make stress assignment smarter only when the generator has a real rule to own, such as cadence-driven or weight-driven stress. Until then, fallback stress belongs in audition projection and must remain labeled as fallback.
 
