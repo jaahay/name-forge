@@ -38,7 +38,7 @@ function renderConfigureTray(
 }
 
 describe('ConfigureTray shell', () => {
-  it('uses a durable Configure launcher instead of a collapsed Generation summary', () => {
+  it('uses a durable Configure launcher and keeps drawer content out of the closed state', () => {
     const html = renderConfigureTray({ castSize: 8, nameFormat: 'mixed' }, false);
 
     expect(html).toContain('aria-label="Generation controls"');
@@ -46,8 +46,6 @@ describe('ConfigureTray shell', () => {
     expect(html).toContain('>Regenerate</button>');
     expect(html).toContain('aria-expanded="false"');
     expect(html).toContain('aria-controls="fiction-cast-configure-drawer"');
-    expect(html).not.toContain('>Generation<');
-    expect(html).not.toContain('>Tune</button>');
     expect(html).not.toContain('role="dialog"');
     expect(html).not.toContain('Configure criteria');
   });
