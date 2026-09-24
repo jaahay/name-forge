@@ -57,7 +57,7 @@ Distinct mechanics are not required for first-class semantic treatment. The curr
 
 Surface-specific multi-name orchestration may sit above those callbacks when plurality itself has meaningful product semantics. Fiction Cast, for example, may coordinate given/family/place generation, roles, locks, and cross-name pressure without requiring that cast orchestration become a universal grouping API.
 
-`src/naming` exposes the singular `generateName(...)` orchestration boundary and the first implemented semantic callback, `generateGivenName(...)`. The generic primitive materializes an internal `NameGenerationPlan` before style, sound, spelling, scoring, and variants. Product/domain semantics such as Fiction Cast roles are resolved above this boundary into generic planning preferences rather than being accepted by `generateName(...)` itself.
+`src/naming` exposes the singular `generateName(...)` orchestration boundary plus the implemented `generateGivenName(...)`, `generateFamilyName(...)`, and `generatePlaceName(...)` semantic callbacks. The generic primitive materializes an internal `NameGenerationPlan` before style, sound, spelling, scoring, and variants. Product/domain semantics such as Fiction Cast roles are resolved above this boundary into generic planning preferences rather than being accepted by `generateName(...)` itself.
 
 Not every identity value belongs on that synthesis path. Finite lexical material such as particles, honorifics, titles, or generational suffixes should use typed lexical inventories plus a small deterministic `selectFromOptions(...)` mechanic under semantic selectors. Caller-facing typed `options` objects may hide granular language/region/dialect/source details while the underlying inventory preserves them with provenance. Name Forge owns the inventory contract and bundled datasets it ships, not universal linguistic truth for a locale or naming tradition.
 
@@ -89,7 +89,7 @@ Historical planning and requirements remain useful context, but they are not the
 
 ## Current product capabilities
 
-Shared capabilities include deterministic seeded replay, exact independent-set generation, singular `generateName(...)` orchestration, reusable `generateGivenName(...)`, sound-first candidate generation, exhaustive supported spelling derivation, ranked spelling retention, deterministic readability observations, browser voice-draft audition, pure artifact analysis, shared inspection, source descriptors, and recent-artifact persistence.
+Shared capabilities include deterministic seeded replay, exact independent-set generation, singular `generateName(...)` orchestration, reusable given/family/place semantic callbacks, sound-first candidate generation, exhaustive supported spelling derivation, ranked spelling retention, deterministic readability observations, browser voice-draft audition, pure artifact analysis, shared inspection, source descriptors, and recent-artifact persistence.
 
 Fiction Cast additionally owns roster generation and balancing, cast-specific roles and formats, locks and targeted reroll, composed identities, provenance-preserving phrase audition, conditional composed-identity collision notes, and JSON/Markdown export.
 
