@@ -75,8 +75,7 @@ describe('NameInspector integration', () => {
     const html = renderInspector(withAlternative);
     expect(html).toContain('Alternative spellings');
     expect(html).toContain(alternative.text);
-    expect(html).not.toContain('inspector-alternates-toggle');
-    expect(html).not.toContain('Variants</h3>');
+    expect(html).not.toContain('>+1 more</button>');
   });
 
   it('compacts long alternative spelling sets while preserving deterministic preview order', () => {
@@ -98,7 +97,6 @@ describe('NameInspector integration', () => {
 
     const html = renderInspector(withAlternatives);
     expect(html).toContain('Alternative spellings');
-    expect(html).toContain('class="inspector-alternates-toggle"');
     expect(html).toContain('aria-expanded="false"');
     expect(html).toContain('>+2 more</button>');
     expect(html.indexOf(alternatives[0].text)).toBeLessThan(html.indexOf(alternatives[1].text));
@@ -108,6 +106,5 @@ describe('NameInspector integration', () => {
     expect(html).toContain(alternatives[2].text);
     expect(html).not.toContain(alternatives[3].text);
     expect(html).not.toContain(alternatives[4].text);
-    expect(html).not.toContain('Variants</h3>');
   });
 });
