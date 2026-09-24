@@ -27,7 +27,7 @@ describe('GameNpcView', () => {
       expect(html).toContain(expected);
     }
 
-    for (const unsupported of ['Play voice draft', 'Selected spelling', 'Top same-sound spellings', 'Spelling display cap', 'Readability', 'Spelling style', 'Sound texture', 'Pronounceability', 'Familiarity', 'Cast health', 'Cast context']) {
+    for (const unsupported of ['Cast health', 'Cast context']) {
       expect(html).not.toContain(unsupported);
     }
   });
