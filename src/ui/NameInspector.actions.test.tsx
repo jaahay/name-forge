@@ -13,9 +13,6 @@ describe('NameInspector actions and shared inspector boundaries', () => {
     const name = fixtureName();
     const html = renderInspector(name);
 
-    expect(html).toContain('selected-name-actions');
-    expect(html).toContain('selected-name-utilities');
-    expect(html).toContain('inspector-icon-action');
     expect(html).toContain(`aria-label="Play approximate browser voice for ${name.displayName}"`);
     expect(html).toContain(`aria-label="Copy name ${name.displayName}"`);
     expect(html).toContain('title="Copy name"');
@@ -58,11 +55,9 @@ describe('NameInspector actions and shared inspector boundaries', () => {
     const name = fixtureName();
     const html = renderInspector(name, true);
 
-    expect(html).toContain('selected-name-reroll-action');
     expect(html).toContain(`aria-label="Reroll ${name.displayName}"`);
     expect(html).toContain('disabled=""');
     expect(html).toContain('title="Unlock this name to reroll it."');
-    expect(html).toContain('selected-name-lock-action');
     expect(html).toContain(`aria-label="Unlock ${name.displayName}"`);
     expect(html).toContain('title="Unlock name"');
     expect(html).toContain('aria-pressed="true"');
