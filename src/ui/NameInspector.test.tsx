@@ -12,12 +12,15 @@ describe('NameInspector integration', () => {
 
     expect(name.displayName).not.toBe(name.primaryName.name);
     expect(name.identityAudition.displayText).not.toBe(primaryGuide);
+    const soundGuideStart = html.indexOf(`aria-label="Sound guide for ${name.displayName}"`);
+    const soundGuideHtml = html.slice(soundGuideStart, html.indexOf('</section>', soundGuideStart));
+
     expect(html).toContain(name.displayName);
-    expect(html).toContain(`aria-label="Sound guide for ${name.displayName}"`);
+    expect(soundGuideStart).toBeGreaterThan(-1);
     expect(html).not.toContain(`aria-label="Pronunciation guide for ${name.displayName}"`);
     expect(html).toContain(`aria-label="Play approximate browser voice for ${name.displayName}"`);
-    expect(html).toContain(`<p class="inspector-sound-description">${name.identityAudition.displayText}</p>`);
-    expect(html).not.toContain(`<p class="inspector-sound-description">${primaryGuide}</p>`);
+    expect(soundGuideHtml).toContain(name.identityAudition.displayText);
+    expect(soundGuideHtml).not.toContain(primaryGuide);
     expect(html).toContain('Browser playback is an approximate voice draft, not canonical pronunciation.');
     expect(html).not.toContain('<h3>Generated component sound</h3>');
   });
