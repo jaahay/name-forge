@@ -88,8 +88,8 @@ describe('NameInspector details', () => {
   it('preserves opaque generation mechanics under deeper Technical construction', () => {
     const name = fixtureName();
     const html = renderInspector(name);
-    const detailsIndex = html.indexOf('class="inspector-more"');
-    const technicalIndex = html.indexOf('class="inspector-technical-construction"');
+    const detailsIndex = html.indexOf('>Details</span>');
+    const technicalIndex = html.indexOf('>Technical construction</span>');
 
     expect(detailsIndex).toBeGreaterThan(-1);
     expect(technicalIndex).toBeGreaterThan(detailsIndex);
@@ -108,8 +108,8 @@ describe('NameInspector details', () => {
     const generatedSettings = { ...nameInspectorSettings, rolePreset: 'classic-ensemble' as const, roleInfluence: 'light' as const };
     const name = fixtureName(generatedSettings);
     const html = renderInspector(name, false, generatedSettings);
-    const pronunciationIndex = html.indexOf('inspector-pronunciation');
-    const detailsIndex = html.indexOf('class="inspector-more"');
+    const pronunciationIndex = html.indexOf(`aria-label="Sound guide for ${name.displayName}"`);
+    const detailsIndex = html.indexOf('>Details</span>');
     const shapingIndex = html.indexOf('What shaped this name');
     const contextIndex = html.indexOf('Cast context');
     const technicalIndex = html.indexOf('Technical construction');
@@ -119,7 +119,6 @@ describe('NameInspector details', () => {
     expect(shapingIndex).toBeGreaterThan(detailsIndex);
     expect(contextIndex).toBeGreaterThan(detailsIndex);
     expect(technicalIndex).toBeGreaterThan(detailsIndex);
-    expect(html).toContain('inspector-cast-context-facts');
     expect(html).toContain('<dt>Role</dt>');
     expect(html).toContain('<dt>Format</dt>');
     expect(html).toContain('<dt>Rarity</dt>');
@@ -127,7 +126,7 @@ describe('NameInspector details', () => {
     expect(html).toContain('materialized format, and derived rarity.');
     expect(html).toContain('Rarity comes from generation-time novelty intent');
     expect(html).toContain('>Details</span>');
-    expect((html.match(/class="inspector-more"/g) ?? [])).toHaveLength(1);
+    expect((html.match(/>Details<\/span>/g) ?? [])).toHaveLength(1);
   });
 
   it('keeps primitive readability notes inside Details', () => {
@@ -153,7 +152,7 @@ describe('NameInspector details', () => {
     expect(renderInspector(cleanName)).not.toContain('Read notes</h3>');
     const notedHtml = renderInspector(notedName);
     expect(notedHtml).toContain('>Details</span>');
-    expect(notedHtml).toContain('inspector-read-details');
+    expect(notedHtml).toContain(`aria-label="${notedName.displayName} readability notes"`);
     expect(notedHtml).toContain('Read notes</h3>');
     expect(notedHtml).toContain('Long read');
     expect(notedHtml).toContain('This generated name may take a second pass.');
