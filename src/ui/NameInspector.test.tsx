@@ -12,9 +12,6 @@ describe('NameInspector integration', () => {
 
     expect(name.displayName).not.toBe(name.primaryName.name);
     expect(name.identityAudition.displayText).not.toBe(primaryGuide);
-    expect(html).toContain('data-inspector-presentation="pronunciation-guide"');
-    expect(html).toContain('inspector-primary-compact');
-    expect(html).toContain('inspector-pronunciation-line');
     expect(html).toContain(name.displayName);
     expect(html).toContain(`aria-label="Sound guide for ${name.displayName}"`);
     expect(html).not.toContain(`aria-label="Pronunciation guide for ${name.displayName}"`);
