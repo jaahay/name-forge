@@ -1,4 +1,3 @@
-import type { ScoreKey } from '../engine/types';
 import type { FictionCastRarityBand } from '../fictionCast/rarity';
 import type {
   FictionCastSemanticControlKey,
@@ -72,15 +71,6 @@ export const advancedScoreControls = [
 ];
 
 export const scoreControls = [...primaryScoreControls, ...advancedScoreControls];
-
-export const scorePresentation: Array<{ key: ScoreKey; label: string }> = [
-  { key: 'pronounceability', label: 'Pronounce' },
-  { key: 'memorability', label: 'Memorable' },
-  { key: 'novelty', label: 'Novel' },
-  { key: 'culturalAnchoring', label: 'Anchored' },
-  { key: 'orthographicNaturalness', label: 'Natural' },
-  { key: 'styleFit', label: 'Style fit' },
-];
 
 export const rarityPresentation: Record<FictionCastRarityBand, { label: string; className: string }> = {
   common: { label: 'Common', className: 'rarity-common' },
