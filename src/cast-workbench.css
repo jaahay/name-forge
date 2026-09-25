@@ -1,50 +1,5 @@
 /* Fiction Cast workbench density, Inspector behavior, and Cast notes styling. */
 
-.configure-tray.collapsed {
-  gap: 0;
-  padding: 0.58rem 0.72rem;
-  border-color: rgba(240, 184, 95, 0.11);
-  background: rgba(255, 255, 255, 0.022);
-  box-shadow: none;
-}
-
-.configure-tray.collapsed .configure-summary {
-  gap: 0.7rem;
-}
-
-.configure-tray.collapsed .configure-summary-copy {
-  display: flex;
-  gap: 0.58rem;
-  align-items: baseline;
-  min-width: 0;
-}
-
-.configure-tray.collapsed .configure-summary-copy .eyebrow {
-  flex: 0 0 auto;
-  margin: 0;
-  color: #8f806b;
-  font-size: 0.61rem;
-}
-
-.configure-tray.collapsed .configure-summary-copy strong {
-  min-width: 0;
-  color: #cfc2ae;
-  font-size: 0.78rem;
-  font-weight: 760;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.configure-tray.collapsed .configure-summary-actions {
-  gap: 0.38rem;
-}
-
-.configure-tray.collapsed .configure-summary-actions button {
-  padding: 0.42rem 0.68rem;
-  font-size: 0.68rem;
-}
-
 .results-layout.inspector-rail-layout {
   grid-template-columns: minmax(0, 1fr);
   gap: 0.7rem;
@@ -252,15 +207,6 @@
 }
 
 @media (max-width: 900px) {
-  .configure-tray.collapsed .configure-summary-copy {
-    display: grid;
-    gap: 0.12rem;
-  }
-
-  .configure-tray.collapsed .configure-summary-copy strong {
-    white-space: normal;
-  }
-
   .cast-notes > summary {
     display: grid;
     gap: 0.12rem;
