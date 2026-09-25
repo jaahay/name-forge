@@ -267,32 +267,6 @@
   line-height: 1.1;
 }
 
-.inspector-sound-parts {
-  display: flex;
-  gap: 0.42rem;
-  flex-wrap: wrap;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.inspector-sound-parts li {
-  display: inline-flex;
-  gap: 0.36rem;
-  align-items: baseline;
-  max-width: 100%;
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 999px;
-  padding: 0.34rem 0.5rem;
-  background: rgba(255, 255, 255, 0.035);
-}
-
-.inspector-sound-parts strong {
-  color: #d9ccb8;
-  font-size: 0.7rem;
-}
-
-.inspector-sound-parts span,
 .inspector-transcription {
   color: #9f9078;
   font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
@@ -421,63 +395,6 @@
   overflow-wrap: anywhere;
 }
 
-.inspector-cast-context-note {
-  display: flex;
-  gap: 0.45rem;
-  flex-wrap: wrap;
-  margin: 0;
-  color: #9f9079;
-  font-size: 0.68rem;
-  line-height: 1.35;
-}
-
-.inspector-cast-context-note strong {
-  color: #d2c3ac;
-}
-
-.inspector-read-note {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 0.8rem;
-  align-items: start;
-  padding: 0.72rem 0.82rem;
-  border: 1px solid rgba(240, 184, 95, 0.14);
-  border-left-color: rgba(240, 184, 95, 0.58);
-  border-radius: 0.82rem;
-  background: rgba(240, 184, 95, 0.045);
-}
-
-.inspector-read-note-label {
-  color: #f0b85f;
-  font-size: 0.62rem;
-  font-weight: 950;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.inspector-read-note > div {
-  display: grid;
-  gap: 0.45rem;
-}
-
-.inspector-read-note p {
-  display: grid;
-  gap: 0.08rem;
-  margin: 0;
-  color: #bbaa90;
-  font-size: 0.74rem;
-  line-height: 1.38;
-}
-
-.inspector-read-note p strong {
-  color: #efe7d9;
-  font-size: 0.76rem;
-}
-
-.inspector-read-note p.warning {
-  color: #f1c990;
-}
-
 .inspector-more {
   border: 1px solid rgba(240, 184, 95, 0.13);
   border-radius: 0.92rem;
@@ -589,20 +506,6 @@
   overflow-wrap: anywhere;
 }
 
-.inspector-detail-note {
-  display: grid;
-  gap: 0.1rem;
-  margin: 0;
-  padding-top: 0.48rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.055);
-  color: #a99a82;
-  font-size: 0.7rem;
-}
-
-.inspector-detail-note strong {
-  color: #d9ccb8;
-}
-
 .inspector-name-parts {
   display: flex;
   gap: 0.35rem;
@@ -667,11 +570,6 @@
   .selected-name-actions,
   .selected-name-utilities {
     justify-content: flex-start;
-  }
-
-  .inspector-read-note {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 0.36rem;
   }
 
   .inspector-more > summary {
