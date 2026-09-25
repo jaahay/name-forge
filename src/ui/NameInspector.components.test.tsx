@@ -9,9 +9,9 @@ describe('NameInspector generated components', () => {
     const familyComponent = name.identity.components.find((component) => component.kind === 'generated' && component.role === 'family');
     const html = renderInspector(name, false, generatedSettings);
     const titleIndex = html.indexOf(name.displayName);
-    const componentsIndex = html.indexOf('inspector-generated-components');
-    const localDetailIndex = html.indexOf('inspector-generated-component-detail');
-    const pronunciationIndex = html.indexOf('inspector-pronunciation');
+    const componentsIndex = html.indexOf(`aria-label="${name.displayName} generated components"`);
+    const localDetailIndex = html.indexOf(`aria-label="Given component ${name.primaryName.name} sound detail"`);
+    const pronunciationIndex = html.indexOf(`aria-label="Sound guide for ${name.displayName}"`);
 
     expect(familyComponent).toBeDefined();
     expect(titleIndex).toBeGreaterThan(-1);
@@ -66,7 +66,7 @@ describe('NameInspector generated components', () => {
 
     expect(html).not.toContain('Alternative spellings');
     expect(html).not.toContain(alternative.text);
-    expect(html).toContain('inspector-generated-component-detail');
+    expect(html).toContain(`id="generated-component-detail-${name.id}"`);
   });
 
   it('connects promoted generated components to one adjacent sound-detail region and icon audition', () => {
@@ -76,14 +76,16 @@ describe('NameInspector generated components', () => {
     const expectedComponentCount = new Set(generatedComponents.map((component) => component.generatedName.id)).size;
     const html = renderInspector(name, false, generatedSettings);
 
+    const detailId = `generated-component-detail-${name.id}`;
+
     expect(name.identity.format.kind).toBe('epithet-place');
     expect(html).toContain('Generated components');
-    expect(html).toContain('inspector-generated-component-detail');
-    expect((html.match(/inspector-generated-component-play/g) ?? [])).toHaveLength(expectedComponentCount);
-    expect((html.match(/class="inspector-generated-component-detail"/g) ?? [])).toHaveLength(1);
-    for (const component of name.identity.components) {
+    expect(html).toContain(`aria-label="${name.displayName} generated components"`);
+    expect((html.match(new RegExp(`aria-controls="${detailId}"`, 'g')) ?? [])).toHaveLength(expectedComponentCount);
+    expect((html.match(new RegExp(`id="${detailId}"`, 'g')) ?? [])).toHaveLength(1);
+    for (const component of generatedComponents) {
       expect(html).toContain(component.value);
-      expect(html).toContain(component.role);
+      expect(html).toContain(`aria-label="Play approximate browser voice for ${component.generatedName.name}"`);
     }
     expect(html).toContain(name.primaryName.sound.transcription);
   });
