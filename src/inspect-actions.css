@@ -377,11 +377,6 @@
   outline-offset: 2px;
 }
 
-.inspector-promoted {
-  display: grid;
-  margin-top: 0.2rem;
-}
-
 .inspector-cast-context {
   display: grid;
   gap: 0.5rem;
@@ -565,10 +560,6 @@
   border: 1px solid rgba(255, 255, 255, 0.055);
   border-radius: 0.78rem;
   background: rgba(255, 255, 255, 0.025);
-}
-
-.inspector-detail-group[aria-label$='score breakdown'] {
-  grid-column: 1 / -1;
 }
 
 .inspector-detail-facts {
