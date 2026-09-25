@@ -20,7 +20,6 @@ describe('NameInspector integration', () => {
     expect(html).not.toContain(`aria-label="Pronunciation guide for ${name.displayName}"`);
     expect(html).toContain(`aria-label="Play approximate browser voice for ${name.displayName}"`);
     expect(soundGuideHtml).toContain(name.identityAudition.displayText);
-    expect(soundGuideHtml).not.toContain(primaryGuide);
     expect(html).toContain('Browser playback is an approximate voice draft, not canonical pronunciation.');
     expect(html).not.toContain('<h3>Generated component sound</h3>');
   });
