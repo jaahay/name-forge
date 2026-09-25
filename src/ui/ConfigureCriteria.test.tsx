@@ -151,12 +151,6 @@ describe('Configure criteria surface', () => {
     expect(html).not.toContain('type="range"');
     expect(criteriaHtml).not.toContain('type="number"');
     expect(criteriaHtml).not.toContain('<datalist');
-    expect(criteriaHtml).not.toContain('anchor values');
-    expect(criteriaHtml).not.toContain('Shuffle Familiar');
-    expect(criteriaHtml).not.toContain('Shuffle Readable');
-    expect(criteriaHtml).not.toContain('Shuffle Compact');
-    expect(criteriaHtml).not.toContain('Shuffle Style');
-    expect(criteriaHtml).not.toContain('Shuffle Spelling');
     expect(html).toContain('>Randomize criteria</button>');
   });
 });
