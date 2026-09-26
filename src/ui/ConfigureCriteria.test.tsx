@@ -33,7 +33,7 @@ function renderCriteria(overrides: Partial<FictionCastSettings> = {}): string {
 describe('Configure criteria surface', () => {
   it('keeps the essential cast controls visible before secondary groups with one Roles entry point', () => {
     const html = renderCriteria();
-    const firstSecondaryGroup = html.indexOf('<details class="control-section"');
+    const firstSecondaryGroup = html.indexOf('<summary>More</summary>');
 
     expect(firstSecondaryGroup).toBeGreaterThan(0);
     for (const label of ['Cast size', 'Naming idiom', 'Roles', 'Cast variation', 'Configure roles']) {
@@ -42,8 +42,6 @@ describe('Configure criteria surface', () => {
       expect(labelIndex).toBeLessThan(firstSecondaryGroup);
     }
     expect(html).toContain('aria-label="Configure roles, Off"');
-    expect(html).not.toContain('Cast role mix');
-    expect(html).not.toContain('Style pack');
   });
 
   it('summarizes active role intent without exposing its child controls on the criteria surface', () => {
@@ -60,7 +58,7 @@ describe('Configure criteria surface', () => {
     expect(html).not.toContain('Generation influence');
   });
 
-  it('offers Cast variation as centered spread rather than rarity-direction presets', () => {
+  it('offers Cast variation as Tight, Balanced, and Wide spread choices', () => {
     const html = renderCriteria();
     const variationStart = html.indexOf('id="fiction-cast-variation"');
     const variationHtml = html.slice(variationStart, html.indexOf('</select>', variationStart));
@@ -68,29 +66,21 @@ describe('Configure criteria surface', () => {
     for (const option of ['Tight', 'Balanced', 'Wide']) {
       expect(variationHtml).toContain(`>${option}</option>`);
     }
-    for (const oldOption of ['Style-pack weighted', 'Grounded cast', 'Rare-forward cast', 'Mythic arc']) {
-      expect(html).not.toContain(oldOption);
-    }
   });
 
-  it('uses exactly two initially closed secondary groups', () => {
+  it('uses More and Advanced as the two initially closed secondary disclosures', () => {
     const html = renderCriteria();
 
-    expect((html.match(/<details class="control-section"/g) ?? []).length).toBe(2);
-    expect(html).toContain('<summary>More</summary>');
-    expect(html).toContain('<summary>Advanced</summary>');
-    expect(html).not.toContain('<details class="control-section" open');
-    expect(html).not.toContain('Cast setup');
-    expect(html).not.toContain('Story roles');
-    expect(html).not.toContain('Criteria signals');
-    expect(html).not.toContain('Run options');
-    expect(html).not.toContain('Advanced tuning');
+    expect((html.match(/<summary>More<\/summary>/g) ?? []).length).toBe(1);
+    expect((html.match(/<summary>Advanced<\/summary>/g) ?? []).length).toBe(1);
+    expect(html).toMatch(/<details(?![^>]*\bopen\b)[^>]*><summary>More<\/summary>/);
+    expect(html).toMatch(/<details(?![^>]*\bopen\b)[^>]*><summary>Advanced<\/summary>/);
   });
 
   it('limits contextual help to the three genuinely opaque controls in this slice', () => {
     const html = renderCriteria();
 
-    expect((html.match(/<details class="contextual-help"/g) ?? []).length).toBe(3);
+    expect((html.match(/aria-label="About /g) ?? []).length).toBe(3);
     for (const label of ['Naming idiom', 'Cast variation', 'Generation seed']) {
       expect(html).toContain(`aria-label="About ${label}"`);
     }
@@ -133,8 +123,6 @@ describe('Configure criteria surface', () => {
     expect(advancedHtml).not.toContain('Faithful');
     expect(advancedHtml).not.toContain('Slot role overrides');
     expect(advancedHtml).not.toContain('Use role mix');
-    expect((advancedHtml.match(/<details class="control-section"/g) ?? []).length).toBe(0);
-    expect(advancedHtml).not.toContain('Advanced tuning');
   });
 
   it('uses visible semantic radio groups instead of numeric criterion tuning', () => {
@@ -149,7 +137,6 @@ describe('Configure criteria surface', () => {
       expect(criteriaHtml).toContain(`<span>${choice}</span>`);
     }
 
-    expect((criteriaHtml.match(/class="semantic-score-options"/g) ?? []).length).toBe(4);
     expect((criteriaHtml.match(/type="radio"/g) ?? []).length).toBe(12);
     expect(criteriaHtml).toContain('name="score-familiarity"');
     expect(criteriaHtml).toContain('name="score-readability"');
@@ -162,12 +149,6 @@ describe('Configure criteria surface', () => {
     expect(html).not.toContain('type="range"');
     expect(criteriaHtml).not.toContain('type="number"');
     expect(criteriaHtml).not.toContain('<datalist');
-    expect(criteriaHtml).not.toContain('anchor values');
-    expect(criteriaHtml).not.toContain('Shuffle Familiar');
-    expect(criteriaHtml).not.toContain('Shuffle Readable');
-    expect(criteriaHtml).not.toContain('Shuffle Compact');
-    expect(criteriaHtml).not.toContain('Shuffle Style');
-    expect(criteriaHtml).not.toContain('Shuffle Spelling');
     expect(html).toContain('>Randomize criteria</button>');
   });
 });

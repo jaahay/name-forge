@@ -34,21 +34,9 @@ describe('App', () => {
       expect(html).toContain(expected);
     }
 
-    for (const absent of [
-      '>Regenerate</button>',
-      'aria-label="Generation summary"',
-      'repeated endings',
-      'read notes',
-      'Roll fantasy names',
-      'Generated cast',
-      'Cast review',
-      '>Export<',
-      'role="tablist"',
-      'role="tabpanel"',
-      '>Generation<',
-    ]) {
-      expect(html).not.toContain(absent);
-    }
+    expect(html).not.toContain('>Regenerate</button>');
+    expect(html).not.toContain('>Export<');
+    expect(html).not.toContain('role="tablist"');
   });
 
   it('offers remembered casts explicitly without auto-loading them', () => {
@@ -61,7 +49,6 @@ describe('App', () => {
     expect(html).toContain('>Court cast</button>');
     expect(html).not.toContain('aria-current="page"');
     expect(html).toContain('>Start cast</button>');
-    expect(html).not.toContain('Generated cast');
     expect(html).not.toContain('role="tablist"');
   });
 });

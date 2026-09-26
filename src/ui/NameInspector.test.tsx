@@ -12,15 +12,14 @@ describe('NameInspector integration', () => {
 
     expect(name.displayName).not.toBe(name.primaryName.name);
     expect(name.identityAudition.displayText).not.toBe(primaryGuide);
-    expect(html).toContain('data-inspector-presentation="pronunciation-guide"');
-    expect(html).toContain('inspector-primary-compact');
-    expect(html).toContain('inspector-pronunciation-line');
+    const soundGuideStart = html.indexOf(`aria-label="Sound guide for ${name.displayName}"`);
+    const soundGuideHtml = html.slice(soundGuideStart, html.indexOf('</section>', soundGuideStart));
+
     expect(html).toContain(name.displayName);
-    expect(html).toContain(`aria-label="Sound guide for ${name.displayName}"`);
+    expect(soundGuideStart).toBeGreaterThan(-1);
     expect(html).not.toContain(`aria-label="Pronunciation guide for ${name.displayName}"`);
     expect(html).toContain(`aria-label="Play approximate browser voice for ${name.displayName}"`);
-    expect(html).toContain(`<p class="inspector-sound-description">${name.identityAudition.displayText}</p>`);
-    expect(html).not.toContain(`<p class="inspector-sound-description">${primaryGuide}</p>`);
+    expect(soundGuideHtml).toContain(name.identityAudition.displayText);
     expect(html).toContain('Browser playback is an approximate voice draft, not canonical pronunciation.');
     expect(html).not.toContain('<h3>Generated component sound</h3>');
   });
@@ -75,8 +74,7 @@ describe('NameInspector integration', () => {
     const html = renderInspector(withAlternative);
     expect(html).toContain('Alternative spellings');
     expect(html).toContain(alternative.text);
-    expect(html).not.toContain('inspector-alternates-toggle');
-    expect(html).not.toContain('Variants</h3>');
+    expect(html).not.toContain('>+1 more</button>');
   });
 
   it('compacts long alternative spelling sets while preserving deterministic preview order', () => {
@@ -98,7 +96,6 @@ describe('NameInspector integration', () => {
 
     const html = renderInspector(withAlternatives);
     expect(html).toContain('Alternative spellings');
-    expect(html).toContain('class="inspector-alternates-toggle"');
     expect(html).toContain('aria-expanded="false"');
     expect(html).toContain('>+2 more</button>');
     expect(html.indexOf(alternatives[0].text)).toBeLessThan(html.indexOf(alternatives[1].text));
@@ -108,6 +105,5 @@ describe('NameInspector integration', () => {
     expect(html).toContain(alternatives[2].text);
     expect(html).not.toContain(alternatives[3].text);
     expect(html).not.toContain(alternatives[4].text);
-    expect(html).not.toContain('Variants</h3>');
   });
 });

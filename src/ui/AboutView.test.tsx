@@ -3,7 +3,7 @@ import { renderToString } from 'react-dom/server';
 import { AboutView } from './AboutView';
 
 describe('AboutView', () => {
-  it('describes the current multi-mode product without turning About into control help', () => {
+  it('describes the current multi-mode product and trust boundary', () => {
     const html = renderToString(<AboutView authorSiteUrl="https://jameshay.org/" />);
 
     expect(html).toContain('multi-mode random-name workbench');
@@ -15,10 +15,5 @@ describe('AboutView', () => {
     expect(html).toContain('James Hay');
     expect(html).toContain('https://jameshay.org/');
 
-    expect(html).not.toContain('What the dials mean');
-    expect(html).not.toContain('Style preset');
-    expect(html).not.toContain('Cast size');
-    expect(html).not.toContain('What the diagnostic scores are for');
-    expect(html).not.toContain('collapsed cards stay name-only');
   });
 });

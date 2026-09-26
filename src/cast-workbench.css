@@ -1,50 +1,5 @@
 /* Fiction Cast workbench density, Inspector behavior, and Cast notes styling. */
 
-.configure-tray.collapsed {
-  gap: 0;
-  padding: 0.58rem 0.72rem;
-  border-color: rgba(240, 184, 95, 0.11);
-  background: rgba(255, 255, 255, 0.022);
-  box-shadow: none;
-}
-
-.configure-tray.collapsed .configure-summary {
-  gap: 0.7rem;
-}
-
-.configure-tray.collapsed .configure-summary-copy {
-  display: flex;
-  gap: 0.58rem;
-  align-items: baseline;
-  min-width: 0;
-}
-
-.configure-tray.collapsed .configure-summary-copy .eyebrow {
-  flex: 0 0 auto;
-  margin: 0;
-  color: #8f806b;
-  font-size: 0.61rem;
-}
-
-.configure-tray.collapsed .configure-summary-copy strong {
-  min-width: 0;
-  color: #cfc2ae;
-  font-size: 0.78rem;
-  font-weight: 760;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.configure-tray.collapsed .configure-summary-actions {
-  gap: 0.38rem;
-}
-
-.configure-tray.collapsed .configure-summary-actions button {
-  padding: 0.42rem 0.68rem;
-  font-size: 0.68rem;
-}
-
 .results-layout.inspector-rail-layout {
   grid-template-columns: minmax(0, 1fr);
   gap: 0.7rem;
@@ -70,68 +25,6 @@
   padding: 1.05rem 1.15rem 1.15rem;
   background: transparent;
   box-shadow: none;
-}
-
-.inspector-sound-components {
-  display: grid;
-  gap: 0;
-}
-
-.inspector-sound-components li {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 0.7rem;
-  align-items: center;
-  border: 0;
-  border-radius: 0;
-  padding: 0.38rem 0;
-  background: transparent;
-}
-
-.inspector-sound-components li + li {
-  border-top: 1px solid rgba(255, 255, 255, 0.055);
-}
-
-.inspector-sound-component-copy {
-  display: grid;
-  grid-template-columns: minmax(5.8rem, auto) minmax(0, 1fr);
-  gap: 0.68rem;
-  align-items: baseline;
-  min-width: 0;
-}
-
-.inspector-sound-components strong {
-  color: #e6dac8;
-  font-size: 0.76rem;
-}
-
-.inspector-sound-components span {
-  color: #f7f0e3;
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 0.96rem;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-}
-
-.inspector-component-play {
-  width: auto;
-  min-width: 2.9rem;
-  border: 1px solid rgba(240, 184, 95, 0.22);
-  border-radius: 999px;
-  padding: 0.28rem 0.48rem;
-  color: #cdbd9f;
-  background: rgba(240, 184, 95, 0.055);
-  box-shadow: none;
-  font-size: 0.61rem;
-  font-weight: 850;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.inspector-component-play:hover:not(:disabled) {
-  border-color: rgba(240, 184, 95, 0.48);
-  color: #f8d99f;
-  background: rgba(240, 184, 95, 0.1);
 }
 
 .inspector-read-details {
@@ -314,24 +207,9 @@
 }
 
 @media (max-width: 900px) {
-  .configure-tray.collapsed .configure-summary-copy {
-    display: grid;
-    gap: 0.12rem;
-  }
-
-  .configure-tray.collapsed .configure-summary-copy strong {
-    white-space: normal;
-  }
-
   .cast-notes > summary {
     display: grid;
     gap: 0.12rem;
   }
 }
 
-@media (max-width: 560px) {
-  .inspector-sound-component-copy {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 0.12rem;
-  }
-}

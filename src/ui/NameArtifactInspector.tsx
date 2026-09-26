@@ -14,7 +14,6 @@ interface NameArtifactInspectorProps {
   readonly eyebrow?: string;
   readonly extraActions?: ReactNode;
   readonly headingSupplement?: ReactNode;
-  readonly promotedSections?: ReactNode;
   readonly extraSections?: ReactNode;
   readonly primaryPresentation?: 'default' | 'pronunciation-guide';
   readonly actionPresentation?: 'text' | 'icon';
@@ -185,7 +184,6 @@ export function NameArtifactInspector({
   eyebrow = 'Inspect',
   extraActions,
   headingSupplement,
-  promotedSections,
   extraSections,
   primaryPresentation = 'default',
   actionPresentation = 'text',
@@ -323,8 +321,6 @@ export function NameArtifactInspector({
           </section>
         </div>
       )}
-
-      {promotedSections ? <div className="inspector-promoted">{promotedSections}</div> : null}
 
       {hasMoreDetails ? (
         <details className="inspector-more">
