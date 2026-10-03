@@ -50,6 +50,8 @@ Before the product relabels the current Sound guide as `Pronunciation`, generati
 
 Fallback stress may remain in audition as an explicit approximation, but `stressSource: 'fallback'` does not become canonical merely because it sounds plausible.
 
+The current `SyllableStressSource` type is shared by generated syllables and audition syllables and therefore includes `'fallback'` even though generation never produces that source. The implementation follow-up should preserve the semantic boundary in the types as well: fallback provenance belongs to audition/rendering, not to durable generated `SegmentSyllable` evidence. That may mean narrowing the generated stress-source type and giving audition its own extended provenance type rather than persisting fallback into the sequence.
+
 ### Do not create a second durable pronunciation model yet
 
 The first implementation step should complete the existing generated-sound contract rather than introduce a parallel top-level `Pronunciation` object.
