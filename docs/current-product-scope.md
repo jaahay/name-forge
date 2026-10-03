@@ -195,6 +195,14 @@ The current foundation establishes:
 
 Future product changes should start from concrete evidence and remain bounded rather than reopening #198 or #212 as active gates.
 
+## Current backlog posture
+
+The active backlog is deliberately small:
+
+- #222 is the current architecture/research candidate. It must settle pronunciation authority before any provider-backed pronunciation implementation is proposed.
+- #206 is non-blocking deterministic-versioning debt whose original compatibility premise must be revalidated against the current source before implementation.
+- #152 remains dormant research/governance for validated human-facing name metrics and should not become implementation work without its evidence gate being satisfied.
+
 ## Deferred product work
 
 The following areas remain available for separately scoped product work:

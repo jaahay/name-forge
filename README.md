@@ -103,7 +103,7 @@ Browser speech is an approximation surface, not canonical pronunciation. Provide
 
 ## CI and validation
 
-CI is reserved for merge-readiness. The workflow does not run on every branch push or ordinary PR update; it runs when a PR is marked ready for review, when a PR with a `merge-ready` label receives a label event, or by manual dispatch.
+CI validates pull requests and can also be run manually. The workflow runs when a pull request is opened, reopened, synchronized with new commits, or marked ready for review, plus through `workflow_dispatch`. It does not run on ordinary branch pushes or on merges to `main`.
 
 ## Getting started
 
