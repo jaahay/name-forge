@@ -198,11 +198,11 @@ Future product changes should start from concrete evidence and remain bounded ra
 
 ## Current backlog posture
 
-The active backlog is deliberately small:
+The current backlog is deliberately small:
 
-- ADR 0009 resolves #222's pronunciation-authority question at the architecture level. Implementation remains separate: generation-owned stress and an audited phonetic/provider projection must exist before provider-backed pronunciation is proposed.
-- #206 is non-blocking deterministic-versioning debt whose original compatibility premise must be revalidated against the current source before implementation.
+- ADR 0009 resolves #222's pronunciation-authority question at the architecture level. #272 is the next bounded implementation slice: reconcile plan-level stress intent with realized sound stress, separate generated provenance from audition fallback, and audit the phonetic/provider projection before provider-backed pronunciation is proposed.
 - #152 remains dormant research/governance for validated human-facing name metrics and should not become implementation work without its evidence gate being satisfied.
+- #206 is parked technical debt and is not part of the current implementation sequence. Revisit it only if historical deterministic compatibility becomes an explicit product requirement.
 
 ## Deferred product work
 
