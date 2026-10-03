@@ -214,7 +214,7 @@ Fiction Cast may project the `primaryName` of a surface result into singular ana
 
 Human-facing claims remain evidence-specific. Structural and deterministic observations can be presented directly; claims such as universal pronounceability, memorability, realism, beauty, or cultural authenticity require separate validation.
 
-## Audition
+## Audition and pronunciation authority
 
 Singular audition derives browser-oriented presentation from generated sound:
 
@@ -224,7 +224,11 @@ SegmentSequence
   -> BrowserAuditionCue
 ```
 
-Fiction Cast owns whole-identity and component audition presentation for composed identities. Sound-backed identity parts reuse their contained generation evidence; lexical and literal parts remain text.
+ADR 0009 defines the structured generated sound as the source of Name Forge's intended pronunciation for sound-backed generated lexical names. Renderer projections remain downstream from that source. They may choose a voice, accent, pacing, or provider representation, but they do not acquire authority to invent missing pronunciation facts.
+
+The current generator still leaves stress unspecified and audition may supply explicitly labeled fallback stress. Until generation resolves the pronunciation-defining stress evidence, browser playback and human-readable output remain Sound guide / approximate audition rather than authoritative Pronunciation.
+
+Fiction Cast owns whole-identity and component audition presentation for composed identities. Pronunciation authority remains component-local: sound-backed generated parts reuse their contained generation evidence, while lexical, derived, and literal parts remain text unless they later receive explicit pronunciation provenance. A provider integration must therefore remain a renderer below these ownership boundaries rather than moving vendor syntax or voice configuration into generation.
 
 ## Module ownership
 
