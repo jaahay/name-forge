@@ -6,6 +6,7 @@ Related docs:
 
 - [`decisions/0006-naming-capabilities-and-surface-composition.md`](decisions/0006-naming-capabilities-and-surface-composition.md): accepted surface -> semantic callback -> singular `generateName(...)` hierarchy above the sound model, plus the separate finite lexical inventory/selection path.
 - [`requirements/sound-unit-audio-audition-boundary.md`](requirements/sound-unit-audio-audition-boundary.md): current browser-audition boundary plus the genuinely future renderer-neutral/provider audio boundary.
+- [`decisions/0009-generated-pronunciation-authority.md`](decisions/0009-generated-pronunciation-authority.md): generated pronunciation authority, stress ownership, composed-identity provenance, and the production-renderer gate.
 
 ## The short version
 
@@ -162,7 +163,9 @@ NameIdentity
   -> persisted NameArtifact.identityAudition
 ```
 
-`AuditionPhonology` is renderer-neutral. It reads syllables, segments, generated syllable metadata, and stress hints. If generated stress is still `unspecified`, it may expose fallback stress, but it must label that fallback with `stressSource: 'fallback'`.
+`AuditionPhonology` is renderer-neutral. It reads syllables, segments, generated syllable metadata, and stress hints. If generated stress is still `unspecified`, it may expose fallback stress for approximate audition, but it must label that fallback with `stressSource: 'fallback'`.
+
+ADR 0009 defines the structured generated sound as the source of Name Forge's intended pronunciation for sound-backed generated names. Renderer fallbacks do not become pronunciation authority. Until generation owns the pronunciation-defining stress evidence, the product should continue to describe these projections as Sound guide / approximate audition rather than `Pronunciation`.
 
 `BrowserAuditionCue` is renderer-specific. It may use practical text tricks to make browser speech or human display less awkward. It is not the source of truth.
 
@@ -276,6 +279,8 @@ stressSource: 'sequence' | 'cadence-rule' | 'weight-rule' | 'fallback' | 'unspec
 ```
 
 The generator currently sets stress to `unspecified`. `AuditionPhonology` applies the existing fallback stress rule only for presentation, and exposes that with `stressSource: 'fallback'` so a fallback guess does not look as authoritative as a generated stress decision.
+
+Under ADR 0009, stress is the known missing pronunciation-defining fact in the current generated-sound contract. A bounded follow-up should resolve the required stress upstream before generated-name guidance is relabeled as authoritative pronunciation. The exact rule remains a generation/model decision rather than an audition or provider responsibility.
 
 ### Phonotactics
 
