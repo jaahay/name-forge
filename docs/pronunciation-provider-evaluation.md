@@ -1,6 +1,6 @@
 # Pronunciation provider evaluation
 
-Snapshot date: 2026-10-02
+Snapshot date: 2026-10-03
 
 Related decision: [`decisions/0009-generated-pronunciation-authority.md`](decisions/0009-generated-pronunciation-authority.md)
 
@@ -33,7 +33,7 @@ Text-only or prompt-only TTS may still be useful as a voice draft, but it does n
 | Google Cloud Text-to-Speech | SSML `phoneme` supports IPA and X-SAMPA; custom pronunciations can also be supplied in the synthesis request. The documentation explicitly describes primary/secondary stress and optional syllable boundaries. | Strong. Inline/request-scoped pronunciation is a good match for one-off invented names. | Google states Cloud TTS does not log customer text or audio. Pricing depends on voice/model family; current published examples range from character-priced legacy/neural/Chirp offerings to token-priced Gemini TTS. Phoneme support must be confirmed for the exact chosen voice/model. | **Candidate for an authoritative renderer spike**. Particularly attractive for testing stress and syllable projection. |
 | Amazon Polly | SSML `phoneme` supports IPA and X-SAMPA, and PLS lexicons are available. Current phoneme documentation explicitly lists standard, neural, and long-form engines; generative voices should not be assumed to support the same tag without model-specific verification. | Strong on models that support inline `phoneme`; persistent lexicons are optional rather than required. | AWS states Polly does not retain text submissions and allows generated audio to be cached/replayed. Current published pricing is per million characters and varies by engine (for example Standard, Neural, and Generative). | **Viable authoritative renderer**, but model/SSML compatibility is a hard gate; do not choose a newer voice engine solely for naturalness. |
 | ElevenLabs | Pronunciation dictionaries support phoneme rules using IPA or CMU on supported models; unsupported models fall back to aliases/default pronunciation. Current docs say non-English IPA/CMU pronunciation requires a supported multilingual model. | Moderate-to-strong. Pronunciation control exists, but dictionary/version lifecycle is less naturally request-local than inline SSML for a stream of unique invented names. | Streaming and low-latency models are available. Current API pricing is character-based and varies by model. Zero Retention Mode is an enterprise feature; default usage retains generation history subject to their controls. | **Worth a renderer spike if voice quality justifies dictionary management**, but not the simplest first integration for ephemeral names. |
-| OpenAI Text-to-Speech API | Current TTS documentation exposes instruction-level control over delivery such as accent, intonation, speed, and tone. The current guide does not document an SSML or phoneme-input contract. | Weak for authoritative pronunciation today. Prompting may improve an invented-name reading, but it leaves the model responsible for interpreting the pronunciation. | The API is token-metered and supports streaming/audio output. OpenAI states API data is not used for training by default; `/v1/audio/speech` is eligible for Zero Data Retention, with default abuse-monitoring retention otherwise applying. | **Voice-draft candidate only for this use case unless an explicit pronunciation-control contract is documented later.** |
+| OpenAI Realtime / speech generation | On 2026-10-01 OpenAI deprecated `tts-1`, `tts-1-hd`, and the current `gpt-4o-mini-tts` snapshots, with shutdown scheduled for 2027-01-06 and `gpt-realtime-2.1-mini` named as the replacement. Current Realtime prompting guidance supports reference-pronunciation hints, but does not document an SSML or formal phoneme-input contract comparable to the providers above. | Weak for authoritative pronunciation today. Reference pronunciations can improve an invented-name reading, but the model still interprets the hint rather than consuming a provider-neutral phoneme contract. | `gpt-realtime-2.1-mini` is token-metered for text/audio input and output. OpenAI's data-controls documentation lists the Realtime endpoint as eligible for Zero Data Retention; current retention and regional requirements still need to be rechecked for any production integration. | **Voice-draft candidate only for this use case unless an explicit pronunciation-control contract is documented later.** |
 
 ## Sources
 
@@ -68,7 +68,10 @@ Text-only or prompt-only TTS may still be useful as a voice draft, but it does n
 
 ### OpenAI
 
-- [Text-to-speech guide](https://developers.openai.com/api/docs/guides/text-to-speech)
+- [Text-to-speech model deprecations](https://developers.openai.com/api/docs/deprecations)
+- [GPT-Realtime-2.1 Mini model](https://developers.openai.com/api/docs/models/gpt-realtime-2.1-mini)
+- [Prompting Realtime models](https://developers.openai.com/api/docs/guides/voice-prompting)
+- [API pricing](https://developers.openai.com/api/docs/pricing)
 - [API data controls](https://developers.openai.com/api/docs/guides/your-data)
 
 ## Recommendation
@@ -77,7 +80,7 @@ Do not select a production provider in #222.
 
 After generation owns the pronunciation facts and Name Forge has an audited provider-neutral phonetic projection, run a small renderer spike against **Azure Speech and Google Cloud Text-to-Speech first** because both currently document request-local phoneme control that maps well to short, unique invented names. Include **Amazon Polly** if the selected neural/standard voice supports the required phoneme inventory and desired quality. Include **ElevenLabs** when testing whether its voice quality outweighs pronunciation-dictionary lifecycle overhead.
 
-Treat **OpenAI TTS** as a voice-draft option under the current documented interface, not as the authoritative pronunciation renderer.
+Treat **OpenAI Realtime / speech generation** as a voice-draft option under the current documented interface, not as the authoritative pronunciation renderer. The legacy Speech TTS models are already deprecated and should not be the basis of a new integration.
 
 The spike should use a fixed corpus of generated segment sequences covering every current sound segment, multiple syllable counts, stress positions, and composed-name boundaries. Evaluate faithfulness to the requested phonemes and stress before naturalness.
 
