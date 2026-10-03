@@ -16,7 +16,7 @@ SegmentSequence
 
 The current sound model already preserves ordered sound segments, syllable boundaries, coarse syllable metadata, and explicit stress fields. Browser audition projects that evidence into human-readable guide text and Web Speech-friendly text.
 
-That projection is intentionally not authoritative pronunciation today. Generated syllables currently leave stress as `unspecified`, and `AuditionPhonology` may supply fallback stress for presentation. A renderer therefore still invents one pronunciation-defining fact that generation did not decide.
+That projection is intentionally not authoritative pronunciation today. Generation already records coarse plan-level stress intent in `NameGenerationPlan`, but generated syllables leave realized stress as `unspecified`, and `AuditionPhonology` may supply fallback stress for presentation without consulting that plan pattern. The renderer therefore supplies a realized pronunciation fact that has not been materialized into the generated sound contract and is not guaranteed to reflect the plan-level intent.
 
 The current `SoundCandidate.transcription` also must not be treated as provider-ready IPA merely because it uses phonetic-looking symbols and slash notation. The structured inventory and its symbols have not been audited as a complete IPA contract. For example, the current `r` segment is modeled as an alveolar approximant while its display symbol is `r`; IPA normally represents that approximant as `ɹ`. The structured segment identity is therefore stronger evidence than the current rendered transcription string.
 
