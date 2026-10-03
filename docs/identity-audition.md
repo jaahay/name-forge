@@ -3,6 +3,7 @@
 Related docs:
 
 - [`requirements/sound-unit-audio-audition-boundary.md`](requirements/sound-unit-audio-audition-boundary.md): current browser-audition boundary plus the genuinely future renderer-neutral/provider audio boundary.
+- [`decisions/0009-generated-pronunciation-authority.md`](decisions/0009-generated-pronunciation-authority.md): generated pronunciation authority and the rule that authority remains local to sound-backed parts with generation-owned pronunciation facts.
 
 Name Forge has two related audition models:
 
@@ -88,6 +89,8 @@ Titles, epithets, initials, and literals stay text-only. They may be displayed o
 
 That distinction is deliberate. `Archivist`, `the Ashen`, `J.`, and `of` are useful display/speech text, but they are not generated sound-backed names unless a future model explicitly gives them sound provenance.
 
+Under ADR 0009, this is also a pronunciation-authority boundary. A composed identity does not become wholly authoritative pronunciation merely because one or more generated components have authoritative sound evidence; text-backed, derived, and literal parts remain renderer-interpreted until they receive explicit pronunciation provenance.
+
 ## Current browser playback
 
 The selected-name inspector currently provides a lightweight Web Speech API adapter:
@@ -105,7 +108,7 @@ That pause and chunking policy belong to the browser adapter. They are not durab
 - No SSML.
 - No IPA.
 - No provider-specific TTS payload.
-- No canonical pronunciation claim.
+- No whole-identity authoritative pronunciation claim while any spoken part remains text-backed, derived/literal without pronunciation provenance, or dependent on audition fallback.
 - No automatic pronunciation for arbitrary lexical text.
 - No persisted waveform/audio cache.
 - No new audio settings UI.
