@@ -2,6 +2,8 @@
 
 This note records the boundary between the audition behavior that exists today and a future renderer-neutral sound-unit audio model. It does not authorize provider audio, SSML, IPA, waveform generation, or audio persistence.
 
+Related decision: [`../decisions/0009-generated-pronunciation-authority.md`](../decisions/0009-generated-pronunciation-authority.md).
+
 ## Current implemented boundary
 
 Name Forge already has two audition layers and one lightweight browser playback adapter.
@@ -56,6 +58,8 @@ The existing implementation already answers several questions that the original 
 - Phrase playback preserves sound/text/literal provenance rather than flattening the identity model first.
 - Phrase playback can insert a short presentation pause between semantic chunks.
 - Browser speech remains explicitly an approximation rather than a canonical pronunciation claim.
+
+ADR 0009 resolves the authority question without requiring a second audio subsystem: structured generated sound is the source of Name Forge's intended pronunciation for sound-backed generated names, but only pronunciation facts owned by generation are authoritative. The current audition fallback for unspecified stress remains presentation evidence, so today's Sound guide and browser playback are still drafts rather than authoritative Pronunciation.
 
 Those behaviors do not need a second audio subsystem.
 
@@ -157,7 +161,7 @@ Persisted waveform or cache references require a separate storage decision cover
 - Keep `IdentityAuditionPhrase.parts` as the phrase-level provenance boundary.
 - Keep browser playback as an adapter over audition projections, not a new source of truth.
 - Keep text-backed lexemes and literals explicit unless a future model gives them sound provenance.
-- Keep fallback stress labeled as fallback.
+- Keep fallback stress labeled as fallback; an authoritative pronunciation renderer must not silently promote fallback stress into generated intent.
 - Prefer contained values over synthetic relational ids for sound-generation provenance.
 - Add a new audio-plan abstraction only when a concrete renderer requirement exceeds the current audition contracts.
 - Do not add audio fields to the public `NameRequest` or `NameResponse` without a separate contract decision.
@@ -182,8 +186,8 @@ Persisted waveform or cache references require a separate storage decision cover
 - Which timing or boundary hints are renderer-neutral enough to deserve a core contract?
 - How, if ever, should text-backed lexemes acquire explicit sound provenance?
 - Should provider payloads be generated lazily, cached, or never persisted?
-- How should exports describe browser/provider audio without implying canonical pronunciation?
+- How should exports distinguish generated pronunciation provenance from renderer/provider metadata without implying that a particular voice realization is the only valid reading?
 
 ## Safe next step
 
-Do not implement `SoundUnitAudioPlan` merely because the vocabulary exists. The next audio slice should start from a concrete missing capability in the current browser audition path and introduce only the smallest renderer-neutral structure required to support it.
+Do not implement `SoundUnitAudioPlan` merely because the vocabulary exists. Per ADR 0009, the next pronunciation slice should first resolve generation-owned stress and audit an explicit phonetic/provider projection from structured sound. A new renderer-neutral audio-plan abstraction should be introduced only if a concrete provider spike then demonstrates information that the existing generated-sound and audition contracts cannot carry cleanly.
