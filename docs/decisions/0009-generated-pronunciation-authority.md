@@ -44,7 +44,9 @@ If a pronunciation-defining fact is missing from generation, a renderer may stil
 
 ### Stress must move upstream before complete pronunciation authority
 
-In the current implementation, stress is the known missing pronunciation-defining fact. `generateSound(...)` currently records `stress: 'unspecified'` and `stressSource: 'unspecified'`, while `AuditionPhonology` may derive fallback stress later.
+In the current implementation, sound-level stress is the known missing pronunciation-defining fact. `NameGenerationPlan` already materializes a coarse `stressPattern` before sound generation, but `generateSound(...)` does not consume that pattern and independently chooses the actual sound syllable count from `SoundProfile`. The resulting `SegmentSequence` therefore records `stress: 'unspecified'` and `stressSource: 'unspecified'`, while `AuditionPhonology` may derive fallback stress later.
+
+The plan-level stress pattern is relevant generation-time intent, but it is not yet authoritative pronunciation evidence for the realized sound: its syllable count is not guaranteed to equal the generated sequence's syllable count, and no mapping currently materializes the plan pattern onto the sequence. The implementation follow-up must deliberately reconcile those two layers rather than simply copying the plan string into `SegmentSequence`.
 
 Before the product relabels the current Sound guide as `Pronunciation`, generation must resolve the stress information that the pronunciation contract requires. The exact stress algorithm is a bounded follow-up implementation decision; this ADR does not prescribe one universal language rule.
 
