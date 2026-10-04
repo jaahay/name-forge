@@ -108,7 +108,7 @@ The provider path must demonstrate, for the selected model and locale:
 
 A provider that accepts only spelling plus natural-language delivery instructions may still be useful for a voice draft, but it does not satisfy the authoritative pronunciation path.
 
-The current provider survey is recorded separately in [`../pronunciation-provider-evaluation.md`](../pronunciation-provider-evaluation.md) because vendor capabilities and prices change more quickly than this decision.
+Provider comparison is deliberately deferred. When provider-backed audio becomes concrete product work, evaluate the then-current options against this pronunciation-control boundary rather than maintaining a standing vendor survey in the repository.
 
 ## Consequences
 
