@@ -119,7 +119,7 @@ The next implementation work should be bounded around:
 1. resolving generation-owned stress rather than promoting audition fallback;
 2. auditing the sound inventory and defining an explicit provider-neutral phonetic projection;
 3. proving that generated pronunciation projections are deterministic and preserve segment/stress intent;
-4. only then evaluating a provider integration against the selected renderer contract.
+4. stopping there unless later product work creates a concrete need for external pronunciation audio.
 
 Provider integration is not required to make the semantic decision useful. A complete pronunciation contract improves human-readable guidance and future renderers even if browser audition remains the only audio implementation.
 
