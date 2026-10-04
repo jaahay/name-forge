@@ -190,4 +190,4 @@ Persisted waveform or cache references require a separate storage decision cover
 
 ## Safe next step
 
-Do not implement `SoundUnitAudioPlan` merely because the vocabulary exists. Per ADR 0009, the next pronunciation slice should first resolve generation-owned stress and audit an explicit phonetic/provider projection from structured sound. A new renderer-neutral audio-plan abstraction should be introduced only if a concrete provider spike then demonstrates information that the existing generated-sound and audition contracts cannot carry cleanly.
+Do not implement `SoundUnitAudioPlan` merely because the vocabulary exists. Per ADR 0009, the next pronunciation slice should resolve generation-owned stress and audit an explicit provider-neutral phonetic projection from structured sound. Stop there unless a later concrete audio requirement demonstrates information that the existing generated-sound and audition contracts cannot carry cleanly.
