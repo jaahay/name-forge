@@ -60,13 +60,13 @@ The first implementation step should complete the existing generated-sound contr
 
 `SegmentSequence` already owns ordered sound segments, syllable boundaries, onset/nucleus/coda membership, syllable weight, sonority profile, and stress/provenance fields. If a future renderer or language model demonstrates a pronunciation fact that cannot coherently live in the existing generated-sound model, that evidence can justify a new contract then.
 
-### Current transcription is not yet the provider contract
+### Current transcription is not yet an authoritative phonetic projection
 
-`SoundCandidate.transcription` remains useful inspection evidence, but it is not declared canonical IPA or a direct provider payload.
+`SoundCandidate.transcription` remains useful inspection evidence, but it is not declared canonical IPA or an authoritative pronunciation representation.
 
-Before exposing an IPA label or sending phonemes to a production provider, implementation must audit the sound inventory and define an explicit phonetic projection from structured segment identity plus resolved stress to the selected provider alphabet.
+Before exposing an IPA label or treating transcription as pronunciation evidence, implementation must audit the sound inventory and define the smallest explicit provider-neutral phonetic projection from structured segment identity plus resolved stress.
 
-The projection should fail visibly when a segment cannot be represented faithfully rather than silently substituting spelling or provider defaults.
+The projection should fail visibly when a modeled segment cannot be represented faithfully rather than silently substituting spelling or an unrelated fallback. Provider-specific phoneme syntax belongs to a later renderer integration, if one is pursued.
 
 ### Pronunciation authority is component-local in composed identities
 
@@ -117,7 +117,7 @@ The current Fiction Cast and Game NPC UI should continue to use Sound guide / ap
 The next implementation work should be bounded around:
 
 1. resolving generation-owned stress rather than promoting audition fallback;
-2. auditing the sound inventory and defining an explicit phonetic/provider projection;
+2. auditing the sound inventory and defining an explicit provider-neutral phonetic projection;
 3. proving that generated pronunciation projections are deterministic and preserve segment/stress intent;
 4. only then evaluating a provider integration against the selected renderer contract.
 
