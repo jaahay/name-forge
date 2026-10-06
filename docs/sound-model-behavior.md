@@ -282,7 +282,7 @@ stressSource: 'sequence' | 'cadence-rule' | 'weight-rule' | 'fallback' | 'unspec
 
 The generator currently sets stress to `unspecified`. `AuditionPhonology` applies the existing fallback stress rule only for presentation, and exposes that with `stressSource: 'fallback'` so a fallback guess does not look as authoritative as a generated stress decision.
 
-Under ADR 0009, realized sound stress is the known missing pronunciation-defining fact in the current `SegmentSequence` contract. `NameGenerationPlan` already contains a coarse `stressPattern`, but `generateSound(...)` does not consume it and independently chooses the actual sound syllable count. A bounded follow-up should deliberately reconcile that plan-level intent with the realized sequence before generated-name guidance is relabeled as authoritative pronunciation. The exact mapping remains a generation/model decision rather than an audition or provider responsibility.
+Under ADR 0009, realized sound stress is the known missing pronunciation-defining fact in the current `SegmentSequence` contract. `NameGenerationPlan` already contains a coarse `stressPattern`, but `generateSound(...)` does not consume it and independently chooses the actual sound syllable count. A bounded follow-up should explicitly classify whether that plan pattern has any justified causal role in sound generation or should remain planning/diversity evidence, then resolve realized stress in the sound-domain contract before generated-name guidance is relabeled as authoritative pronunciation. Audition and provider layers must not make that decision.
 
 ### Phonotactics
 

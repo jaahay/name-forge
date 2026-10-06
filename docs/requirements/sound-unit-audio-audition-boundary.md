@@ -30,10 +30,10 @@ Browser playback then consumes the singular or composed projection appropriate t
 ```text
 NameArtifact
   -> browserVoiceDraftSegments(...)
+  -> Web Speech API utterances
 
 FictionCastGeneratedName.identityAudition
   -> composed identity speech chunks
-
   -> Web Speech API utterances
 ```
 

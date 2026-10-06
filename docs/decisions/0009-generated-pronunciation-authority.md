@@ -16,7 +16,7 @@ SegmentSequence
 
 The current sound model already preserves ordered sound segments, syllable boundaries, coarse syllable metadata, and explicit stress fields. Browser audition projects that evidence into human-readable guide text and Web Speech-friendly text.
 
-That projection is intentionally not authoritative pronunciation today. Generation already records coarse plan-level stress intent in `NameGenerationPlan`, but generated syllables leave realized stress as `unspecified`, and `AuditionPhonology` may supply fallback stress for presentation without consulting that plan pattern. The renderer therefore supplies a realized pronunciation fact that has not been materialized into the generated sound contract and is not guaranteed to reflect the plan-level intent.
+That projection is intentionally not authoritative pronunciation today. `NameGenerationPlan` records a coarse planning `stressPattern`, but generated syllables leave realized stress as `unspecified`, and `AuditionPhonology` may supply fallback stress for presentation without consulting the plan. The renderer therefore supplies a realized pronunciation fact that has not been materialized into the generated sound contract. The plan pattern is separate planning evidence unless generation explicitly and intentionally makes it causal.
 
 The current `SoundCandidate.transcription` also must not be treated as canonical IPA merely because it uses phonetic-looking symbols and slash notation. The structured inventory and its symbols have not been audited as a complete IPA contract. For example, the current `r` segment is modeled as an alveolar approximant while its display symbol is `r`; IPA normally represents that approximant as `ɹ`. The structured segment identity is therefore stronger evidence than the current rendered transcription string.
 
@@ -46,7 +46,7 @@ If a pronunciation-defining fact is missing from generation, a renderer may stil
 
 In the current implementation, sound-level stress is the known missing pronunciation-defining fact. `NameGenerationPlan` already materializes a coarse `stressPattern` before sound generation, but `generateSound(...)` does not consume that pattern and independently chooses the actual sound syllable count from `SoundProfile`. The resulting `SegmentSequence` therefore records `stress: 'unspecified'` and `stressSource: 'unspecified'`, while `AuditionPhonology` may derive fallback stress later.
 
-The plan-level stress pattern is relevant generation-time intent, but it is not yet authoritative pronunciation evidence for the realized sound: its syllable count is not guaranteed to equal the generated sequence's syllable count, and no mapping currently materializes the plan pattern onto the sequence. The implementation follow-up must deliberately reconcile those two layers rather than simply copying the plan string into `SegmentSequence`.
+The plan-level stress pattern is not authoritative pronunciation evidence for the realized sound: its syllable count is not guaranteed to equal the generated sequence's syllable count, and no mapping currently materializes the plan pattern onto the sequence. Its existence does not require that mapping to be created. The implementation follow-up must explicitly decide whether the plan pattern has a justified causal role in sound generation; otherwise it should remain planning/diversity evidence while realized stress is resolved from the sound-domain contract. In no case should the plan string simply be copied into `SegmentSequence` because it already exists.
 
 Before the product relabels the current Sound guide as `Pronunciation`, generation must resolve the stress information that the pronunciation contract requires. The exact stress algorithm is a bounded follow-up implementation decision; this ADR does not prescribe one universal language rule.
 
@@ -116,7 +116,7 @@ The current Fiction Cast and Game NPC UI should continue to use Sound guide / ap
 
 The next implementation work should be bounded around:
 
-1. resolving generation-owned stress rather than promoting audition fallback;
+1. resolving generation-owned realized stress rather than promoting audition fallback, without assuming the existing plan-level stress pattern is causal;
 2. auditing the existing sound-inventory and transcription semantics, improving the current representation where sufficient, and adding a distinct phonetic projection only if a concrete consumer requires it;
 3. proving that generated pronunciation presentations are deterministic and preserve segment/stress intent;
 4. stopping there unless later product work creates a concrete need for external pronunciation audio.

@@ -200,7 +200,7 @@ Future product changes should start from concrete evidence and remain bounded ra
 
 The current backlog is deliberately small:
 
-- ADR 0009 resolves #222's pronunciation-authority question at the architecture level. #272 is the next bounded implementation slice: reconcile plan-level stress intent with realized sound stress, separate generated provenance from audition fallback, and audit the existing sound-inventory/transcription semantics. A distinct phonetic projection should be added only if a concrete consumer requires it. Provider-backed audio remains later work if the product still needs it.
+- ADR 0009 resolves #222's pronunciation-authority question at the architecture level. #272 is the next bounded implementation slice: resolve realized sound stress, explicitly classify whether the existing plan-level stress pattern has any justified causal role or remains planning/diversity evidence, separate generated provenance from audition fallback, and audit the existing sound-inventory/transcription semantics. A distinct phonetic projection should be added only if a concrete consumer requires it. Provider-backed audio remains later work if the product still needs it.
 - #152 remains dormant research/governance for validated human-facing name metrics and should not become implementation work without its evidence gate being satisfied.
 - #206 is parked technical debt and is not part of the current implementation sequence. Revisit it only if historical deterministic compatibility becomes an explicit product requirement.
 
