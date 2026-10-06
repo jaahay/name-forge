@@ -222,7 +222,7 @@ Baby-name generation remains explicitly deferred because real-world personal nam
 8. **Promote shared abstractions from demonstrated reuse.** New surfaces, semantic name nouns, styles, lexical inventory sources, and aggregate contracts can evolve independently.
 9. **Treat legacy silhouette evidence as compatibility, not architecture.** `NameGenerationPlan` may remain internal while it serves concrete scoring/inspection consumers; callers should not regain a silhouette-shaped API.
 10. **Separate mechanics from human claims.** Deterministic evidence may ship before validated human-facing metrics.
-11. **Separate audition from pronunciation authority.** Browser playback may improve independently of provider-quality or canonical pronunciation work.
+11. **Separate pronunciation authority from rendering.** Structured generated sound owns Name Forge's intended pronunciation for sound-backed generated names once pronunciation-defining facts are materialized in that authoritative sound contract; browser and provider audio remain downstream projections and may not promote renderer guesses into authority.
 12. **Keep assistive parsing optional.** Future LLM assistance may translate user language into criteria or semantic configuration, but core generation should not depend on prompt-first behavior.
 13. **Prefer bounded changes over framework speculation.** Do not invent a universal identity-segment ontology, person-name composer, Policy framework, provider layer, or plugin system without concrete reuse.
 

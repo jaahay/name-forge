@@ -275,7 +275,7 @@ Name Forge can directly expose deterministic evidence such as generated structur
 
 Concepts such as universal pronounceability, familiarity, memorability, realism, beauty, cultural authenticity, or likely human confusion require declared populations/corpora, methodology, validation, confidence, and limitations before being presented as measured product facts.
 
-Browser speech is an audition aid, not canonical pronunciation. Provider audio, IPA, dictionaries, or pronunciation authority require separate contracts.
+Browser speech is an audition aid, not canonical pronunciation. ADR 0009 defines generated pronunciation authority for sound-backed generated names while keeping renderer fallback non-authoritative; provider audio, canonical IPA/provider projection, pronunciation data for text-backed material, and any user override remain separate implementation contracts.
 
 ## Candidate future surfaces
 

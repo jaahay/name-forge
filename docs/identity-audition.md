@@ -3,17 +3,18 @@
 Related docs:
 
 - [`requirements/sound-unit-audio-audition-boundary.md`](requirements/sound-unit-audio-audition-boundary.md): current browser-audition boundary plus the genuinely future renderer-neutral/provider audio boundary.
+- [`decisions/0009-generated-pronunciation-authority.md`](decisions/0009-generated-pronunciation-authority.md): generated pronunciation authority and the rule that authority remains local to sound-backed parts with generation-owned pronunciation facts.
 
 Name Forge has two related audition models:
 
 ```text
 SegmentSequence -> NameAuditionCue
-NameIdentity -> IdentityAuditionPhrase
+FictionCastMaterializedIdentity -> IdentityAuditionPhrase
 ```
 
 `NameAuditionCue` is the single generated-name cue. It starts from one generated `SegmentSequence` and projects that sound into renderer-neutral phonology plus browser/display text.
 
-`IdentityAuditionPhrase` is the phrase-level projection for composed display identities such as:
+`IdentityAuditionPhrase` is the Fiction Cast phrase-level projection for composed display identities such as:
 
 ```text
 Aurelion Relmar
@@ -25,68 +26,67 @@ The current selected-name inspector can also consume these projections for light
 
 ## Ownership split
 
-For the current Fiction Cast product, `src/fictionCast/identity.ts` owns phrase materialization. It creates `NameIdentity.phraseParts` at the same time it creates `displayName` and `parts`.
+For the current Fiction Cast product, `src/fictionCast/identity.ts` owns identity materialization. It creates a `FictionCastMaterializedIdentity` with `displayName`, `components`, and `phraseParts`.
 
-`src/engine/identityAudition.ts` owns audition projection. It consumes `NameIdentity.phraseParts` and the generation evidence already contained on sound-backed identity parts; it does not parse a format template string or look up an external source-name collection.
+`src/fictionCast/identityAudition.ts` owns the composed audition projection. It consumes those `phraseParts` and the generation evidence already contained by generated components; it does not parse a format template string or recover sound through an external lookup.
 
-That split keeps product layout/grammar knowledge near identity construction and keeps shared audition focused on sound/text/literal projection.
+This keeps Fiction Cast composition and phrase provenance in the surface domain while reusing the shared singular `renderAuditionCue(...)` projection for each generated component.
 
 ## Boundary rule
 
-Phrase audition must preserve provenance. It should not turn every identity part into invented generated sound.
+Phrase audition must preserve provenance. It must not turn every identity component into invented generated sound.
 
-| `NameIdentity.phraseParts` entry | `IdentityAuditionPart` kind | Meaning | Speech/display source |
+| `FictionCastIdentityPhrasePart` | Resolved component | `IdentityAuditionPart` kind | Speech/display source |
 | --- | --- | --- | --- |
-| `{ kind: 'part', partId, role }` referencing a sound-backed part with contained generation evidence | `sound` | The identity part retains the generated sound used for that component and can reuse its sequence. | `generated-sound` |
-| `{ kind: 'part', partId, role }` for lexical/display text | `text` | The identity part is text such as a title, epithet, or initial. | `identity-text` |
-| `{ kind: 'literal', value }` | `literal` | The identity format contributes a literal word or punctuation such as `of` or `,`. | `format-literal` |
+| `{ kind: 'component', componentId }` | `kind: 'generated'` and the component value still equals `generatedName.name` | `sound` | `generated-sound` |
+| `{ kind: 'component', componentId }` | lexical or derived component, or any component that cannot safely reuse its generated value | `text` | `identity-text` |
+| `{ kind: 'literal', value }` | no component | `literal` | `format-literal` |
 
-Each phrase part carries both `speechSource` and `displaySource`. They currently match, but they are explicit because speech and display may diverge in a future provider projection or richer presentation layer.
+Each audition part carries both `speechSource` and `displaySource`. They currently match, but they remain explicit because speech and display may diverge in a future provider projection or richer presentation layer.
 
-Current browser playback preserves the same `sound` / `text` / `literal` distinction while deriving utterance chunks. Future provider-neutral or provider-specific audio work must preserve it too. Text-backed lexemes and literals must stay explicit unless a future model gives them their own sound provenance.
+Current browser playback preserves the same `sound` / `text` / `literal` distinction while deriving utterance chunks. Future provider-neutral or provider-specific audio work must preserve it too. Text-backed components and literals stay explicit unless a future model gives them pronunciation provenance.
 
 ## Materialized phrase parts
 
-`NameIdentity.phraseParts` is the structural phrase model. It records part references and literals in final phrase order:
+`FictionCastMaterializedIdentity.phraseParts` is the structural phrase model. It records component references and literals in final phrase order.
+
+For an epithet/place identity the current shape is conceptually:
 
 ```ts
 [
-  { kind: 'part', partId: 'given-name:given', role: 'given' },
-  { kind: 'part', partId: 'given-name:epithet', role: 'epithet' },
+  { kind: 'component', componentId: 'component:given:0' },
+  { kind: 'component', componentId: 'component:epithet:0' },
   { kind: 'literal', value: 'of' },
-  { kind: 'part', partId: 'place-name:place', role: 'place' },
+  { kind: 'component', componentId: 'component:place:0' },
 ]
 ```
 
-Repeated references are represented by repeated phrase entries:
+The referenced `components` collection independently preserves whether each value is generated, lexical, or derived and retains the provenance appropriate to that kind.
 
-```ts
-[
-  { kind: 'part', partId: 'given-name:given', role: 'given' },
-  { kind: 'literal', value: ',' },
-  { kind: 'part', partId: 'given-name:given', role: 'given' },
-]
-```
+There is no separate format pattern field. Phrase order is materialized directly, avoiding a second template-string representation that could drift from `phraseParts`.
 
-There is no separate format pattern field. That is deliberate: phrase structure should not have a second template-string representation that can drift from `phraseParts`.
+## Sound-backed components
 
-## Sound-backed parts
+A referenced component becomes an audition `sound` part only when it is a `FictionCastGeneratedIdentityComponent` and its materialized value still exactly equals `component.generatedName.name`.
 
-A referenced identity part may become `sound` only when all of these are true:
+Generated roles currently include:
 
-1. Its role is sound-backed: `given`, `family`, or `place`.
-2. The part contains generation evidence (`soundProfile`, `sound`, and selected `spelling`) retained when the identity was materialized.
-3. The identity part value still exactly equals its recorded `sourceName`.
+- `given`;
+- `additional-personal`;
+- `family`;
+- `place`.
 
-When those conditions hold, phrase audition derives `NameAuditionCue` from the contained `generation.sound.sequence`. `sourceNameId` and `sourceName` remain useful product/artifact metadata, but they are not relational lookup keys required to recover the sound model.
+When that condition holds, phrase audition derives `NameAuditionCue` from `component.generatedName.sound.sequence`. The resulting sound part records `componentId`, `generatedNameId`, `sourceName`, the retained transcription, and the cue.
 
-This follows the current containment rule: the identity part already owns the generation evidence needed to explain and audition that component.
+This follows the current containment rule: the generated component already contains the complete `GeneratedName` evidence needed to explain and audition that value. No relational lookup is required.
 
-## Text-only parts
+## Text-backed components and literals
 
-Titles, epithets, initials, and literals stay text-only. They may be displayed or passed through as plain browser speech text, but the engine does not invent segment sequences for them.
+Lexical titles and epithets, derived initials, and format literals stay text-backed. They may be displayed or passed through as ordinary browser speech text, but the system does not fabricate a generated `SegmentSequence` for them.
 
-That distinction is deliberate. `Archivist`, `the Ashen`, `J.`, and `of` are useful display/speech text, but they are not generated sound-backed names unless a future model explicitly gives them sound provenance.
+That distinction is deliberate. `Archivist`, `the Ashen`, `J.`, and `of` can be useful display/speech text without pretending they were synthesized by the sound generator.
+
+Under ADR 0009, this is also a pronunciation-authority boundary. A composed identity does not become wholly authoritative pronunciation merely because one or more generated components have authoritative sound evidence; lexical, derived, and literal parts remain renderer-interpreted until they receive explicit pronunciation provenance.
 
 ## Current browser playback
 
@@ -96,19 +96,19 @@ The selected-name inspector currently provides a lightweight Web Speech API adap
 - sound-backed parts use their modeled `speechText`;
 - adjacent text/literal parts are grouped as lexical chunks;
 - the inspector inserts a short presentation pause between chunks;
-- generated sound-backed given/family/place components can also be played independently.
+- generated sound-backed given/additional-personal/family/place components can be played independently.
 
-That pause and chunking policy belong to the browser adapter. They are not durable phonological facts and do not constitute a renderer-neutral phrase-audio plan.
+That pause and chunking policy belongs to the browser adapter. It is not a durable phonological fact and does not constitute a renderer-neutral phrase-audio plan.
 
 ## Non-goals
 
 - No SSML.
 - No IPA.
 - No provider-specific TTS payload.
-- No canonical pronunciation claim.
+- No whole-identity authoritative pronunciation claim while any spoken part remains text-backed, derived/literal without pronunciation provenance, or dependent on audition fallback.
 - No automatic pronunciation for arbitrary lexical text.
 - No persisted waveform/audio cache.
 - No new audio settings UI.
 - No new pronunciation engine.
 
-Phrase audition remains a provenance-preserving projection. The current Web Speech adapter is a lightweight consumer of that projection. Any future renderer-neutral timing model, provider payload, waveform generation, or persisted audio should start from [`requirements/sound-unit-audio-audition-boundary.md`](requirements/sound-unit-audio-audition-boundary.md) and add only the structure required by a concrete missing capability.
+Phrase audition remains a provenance-preserving Fiction Cast projection over materialized identity structure and shared generated-name audition. The current Web Speech adapter is a lightweight consumer of that projection. Any future renderer-neutral timing model, provider payload, waveform generation, or persisted audio should start from [`requirements/sound-unit-audio-audition-boundary.md`](requirements/sound-unit-audio-audition-boundary.md) and add only the structure required by a concrete missing capability.

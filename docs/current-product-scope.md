@@ -169,14 +169,15 @@ Human-perception claims require separate evidence. The current boundary is:
 | Concept | Current product status |
 | --- | --- |
 | Readability diagnostics | Deterministic generated-text observations |
-| Browser audition | Approximate browser speech projection |
+| Browser audition | Approximate browser speech projection; not pronunciation authority |
+| Generated pronunciation intent | ADR 0009 defines structured generated sound as the authority for sound-backed generated names; current product still uses Sound guide while generated stress remains unresolved |
 | Composed Fiction Cast collision notes | Conditional deterministic visible-identity relationships |
 | NameArtifact modeled-sound relationships | Reusable deterministic analysis; not ordinary composed-identity Cast review UI |
 | Pronounceability as a human metric | Research boundary |
 | Familiarity | Research boundary |
 | Memorability | Research boundary |
 | Beauty, realism, cultural authenticity | Require an explicit validated methodology |
-| IPA/provider audio | Future audio boundary |
+| IPA/provider audio | Renderer implementation boundary; current transcription is not yet declared canonical IPA or a provider payload |
 
 Issue #152 remains the governance boundary for any future human-facing name metric. A metric should enter product work only with a declared population or corpus, an exact construct, validation evidence, limitations, and a concrete user decision it improves.
 
@@ -197,11 +198,11 @@ Future product changes should start from concrete evidence and remain bounded ra
 
 ## Current backlog posture
 
-The active backlog is deliberately small:
+The current backlog is deliberately small:
 
-- #222 is the current architecture/research candidate. It must settle pronunciation authority before any provider-backed pronunciation implementation is proposed.
-- #206 is non-blocking deterministic-versioning debt whose original compatibility premise must be revalidated against the current source before implementation.
+- ADR 0009 resolves #222's pronunciation-authority question at the architecture level. #272 is the next bounded implementation slice: resolve realized sound stress, explicitly classify whether the existing plan-level stress pattern has any justified causal role or remains planning/diversity evidence, separate generated provenance from audition fallback, and audit the existing sound-inventory/transcription semantics. A distinct phonetic projection should be added only if a concrete consumer requires it. Provider-backed audio remains later work if the product still needs it.
 - #152 remains dormant research/governance for validated human-facing name metrics and should not become implementation work without its evidence gate being satisfied.
+- #206 is parked technical debt and is not part of the current implementation sequence. Revisit it only if historical deterministic compatibility becomes an explicit product requirement.
 
 ## Deferred product work
 
