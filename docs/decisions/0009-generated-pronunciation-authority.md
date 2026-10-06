@@ -18,7 +18,7 @@ The current sound model already preserves ordered sound segments, syllable bound
 
 That projection is intentionally not authoritative pronunciation today. Generation already records coarse plan-level stress intent in `NameGenerationPlan`, but generated syllables leave realized stress as `unspecified`, and `AuditionPhonology` may supply fallback stress for presentation without consulting that plan pattern. The renderer therefore supplies a realized pronunciation fact that has not been materialized into the generated sound contract and is not guaranteed to reflect the plan-level intent.
 
-The current `SoundCandidate.transcription` also must not be treated as provider-ready IPA merely because it uses phonetic-looking symbols and slash notation. The structured inventory and its symbols have not been audited as a complete IPA contract. For example, the current `r` segment is modeled as an alveolar approximant while its display symbol is `r`; IPA normally represents that approximant as `ɹ`. The structured segment identity is therefore stronger evidence than the current rendered transcription string.
+The current `SoundCandidate.transcription` also must not be treated as canonical IPA merely because it uses phonetic-looking symbols and slash notation. The structured inventory and its symbols have not been audited as a complete IPA contract. For example, the current `r` segment is modeled as an alveolar approximant while its display symbol is `r`; IPA normally represents that approximant as `ɹ`. The structured segment identity is therefore stronger evidence than the current rendered transcription string.
 
 Fiction Cast adds a second boundary. A composed identity may combine generated sound-backed names with lexical titles or epithets, derived initials, and format literals. Those text-backed parts do not acquire pronunciation authority merely because they appear beside generated parts.
 
@@ -60,13 +60,13 @@ The first implementation step should complete the existing generated-sound contr
 
 `SegmentSequence` already owns ordered sound segments, syllable boundaries, onset/nucleus/coda membership, syllable weight, sonority profile, and stress/provenance fields. If a future renderer or language model demonstrates a pronunciation fact that cannot coherently live in the existing generated-sound model, that evidence can justify a new contract then.
 
-### Current transcription is not yet an authoritative phonetic projection
+### Current transcription needs an explicit semantics audit
 
-`SoundCandidate.transcription` remains useful inspection evidence, but it is not declared canonical IPA or an authoritative pronunciation representation.
+`SoundCandidate.transcription` remains useful inspection evidence, but it is not declared canonical IPA or a separate authoritative pronunciation contract.
 
-Before exposing an IPA label or treating transcription as pronunciation evidence, implementation must audit the sound inventory and define the smallest explicit provider-neutral phonetic projection from structured segment identity plus resolved stress.
+Before exposing an IPA label or treating transcription as pronunciation evidence, implementation must audit the current sound inventory, its symbols, and `renderSegmentSequenceTranscription(...)`. Where corrected or clarified existing semantics are sufficient, improve the existing structured sound/transcription representation rather than introducing a parallel projection.
 
-The projection should fail visibly when a modeled segment cannot be represented faithfully rather than silently substituting spelling or an unrelated fallback. Provider-specific phoneme syntax belongs to a later renderer integration, if one is pursued.
+Introduce a distinct renderer-neutral phonetic projection only when a concrete consumer requires a representation that the existing structured sound model cannot express cleanly. Any representation claiming stronger phonetic precision should fail visibly when a modeled segment cannot be represented faithfully rather than silently substituting spelling or an unrelated fallback. Provider-specific phoneme syntax belongs to a later renderer integration, if one is pursued.
 
 ### Pronunciation authority is component-local in composed identities
 
@@ -117,8 +117,8 @@ The current Fiction Cast and Game NPC UI should continue to use Sound guide / ap
 The next implementation work should be bounded around:
 
 1. resolving generation-owned stress rather than promoting audition fallback;
-2. auditing the sound inventory and defining an explicit provider-neutral phonetic projection;
-3. proving that generated pronunciation projections are deterministic and preserve segment/stress intent;
+2. auditing the existing sound-inventory and transcription semantics, improving the current representation where sufficient, and adding a distinct phonetic projection only if a concrete consumer requires it;
+3. proving that generated pronunciation presentations are deterministic and preserve segment/stress intent;
 4. stopping there unless later product work creates a concrete need for external pronunciation audio.
 
 Provider integration is not required to make the semantic decision useful. A complete pronunciation contract improves human-readable guidance and future renderers even if browser audition remains the only audio implementation.

@@ -158,10 +158,12 @@ SegmentSequence
 Phrase pipeline:
 
 ```text
-NameIdentity
+FictionCastMaterializedIdentity
   -> IdentityAuditionPhrase
-  -> persisted NameArtifact.identityAudition
+  -> FictionCastGeneratedName.identityAudition
 ```
+
+`IdentityAuditionPhrase` is surface-owned composed evidence. The singular `NameArtifact` deliberately excludes identity composition and `identityAudition`.
 
 `AuditionPhonology` is renderer-neutral. It reads syllables, segments, generated syllable metadata, and stress hints. If generated stress is still `unspecified`, it may expose fallback stress for approximate audition, but it must label that fallback with `stressSource: 'fallback'`.
 

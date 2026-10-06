@@ -20,20 +20,24 @@ SegmentSequence
 Composed identity audition:
 
 ```text
-NameIdentity
+FictionCastMaterializedIdentity
   -> IdentityAuditionPhrase
-  -> persisted NameArtifact.identityAudition
+  -> FictionCastGeneratedName.identityAudition
 ```
 
-Browser playback then consumes those existing projections:
+Browser playback then consumes the singular or composed projection appropriate to the surface:
 
 ```text
 NameArtifact
   -> browserVoiceDraftSegments(...)
+
+FictionCastGeneratedName.identityAudition
+  -> composed identity speech chunks
+
   -> Web Speech API utterances
 ```
 
-The selected-name inspector can play a whole identity as paced semantic chunks and can play generated sound-backed given, family, or place parts individually. Text-backed titles, epithets, initials, and literals remain text-backed during that playback.
+The selected-name inspector can play a whole identity as paced semantic chunks and can play generated sound-backed given, additional-personal, family, or place parts individually. Text-backed titles, epithets, initials, and literals remain text-backed during that playback.
 
 This is useful runtime audio, but it is still browser text-to-speech projection. It is not a sound-unit audio contract, canonical pronunciation model, provider phoneme payload, or persisted audio representation.
 
@@ -150,7 +154,7 @@ If future renderers need portable pause semantics, introduce an explicit rendere
 
 Do not persist provider payloads or audio blobs by default.
 
-Current persisted artifacts may retain `IdentityAuditionPhrase` because it preserves useful provenance and presentation facts. Future renderer-specific payloads should normally be derived from durable generation and audition facts.
+The singular `NameArtifact` deliberately does not retain Fiction Cast composition or `IdentityAuditionPhrase`. Fiction Cast currently retains `identityAudition` on `FictionCastGeneratedName` for surface behavior. Any future Fiction Cast history or persistence model must make its own bounded decision about retaining composed audition provenance. Future renderer-specific payloads should normally be derived from the durable generation and audition facts owned by the relevant surface/result.
 
 Persisted waveform or cache references require a separate storage decision covering at least renderer/provider version, voice/settings, invalidation, and reproducibility.
 
@@ -190,4 +194,4 @@ Persisted waveform or cache references require a separate storage decision cover
 
 ## Safe next step
 
-Do not implement `SoundUnitAudioPlan` merely because the vocabulary exists. Per ADR 0009, the next pronunciation slice should resolve generation-owned stress and audit an explicit provider-neutral phonetic projection from structured sound. Stop there unless a later concrete audio requirement demonstrates information that the existing generated-sound and audition contracts cannot carry cleanly.
+Do not implement `SoundUnitAudioPlan` merely because the vocabulary exists. Per ADR 0009, the next pronunciation slice should resolve generation-owned stress and audit the existing sound-inventory and transcription semantics. Correct or clarify the current representation where it is sufficient. Introduce a distinct renderer-neutral phonetic projection only if a later concrete consumer requires information that the existing structured sound model cannot express cleanly. Stop there unless a later concrete audio requirement demonstrates information that the existing generated-sound and audition contracts cannot carry cleanly.
